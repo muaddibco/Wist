@@ -1,0 +1,2 @@
+C:\ProgramData\PostSharp\5.1.8\bin.Release\PostSharp.Compiler.Engine.dll
+C:\Projects\MuaddibCo\Wist\Wist.Core\obj\Debug\netstandard2.0\PostSharp\postsharp.config

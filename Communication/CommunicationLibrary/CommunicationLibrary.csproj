@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommonServiceLocator" Version="2.0.3" />
+    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="PostSharp" Version="5.1.8-preview" />
+    <PackageReference Include="Unity" Version="5.8.5" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,5 @@
+C:\Projects\MuaddibCo\Wist\Communication\CommunicationLibrary\bin\Debug\netstandard2.0\DataModel.dll
+C:\Projects\MuaddibCo\Wist\Communication\CommunicationLibrary\obj\Debug\netstandard2.0\CommunicationLibrary.csprojResolveAssemblyReference.cache
+C:\Projects\MuaddibCo\Wist\Communication\CommunicationLibrary\obj\Debug\netstandard2.0\CommunicationLibrary.csproj.CoreCompileInputs.cache
+C:\Projects\MuaddibCo\Wist\Communication\CommunicationLibrary\obj\Debug\netstandard2.0\CommunicationLibrary.AssemblyInfoInputs.cache
+C:\Projects\MuaddibCo\Wist\Communication\CommunicationLibrary\obj\Debug\netstandard2.0\CommunicationLibrary.AssemblyInfo.cs
