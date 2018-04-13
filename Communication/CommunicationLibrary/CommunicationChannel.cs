@@ -1,6 +1,6 @@
-﻿using DataModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Wist.Core.Models;
 
 namespace CommunicationLibrary
 {
