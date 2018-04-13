@@ -18,6 +18,6 @@ namespace CommunicationLibrary.Interfaces
         /// <param name="start">The start.</param>
         /// <param name="end">The end.</param>
         /// <returns>IResponse.</returns>
-        IResponse Parse(byte[] input, out int start, out int end);
+        IMessage Parse(byte[] input, out int start, out int end);
     }
 }

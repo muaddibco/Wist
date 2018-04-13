@@ -9,20 +9,20 @@ namespace CommunicationLibrary.Interfaces
     /// Interface IResponseFactory
     /// </summary>
     [ExtensionPoint]
-    public interface IResponseFactory
+    public interface IMessageFactory
     {
         /// <summary>
         /// Gets the op code.
         /// </summary>
         /// <value>The op code.</value>
-        byte OpCode { get; }
+        byte MessageCode { get; }
 
         /// <summary>
         /// Creates the response.
         /// </summary>
         /// <param name="bodyBytes">The body bytes.</param>
         /// <returns>IResponse.</returns>
-        IResponse CreateResponse(byte[] bodyBytes);
+        IMessage CreateResponse(byte[] bodyBytes);
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ namespace CommunicationLibrary.Interfaces
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <seealso cref="Savyon.Diagnostics.Communication.Common.HighLevel.IResponseFactory" />
-    public interface IResponseFactory<out T> : IResponseFactory where T : IResponse
+    public interface IMessageFactory<out T> : IMessageFactory where T : IMessage
     {
         /// <summary>
         /// Creates the response.

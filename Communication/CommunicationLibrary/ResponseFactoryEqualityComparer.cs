@@ -5,16 +5,16 @@ using System.Text;
 
 namespace CommunicationLibrary
 {
-    public class ResponseFactoryEqualityComparer : IEqualityComparer<IResponseFactory>
+    public class ResponseFactoryEqualityComparer : IEqualityComparer<IMessageFactory>
     {
-        public bool Equals(IResponseFactory x, IResponseFactory y)
+        public bool Equals(IMessageFactory x, IMessageFactory y)
         {
-            return x.OpCode == y.OpCode;
+            return x.MessageCode == y.MessageCode;
         }
 
-        public int GetHashCode(IResponseFactory obj)
+        public int GetHashCode(IMessageFactory obj)
         {
-            return obj.OpCode;
+            return obj.MessageCode;
         }
     }
 }

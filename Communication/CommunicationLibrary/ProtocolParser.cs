@@ -18,31 +18,31 @@ namespace CommunicationLibrary
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(ProtocolParser));
 
-        private readonly IResponseFactory[] _responseFactories;
+        private readonly IMessageFactory[] _responseFactories;
 
         public const byte STX = 0x02;
         public const byte ETX = 0x03;
         public const byte DLE = 0x10;
 
-        public ProtocolParser(IResponseFactory[] responseFactories)
+        public ProtocolParser(IMessageFactory[] responseFactories)
         {
             _responseFactories = responseFactories;
 
-            List<IResponseFactory> distinctFactories = _responseFactories.Distinct(new ResponseFactoryEqualityComparer()).ToList();
+            List<IMessageFactory> distinctFactories = _responseFactories.Distinct(new ResponseFactoryEqualityComparer()).ToList();
             int numberOfDistinctFactories = distinctFactories.Count();
 
             if (numberOfDistinctFactories != _responseFactories.Length)
             {
-                IEnumerable<IResponseFactory> repeatedFactories = _responseFactories.Except(distinctFactories);
+                IEnumerable<IMessageFactory> repeatedFactories = _responseFactories.Except(distinctFactories);
 
                 string repeatedFactoriesOpCodes =
-                    repeatedFactories.Select(f => f.OpCode.ToString()).Aggregate((t1, t2) => $"{t1}, {t2}");
+                    repeatedFactories.Select(f => f.MessageCode.ToString()).Aggregate((t1, t2) => $"{t1}, {t2}");
 
                 throw new NotUniqueResponseFactoriesException(repeatedFactoriesOpCodes);
             }
         }
 
-        public IResponse Parse(byte[] input, out int start, out int end)
+        public IMessage Parse(byte[] input, out int start, out int end)
         {
             if (_log.IsDebugEnabled)
             {
@@ -89,7 +89,7 @@ namespace CommunicationLibrary
             byte opCode = packetDecoded[2];
             int bodyLength = BitConverter.ToInt32(packetDecoded, 3);
 
-            IResponseFactory responseFactory = _responseFactories.FirstOrDefault(r => r.OpCode == opCode);
+            IMessageFactory responseFactory = _responseFactories.FirstOrDefault(r => r.MessageCode == opCode);
             if (responseFactory == null)
             {
                 _log.Warn($"Factory for response with opcode 0x{opCode.ToString("X2")} not found");
@@ -105,8 +105,8 @@ namespace CommunicationLibrary
 
             try
             {
-                IResponse response = responseFactory.CreateResponse(bodyBytes);
-                _log.Debug($"Response with OpCode {response?.OpCode.ToString("X2") ?? "null"} obtained from factory is {response?.GetType().Name ?? "null"}");
+                IMessage response = responseFactory.CreateResponse(bodyBytes);
+                _log.Debug($"Response with OpCode {response?.MessageCode.ToString("X2") ?? "null"} obtained from factory is {response?.GetType().Name ?? "null"}");
                 return response;
             }
             catch (Exception ex)

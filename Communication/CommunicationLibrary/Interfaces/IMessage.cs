@@ -9,13 +9,13 @@ namespace CommunicationLibrary.Interfaces
     /// Interface IResponse
     /// </summary>
     [ExtensionPoint]
-    public interface IResponse
+    public interface IMessage
     {
         /// <summary>
         /// Gets the op code.
         /// </summary>
         /// <value>The op code.</value>
-        byte OpCode { get; }
+        byte MessageCode { get; }
 
         byte[] ToByteArray();
     }
