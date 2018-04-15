@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommunicationLibrary.Messages;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Wist.Core.Architecture;
@@ -12,12 +13,15 @@ namespace CommunicationLibrary.Interfaces
     public interface IProtocolParser
     {
         /// <summary>
-        /// Parses the specified input.
+        /// Adds portion of bytes to the buffer of protocol parser for following fetching instances of <see cref="IMessage"/> from it
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="start">The start.</param>
-        /// <param name="end">The end.</param>
-        /// <returns>IResponse.</returns>
-        IMessage Parse(byte[] input, out int start, out int end);
+        /// <param name="buf"></param>
+        void PushBuffer(byte[] buf);
+
+        /// <summary>
+        /// Iterates buffer collected so far and returns all instances of <see cref="IMessage"/> that were able to parse from it.
+        /// </summary>
+        /// <returns><see cref="IMessage"/></returns>
+        IEnumerable<RawMessage> FetchAllMessages();
     }
 }

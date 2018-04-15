@@ -1,5 +1,6 @@
 ﻿using CommunicationLibrary.Exceptions;
 using CommunicationLibrary.Interfaces;
+using CommunicationLibrary.Messages;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,8 @@ namespace CommunicationLibrary
         public const byte ETX = 0x03;
         public const byte DLE = 0x10;
 
+        private List<ArraySegment<byte>> _buffer;
+
         public ProtocolParser(IMessageFactory[] responseFactories)
         {
             _responseFactories = responseFactories;
@@ -40,6 +43,16 @@ namespace CommunicationLibrary
 
                 throw new NotUniqueResponseFactoriesException(repeatedFactoriesOpCodes);
             }
+        }
+
+        public void PushBuffer(byte[] buf)
+        {
+            _buffer.Add(new ArraySegment<byte>(buf));
+        }
+
+        public IEnumerable<RawMessage> FetchAllMessages()
+        {
+
         }
 
         public IMessage Parse(byte[] input, out int start, out int end)
