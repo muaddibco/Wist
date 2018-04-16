@@ -1,4 +1,5 @@
 ﻿using CommunicationLibrary.Interfaces;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +10,8 @@ namespace CommunicationLibrary
 {
     public class ClientHandler : IClientHandler
     {
+        private readonly object _sync = new object();
+        private readonly ILog _log = LogManager.GetLogger(typeof(ClientHandler));
         private readonly Queue<byte[]> _packets;
         private readonly Queue<byte[]> _messagePackets;
         private CancellationTokenSource _cancellationTokenSource;
@@ -16,6 +19,7 @@ namespace CommunicationLibrary
         public const byte STX = 0x02;
         public const byte DLE = 0x10;
 
+        private bool _isBusy;
         private byte[] _currentBuf;
         private byte[] _currentPacket;
 
@@ -46,90 +50,113 @@ namespace CommunicationLibrary
             byte[] packet = new byte[count];
             Buffer.BlockCopy(buf, 0, packet, 0, count);
             _packets.Enqueue(packet);
+            ParseReceivedData();
         }
 
         public void Start()
         {
             Stop();
 
-            _cancellationTokenSource = new CancellationTokenSource();
-            Task.Factory.StartNew(() => ParseReceivedData(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
+            //_cancellationTokenSource = new CancellationTokenSource();
+            //Task.Factory.StartNew(() => ParseReceivedData(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
         }
 
-        private void ParseReceivedData(CancellationToken token)
+        private async Task ParseReceivedData()
         {
-            while(!token.IsCancellationRequested)
+            if (_isBusy)
+                return;
+
+            await Task.Run(() => 
             {
-                if(_packets.Count > 0)
+                lock (_sync)
                 {
-                    _currentBuf = _packets.Dequeue();
-                    int offset = 0;
+                    if (_isBusy)
+                        return;
 
-                    do
+                    _isBusy = true;
+                }
+
+                try
+                {
+                    while (_packets.Count > 0)
                     {
-                        if (!_packetStartFound)
-                        {
-                            if (_lastPrevBufByteIsDle && _currentBuf[0] == STX)
-                            {
-                                _packetStartFound = true;
-                                offset++;
-                            }
-                            else
-                            {
-                                for (; offset < _currentBuf.Length - 1; offset++)
-                                {
-                                    if (_currentBuf[offset] == DLE && _currentBuf[offset + 1] == STX)
-                                    {
-                                        _packetStartFound = true;
-                                        offset += 2;
-                                        break;
-                                    }
-                                }
+                        _currentBuf = _packets.Dequeue();
+                        int offset = 0;
 
-                                if(!_packetStartFound)
+                        do
+                        {
+                            if (!_packetStartFound)
+                            {
+                                if (_lastPrevBufByteIsDle && _currentBuf[0] == STX)
                                 {
+                                    _packetStartFound = true;
                                     offset++;
-                                    _lastPrevBufByteIsDle = _currentBuf[_currentBuf.Length - 1] == DLE;
                                 }
-                            }
-                        }
-
-                        if (_packetStartFound)
-                        {
-                            if (!_lengthIsSet)
-                            {
-                                offset = SetPacketLength(offset);
-                            }
-
-                            if (_lengthIsSet)
-                            {
-                                if (_packetLengthRemained == _packetLengthExpected)
+                                else
                                 {
-                                    _currentPacket = new byte[_packetLengthExpected];
-                                }
-
-                                if (_currentBuf.Length > offset)
-                                {
-                                    ushort bytesToCopy = (ushort)Math.Min(_currentBuf.Length - offset, _packetLengthRemained);
-                                    Buffer.BlockCopy(_currentBuf, offset, _currentPacket, _packetLengthExpected - _packetLengthRemained, bytesToCopy);
-                                    _packetLengthRemained -= bytesToCopy;
-                                    offset += bytesToCopy;
-
-                                    if(_packetLengthRemained == 0)
+                                    for (; offset < _currentBuf.Length - 1; offset++)
                                     {
-                                        // TODO: take care about parsed message
-                                        _messagePackets.Enqueue(_currentPacket);
-                                        Reset();
+                                        if (_currentBuf[offset] == DLE && _currentBuf[offset + 1] == STX)
+                                        {
+                                            _packetStartFound = true;
+                                            offset += 2;
+                                            break;
+                                        }
+                                    }
+
+                                    if (!_packetStartFound)
+                                    {
+                                        offset++;
+                                        _lastPrevBufByteIsDle = _currentBuf[_currentBuf.Length - 1] == DLE;
                                     }
                                 }
                             }
-                        }
-                    } while (_currentBuf.Length > offset);
+
+                            if (_packetStartFound)
+                            {
+                                if (!_lengthIsSet)
+                                {
+                                    offset = SetPacketLength(offset);
+                                }
+
+                                if (_lengthIsSet)
+                                {
+                                    if (_packetLengthRemained == _packetLengthExpected)
+                                    {
+                                        _currentPacket = new byte[_packetLengthExpected];
+                                    }
+
+                                    if (_currentBuf.Length > offset)
+                                    {
+                                        ushort bytesToCopy = (ushort)Math.Min(_currentBuf.Length - offset, _packetLengthRemained);
+                                        Buffer.BlockCopy(_currentBuf, offset, _currentPacket, _packetLengthExpected - _packetLengthRemained, bytesToCopy);
+                                        _packetLengthRemained -= bytesToCopy;
+                                        offset += bytesToCopy;
+
+                                        if (_packetLengthRemained == 0)
+                                        {
+                                            // TODO: take care about parsed message
+                                            _messagePackets.Enqueue(_currentPacket);
+                                            Reset();
+                                        }
+                                    }
+                                }
+                            }
+                        } while (_currentBuf.Length > offset);
+                    }
+
+                    _isBusy = false;
                 }
-                else
+                catch (Exception ex)
                 {
-                    Thread.Sleep(50);
+                    _isBusy = false;
+                    _log.Error("Failed to parse packet", ex);
                 }
+            });
+
+            if (_packets.Count > 0)
+            {
+                await ParseReceivedData();
             }
         }
 

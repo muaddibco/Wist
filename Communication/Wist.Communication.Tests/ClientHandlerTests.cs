@@ -20,7 +20,6 @@ namespace Wist.Communication.Tests
             byte[] packet = new byte[] { ClientHandler.DLE, ClientHandler.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44};
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc};
 
-            handler.Start();
             handler.PushBuffer(packet, packet.Length);
 
             Thread.Sleep(100);
@@ -38,7 +37,6 @@ namespace Wist.Communication.Tests
             byte[] packet = new byte[] { ClientHandler.DLE, ClientHandler.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc};
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc };
 
-            handler.Start();
             handler.PushBuffer(packet, packet.Length);
 
             Thread.Sleep(100);
@@ -56,7 +54,6 @@ namespace Wist.Communication.Tests
             byte[] packet = new byte[] { ClientHandler.DLE, ClientHandler.STX, ClientHandler.DLE, ClientHandler.DLE + 0x02, 0x00, 0xaa, 0xbb, 0xdd, 0x44 };
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb };
 
-            handler.Start();
             handler.PushBuffer(packet, packet.Length);
 
             Thread.Sleep(100);
@@ -75,7 +72,6 @@ namespace Wist.Communication.Tests
             byte[] packet2 = new byte[] { 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc, 0xdd, 0x44, 0x03, 0x00, 0xaa, 0xbb };
 
-            handler.Start();
             handler.PushBuffer(packet1, packet1.Length);
             handler.PushBuffer(packet2, packet2.Length);
 
@@ -96,7 +92,6 @@ namespace Wist.Communication.Tests
             byte[] packet3 = new byte[] { 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc, 0xdd, 0x44, 0x03, 0x00, 0xaa, 0xbb };
 
-            handler.Start();
             handler.PushBuffer(packet1, packet1.Length);
             handler.PushBuffer(packet2, packet2.Length);
             handler.PushBuffer(packet3, packet3.Length);
