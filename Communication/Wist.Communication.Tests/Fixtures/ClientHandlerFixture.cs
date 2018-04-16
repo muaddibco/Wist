@@ -1,6 +1,7 @@
 ﻿using CommonServiceLocator;
 using CommunicationLibrary;
 using CommunicationLibrary.Interfaces;
+using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,7 +12,6 @@ using Xunit;
 
 namespace Wist.Communication.Tests.Fixtures
 {
-    [Collection("Dependency Injection")]
     public class ClientHandlerFixture : IDisposable
     {
         public ClientHandlerFixture()
@@ -20,12 +20,14 @@ namespace Wist.Communication.Tests.Fixtures
             container.RegisterInstance<IUnityContainer>(container, new ContainerControlledLifetimeManager());
 
             ServiceLocator.SetLocatorProvider(() => new UnityServiceLocator(container));
-
-            container.RegisterType<IClientHandler, ClientHandler>(new Unity.Lifetime.PerResolveLifetimeManager());
         }
 
         public void Dispose()
         {
         }
+
+        public IMessagesHandler MessagesHandler { get; }
+
+        public List<byte[]> Packets { get; }
     }
 }

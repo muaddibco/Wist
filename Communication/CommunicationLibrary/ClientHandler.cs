@@ -14,6 +14,7 @@ namespace CommunicationLibrary
         private readonly ILog _log = LogManager.GetLogger(typeof(ClientHandler));
         private readonly Queue<byte[]> _packets;
         private readonly Queue<byte[]> _messagePackets;
+        private readonly IMessagesHandler _messagesHandler;
         private CancellationTokenSource _cancellationTokenSource;
 
         public const byte STX = 0x02;
@@ -32,8 +33,9 @@ namespace CommunicationLibrary
         private ushort _packetLengthExpected;
         private ushort _packetLengthRemained;
 
-        public ClientHandler()
+        public ClientHandler(IMessagesHandler messagesHandler)
         {
+            _messagesHandler = messagesHandler;
             _packets = new Queue<byte[]>();
             _messagePackets = new Queue<byte[]>();
         }
@@ -135,8 +137,7 @@ namespace CommunicationLibrary
 
                                         if (_packetLengthRemained == 0)
                                         {
-                                            // TODO: take care about parsed message
-                                            _messagePackets.Enqueue(_currentPacket);
+                                            _messagesHandler.Push(_currentPacket);
                                             Reset();
                                         }
                                     }
