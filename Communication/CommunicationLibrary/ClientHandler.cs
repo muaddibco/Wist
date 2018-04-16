@@ -10,6 +10,7 @@ namespace CommunicationLibrary
     public class ClientHandler : IClientHandler
     {
         private readonly Queue<byte[]> _packets;
+        private readonly Queue<byte[]> _messagePackets;
         private CancellationTokenSource _cancellationTokenSource;
 
         public const byte STX = 0x02;
@@ -30,16 +31,21 @@ namespace CommunicationLibrary
         public ClientHandler()
         {
             _packets = new Queue<byte[]>();
+            _messagePackets = new Queue<byte[]>();
         }
+
+        public Queue<byte[]> MessagePackets => _messagePackets;
 
         public IEnumerable<byte[]> GetMessagesToSend()
         {
             throw new NotImplementedException();
         }
 
-        public void PushBuffer(byte[] buf)
+        public void PushBuffer(byte[] buf, int count)
         {
-            _packets.Enqueue(buf);
+            byte[] packet = new byte[count];
+            Buffer.BlockCopy(buf, 0, packet, 0, count);
+            _packets.Enqueue(packet);
         }
 
         public void Start()
@@ -75,8 +81,15 @@ namespace CommunicationLibrary
                                     if (_currentBuf[offset] == DLE && _currentBuf[offset + 1] == STX)
                                     {
                                         _packetStartFound = true;
+                                        offset += 2;
                                         break;
                                     }
+                                }
+
+                                if(!_packetStartFound)
+                                {
+                                    offset++;
+                                    _lastPrevBufByteIsDle = _currentBuf[_currentBuf.Length - 1] == DLE;
                                 }
                             }
                         }
@@ -105,6 +118,7 @@ namespace CommunicationLibrary
                                     if(_packetLengthRemained == 0)
                                     {
                                         // TODO: take care about parsed message
+                                        _messagePackets.Enqueue(_currentPacket);
                                         Reset();
                                     }
                                 }
@@ -165,11 +179,11 @@ namespace CommunicationLibrary
                         _lengthIsSet = true;
                     }
                 }
-            } while (_currentBuf.Length >= offset || _lengthIsSet);
+            } while (_currentBuf.Length >= offset && !_lengthIsSet);
 
             if (_lengthIsSet)
             {
-                _packetLengthExpected = (ushort)(b1 + b2 << 8);
+                _packetLengthExpected = (ushort)(b1 + (b2 << 8));
                 _packetLengthRemained = _packetLengthExpected;
             }
 

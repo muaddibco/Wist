@@ -6,7 +6,9 @@ namespace CommunicationLibrary.Interfaces
 {
     public interface IClientHandler
     {
-        void PushBuffer(byte[] buf);
+        Queue<byte[]> MessagePackets { get; }
+
+        void PushBuffer(byte[] buf, int count);
 
         IEnumerable<byte[]> GetMessagesToSend();
 

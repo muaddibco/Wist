@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using CommonServiceLocator;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -60,15 +61,18 @@ namespace CommunicationLibrary.Sockets
 
             for (int i = 0; i < _settings.MaxConnections; i++)
             {
+                tokenId = _receiveSendEventArgsPool.AssignTokenId() + 1000000;
+                
                 //Pre-allocate a set of reusable SocketAsyncEventArgs
                 readWriteEventArg = new SocketAsyncEventArgs();
                 readWriteEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
-                readWriteEventArg.UserToken = new DataHoldingUserToken();
+                DataHoldingUserToken token = ServiceLocator.Current.GetInstance<DataHoldingUserToken>();
+                token.Init(tokenId, readWriteEventArg.Offset, readWriteEventArg.Offset + _settings.ReceiveBufferSize);
+                readWriteEventArg.UserToken = token;
 
                 // assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
                 _bufferManager.SetBuffer(readWriteEventArg);
 
-                tokenId = _receiveSendEventArgsPool.AssignTokenId() + 1000000;
 
                 // add SocketAsyncEventArg to the pool
                 _receiveSendEventArgsPool.Push(readWriteEventArg);
@@ -160,9 +164,6 @@ namespace CommunicationLibrary.Sockets
 
             SocketAsyncEventArgs receiveSendEventArgs = _receiveSendEventArgsPool.Pop();
 
-            //Create sessionId in UserToken.
-            ((DataHoldingUserToken)receiveSendEventArgs.UserToken).CreateSessionId();
-
             receiveSendEventArgs.AcceptSocket = acceptEventArgs.AcceptSocket;
 
             acceptOpToken = (AcceptOpUserToken)acceptEventArgs.UserToken;
@@ -220,7 +221,6 @@ namespace CommunicationLibrary.Sockets
 
                 if (!_settings.KeepAlive)
                 {
-                    receiveSendToken.Reset();
                     CloseClientSocket(receiveSendEventArgs);
                 }
                 return;
@@ -232,84 +232,9 @@ namespace CommunicationLibrary.Sockets
 
             _log.Info($"ProcessReceive {receiveSendToken.TokenId}. remainingBytesToProcess = {remainingBytesToProcess}");
 
-            //If we have not got all of the prefix already, 
-            //then we need to work on it here.                                
-            if (receiveSendToken.receivedPrefixBytesDoneCount < this.socketListenerSettings.ReceivePrefixLength)
-            {
-                remainingBytesToProcess = prefixHandler.HandlePrefix(receiveSendEventArgs, receiveSendToken, remainingBytesToProcess);
+            receiveSendToken.ClientHandler.PushBuffer(receiveSendEventArgs.Buffer, receiveSendEventArgs.BytesTransferred);
 
-                if (Program.watchProgramFlow == true)   //for testing
-                {
-                    Program.testWriter.WriteLine("ProcessReceive, after prefix work " + receiveSendToken.TokenId + ". remainingBytesToProcess = " + remainingBytesToProcess);
-                }
-
-                if (remainingBytesToProcess == 0)
-                {
-                    // We need to do another receive op, since we do not have
-                    // the message yet, but remainingBytesToProcess == 0.
-                    StartReceive(receiveSendEventArgs);
-                    //Jump out of the method.
-                    return;
-                }
-            }
-
-            // If we have processed the prefix, we can work on the message now.
-            // We'll arrive here when we have received enough bytes to read
-            // the first byte after the prefix.
-            bool incomingTcpMessageIsReady = messageHandler.HandleMessage(receiveSendEventArgs, receiveSendToken, remainingBytesToProcess);
-
-            if (incomingTcpMessageIsReady == true)
-            {
-                if (Program.watchData == true)
-                {
-                    Program.testWriter.WriteLine(receiveSendToken.TokenId + ", Message in DataHolder = " + Encoding.ASCII.GetString(receiveSendToken.theDataHolder.dataMessageReceived) + "\r\n");
-                }
-                //for testing only
-                if (Program.msDelayAfterGettingMessage > -1)
-                {
-                    //A Thread.Sleep here can be used to simulate delaying the 
-                    //return of the SocketAsyncEventArgs object for receive/send
-                    //to the pool. Simulates doing some work here.
-                    if (Program.watchData == true)
-                    {
-                        Program.testWriter.WriteLine(receiveSendToken.TokenId + " waiting after read.\r\n");
-                    }
-                    Thread.Sleep(Program.msDelayAfterGettingMessage);
-                }
-
-                // Pass the DataHolder object to the Mediator here. The data in
-                // this DataHolder can be used for all kinds of things that an
-                // intelligent and creative person like you might think of.                        
-                receiveSendToken.theMediator.HandleData(receiveSendToken.theDataHolder);
-
-                // Create a new DataHolder for next message.
-                receiveSendToken.CreateNewDataHolder();
-
-                //Reset the variables in the UserToken, to be ready for the
-                //next message that will be received on the socket in this
-                //SAEA object.
-                receiveSendToken.Reset();
-
-                //receiveSendToken.theMediator.PrepareOutgoingData();
-                //StartSend(receiveSendToken.theMediator.GiveBack());
-            }
-            else
-            {
-                // Since we have NOT gotten enough bytes for the whole message,
-                // we need to do another receive op. Reset some variables first.
-
-                // All of the data that we receive in the next receive op will be
-                // message. None of it will be prefix. So, we need to move the 
-                // receiveSendToken.receiveMessageOffset to the beginning of the 
-                // receive buffer space for this SAEA.
-                receiveSendToken.receiveMessageOffset = receiveSendToken.bufferOffsetReceive;
-
-                // Do NOT reset receiveSendToken.receivedPrefixBytesDoneCount here.
-                // Just reset recPrefixBytesDoneThisOp.
-                receiveSendToken.recPrefixBytesDoneThisOp = 0;
-
-                StartReceive(receiveSendEventArgs);
-            }
+            StartReceive(receiveSendEventArgs);
         }
 
         private void CloseClientSocket(SocketAsyncEventArgs e)
@@ -329,13 +254,6 @@ namespace CommunicationLibrary.Sockets
             }
 
             e.AcceptSocket.Close();
-
-            //Make sure the new DataHolder has been created for the next connection.
-            //If it has, then dataMessageReceived should be null.
-            if (receiveSendToken.theDataHolder.dataMessageReceived != null)
-            {
-                receiveSendToken.CreateNewDataHolder();
-            }
 
             _receiveSendEventArgsPool.Push(e);
 

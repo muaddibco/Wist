@@ -10,6 +10,7 @@
     <PackageReference Include="PostSharp" Version="5.1.8-preview" />
     <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0-preview2-26406-04" />
     <PackageReference Include="Unity" Version="5.8.5" />
+    <PackageReference Include="Unity.ServiceLocation" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>

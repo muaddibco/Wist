@@ -6,20 +6,24 @@ namespace CommunicationLibrary.Sockets
 {
     internal class DataHoldingUserToken
     {
-        public DataHoldingUserToken(Int32 tokenId, Int32 offsetReceive, Int32 offsetSend, IProtocolParser protocolParser)
+        public DataHoldingUserToken(IClientHandlerFactory clientHandlerFactory)
+        {
+            ClientHandler = clientHandlerFactory.Create();
+        }
+
+        public void Init(Int32 tokenId, Int32 offsetReceive, Int32 offsetSend)
         {
             TokenId = tokenId;
             BufferOffsetReceive = offsetReceive;
             BufferOffsetSend = offsetSend;
-            ProtocolParser = protocolParser;
         }
 
-        public Int32 TokenId { get; }
+        public Int32 TokenId { get; private set; }
 
-        public Int32 BufferOffsetReceive { get; }
+        public Int32 BufferOffsetReceive { get; private set; }
 
-        public Int32 BufferOffsetSend { get; }
+        public Int32 BufferOffsetSend { get; private set; }
 
-        public IProtocolParser ProtocolParser { get; set; }
+        public IClientHandler ClientHandler { get; }
     }
 }
