@@ -88,6 +88,8 @@ namespace CommunicationLibrary.Sockets
             {
                 _listenSocket.SetSocketOption(SocketOptionLevel.Tcp,SocketOptionName.KeepAlive, 5000);
             }
+
+            StartAccept();
         }
 
         private SocketAsyncEventArgs CreateNewSocketAsyncEventArgs(SocketAsyncEventArgsPool pool)

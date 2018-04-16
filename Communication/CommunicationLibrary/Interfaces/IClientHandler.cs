@@ -12,7 +12,7 @@ namespace CommunicationLibrary.Interfaces
 
         IEnumerable<byte[]> GetMessagesToSend();
 
-        void Start();
+        void Init(Socket);
 
         void Stop();
     }
