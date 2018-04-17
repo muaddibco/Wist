@@ -1,7 +1,10 @@
-﻿using System;
+﻿using CommunicationLibrary.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 
 namespace CommunicationLibrary.Sockets
 {
@@ -14,27 +17,28 @@ namespace CommunicationLibrary.Sockets
     /// 
     /// The operations exposed on the BufferManager class are not thread safe.
     /// </summary>
-    internal class BufferManager
+    [RegisterDefaultImplementation(typeof(IBufferManager), Lifetime = LifetimeManagement.Singleton)]
+    internal class BufferManager : IBufferManager
     {
-        int _numBytes;                 // the total number of bytes controlled by the buffer pool
-        byte[] m_buffer;                // the underlying byte array maintained by the Buffer Manager
-        Stack<int> _freeIndexPool;     // 
-        int _currentIndex;
-        int _bufferSize;
+        private readonly Stack<int> _freeIndexPool;     
+        private int _numBytes;                 // the total number of bytes controlled by the buffer pool
+        private byte[] m_buffer;                // the underlying byte array maintained by the Buffer Manager
+        private int _currentIndex;
+        private int _bufferSize;
 
-        public BufferManager(int totalBytes, int bufferSize)
+        public BufferManager()
         {
-            _numBytes = totalBytes;
             _currentIndex = 0;
-            _bufferSize = bufferSize;
             _freeIndexPool = new Stack<int>();
         }
 
         /// <summary>
         /// Allocates buffer space used by the buffer pool 
         /// </summary>
-        public void InitBuffer()
+        public void InitBuffer(int totalBytes, int bufferSize)
         {
+            _numBytes = totalBytes;
+            _bufferSize = bufferSize;
             // create one big large buffer and divide that 
             // out to each SocketAsyncEventArg object
             m_buffer = new byte[_numBytes];
