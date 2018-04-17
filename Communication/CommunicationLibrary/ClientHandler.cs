@@ -1,6 +1,7 @@
 ﻿using CommunicationLibrary.Interfaces;
 using log4net;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -16,7 +17,7 @@ namespace CommunicationLibrary
         private readonly ILog _log = LogManager.GetLogger(typeof(ClientHandler));
         private readonly Queue<byte[]> _packets;
         private readonly Queue<byte[]> _messagePackets;
-        private readonly Queue<byte[]> _postedMessages;
+        private readonly ConcurrentQueue<byte[]> _postedMessages;
         private readonly IMessagesHandler _messagesHandler;
         private readonly IBufferManager _bufferManager;
         private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
@@ -58,7 +59,7 @@ namespace CommunicationLibrary
             _messagesHandler = messagesHandler;
             _packets = new Queue<byte[]>();
             _messagePackets = new Queue<byte[]>();
-            _postedMessages = new Queue<byte[]>();
+            _postedMessages = new ConcurrentQueue<byte[]>();
             _socketReceiveAsyncEventArgs = new SocketAsyncEventArgs();
             _socketReceiveAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Receive_Completed);
             _socketSendAsyncEventArgs = new SocketAsyncEventArgs();
@@ -274,18 +275,16 @@ namespace CommunicationLibrary
 
         public void PostMessage(byte[] message)
         {
-            _postedMessages.Enqueue(message);
-
-            if(!_isSending)
+            lock (_postedMessages)
             {
-                lock(_postedMessages)
-                {
-                    if (_isSending)
-                        return;
-                    _isSending = true;
-                }
+                _postedMessages.Enqueue(message);
 
-                Task.Factory.StartNew(() => StartSend(), TaskCreationOptions.LongRunning);
+                if (!_isSending)
+                {
+                    _isSending = true;
+
+                    Task.Factory.StartNew(() => StartSend(), TaskCreationOptions.LongRunning);
+                }
             }
         }
 
@@ -410,11 +409,18 @@ namespace CommunicationLibrary
             {
                 if (_postMessageRemainedBytes == 0)
                 {
-                    if (_postedMessages.Count == 0)
-                        return;
-
-                    _currentPostMessage = _postedMessages.Dequeue();
-                    _postMessageRemainedBytes = _currentPostMessage.Length;
+                    lock (_postedMessages)
+                    {
+                        if (_postedMessages.TryDequeue(out _currentPostMessage))
+                        {
+                            _postMessageRemainedBytes = _currentPostMessage.Length;
+                        }
+                        else
+                        {
+                            _isSending = false;
+                            return;
+                        }
+                    }
                 }
 
                 if (_postMessageRemainedBytes <= _sendReceiveBufferSize)
