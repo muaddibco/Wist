@@ -22,5 +22,7 @@ namespace CommunicationLibrary.Interfaces
         void Stop();
 
         void AcceptSocket(Socket acceptSocket);
+
+        void PostMessage(byte[] message);
     }
 }

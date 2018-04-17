@@ -16,9 +16,11 @@ namespace CommunicationLibrary
         private readonly ILog _log = LogManager.GetLogger(typeof(ClientHandler));
         private readonly Queue<byte[]> _packets;
         private readonly Queue<byte[]> _messagePackets;
+        private readonly Queue<byte[]> _postedMessages;
         private readonly IMessagesHandler _messagesHandler;
         private readonly IBufferManager _bufferManager;
-        private readonly SocketAsyncEventArgs _socketAsyncEventArgs;
+        private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
+        private readonly SocketAsyncEventArgs _socketSendAsyncEventArgs;
 
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -30,9 +32,10 @@ namespace CommunicationLibrary
         private int _sendReceiveBufferSize;
         private bool _keepAlive;
 
-        private bool _isBusy;
         private byte[] _currentBuf;
         private byte[] _currentPacket;
+        private byte[] _currentPostMessage;
+        private int _postMessageRemainedBytes;
 
         private byte[] _tempLengthBuf = new byte[4]; // Packet size can include up to 4 bytes because if length bytes values are equal to either DLE or STX they'll be encoded with DLE
         private byte _tempLengthBufSize = 0;
@@ -43,6 +46,10 @@ namespace CommunicationLibrary
         private ushort _packetLengthExpected;
         private ushort _packetLengthRemained;
 
+        private bool _isReceiving;
+        private bool _isSending;
+        private bool _isBusy;
+
         public event EventHandler<EventArgs> SocketClosedEvent;
 
         public ClientHandler(IBufferManager bufferManager, IMessagesHandler messagesHandler)
@@ -51,7 +58,11 @@ namespace CommunicationLibrary
             _messagesHandler = messagesHandler;
             _packets = new Queue<byte[]>();
             _messagePackets = new Queue<byte[]>();
-            _socketAsyncEventArgs = new SocketAsyncEventArgs();
+            _postedMessages = new Queue<byte[]>();
+            _socketReceiveAsyncEventArgs = new SocketAsyncEventArgs();
+            _socketReceiveAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Receive_Completed);
+            _socketSendAsyncEventArgs = new SocketAsyncEventArgs();
+            _socketSendAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Send_Completed);
         }
 
         public Queue<byte[]> MessagePackets => _messagePackets;
@@ -66,18 +77,17 @@ namespace CommunicationLibrary
 
         public void PushBuffer(byte[] buf, int count)
         {
-            byte[] packet = new byte[count];
-            Buffer.BlockCopy(buf, 0, packet, 0, count);
-            _packets.Enqueue(packet);
-            ParseReceivedData();
-        }
-
-        public void Start()
-        {
-            Stop();
-
-            //_cancellationTokenSource = new CancellationTokenSource();
-            //Task.Factory.StartNew(() => ParseReceivedData(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
+            try
+            {
+                byte[] packet = new byte[count];
+                Buffer.BlockCopy(buf, 0, packet, 0, count);
+                _packets.Enqueue(packet);
+                ParseReceivedData();
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failure during pushing to buffer of ClientHandler with TokenId {TokenId}", ex);
+            }
         }
 
         private async Task ParseReceivedData()
@@ -247,128 +257,216 @@ namespace CommunicationLibrary
             _sendReceiveBufferSize = sendReceiveBufferSize;
             _keepAlive = keepAlive;
 
-            SocketAsyncEventArgs readWriteEventArg = new SocketAsyncEventArgs();
-            readWriteEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(IO_Completed);
-            //DataHoldingUserToken token = ServiceLocator.Current.GetInstance<DataHoldingUserToken>();
-            //token.Init(tokenId, readWriteEventArg.Offset, readWriteEventArg.Offset + _settings.ReceiveBufferSize);
-            //readWriteEventArg.UserToken = token;
-
-            // assign a byte buffer from the buffer pool to the SocketAsyncEventArg object
-            _bufferManager.SetBuffer(readWriteEventArg);
-            _offsetReceive = readWriteEventArg.Offset;
-            _offsetSend = readWriteEventArg.Offset + sendReceiveBufferSize;
-        }
-
-        private void IO_Completed(object sender, SocketAsyncEventArgs e)
-        {
-            //DataHoldingUserToken receiveSendToken = (DataHoldingUserToken)e.UserToken;
-
-            switch (e.LastOperation)
-            {
-                case SocketAsyncOperation.Receive:
-                    _log.Info($"IO_Completed method in Receive, receiveSendToken id {TokenId}");
-                    ProcessReceive();
-                    break;
-
-                case SocketAsyncOperation.Send:
-                    _log.Info($"IO_Completed method in Send, id {TokenId}");
-
-                    //ProcessSend(e);
-                    break;
-
-                default:
-                    throw new ArgumentException("The last operation completed on the socket was not a receive or send");
-            }
-        }
-
-        private void StartReceive()
-        {
-            //DataHoldingUserToken receiveSendToken = (DataHoldingUserToken)receiveSendEventArgs.UserToken;
-            _log.Info($"Start receive for tokenId {TokenId}");
-
-            _socketAsyncEventArgs.SetBuffer(_offsetReceive, _sendReceiveBufferSize);
-
-            bool willRaiseEvent = _socketAsyncEventArgs.AcceptSocket.ReceiveAsync(_socketAsyncEventArgs);
-
-            if (!willRaiseEvent)
-            {
-                _log.Info($"StartReceive in if (!willRaiseEvent), tokenId {TokenId}");
-
-                ProcessReceive();
-            }
-        }
-
-        private void ProcessReceive()
-        {
-            //DataHoldingUserToken receiveSendToken = (DataHoldingUserToken)receiveSendEventArgs.UserToken;
-            // If there was a socket error, close the connection. This is NOT a normal
-            // situation, if you get an error here.
-            // In the Microsoft example code they had this error situation handled
-            // at the end of ProcessReceive. Putting it here improves readability
-            // by reducing nesting some.
-            if (_socketAsyncEventArgs.SocketError != SocketError.Success)
-            {
-                _log.Error($"ProcessReceive ERROR, tokenId {TokenId}");
-
-                //receiveSendToken.Reset();
-                CloseClientSocket();
-
-                return;
-            }
-
-            // If no data was received, close the connection. This is a NORMAL
-            // situation that shows when the client has finished sending data.
-            if (_socketAsyncEventArgs.BytesTransferred == 0)
-            {
-                _log.Info($"ProcessReceive NO DATA, receiveSendToken id {TokenId}");
-
-                if (!_keepAlive)
-                {
-                    CloseClientSocket();
-                }
-                return;
-            }
-
-            //The BytesTransferred property tells us how many bytes 
-            //we need to process.
-            Int32 remainingBytesToProcess = _socketAsyncEventArgs.BytesTransferred;
-
-            _log.Info($"ProcessReceive {TokenId}. remainingBytesToProcess = {remainingBytesToProcess}");
-
-            PushBuffer(_socketAsyncEventArgs.Buffer, _socketAsyncEventArgs.BytesTransferred);
-
-            StartReceive();
-        }
-
-        private void CloseClientSocket()
-        {
-            //var receiveSendToken = (e.UserToken as DataHoldingUserToken);
-
-            _log.Info($"Closing client socket with tokenId {TokenId}");
-
-            try
-            {
-                _log.Info($"Trying shutdown for tokenId {TokenId}");
-                _socketAsyncEventArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
-            }
-            catch (Exception ex)
-            {
-                _log.Warn($"Socket shutdown failed, tokenId {TokenId}", ex);
-            }
-
-            _socketAsyncEventArgs.AcceptSocket.Close();
-
-            SocketClosedEvent?.Invoke(this, null);
-
+            _bufferManager.SetBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
+            _offsetReceive = _socketReceiveAsyncEventArgs.Offset;
+            _offsetSend = _socketSendAsyncEventArgs.Offset;
         }
 
         public void AcceptSocket(Socket acceptSocket)
         {
             _log.Info($"Socket accepted by ClientHandler with tokenId {TokenId}.  Remote endpoint = {IPAddress.Parse(((IPEndPoint)acceptSocket.RemoteEndPoint).Address.ToString())}:{((IPEndPoint)acceptSocket.RemoteEndPoint).Port.ToString()}");
 
-            _socketAsyncEventArgs.AcceptSocket = acceptSocket;
+            _socketReceiveAsyncEventArgs.AcceptSocket = acceptSocket;
+            _socketSendAsyncEventArgs.AcceptSocket = acceptSocket;
 
             StartReceive();
+        }
+
+        public void PostMessage(byte[] message)
+        {
+            _postedMessages.Enqueue(message);
+
+            if(!_isSending)
+            {
+                lock(_postedMessages)
+                {
+                    if (_isSending)
+                        return;
+                    _isSending = true;
+                }
+
+                Task.Factory.StartNew(() => StartSend(), TaskCreationOptions.LongRunning);
+            }
+        }
+
+        private void Receive_Completed(object sender, SocketAsyncEventArgs e)
+        {
+            if (e.LastOperation == SocketAsyncOperation.Receive)
+            {
+                _log.Info($"IO_Completed method in Receive, receiveSendToken id {TokenId}");
+                ProcessReceive();
+            }
+            else
+            {
+                throw new ArgumentException("The last operation completed on the socket was not a receive ");
+            }
+        }
+
+        private void Send_Completed(object sender, SocketAsyncEventArgs e)
+        {
+            if (e.LastOperation == SocketAsyncOperation.Send)
+            {
+                _log.Info($"IO_Completed method in Send, id {TokenId}");
+
+                ProcessSend();
+            }
+            else
+            {
+                throw new ArgumentException("The last operation completed on the socket was not a send");
+            }
+        }
+
+        private void StartReceive()
+        {
+            _isReceiving = true;
+
+            _log.Info($"Start receive for tokenId {TokenId}");
+
+            try
+            {
+                _socketReceiveAsyncEventArgs.SetBuffer(_offsetReceive, _sendReceiveBufferSize);
+
+                bool willRaiseEvent = _socketReceiveAsyncEventArgs.AcceptSocket.ReceiveAsync(_socketReceiveAsyncEventArgs);
+
+                if (!willRaiseEvent)
+                {
+                    _log.Info($"StartReceive in if (!willRaiseEvent), tokenId {TokenId}");
+
+                    ProcessReceive();
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failure during StartReceive in ClientHandler with tokenId {TokenId}", ex);
+                throw;
+            }
+            finally
+            {
+                _isReceiving = false;
+            }
+        }
+
+        private void ProcessReceive()
+        {
+            if (_socketReceiveAsyncEventArgs.SocketError != SocketError.Success)
+            {
+                _isReceiving = false;
+                _log.Error($"ProcessReceive ERROR, tokenId {TokenId}");
+
+                CloseClientSocket();
+
+                return;
+            }
+
+            Int32 remainingBytesToProcess = _socketReceiveAsyncEventArgs.BytesTransferred;
+
+            // If no data was received, close the connection. This is a NORMAL
+            // situation that shows when the client has finished sending data.
+            if (remainingBytesToProcess == 0)
+            {
+                _isReceiving = false;
+
+                _log.Info($"ProcessReceive NO DATA, TokenId is {TokenId}");
+
+                if (!_keepAlive)
+                {
+                    CloseClientSocket();
+                }
+
+                return;
+            }
+
+            _log.Info($"ProcessReceive {TokenId}. remainingBytesToProcess = {remainingBytesToProcess}");
+
+            PushBuffer(_socketReceiveAsyncEventArgs.Buffer, _socketReceiveAsyncEventArgs.BytesTransferred);
+
+            StartReceive();
+        }
+
+        private void CloseClientSocket()
+        {
+            _log.Info($"Closing client socket with tokenId {TokenId}");
+
+            try
+            {
+                _log.Info($"Trying shutdown for tokenId {TokenId}");
+                _socketReceiveAsyncEventArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
+            }
+            catch (Exception ex)
+            {
+                _log.Warn($"Socket shutdown failed, tokenId {TokenId}", ex);
+            }
+
+            _socketReceiveAsyncEventArgs.AcceptSocket.Close();
+
+            _bufferManager.FreeBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
+
+            SocketClosedEvent?.Invoke(this, null);
+        }
+
+        private void StartSend()
+        {
+            try
+            {
+                if (_postMessageRemainedBytes == 0)
+                {
+                    if (_postedMessages.Count == 0)
+                        return;
+
+                    _currentPostMessage = _postedMessages.Dequeue();
+                    _postMessageRemainedBytes = _currentPostMessage.Length;
+                }
+
+                if (_postMessageRemainedBytes <= _sendReceiveBufferSize)
+                {
+                    _socketReceiveAsyncEventArgs.SetBuffer(_offsetSend, _postMessageRemainedBytes);
+                    Buffer.BlockCopy(_currentPostMessage, _currentPostMessage.Length - _postMessageRemainedBytes, _socketReceiveAsyncEventArgs.Buffer, _offsetSend, _postMessageRemainedBytes);
+                }
+                else
+                {
+                    _socketReceiveAsyncEventArgs.SetBuffer(_offsetSend, _sendReceiveBufferSize);
+                    Buffer.BlockCopy(_currentPostMessage, _currentPostMessage.Length - _postMessageRemainedBytes, _socketReceiveAsyncEventArgs.Buffer, _offsetSend, _sendReceiveBufferSize);
+                }
+
+                bool willRaiseEvent = _socketReceiveAsyncEventArgs.AcceptSocket.SendAsync(_socketReceiveAsyncEventArgs);
+
+                if (!willRaiseEvent)
+                {
+                    ProcessSend();
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failure during StartSend at ClientHandler with TokenId {TokenId}", ex);
+                CloseClientSocket();
+            }
+            finally
+            {
+                _isSending = false;
+            }
+        }
+
+        private void ProcessSend()
+        {
+            try
+            {
+                _postMessageRemainedBytes -= _socketReceiveAsyncEventArgs.BytesTransferred;
+
+                if (_socketReceiveAsyncEventArgs.SocketError == SocketError.Success)
+                {
+                    StartSend();
+                }
+                else
+                {
+                    _isSending = false;
+                    CloseClientSocket();
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failure during ProcessSend at ClientHandler with TokenId {TokenId}", ex);
+                CloseClientSocket();
+            }
         }
     }
 }

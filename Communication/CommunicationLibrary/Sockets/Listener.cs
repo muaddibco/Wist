@@ -44,14 +44,13 @@ namespace CommunicationLibrary.Sockets
         public void Init(SocketListenerSettings settings)
         {
             _settings = settings;
-            // Allocates one large byte buffer which all I/O operations use a piece of.  This gaurds 
-            // against memory fragmentation
-            _bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * _settings.OpsToPreAllocate, _settings.ReceiveBufferSize * _settings.OpsToPreAllocate);
+            
+            // Allocates one large byte buffer which all I/O operations use a piece of.  This guards against memory fragmentation
+            _bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * _settings.OpsToPreAllocate, _settings.ReceiveBufferSize);
             _acceptEventArgsPool = new GenericPool<SocketAsyncEventArgs>(_settings.MaxSimultaneousAcceptOps);
             _clientHandlersPool = new GenericPool<IClientHandler>(_settings.MaxConnections);
             _maxAcceptedClients = new Semaphore(_settings.MaxConnections, _settings.MaxConnections);
 
-            // preallocate pool of SocketAsyncEventArgs objects
             for (Int32 i = 0; i < _settings.MaxSimultaneousAcceptOps; i++)
             {
                 _acceptEventArgsPool.Push(CreateNewSocketAsyncEventArgs(_acceptEventArgsPool));
@@ -63,7 +62,6 @@ namespace CommunicationLibrary.Sockets
             {
                 tokenId = _clientHandlersPool.AssignTokenId() + 1000000;
 
-                //Pre-allocate a set of reusable SocketAsyncEventArgs
                 IClientHandler clientHandler = ServiceLocator.Current.GetInstance<IClientHandler>();
                 clientHandler.SocketClosedEvent += ClientHandler_SocketClosedEvent;
                 clientHandler.Init(tokenId, _settings.ReceiveBufferSize, _settings.KeepAlive);

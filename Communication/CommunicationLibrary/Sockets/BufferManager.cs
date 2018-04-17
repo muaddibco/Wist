@@ -49,12 +49,14 @@ namespace CommunicationLibrary.Sockets
         /// specified SocketAsyncEventArgs object
         ///</summary>
         /// <returns>true if the buffer was successfully set, else false</returns>
-        public bool SetBuffer(SocketAsyncEventArgs args)
+        public bool SetBuffer(SocketAsyncEventArgs receiveArgs, SocketAsyncEventArgs sendArgs)
         {
 
             if (_freeIndexPool.Count > 0)
             {
-                args.SetBuffer(m_buffer, _freeIndexPool.Pop(), _bufferSize);
+                int offset = _freeIndexPool.Pop();
+                receiveArgs.SetBuffer(m_buffer, offset, _bufferSize);
+                receiveArgs.SetBuffer(m_buffer, offset + _bufferSize, _bufferSize);
             }
             else
             {
@@ -62,8 +64,9 @@ namespace CommunicationLibrary.Sockets
                 {
                     return false;
                 }
-                args.SetBuffer(m_buffer, _currentIndex, _bufferSize);
-                _currentIndex += _bufferSize;
+                receiveArgs.SetBuffer(m_buffer, _currentIndex, _bufferSize);
+                receiveArgs.SetBuffer(m_buffer, _currentIndex + _bufferSize, _bufferSize);
+                _currentIndex += 2 * _bufferSize;
             }
             return true;
         }
@@ -72,10 +75,11 @@ namespace CommunicationLibrary.Sockets
         /// Removes the buffer from a SocketAsyncEventArg object.  
         /// This frees the buffer back to the buffer pool
         /// </summary>
-        public void FreeBuffer(SocketAsyncEventArgs args)
+        public void FreeBuffer(SocketAsyncEventArgs receiveArgs, SocketAsyncEventArgs sendArgs)
         {
-            _freeIndexPool.Push(args.Offset);
-            args.SetBuffer(null, 0, 0);
+            _freeIndexPool.Push(receiveArgs.Offset);
+            receiveArgs.SetBuffer(null, 0, 0);
+            sendArgs.SetBuffer(null, 0, 0);
         }
     }
 }

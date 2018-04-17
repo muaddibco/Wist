@@ -10,7 +10,7 @@ namespace CommunicationLibrary.Interfaces
     public interface IBufferManager
     {
         void InitBuffer(int totalBytes, int bufferSize);
-        bool SetBuffer(SocketAsyncEventArgs args);
-        void FreeBuffer(SocketAsyncEventArgs args);
+        bool SetBuffer(SocketAsyncEventArgs receiveArgs, SocketAsyncEventArgs sendArgs);
+        void FreeBuffer(SocketAsyncEventArgs receiveArgs, SocketAsyncEventArgs sendArgs);
     }
 }
