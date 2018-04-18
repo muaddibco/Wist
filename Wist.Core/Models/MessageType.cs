@@ -1,6 +1,6 @@
 ﻿namespace Wist.Core.Models
 {
-    public enum MessageType : byte
+    public enum MessageType : ushort
     {
         Unknown = 0,
         Transaction

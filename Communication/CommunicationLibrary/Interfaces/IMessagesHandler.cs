@@ -10,7 +10,7 @@ namespace CommunicationLibrary.Interfaces
     {
         void Push(byte[] messagePacket);
 
-        void Start();
+        void Start(bool withErrorsProcessing = true);
 
         void Stop();
     }

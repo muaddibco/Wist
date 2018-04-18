@@ -25,7 +25,7 @@ namespace Wist.Communication.Tests
         public void ParseSingleShortPacket()
         {
             List<byte[]> packets = new List<byte[]>();
-            IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();
+            IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();  
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
             IClientHandler handler = new ClientHandler(ClientHandlerFixture.BufferManager, messagesHandler);
             byte[] packet = new byte[] { ClientHandler.DLE, ClientHandler.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44};
