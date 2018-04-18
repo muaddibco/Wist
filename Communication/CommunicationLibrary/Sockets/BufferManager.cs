@@ -18,7 +18,7 @@ namespace CommunicationLibrary.Sockets
     /// The operations exposed on the BufferManager class are not thread safe.
     /// </summary>
     [RegisterDefaultImplementation(typeof(IBufferManager), Lifetime = LifetimeManagement.Singleton)]
-    internal class BufferManager : IBufferManager
+    public class BufferManager : IBufferManager
     {
         private readonly Stack<int> _freeIndexPool;     
         private int _numBytes;                 // the total number of bytes controlled by the buffer pool

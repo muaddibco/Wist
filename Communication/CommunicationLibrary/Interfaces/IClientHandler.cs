@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -20,6 +21,8 @@ namespace CommunicationLibrary.Interfaces
         void Init(int tokenId, int sendReceiveBufferSize, bool keepAlive);
 
         void Stop();
+
+        void Connect(EndPoint endPoint);
 
         void AcceptSocket(Socket acceptSocket);
 

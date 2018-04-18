@@ -22,6 +22,7 @@ namespace CommunicationLibrary
         private readonly IBufferManager _bufferManager;
         private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
         private readonly SocketAsyncEventArgs _socketSendAsyncEventArgs;
+        private readonly SocketAsyncEventArgs _socketConnectAsyncEventArgs;
 
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -64,6 +65,8 @@ namespace CommunicationLibrary
             _socketReceiveAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Receive_Completed);
             _socketSendAsyncEventArgs = new SocketAsyncEventArgs();
             _socketSendAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Send_Completed);
+            _socketConnectAsyncEventArgs = new SocketAsyncEventArgs();
+            _socketConnectAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Connect_Completed);
         }
 
         public Queue<byte[]> MessagePackets => _messagePackets;
@@ -288,16 +291,29 @@ namespace CommunicationLibrary
             }
         }
 
+        private void Connect_Completed(object sender, SocketAsyncEventArgs e)
+        {
+            if (e.LastOperation == SocketAsyncOperation.Connect)
+            {
+                _log.Info($"Connect_Completed method in Connect, TokenId is {TokenId}");
+                AcceptSocket(e.ConnectSocket);
+            }
+            else
+            {
+                throw new ArgumentException("The last operation completed on the socket was not a connect.");
+            }
+        }
+
         private void Receive_Completed(object sender, SocketAsyncEventArgs e)
         {
             if (e.LastOperation == SocketAsyncOperation.Receive)
             {
-                _log.Info($"IO_Completed method in Receive, receiveSendToken id {TokenId}");
+                _log.Info($"IO_Completed method in Receive, TokenId is {TokenId}");
                 ProcessReceive();
             }
             else
             {
-                throw new ArgumentException("The last operation completed on the socket was not a receive ");
+                throw new ArgumentException("The last operation completed on the socket was not a receive.");
             }
         }
 
@@ -305,7 +321,7 @@ namespace CommunicationLibrary
         {
             if (e.LastOperation == SocketAsyncOperation.Send)
             {
-                _log.Info($"IO_Completed method in Send, id {TokenId}");
+                _log.Info($"Send_Completed method in Send, TokenId is {TokenId}");
 
                 ProcessSend();
             }
@@ -472,6 +488,17 @@ namespace CommunicationLibrary
             {
                 _log.Error($"Failure during ProcessSend at ClientHandler with TokenId {TokenId}", ex);
                 CloseClientSocket();
+            }
+        }
+
+        public void Connect(EndPoint endPoint)
+        {
+            Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            _socketConnectAsyncEventArgs.RemoteEndPoint = endPoint;
+            bool willRaiseEvent = socket.ConnectAsync(_socketConnectAsyncEventArgs);
+            if(!willRaiseEvent)
+            {
+                AcceptSocket(socket);
             }
         }
     }

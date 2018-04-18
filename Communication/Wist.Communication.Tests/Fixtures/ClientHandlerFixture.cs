@@ -1,6 +1,7 @@
 ﻿using CommonServiceLocator;
 using CommunicationLibrary;
 using CommunicationLibrary.Interfaces;
+using CommunicationLibrary.Sockets;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace Wist.Communication.Tests.Fixtures
             container.RegisterInstance<IUnityContainer>(container, new ContainerControlledLifetimeManager());
 
             ServiceLocator.SetLocatorProvider(() => new UnityServiceLocator(container));
+            BufferManager = new BufferManager();
+            BufferManager.InitBuffer(200, 100);
         }
 
         public void Dispose()
@@ -29,5 +32,7 @@ namespace Wist.Communication.Tests.Fixtures
         public IMessagesHandler MessagesHandler { get; }
 
         public List<byte[]> Packets { get; }
+
+        public IBufferManager BufferManager { get; set; }
     }
 }
