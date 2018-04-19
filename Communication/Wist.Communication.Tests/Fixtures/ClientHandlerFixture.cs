@@ -13,9 +13,9 @@ using Xunit;
 
 namespace Wist.Communication.Tests.Fixtures
 {
-    public class ClientHandlerFixture : IDisposable
+    public class DependencyInjectionFixture : IDisposable
     {
-        public ClientHandlerFixture()
+        public DependencyInjectionFixture()
         {
             UnityContainer container = new UnityContainer();
             container.RegisterInstance<IUnityContainer>(container, new ContainerControlledLifetimeManager());

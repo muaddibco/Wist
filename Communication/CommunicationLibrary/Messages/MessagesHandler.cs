@@ -113,6 +113,8 @@ namespace CommunicationLibrary.Messages
                             PushMessageErrorPacket(new MessageErrorPacket(messagePacket, MessageErrors.SIGNATURE_IS_INVALID));
                             continue;
                         }
+
+
                     }
                 }
             }

@@ -11,9 +11,9 @@ using Wist.Core;
 
 namespace CommunicationLibrary.Sockets
 {
-    public class Listener
+    public class CommunicationHub
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof(Listener));
+        private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationHub));
         private readonly IBufferManager _bufferManager;
 
         private Semaphore _maxAcceptedClients;
@@ -30,7 +30,7 @@ namespace CommunicationLibrary.Sockets
         /// </summary>
         /// <param name="settings">instance of <see cref="SocketListenerSettings"/> with defined settings of listener</param>
         /// <param name="receiveBufferSize">buffer size to use for each socket I/O operation</param>
-        public Listener(IBufferManager bufferManager)
+        public CommunicationHub(IBufferManager bufferManager)
         {
             _bufferManager = bufferManager;
         }

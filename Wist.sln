@@ -17,6 +17,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Crypto", "Crypto", "{1E89AC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chaos.NaCl", "Crypto\Chaos.NaCl\Chaos.NaCl.csproj", "{D50F9107-FC2E-44DF-ABAD-510CC70E2E54}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BlockLattice", "BlockLattice", "{7EAABD3F-EDFD-4E08-B9AC-4F28F17C3CD6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.BlockLattice.Core", "Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj", "{A88CE212-6EE8-4F77-A5FC-6E4D02A91F6A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +47,10 @@ Global
 		{D50F9107-FC2E-44DF-ABAD-510CC70E2E54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D50F9107-FC2E-44DF-ABAD-510CC70E2E54}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D50F9107-FC2E-44DF-ABAD-510CC70E2E54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A88CE212-6EE8-4F77-A5FC-6E4D02A91F6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A88CE212-6EE8-4F77-A5FC-6E4D02A91F6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A88CE212-6EE8-4F77-A5FC-6E4D02A91F6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A88CE212-6EE8-4F77-A5FC-6E4D02A91F6A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +59,7 @@ Global
 		{871F2FF0-B4F1-41F7-89FB-5A9207CDA75B} = {8A23DE96-663C-4F8A-AD76-93A8A1F09EBE}
 		{501D0FB4-B73C-475D-80F5-1F00BA459FAC} = {8A23DE96-663C-4F8A-AD76-93A8A1F09EBE}
 		{D50F9107-FC2E-44DF-ABAD-510CC70E2E54} = {1E89ACFB-CB40-4666-8246-5378DC3EB058}
+		{A88CE212-6EE8-4F77-A5FC-6E4D02A91F6A} = {7EAABD3F-EDFD-4E08-B9AC-4F28F17C3CD6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EB9BA20-4E24-4DF9-871A-597326B66D91}

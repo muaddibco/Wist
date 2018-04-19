@@ -12,14 +12,14 @@ using Xunit;
 
 namespace Wist.Communication.Tests
 {
-    public class ClientHandlerTests : IClassFixture<ClientHandlerFixture>
+    public class ClientHandlerTests : IClassFixture<DependencyInjectionFixture>
     {
-        public ClientHandlerTests(ClientHandlerFixture clientHandlerFixture)
+        public ClientHandlerTests(DependencyInjectionFixture dependencyInjectionFixture)
         {
-            ClientHandlerFixture = clientHandlerFixture;
+            DependencyInjectionFixture = dependencyInjectionFixture;
         }
 
-        public ClientHandlerFixture ClientHandlerFixture { get; }
+        public DependencyInjectionFixture DependencyInjectionFixture { get; }
 
         [Fact]
         public void ParseSingleShortPacket()
@@ -27,7 +27,7 @@ namespace Wist.Communication.Tests
             List<byte[]> packets = new List<byte[]>();
             IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();  
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
-            IClientHandler handler = new ClientHandler(ClientHandlerFixture.BufferManager, messagesHandler);
+            IClientHandler handler = new ClientHandler(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet = new byte[] { ClientHandler.DLE, ClientHandler.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44};
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc};
 
@@ -47,7 +47,7 @@ namespace Wist.Communication.Tests
             List<byte[]> packets = new List<byte[]>();
             IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
-            IClientHandler handler = new ClientHandler(ClientHandlerFixture.BufferManager, messagesHandler);
+            IClientHandler handler = new ClientHandler(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet = new byte[] { ClientHandler.DLE, ClientHandler.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc};
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc };
 
@@ -67,7 +67,7 @@ namespace Wist.Communication.Tests
             List<byte[]> packets = new List<byte[]>();
             IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
-            IClientHandler handler = new ClientHandler(ClientHandlerFixture.BufferManager, messagesHandler);
+            IClientHandler handler = new ClientHandler(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet = new byte[] { ClientHandler.DLE, ClientHandler.STX, ClientHandler.DLE, ClientHandler.DLE + 0x02, 0x00, 0xaa, 0xbb, 0xdd, 0x44 };
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb };
 
@@ -87,7 +87,7 @@ namespace Wist.Communication.Tests
             List<byte[]> packets = new List<byte[]>();
             IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
-            IClientHandler handler = new ClientHandler(ClientHandlerFixture.BufferManager, messagesHandler);
+            IClientHandler handler = new ClientHandler(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet1 = new byte[] { ClientHandler.DLE, ClientHandler.STX, 0x09, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
             byte[] packet2 = new byte[] { 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc, 0xdd, 0x44, 0x03, 0x00, 0xaa, 0xbb };
@@ -109,7 +109,7 @@ namespace Wist.Communication.Tests
             List<byte[]> packets = new List<byte[]>();
             IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
-            IClientHandler handler = new ClientHandler(ClientHandlerFixture.BufferManager, messagesHandler);
+            IClientHandler handler = new ClientHandler(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet1 = new byte[] { 0x45, 0x65, ClientHandler.DLE };
             byte[] packet2 = new byte[] { ClientHandler.STX, 0x09, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
             byte[] packet3 = new byte[] { 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
