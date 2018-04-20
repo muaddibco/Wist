@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\" />
+    <ProjectReference Include="..\Wist.Core\Wist.Core.csproj" />
   </ItemGroup>
 
 </Project>
