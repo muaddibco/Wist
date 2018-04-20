@@ -123,4 +123,10 @@
   <data name="ERR_FAILED_TO_FIND_LOG_CONFIG_FILE" xml:space="preserve">
     <value>Unable to locate {0} configuration file at: {1}.</value>
   </data>
+  <data name="ERR_INSTANCE_IS_NOT_INITIALIZED" xml:space="preserve">
+    <value>Instance of class {0} is not initialized yet. Please invoke its initialization method prior to usage.</value>
+  </data>
+  <data name="ERR_MANDATORY_INTERFACE_NOT_IMPLEMENTED" xml:space="preserve">
+    <value>Aspect {0} requires mandatory interface {1} that is not implemented by type {1}.</value>
+  </data>
 </root>

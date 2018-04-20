@@ -77,5 +77,23 @@ namespace Wist.Core.Properties {
                 return ResourceManager.GetString("ERR_FAILED_TO_FIND_LOG_CONFIG_FILE", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Instance of class {0} is not initialized yet. Please invoke its initialization method prior to usage..
+        /// </summary>
+        internal static string ERR_INSTANCE_IS_NOT_INITIALIZED {
+            get {
+                return ResourceManager.GetString("ERR_INSTANCE_IS_NOT_INITIALIZED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Aspect {0} requires mandatory interface {1} that is not implemented by type {1}..
+        /// </summary>
+        internal static string ERR_MANDATORY_INTERFACE_NOT_IMPLEMENTED {
+            get {
+                return ResourceManager.GetString("ERR_MANDATORY_INTERFACE_NOT_IMPLEMENTED", resourceCulture);
+            }
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace Wist.BlockLattice.Core.DataModel
         public uint BlockOrder { get; set; }
 
         /// <summary>
-        /// 32 byte of Hash value level N of account name encoded with Parent Account's Public Key
+        /// 64 byte of Hash value level N of account name encoded with Parent Account's Public Key
         /// </summary>
         public byte[] OriginalHash { get; set; }
 

@@ -7,8 +7,13 @@ using Wist.Core.Architecture;
 namespace Wist.BlockLattice.Core.Interfaces
 {
     [ServiceContract]
-    public interface ILatticeDataService
+    public interface ILatticeDataService : IDisposable
     {
+        /// <summary>
+        /// Initializes service. This function must be called first.
+        /// </summary>
+        void Initialize();
+
         /// <summary>
         /// Returns Transactional Blockchain having Genesis Block with Original Hash value as provided in argument
         /// </summary>

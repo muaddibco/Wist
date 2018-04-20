@@ -42,7 +42,7 @@ namespace Wist.Core.Tests
         }
 
         [Theory]
-        [InlineData("account name 1", 100000, 400)]
+        [InlineData("account name 1", 1000000, 3000)]
         public void LongLoop512Test(string inputText, uint nestLevel, uint maxMSec)
         {
             byte[] input = Encoding.ASCII.GetBytes(inputText);
