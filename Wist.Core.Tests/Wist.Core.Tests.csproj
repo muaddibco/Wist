@@ -16,4 +16,8 @@
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Wist.Core\Wist.Core.csproj" />
+  </ItemGroup>
+
 </Project>
