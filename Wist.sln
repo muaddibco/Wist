@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.BlockLattice.Core", "W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.BlockLattice.MySql", "Wist.BlockLattice.MySql\Wist.BlockLattice.MySql.csproj", "{9B5C1E69-E7FB-4B6D-B45E-39D2F2D61B2B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Node", "Node", "{FC085ED7-E813-480A-A197-5ECE13BBF9DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Node.Core", "Node\Wist.Node.Core\Wist.Node.Core.csproj", "{79953FDF-C430-474C-802F-A7EDC3FD2B7E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +61,10 @@ Global
 		{9B5C1E69-E7FB-4B6D-B45E-39D2F2D61B2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B5C1E69-E7FB-4B6D-B45E-39D2F2D61B2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B5C1E69-E7FB-4B6D-B45E-39D2F2D61B2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79953FDF-C430-474C-802F-A7EDC3FD2B7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79953FDF-C430-474C-802F-A7EDC3FD2B7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79953FDF-C430-474C-802F-A7EDC3FD2B7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79953FDF-C430-474C-802F-A7EDC3FD2B7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,6 +75,7 @@ Global
 		{D50F9107-FC2E-44DF-ABAD-510CC70E2E54} = {1E89ACFB-CB40-4666-8246-5378DC3EB058}
 		{A88CE212-6EE8-4F77-A5FC-6E4D02A91F6A} = {7EAABD3F-EDFD-4E08-B9AC-4F28F17C3CD6}
 		{9B5C1E69-E7FB-4B6D-B45E-39D2F2D61B2B} = {7EAABD3F-EDFD-4E08-B9AC-4F28F17C3CD6}
+		{79953FDF-C430-474C-802F-A7EDC3FD2B7E} = {FC085ED7-E813-480A-A197-5ECE13BBF9DB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EB9BA20-4E24-4DF9-871A-597326B66D91}
