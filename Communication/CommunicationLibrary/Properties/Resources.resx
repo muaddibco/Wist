@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ERR_NOT_SUPPORTED_PACKET_TYPE_HANDLER" xml:space="preserve">
+    <value>Packet type handler {0} is not supported.</value>
+  </data>
   <data name="ERR_NOT_UNIQUE_RESPONSE_FACTORIES" xml:space="preserve">
     <value>Response factories with following OpCodes are not unique: {0}.</value>
   </data>

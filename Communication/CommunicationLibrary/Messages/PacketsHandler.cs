@@ -15,24 +15,30 @@ using Wist.Core.Models;
 
 namespace CommunicationLibrary.Messages
 {
-    [RegisterDefaultImplementation(typeof(IMessagesHandler), Lifetime = LifetimeManagement.Singleton)]
-    public class MessagesHandler : IMessagesHandler
+    [RegisterDefaultImplementation(typeof(IPacketsHandler), Lifetime = LifetimeManagement.Singleton)]
+    public class PacketsHandler : IPacketsHandler
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof(MessagesHandler));
+        private readonly ILog _log = LogManager.GetLogger(typeof(PacketsHandler));
+        private readonly IPacketTypeHandlersFactory _packetTypeHandlersFactory;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
-        private readonly ConcurrentQueue<MessageErrorPacket> _messageErrorPackets;
         private CancellationTokenSource _cancellationTokenSource;
         private ManualResetEventSlim _messageTrigger;
+        private readonly ConcurrentQueue<PacketErrorMessage> _messageErrorPackets;
         private ManualResetEventSlim _messageErrorTrigger;
 
-        public MessagesHandler()
+        public PacketsHandler(IPacketTypeHandlersFactory packetTypeHandlersFactory)
         {
+            _packetTypeHandlersFactory = packetTypeHandlersFactory;
             _messagePackets = new ConcurrentQueue<byte[]>();
-            _messageErrorPackets = new ConcurrentQueue<MessageErrorPacket>();
             _messageTrigger = new ManualResetEventSlim();
+            _messageErrorPackets = new ConcurrentQueue<PacketErrorMessage>();
             _messageErrorTrigger = new ManualResetEventSlim();
         }
 
+        /// <summary>
+        /// Bytes being pushed to <see cref="IPacketsHandler"/> must form complete packet for following validation and processing
+        /// </summary>
+        /// <param name="messagePacket">Bytes of complete message for following processing</param>
         public void Push(byte[] messagePacket)
         {
             _messagePackets.Enqueue(messagePacket);
@@ -57,7 +63,7 @@ namespace CommunicationLibrary.Messages
 
             if(withErrorsProcessing)
             {
-                Task.Factory.StartNew(() => ProcessMessageErrorPackets(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
+                Task.Factory.StartNew(() => ProcessPacketErrorPackets(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
             }
         }
 
@@ -83,71 +89,57 @@ namespace CommunicationLibrary.Messages
             byte[] messagePacket;
             while (!token.IsCancellationRequested && _messagePackets.TryDequeue(out messagePacket))
             {
-                MessageBase msg;
-                using (MemoryStream ms = new MemoryStream(messagePacket))
-                {
-                    using (BinaryReader br = new BinaryReader(ms))
-                    {
-                        ushort messageType = br.ReadUInt16();
-                        ushort length = br.ReadUInt16();
-
-                        if(length == 0)
-                        {
-                            PushMessageErrorPacket(new MessageErrorPacket(messagePacket, MessageErrors.LENGTH_IS_INVALID));
-                            continue;
-                        }
-
-                        int actualMessageBodyLength = messagePacket.Length - 4 - 32 - 64;
-                        if (actualMessageBodyLength != length)
-                        {
-                            PushMessageErrorPacket(new MessageErrorPacket(messagePacket, MessageErrors.LENGTH_DOES_NOT_MATCH));
-                            continue;
-                        }
-
-                        byte[] messageBody = br.ReadBytes(length);
-                        byte[] signature = br.ReadBytes(64);
-                        byte[] publickKey = br.ReadBytes(32);
-
-                        if(!VerifySignature(messageBody, signature, publickKey))
-                        {
-                            PushMessageErrorPacket(new MessageErrorPacket(messagePacket, MessageErrors.SIGNATURE_IS_INVALID));
-                            continue;
-                        }
-
-
-                    }
-                }
+                Task task = ProcessMessagePacket(messagePacket);
             }
         }
 
-        private bool VerifySignature(byte[] messageBody, byte[] signature, byte[] publicKey)
+        private async Task ProcessMessagePacket(byte[] messagePacket)
         {
-            return true;
+            if(messagePacket == null)
+            {
+                _log.Warn("An EMPTY packet obtained at ProcessMessagePacket");
+                return;
+            }
+
+            try
+            {
+                PacketTypes packetType = (PacketTypes)messagePacket[0];
+                IPacketTypeHandler packetTypeHandler = _packetTypeHandlersFactory.Create(packetType);
+                PacketErrorMessage packetErrorMessage = await packetTypeHandler.ProcessPacket(messagePacket);
+                if (packetErrorMessage.ErrorCode != PacketsErrors.NO_ERROR)
+                {
+                    PushPacketErrorPacket(packetErrorMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failed to process packet {messagePacket.ToHexString()}", ex);
+            }
         }
 
-        private void PushMessageErrorPacket(MessageErrorPacket messageErrorPacket)
+        private void PushPacketErrorPacket(PacketErrorMessage messageErrorPacket)
         {
             _messageErrorPackets.Enqueue(messageErrorPacket);
             _messageErrorTrigger.Set();
         }
 
-        private void ProcessMessageErrorPackets(CancellationToken ct)
+        private void ProcessPacketErrorPackets(CancellationToken ct)
         {
-            while(!ct.IsCancellationRequested)
+            while (!ct.IsCancellationRequested)
             {
-                MessageErrorPacket messageErrorPacket;
-                if(_messageErrorPackets.TryDequeue(out messageErrorPacket))
+                PacketErrorMessage messageErrorPacket;
+                if (_messageErrorPackets.TryDequeue(out messageErrorPacket))
                 {
                     _messageErrorTrigger.Reset();
                     switch (messageErrorPacket.ErrorCode)
                     {
-                        case MessageErrors.LENGTH_IS_INVALID:
+                        case PacketsErrors.LENGTH_IS_INVALID:
                             _log.Error($"Invalid message length 0: {messageErrorPacket.MessagePacket.ToHexString()}");
                             break;
-                        case MessageErrors.LENGTH_DOES_NOT_MATCH:
+                        case PacketsErrors.LENGTH_DOES_NOT_MATCH:
                             _log.Error($"Actual message body length is differs from declared: {messageErrorPacket.MessagePacket.ToHexString()}");
                             break;
-                        case MessageErrors.SIGNATURE_IS_INVALID:
+                        case PacketsErrors.SIGNATURE_IS_INVALID:
                             _log.Error($"Message signature is invalid: {messageErrorPacket.MessagePacket.ToHexString()}");
                             break;
                     }
@@ -157,18 +149,6 @@ namespace CommunicationLibrary.Messages
                     _messageErrorTrigger.Wait();
                 }
             }
-        }
-
-        public class MessageErrorPacket
-        {
-            public MessageErrorPacket(byte[] messagePacket, MessageErrors errorCode)
-            {
-                MessagePacket = messagePacket;
-                ErrorCode = errorCode;
-            }
-
-            public MessageErrors ErrorCode { get; }
-            public byte[] MessagePacket { get; }
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Wist.Communication.Tests
         public void ParseSingleShortPacket()
         {
             List<byte[]> packets = new List<byte[]>();
-            IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();  
+            IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();  
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
             IClientHandler handler = new ClientHandler(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet = new byte[] { ClientHandler.DLE, ClientHandler.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44};
@@ -45,7 +45,7 @@ namespace Wist.Communication.Tests
         public void ParseSingleShortExactPacket()
         {
             List<byte[]> packets = new List<byte[]>();
-            IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();
+            IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
             IClientHandler handler = new ClientHandler(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet = new byte[] { ClientHandler.DLE, ClientHandler.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc};
@@ -65,7 +65,7 @@ namespace Wist.Communication.Tests
         public void ParseSingleShortPacketWithDLE()
         {
             List<byte[]> packets = new List<byte[]>();
-            IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();
+            IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
             IClientHandler handler = new ClientHandler(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet = new byte[] { ClientHandler.DLE, ClientHandler.STX, ClientHandler.DLE, ClientHandler.DLE + 0x02, 0x00, 0xaa, 0xbb, 0xdd, 0x44 };
@@ -85,7 +85,7 @@ namespace Wist.Communication.Tests
         public void ParseSingleLongPacket()
         {
             List<byte[]> packets = new List<byte[]>();
-            IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();
+            IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
             IClientHandler handler = new ClientHandler(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet1 = new byte[] { ClientHandler.DLE, ClientHandler.STX, 0x09, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
@@ -107,7 +107,7 @@ namespace Wist.Communication.Tests
         public void ParseSingleLongPacketDleIsLast()
         {
             List<byte[]> packets = new List<byte[]>();
-            IMessagesHandler messagesHandler = Substitute.For<IMessagesHandler>();
+            IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
             IClientHandler handler = new ClientHandler(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet1 = new byte[] { 0x45, 0x65, ClientHandler.DLE };

@@ -29,7 +29,7 @@ namespace Wist.Communication.Tests.Fixtures
         {
         }
 
-        public IMessagesHandler MessagesHandler { get; }
+        public IPacketsHandler PacketsHandler { get; }
 
         public List<byte[]> Packets { get; }
 

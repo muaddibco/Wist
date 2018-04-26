@@ -1,4 +1,4 @@
-﻿public enum MessageErrors : int
+﻿public enum PacketsErrors : int
 {
     NO_ERROR = 0,
     LENGTH_IS_INVALID = 1,

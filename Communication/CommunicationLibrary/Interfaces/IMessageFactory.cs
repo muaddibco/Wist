@@ -6,7 +6,7 @@ using Wist.Core.Architecture;
 namespace CommunicationLibrary.Interfaces
 {
     /// <summary>
-    /// Interface IResponseFactory
+    /// Interface IMessageFactory
     /// </summary>
     [ExtensionPoint]
     public interface IMessageFactory

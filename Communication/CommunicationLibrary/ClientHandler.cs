@@ -18,7 +18,7 @@ namespace CommunicationLibrary
         private readonly Queue<byte[]> _packets;
         private readonly Queue<byte[]> _messagePackets;
         private readonly ConcurrentQueue<byte[]> _postedMessages;
-        private readonly IMessagesHandler _messagesHandler;
+        private readonly IPacketsHandler _packetsHandler;
         private readonly IBufferManager _bufferManager;
         private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
         private readonly SocketAsyncEventArgs _socketSendAsyncEventArgs;
@@ -54,10 +54,10 @@ namespace CommunicationLibrary
 
         public event EventHandler<EventArgs> SocketClosedEvent;
 
-        public ClientHandler(IBufferManager bufferManager, IMessagesHandler messagesHandler)
+        public ClientHandler(IBufferManager bufferManager, IPacketsHandler messagesHandler)
         {
             _bufferManager = bufferManager;
-            _messagesHandler = messagesHandler;
+            _packetsHandler = messagesHandler;
             _packets = new Queue<byte[]>();
             _messagePackets = new Queue<byte[]>();
             _postedMessages = new ConcurrentQueue<byte[]>();
@@ -168,7 +168,7 @@ namespace CommunicationLibrary
 
                                         if (_packetLengthRemained == 0)
                                         {
-                                            _messagesHandler.Push(_currentPacket);
+                                            _packetsHandler.Push(_currentPacket);
                                             Reset();
                                         }
                                     }
