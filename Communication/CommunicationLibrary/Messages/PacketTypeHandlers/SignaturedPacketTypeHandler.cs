@@ -14,10 +14,13 @@ namespace CommunicationLibrary.Messages.PacketTypeHandlers
     public class SignaturedPacketTypeHandler : IPacketTypeHandler
     {
         public PacketTypes PacketType => PacketTypes.Signatured;
+        public const int MESSAGE_TYPE_SIZE = 2;
+        public const int MESSAGE_LENGTH_SIZE = 2;
+        public const int MESSAGE_SIGNATURE_SIZE = 64;
+        public const int MESSAGE_PUBLICKEY_SIZE = 32;
 
         public async Task<PacketErrorMessage> ProcessPacket(byte[] messagePacket)
         {
-            MessageBase msg;
             using (MemoryStream ms = new MemoryStream(messagePacket))
             {
                 using (BinaryReader br = new BinaryReader(ms))
@@ -30,15 +33,15 @@ namespace CommunicationLibrary.Messages.PacketTypeHandlers
                         return new PacketErrorMessage(PacketsErrors.LENGTH_IS_INVALID, messagePacket);
                     }
 
-                    int actualMessageBodyLength = messagePacket.Length - 4 - 32 - 64;
+                    int actualMessageBodyLength = (int)(messagePacket.Length - (MESSAGE_TYPE_SIZE + MESSAGE_LENGTH_SIZE + MESSAGE_SIGNATURE_SIZE + MESSAGE_PUBLICKEY_SIZE));
                     if (actualMessageBodyLength != length)
                     {
                         return new PacketErrorMessage(PacketsErrors.LENGTH_DOES_NOT_MATCH, messagePacket);
                     }
 
                     byte[] messageBody = br.ReadBytes(length);
-                    byte[] signature = br.ReadBytes(64);
-                    byte[] publickKey = br.ReadBytes(32);
+                    byte[] signature = br.ReadBytes(MESSAGE_SIGNATURE_SIZE);
+                    byte[] publickKey = br.ReadBytes(MESSAGE_PUBLICKEY_SIZE);
 
                     if (!VerifySignature(messageBody, signature, publickKey))
                     {

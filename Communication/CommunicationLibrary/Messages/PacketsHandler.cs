@@ -101,10 +101,11 @@ namespace CommunicationLibrary.Messages
                 return;
             }
 
+            IPacketTypeHandler packetTypeHandler = null;
             try
             {
                 PacketTypes packetType = (PacketTypes)messagePacket[0];
-                IPacketTypeHandler packetTypeHandler = _packetTypeHandlersFactory.Create(packetType);
+                packetTypeHandler = _packetTypeHandlersFactory.Create(packetType);
                 PacketErrorMessage packetErrorMessage = await packetTypeHandler.ProcessPacket(messagePacket);
                 if (packetErrorMessage.ErrorCode != PacketsErrors.NO_ERROR)
                 {
@@ -115,7 +116,16 @@ namespace CommunicationLibrary.Messages
             {
                 _log.Error($"Failed to process packet {messagePacket.ToHexString()}", ex);
             }
+            finally
+            {
+                if (packetTypeHandler != null)
+                {
+                    _packetTypeHandlersFactory.Utilize(packetTypeHandler);
+                }
+            }
         }
+
+        #region Packets errors processing
 
         private void PushPacketErrorPacket(PacketErrorMessage messageErrorPacket)
         {
@@ -142,6 +152,9 @@ namespace CommunicationLibrary.Messages
                         case PacketsErrors.SIGNATURE_IS_INVALID:
                             _log.Error($"Message signature is invalid: {messageErrorPacket.MessagePacket.ToHexString()}");
                             break;
+                        case PacketsErrors.HASHBACK_IS_INVALID:
+                            _log.Error($"Message hash N back value is invalid: {messageErrorPacket.MessagePacket.ToHexString()}");
+                            break;
                     }
                 }
                 else
@@ -150,5 +163,7 @@ namespace CommunicationLibrary.Messages
                 }
             }
         }
+
+        #endregion Packets errors processing
     }
 }
