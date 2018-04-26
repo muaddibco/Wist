@@ -57,7 +57,7 @@ namespace CommunicationLibrary.Messages.PacketTypeHandlers
         private bool VerifyHashNBack(byte[] hashOriginal, byte[] hashNBack)
         {
             // if the same hashes were provided so return false
-            if (CryptoHelper.Hash64Equals(hashNBack, hashOriginal))
+            if (CryptoHelper.HashX16Equals(hashNBack, hashOriginal))
                 return false;
 
             byte[] hash = hashNBack;
