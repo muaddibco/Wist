@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Wist.BlockLattice.Core.DataModel;
+using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.Core.Architecture;
 
 namespace Wist.BlockLattice.Core.Interfaces
