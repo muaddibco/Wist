@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Wist.BlockLattice.Core.DataModel
+namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
     public class TransactionalBlockchain
     {
         /// <summary>
         /// The very first block that entire transactional blockchain starts from
         /// </summary>
-        public GenesisBlock GenesisBlock { get; }
+        public TransactionalGenesisBlock GenesisBlock { get; }
 
         /// <summary>
         /// Collection of all blocks of transactional blockchain ordered by their BlockOrder value. 

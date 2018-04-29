@@ -2,16 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Wist.BlockLattice.Core.DataModel
+namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
-    public abstract class TransactionalBlockBase
+    public abstract class TransactionalBlockBase : BlockBase
     {
-        public abstract TransactionalBlockType BlockType { get; }
-
-        public abstract ushort Version { get; }
-
-        public uint BlockOrder { get; set; }
-
         /// <summary>
         /// 64 byte of Hash value level N of account name encoded with Parent Account's Public Key
         /// </summary>

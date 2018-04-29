@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Wist.BlockLattice.Core.DataModel.Enums;
 
-namespace Wist.BlockLattice.Core.DataModel
+namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
     public class AcceptFundsBlock : TransactionalBlockBase
     {
-        public override TransactionalBlockType BlockType => TransactionalBlockType.AcceptFunds;
+        public override BlockType BlockType => BlockType.Transaction_AcceptFunds;
 
         public override ushort Version => 1;
 
