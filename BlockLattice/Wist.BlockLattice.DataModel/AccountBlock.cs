@@ -5,11 +5,11 @@ using System.Text;
 
 namespace Wist.BlockLattice.MySql.DataModel
 {
-    [Table("transactional_blocks")]
-    public class TransactionalBlock
+    [Table("account_chain_blocks")]
+    public class AccountBlock
     {
-        public byte[] OriginalHash { get; set; }
+        public long AccountBlockId { get; set; }
 
-        public uint BlockOrder { get; set; }
+        public AccountGenesis AccountGenesis { get; set; }
     }
 }

@@ -11,6 +11,8 @@ namespace Wist.BlockLattice.Core.Interfaces
         where TGenesisBlock : GenesisBlockBase 
         where TBlockBase : BlockBase
     {
+        bool DoesChainExist(byte[] key);
+
         TGenesisBlock GetGenesisBlock(byte[] key);
 
         TBlockBase GetLastBlock(byte[] key);

@@ -7,7 +7,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
-namespace Wist.BlockLattice.Core
+namespace Wist.BlockLattice.SQLite.DataServices
 {
     [RegisterExtension(typeof(IChainDataService), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionalChainDataService : IChainDataService<TransactionalGenesisBlock, TransactionalBlockBase>
@@ -20,6 +20,11 @@ namespace Wist.BlockLattice.Core
         }
 
         public void CreateGenesisBlock(TransactionalGenesisBlock genesisBlock)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool DoesChainExist(byte[] key)
         {
             throw new NotImplementedException();
         }

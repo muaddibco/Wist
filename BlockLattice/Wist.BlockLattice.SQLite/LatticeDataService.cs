@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Wist.BlockLattice.Core.DataModel;
@@ -37,8 +38,8 @@ namespace Wist.BlockLattice.MySql
             if (originalHash.Length != 64)
                 throw new ArgumentException("Hash value must be 64 bytes length");
 
-            TransactionalAccount account = new TransactionalAccount() { OriginalHash = originalHash };
-
+            TransactionalGenesis account = new TransactionalGenesis() { OriginalHash = originalHash };
+            
             _dataContext.TransactionalAccounts.AddAsync(account);
         }
 
