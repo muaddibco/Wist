@@ -4,6 +4,7 @@ using System.Text;
 using Wist.BlockLattice.Core.DataModel.Enums;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.BlockLattice.MySql;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
@@ -21,7 +22,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public void CreateGenesisBlock(TransactionalGenesisBlock genesisBlock)
         {
-            throw new NotImplementedException();
+            LatticeDataService.Instance.CreateGenesisBlock(genesisBlock.OriginalHash);
         }
 
         public bool DoesChainExist(byte[] key)

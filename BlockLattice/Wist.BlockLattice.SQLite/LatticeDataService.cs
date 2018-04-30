@@ -3,29 +3,52 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Wist.BlockLattice.Core.DataModel;
+using Wist.BlockLattice.DataModel;
 using Wist.BlockLattice.Core.Interfaces;
-using Wist.BlockLattice.MySql.DataModel;
 using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Aspects;
+using Wist.Core.ExtensionMethods;
+using Z.EntityFramework.Plus;
 
 namespace Wist.BlockLattice.MySql
 {
-    [RegisterDefaultImplementation(typeof(ILatticeDataService), Lifetime = LifetimeManagement.Singleton)]
     [InitializationMandatory]
-    public class LatticeDataService : ILatticeDataService, ISupportInitialization
+    public class LatticeDataService : ISupportInitialization
     {
+        private static readonly object _sync = new object();
+        private static LatticeDataService _instance = null;
+
         private readonly DataContext _dataContext;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         private bool _isSaving;
 
-        public LatticeDataService()
+        private LatticeDataService()
         {
             _dataContext = new DataContext();
             _cancellationTokenSource = new CancellationTokenSource();
+        }
+
+        public static LatticeDataService Instance
+        {
+            get
+            {
+                if(_instance == null)
+                {
+                    lock(_sync)
+                    {
+                        if(_instance == null)
+                        {
+                            _instance = new LatticeDataService();
+                            _instance.Initialize();
+                        }
+                    }
+                }
+
+                return _instance;
+            }
         }
 
         public bool IsInitialized { get; private set; }
@@ -38,19 +61,18 @@ namespace Wist.BlockLattice.MySql
             if (originalHash.Length != 64)
                 throw new ArgumentException("Hash value must be 64 bytes length");
 
-            TransactionalGenesis account = new TransactionalGenesis() { OriginalHash = originalHash };
+            TransactionalGenesis account = new TransactionalGenesis() { OriginalHash = originalHash.ToHexString() };
             
-            _dataContext.TransactionalAccounts.AddAsync(account);
+            _dataContext.TransactionalGenesises.AddAsync(account);
         }
 
-        public HashSet<TransactionalBlockBase> GetLastTransactionalBlocks(byte[] originalHash)
+        public HashSet<TransactionalBlock> GetLastTransactionalBlocks(byte[] originalHash)
         {
-            throw new NotImplementedException();
-        }
+            string hashValue = originalHash.ToHexString();
 
-        public TransactionalBlockchain GetTransactionalBlockchain(byte[] originalHash)
-        {
-            throw new NotImplementedException();
+            var deferredGenesis = _dataContext.TransactionalGenesises.DeferredFirstOrDefault(g => g.OriginalHash == hashValue).FutureValue();
+
+            _dataContext.TransactionalBlocks.Where(b => b.TransactionalGenesis.OriginalHash == hashValue).DeferredMax(b => b.BlockOrder).FirstOrDefault();
         }
 
         public void Initialize()
