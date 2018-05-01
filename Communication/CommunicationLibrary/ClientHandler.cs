@@ -73,6 +73,7 @@ namespace CommunicationLibrary
 
         public int TokenId { get; private set; }
 
+        public IPEndPoint RemoteEndPoint { get; set; }
 
         public IEnumerable<byte[]> GetMessagesToSend()
         {
@@ -269,6 +270,8 @@ namespace CommunicationLibrary
         public void AcceptSocket(Socket acceptSocket)
         {
             _log.Info($"Socket accepted by ClientHandler with tokenId {TokenId}.  Remote endpoint = {IPAddress.Parse(((IPEndPoint)acceptSocket.RemoteEndPoint).Address.ToString())}:{((IPEndPoint)acceptSocket.RemoteEndPoint).Port.ToString()}");
+
+            RemoteEndPoint = (IPEndPoint)acceptSocket.RemoteEndPoint;
 
             _socketReceiveAsyncEventArgs.AcceptSocket = acceptSocket;
             _socketSendAsyncEventArgs.AcceptSocket = acceptSocket;
@@ -500,6 +503,11 @@ namespace CommunicationLibrary
             {
                 AcceptSocket(socket);
             }
+        }
+
+        public void Close()
+        {
+            CloseClientSocket();
         }
     }
 }

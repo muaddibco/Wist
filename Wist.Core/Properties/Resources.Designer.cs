@@ -97,11 +97,29 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Required configuration parameter &apos;{0}&apos; not specified at application configuration file..
+        /// </summary>
+        internal static string ERR_REQUIRED_CONIGURATION_PARAMETER_NOT_SPECIFIED {
+            get {
+                return ResourceManager.GetString("ERR_REQUIRED_CONIGURATION_PARAMETER_NOT_SPECIFIED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to String length must be even..
         /// </summary>
         internal static string ERR_STRING_LEN_EVEN {
             get {
                 return ResourceManager.GetString("ERR_STRING_LEN_EVEN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configuration parameter &apos;{0}&apos; has value &apos;{1}&apos; with incorrect format. Expected &apos;{2}&apos;..
+        /// </summary>
+        internal static string ERR_WRONG_CONFIGURATION_VALUE_FORMAT {
+            get {
+                return ResourceManager.GetString("ERR_WRONG_CONFIGURATION_VALUE_FORMAT", resourceCulture);
             }
         }
     }

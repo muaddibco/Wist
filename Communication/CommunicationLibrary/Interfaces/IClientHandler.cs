@@ -12,6 +12,8 @@ namespace CommunicationLibrary.Interfaces
 
         int TokenId { get; }
 
+        IPEndPoint RemoteEndPoint { get; }
+
         Queue<byte[]> MessagePackets { get; }
 
         void PushBuffer(byte[] buf, int count);
@@ -23,6 +25,8 @@ namespace CommunicationLibrary.Interfaces
         void Stop();
 
         void Connect(EndPoint endPoint);
+
+        void Close();
 
         void AcceptSocket(Socket acceptSocket);
 

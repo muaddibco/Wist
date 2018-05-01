@@ -25,9 +25,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Node", "Node", "{FC085ED7-E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Node.Core", "Node\Wist.Node.Core\Wist.Node.Core.csproj", "{79953FDF-C430-474C-802F-A7EDC3FD2B7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.BlockLattice.SQLite", "BlockLattice\Wist.BlockLattice.SQLite\Wist.BlockLattice.SQLite.csproj", "{D3E3B9B5-54A4-4F30-BCC3-121FFC182402}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.SQLite", "BlockLattice\Wist.BlockLattice.SQLite\Wist.BlockLattice.SQLite.csproj", "{D3E3B9B5-54A4-4F30-BCC3-121FFC182402}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.BlockLattice.DataModel", "BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj", "{C00D10B5-3641-487F-9CBD-F7E8A0890112}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.DataModel", "BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj", "{C00D10B5-3641-487F-9CBD-F7E8A0890112}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Node", "Node\Wist.Node\Wist.Node.csproj", "{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +73,10 @@ Global
 		{C00D10B5-3641-487F-9CBD-F7E8A0890112}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C00D10B5-3641-487F-9CBD-F7E8A0890112}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C00D10B5-3641-487F-9CBD-F7E8A0890112}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,6 +89,7 @@ Global
 		{79953FDF-C430-474C-802F-A7EDC3FD2B7E} = {FC085ED7-E813-480A-A197-5ECE13BBF9DB}
 		{D3E3B9B5-54A4-4F30-BCC3-121FFC182402} = {7EAABD3F-EDFD-4E08-B9AC-4F28F17C3CD6}
 		{C00D10B5-3641-487F-9CBD-F7E8A0890112} = {7EAABD3F-EDFD-4E08-B9AC-4F28F17C3CD6}
+		{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E} = {FC085ED7-E813-480A-A197-5ECE13BBF9DB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EB9BA20-4E24-4DF9-871A-597326B66D91}

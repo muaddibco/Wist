@@ -1,17 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommonServiceLocator" Version="2.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Communication\CommunicationLibrary\CommunicationLibrary.csproj" />
     <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj" />
+    <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj" />
     <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
+    <ProjectReference Include="..\Wist.Node.Core\Wist.Node.Core.csproj" />
   </ItemGroup>
 
 </Project>
