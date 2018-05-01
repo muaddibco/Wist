@@ -17,9 +17,10 @@ namespace Wist.BlockLattice.DataModel
 
         public uint BlockOrder { get; set; }
 
-        public uint ForkId { get; set; }
-
         public ushort BlockType { get; set; }
+
+        [StringLength(128)]
+        public string NBackHash { get; set; }
 
         public byte[] BlockContent { get; set; }
     }

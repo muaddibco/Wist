@@ -117,19 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ERR_FACTORY_TYPE_RESOLUTION_FAILURE" xml:space="preserve">
-    <value>Unable to resolve factory Type {0}.</value>
+  <data name="ERR_GENESIS_BLOCK_ALREADY_EXISTS" xml:space="preserve">
+    <value>Genesis blockwith original hash value {0} already exist.</value>
   </data>
-  <data name="ERR_FAILED_TO_FIND_LOG_CONFIG_FILE" xml:space="preserve">
-    <value>Unable to locate {0} configuration file at: {1}.</value>
+  <data name="ERR_GENESIS_BLOCK_NOT_FOUND" xml:space="preserve">
+    <value>Genesis block with original hash value {0} not found.</value>
   </data>
-  <data name="ERR_INSTANCE_IS_NOT_INITIALIZED" xml:space="preserve">
-    <value>Instance of class {0} is not initialized yet. Please invoke its initialization method prior to usage.</value>
-  </data>
-  <data name="ERR_MANDATORY_INTERFACE_NOT_IMPLEMENTED" xml:space="preserve">
-    <value>Aspect {0} requires mandatory interface {1} that is not implemented by type {1}.</value>
-  </data>
-  <data name="ERR_STRING_LEN_EVEN" xml:space="preserve">
-    <value>String length must be even.</value>
+  <data name="ERR_NOT_SUPPORTED_BLOCK_TYPE" xml:space="preserve">
+    <value>Block type {0} is not supported for parsing.</value>
   </data>
 </root>

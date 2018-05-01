@@ -11,10 +11,13 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Aspects;
 using Wist.Core.ExtensionMethods;
 using Z.EntityFramework.Plus;
+using Wist.BlockLattice.Core.Exceptions;
+using Wist.Core.Cryptography;
 
 namespace Wist.BlockLattice.MySql
 {
     [InitializationMandatory]
+    [AutoLog]
     public class LatticeDataService : ISupportInitialization
     {
         private static readonly object _sync = new object();
@@ -53,28 +56,151 @@ namespace Wist.BlockLattice.MySql
 
         public bool IsInitialized { get; private set; }
 
-        public void CreateGenesisBlock(byte[] originalHash)
+        #region Accounts Chain
+
+        
+
+        #endregion Accounts Chain
+
+        #region Transactional Chain
+
+        public TransactionalGenesis GetTransactionalGenesisBlock(string originalHash)
         {
             if (originalHash == null)
+            {
                 throw new ArgumentNullException(nameof(originalHash));
+            }
+
+            return _dataContext.TransactionalGenesises.FirstOrDefault(g => g.OriginalHash.Equals(originalHash));
+        }
+
+        public TransactionalGenesis GetTransactionalGenesisBlock(byte[] originalHash)
+        {
+            if (originalHash == null)
+            {
+                throw new ArgumentNullException(nameof(originalHash));
+            }
+
+            string originalHashValue = originalHash.ToHexString();
+
+            return _dataContext.TransactionalGenesises.FirstOrDefault(g => g.OriginalHash.Equals(originalHashValue));
+        }
+
+        public void CreateTransactionalGenesisBlock(byte[] originalHash)
+        {
+            if (originalHash == null)
+            {
+                throw new ArgumentNullException(nameof(originalHash));
+            }
 
             if (originalHash.Length != 64)
+            {
                 throw new ArgumentException("Hash value must be 64 bytes length");
+            }
 
-            TransactionalGenesis account = new TransactionalGenesis() { OriginalHash = originalHash.ToHexString() };
+            string originalHashValue = originalHash.ToHexString();
+            if (IsGenesisBlockExists(originalHashValue))
+            {
+                throw new GenesisBlockAlreadyExistException(originalHashValue);
+            }
+
+            TransactionalGenesis account = new TransactionalGenesis() { OriginalHash = originalHashValue };
             
             _dataContext.TransactionalGenesises.AddAsync(account);
         }
 
-        public HashSet<TransactionalBlock> GetLastTransactionalBlocks(byte[] originalHash)
+        public bool IsGenesisBlockExists(byte[] originalHash)
         {
-            string hashValue = originalHash.ToHexString();
+            if (originalHash == null)
+            {
+                throw new ArgumentNullException(nameof(originalHash));
+            }
 
-            var deferredGenesis = _dataContext.TransactionalGenesises.DeferredFirstOrDefault(g => g.OriginalHash == hashValue).FutureValue();
+            string originalHashValue = originalHash.ToHexString();
 
-            _dataContext.TransactionalBlocks.Where(b => b.TransactionalGenesis.OriginalHash == hashValue).DeferredMax(b => b.BlockOrder).FirstOrDefault();
+            return _dataContext.TransactionalGenesises.Any(g => g.OriginalHash.Equals(originalHashValue));
         }
 
+        public bool IsGenesisBlockExists(string originalHash)
+        {
+            if (originalHash == null)
+            {
+                throw new ArgumentNullException(nameof(originalHash));
+            }
+
+            return _dataContext.TransactionalGenesises.Any(g => g.OriginalHash.Equals(originalHash));
+        }
+
+        public TransactionalBlock GetLastTransactionalBlock(byte[] originalHash)
+        {
+            if (originalHash == null)
+            {
+                throw new ArgumentNullException(nameof(originalHash));
+            }
+
+            string hashValue = originalHash.ToHexString();
+
+            return _dataContext.TransactionalBlocks.Where(b => b.TransactionalGenesis.OriginalHash == hashValue).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
+        }
+
+        public TransactionalBlock GetLastTransactionalBlock(string originalHash)
+        {
+            if (originalHash == null)
+            {
+                throw new ArgumentNullException(nameof(originalHash));
+            }
+
+            // TODO: need to examine performance
+            if(!IsGenesisBlockExists(originalHash))
+            {
+                throw new GenesisBlockNotFoundException(originalHash);
+            }
+
+            return _dataContext.TransactionalBlocks.Where(b => b.TransactionalGenesis.OriginalHash == originalHash).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
+        }
+
+        public void AddTransactionalBlock(byte[] originalHash, byte[] nbackHash, ushort blockType, byte[] blockContent)
+        {
+            if (originalHash == null)
+            {
+                throw new ArgumentNullException(nameof(originalHash));
+            }
+
+            if (nbackHash == null)
+            {
+                throw new ArgumentNullException(nameof(nbackHash));
+            }
+
+            if (blockContent == null)
+            {
+                throw new ArgumentNullException(nameof(blockContent));
+            }
+
+            string originalHashValue = originalHash.ToHexString();
+
+            TransactionalGenesis transactionalGenesisBlock = GetTransactionalGenesisBlock(originalHashValue);
+
+            if(transactionalGenesisBlock== null)
+            {
+                throw new GenesisBlockNotFoundException(originalHashValue);
+            }
+
+            TransactionalBlock transactionalBlockLast = GetLastTransactionalBlock(originalHashValue);
+            byte[] contentHash = CryptoHelper.ComputeHash(blockContent);
+
+            TransactionalBlock transactionalBlock = new TransactionalBlock()
+            {
+                TransactionalGenesis = transactionalGenesisBlock,
+                NBackHash = nbackHash.ToHexString(),
+                BlockContent = blockContent,
+                BlockOrder = transactionalBlockLast.BlockOrder + 1,
+                BlockType = blockType
+            };
+        }
+
+        #endregion Transactional Chain
+
+        #region Common section
         public void Initialize()
         {
             if (IsInitialized)
@@ -105,5 +231,6 @@ namespace Wist.BlockLattice.MySql
         {
             _cancellationTokenSource.Cancel();
         }
+        #endregion Common section
     }
 }

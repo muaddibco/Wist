@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Wist.Core.Properties {
+namespace Wist.BlockLattice.Core.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Wist.Core.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Wist.Core.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Wist.BlockLattice.Core.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,47 +61,29 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to resolve factory Type {0}..
+        ///   Looks up a localized string similar to Genesis blockwith original hash value {0} already exist..
         /// </summary>
-        internal static string ERR_FACTORY_TYPE_RESOLUTION_FAILURE {
+        internal static string ERR_GENESIS_BLOCK_ALREADY_EXISTS {
             get {
-                return ResourceManager.GetString("ERR_FACTORY_TYPE_RESOLUTION_FAILURE", resourceCulture);
+                return ResourceManager.GetString("ERR_GENESIS_BLOCK_ALREADY_EXISTS", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to locate {0} configuration file at: {1}..
+        ///   Looks up a localized string similar to Genesis block with original hash value {0} not found..
         /// </summary>
-        internal static string ERR_FAILED_TO_FIND_LOG_CONFIG_FILE {
+        internal static string ERR_GENESIS_BLOCK_NOT_FOUND {
             get {
-                return ResourceManager.GetString("ERR_FAILED_TO_FIND_LOG_CONFIG_FILE", resourceCulture);
+                return ResourceManager.GetString("ERR_GENESIS_BLOCK_NOT_FOUND", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Instance of class {0} is not initialized yet. Please invoke its initialization method prior to usage..
+        ///   Looks up a localized string similar to Block type {0} is not supported for parsing..
         /// </summary>
-        internal static string ERR_INSTANCE_IS_NOT_INITIALIZED {
+        internal static string ERR_NOT_SUPPORTED_BLOCK_TYPE {
             get {
-                return ResourceManager.GetString("ERR_INSTANCE_IS_NOT_INITIALIZED", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Aspect {0} requires mandatory interface {1} that is not implemented by type {1}..
-        /// </summary>
-        internal static string ERR_MANDATORY_INTERFACE_NOT_IMPLEMENTED {
-            get {
-                return ResourceManager.GetString("ERR_MANDATORY_INTERFACE_NOT_IMPLEMENTED", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to String length must be even..
-        /// </summary>
-        internal static string ERR_STRING_LEN_EVEN {
-            get {
-                return ResourceManager.GetString("ERR_STRING_LEN_EVEN", resourceCulture);
+                return ResourceManager.GetString("ERR_NOT_SUPPORTED_BLOCK_TYPE", resourceCulture);
             }
         }
     }

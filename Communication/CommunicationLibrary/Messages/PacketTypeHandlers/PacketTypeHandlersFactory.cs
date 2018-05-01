@@ -50,7 +50,6 @@ namespace CommunicationLibrary.Messages.PacketTypeHandlers
                     IPacketTypeHandler packetTypeHandlerTemplate = _packetTypeHandlersCache[packetType].Pop();
                     packetTypeHandler = (IPacketTypeHandler)Activator.CreateInstance(packetTypeHandlerTemplate.GetType());
                     _packetTypeHandlersCache[packetType].Push(packetTypeHandlerTemplate);
-                    _packetTypeHandlersCache[packetType].Push(packetTypeHandler);
                 }
 
                 return packetTypeHandler;
@@ -61,6 +60,11 @@ namespace CommunicationLibrary.Messages.PacketTypeHandlers
         {
             if (packetTypeHandler == null)
                 throw new ArgumentNullException(nameof(packetTypeHandler));
+
+            if (!_packetTypeHandlersCache.ContainsKey(packetTypeHandler.PacketType))
+            {
+                throw new NotSupportedPacketTypeHandlerException(packetTypeHandler.PacketType);
+            }
 
             _packetTypeHandlersCache[packetTypeHandler.PacketType].Push(packetTypeHandler);
         }

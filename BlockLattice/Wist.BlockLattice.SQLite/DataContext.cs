@@ -28,6 +28,8 @@ namespace Wist.BlockLattice.MySql
             modelBuilder.Entity<TransactionalGenesis>().HasIndex("OriginalHash");
             
             modelBuilder.Entity<TransactionalBlock>().HasIndex("BlockOrder");
+            modelBuilder.Entity<TransactionalBlock>().HasIndex("ContentHash");
+            modelBuilder.Entity<TransactionalBlock>().HasIndex("NBackHash");
         }
     }
 }

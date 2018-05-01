@@ -4,9 +4,11 @@ using System.Text;
 using Wist.BlockLattice.Core.DataModel.Enums;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.BlockLattice.DataModel;
 using Wist.BlockLattice.MySql;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.ExtensionMethods;
 
 namespace Wist.BlockLattice.SQLite.DataServices
 {
@@ -15,6 +17,13 @@ namespace Wist.BlockLattice.SQLite.DataServices
     {
         public ChainType ChainType => ChainType.TransactionalChain;
 
+        private readonly IBlockParsersFactory _blockParsersFactory;
+
+        public TransactionalChainDataService(IBlockParsersFactory blockParsersFactory)
+        {
+            _blockParsersFactory = blockParsersFactory;
+        }
+
         public void AddBlock(TransactionalBlockBase block)
         {
             throw new NotImplementedException();
@@ -22,12 +31,12 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public void CreateGenesisBlock(TransactionalGenesisBlock genesisBlock)
         {
-            LatticeDataService.Instance.CreateGenesisBlock(genesisBlock.OriginalHash);
+            LatticeDataService.Instance.CreateTransactionalGenesisBlock(genesisBlock.OriginalHash);
         }
 
         public bool DoesChainExist(byte[] key)
         {
-            throw new NotImplementedException();
+            return LatticeDataService.Instance.IsGenesisBlockExists(key);
         }
 
         public TransactionalBlockBase[] GetAllBlocks(byte[] key)
@@ -42,12 +51,61 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public TransactionalGenesisBlock GetGenesisBlock(byte[] key)
         {
-            throw new NotImplementedException();
+            TransactionalGenesis transactionalGenesis = LatticeDataService.Instance.GetTransactionalGenesisBlock(key);
+
+            return new TransactionalGenesisBlock
+            {
+                OriginalHash = transactionalGenesis.OriginalHash.HexStringToByteArray(),
+                BlockOrder = 0
+            };
         }
 
         public TransactionalBlockBase GetLastBlock(byte[] key)
         {
-            throw new NotImplementedException();
+            TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(key);
+            TransactionalBlockBase transactionalBlockBase = null;
+
+            BlockType blockType = (BlockType)transactionalBlock.BlockType;
+
+            IBlockParser blockParser = null;
+
+            try
+            {
+                blockParser = _blockParsersFactory.Create(blockType);
+
+                switch (blockType)
+                {
+                    case BlockType.Transaction_AcceptFunds:
+                        transactionalBlockBase = new AcceptFundsBlock
+                        {
+                            OriginalHash = transactionalBlock.TransactionalGenesis.OriginalHash.HexStringToByteArray(),
+                            BlockOrder = transactionalBlock.BlockOrder
+                        };
+                        blockParser.FillBlockBody(transactionalBlockBase, transactionalBlock.BlockContent);
+                        break;
+                    case BlockType.Transaction_TransferFunds:
+                        transactionalBlockBase = new TransferFundsBlock
+                        {
+                            OriginalHash = transactionalBlock.TransactionalGenesis.OriginalHash.HexStringToByteArray(),
+                            BlockOrder = transactionalBlock.BlockOrder
+                        };
+                        blockParser.FillBlockBody(transactionalBlockBase, transactionalBlock.BlockContent);
+                        break;
+                    case BlockType.Transaction_Confirm:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            finally
+            {
+                if (blockParser != null)
+                {
+                    _blockParsersFactory.Utilize(blockParser);
+                }
+            }
+
+            return transactionalBlockBase;
         }
     }
 }
