@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Communication", "Communication", "{8A23DE96-663C-4F8A-AD76-93A8A1F09EBE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommunicationLibrary", "Communication\CommunicationLibrary\CommunicationLibrary.csproj", "{871F2FF0-B4F1-41F7-89FB-5A9207CDA75B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Communication", "Communication\Wist.Communication\Wist.Communication.csproj", "{871F2FF0-B4F1-41F7-89FB-5A9207CDA75B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Core", "Wist.Core\Wist.Core.csproj", "{EC7E5756-C2F6-40A7-8F5B-C8740DF3A5A9}"
 EndProject
@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.SQLite", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.DataModel", "BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj", "{C00D10B5-3641-487F-9CBD-F7E8A0890112}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Node", "Node\Wist.Node\Wist.Node.csproj", "{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Node", "Node\Wist.Node\Wist.Node.csproj", "{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

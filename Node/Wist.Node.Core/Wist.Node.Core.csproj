@@ -4,13 +4,17 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\bin\Debug\</OutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="CommonServiceLocator" Version="2.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Communication\CommunicationLibrary\CommunicationLibrary.csproj" />
     <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj" />
+    <ProjectReference Include="..\..\Communication\Wist.Communication\Wist.Communication.csproj" />
     <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
   </ItemGroup>
 

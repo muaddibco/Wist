@@ -1,6 +1,6 @@
 ﻿using CommonServiceLocator;
-using CommunicationLibrary;
-using CommunicationLibrary.Interfaces;
+using Wist.Communication;
+using Wist.Communication.Interfaces;
 using NSubstitute;
 using System;
 using System.Collections.Generic;

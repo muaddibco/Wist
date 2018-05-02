@@ -1,6 +1,6 @@
 using CommonServiceLocator;
-using CommunicationLibrary.Interfaces;
-using CommunicationLibrary.Sockets;
+using Wist.Communication.Interfaces;
+using Wist.Communication.Sockets;
 using NSubstitute;
 using System;
 using System.Net;
