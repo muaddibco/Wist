@@ -11,27 +11,27 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterDefaultImplementation(typeof(IPacketTypeHandlersFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class PacketTypeHandlersFactory : IPacketTypeHandlersFactory
+    [RegisterDefaultImplementation(typeof(IChainTypeValidationHandlersFactory), Lifetime = LifetimeManagement.Singleton)]
+    public class PacketTypeHandlersFactory : IChainTypeValidationHandlersFactory
     {
-        private readonly Dictionary<ChainType, Stack<IPacketTypeHandler>> _packetTypeHandlersCache;
+        private readonly Dictionary<ChainType, Stack<IChainTypeValidationHandler>> _packetTypeHandlersCache;
         private readonly object _sync = new object();
 
-        public PacketTypeHandlersFactory(IPacketTypeHandler[] packetTypeHandlers)
+        public PacketTypeHandlersFactory(IChainTypeValidationHandler[] packetTypeHandlers)
         {
-            _packetTypeHandlersCache = new Dictionary<ChainType, Stack<IPacketTypeHandler>>();
+            _packetTypeHandlersCache = new Dictionary<ChainType, Stack<IChainTypeValidationHandler>>();
 
             foreach (var packetTypeHandler in packetTypeHandlers)
             {
                 if(!_packetTypeHandlersCache.ContainsKey(packetTypeHandler.ChainType))
                 {
-                    _packetTypeHandlersCache.Add(packetTypeHandler.ChainType, new Stack<IPacketTypeHandler>());
+                    _packetTypeHandlersCache.Add(packetTypeHandler.ChainType, new Stack<IChainTypeValidationHandler>());
                     _packetTypeHandlersCache[packetTypeHandler.ChainType].Push(packetTypeHandler);
                 }
             }
         }
 
-        public IPacketTypeHandler Create(ChainType packetType)
+        public IChainTypeValidationHandler Create(ChainType packetType)
         {
             if (!_packetTypeHandlersCache.ContainsKey(packetType))
             {
@@ -40,7 +40,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
             lock (_sync)
             {
-                IPacketTypeHandler packetTypeHandler = null;
+                IChainTypeValidationHandler packetTypeHandler = null;
 
                 if (_packetTypeHandlersCache[packetType].Count > 1)
                 {
@@ -48,8 +48,8 @@ namespace Wist.BlockLattice.Core.Handlers
                 }
                 else
                 {
-                    IPacketTypeHandler packetTypeHandlerTemplate = _packetTypeHandlersCache[packetType].Pop();
-                    packetTypeHandler = (IPacketTypeHandler)Activator.CreateInstance(packetTypeHandlerTemplate.GetType());
+                    IChainTypeValidationHandler packetTypeHandlerTemplate = _packetTypeHandlersCache[packetType].Pop();
+                    packetTypeHandler = (IChainTypeValidationHandler)Activator.CreateInstance(packetTypeHandlerTemplate.GetType());
                     _packetTypeHandlersCache[packetType].Push(packetTypeHandlerTemplate);
                 }
 
@@ -57,7 +57,7 @@ namespace Wist.BlockLattice.Core.Handlers
             }
         }
 
-        public void Utilize(IPacketTypeHandler packetTypeHandler)
+        public void Utilize(IChainTypeValidationHandler packetTypeHandler)
         {
             if (packetTypeHandler == null)
                 throw new ArgumentNullException(nameof(packetTypeHandler));

@@ -4,6 +4,8 @@ using Wist.Communication.Sockets;
 using System;
 using System.Net;
 using Wist.Core.Configuration;
+using Wist.BlockLattice.Core.Interfaces;
+using System.Threading;
 
 namespace Wist.Node.Core
 {
@@ -22,12 +24,17 @@ namespace Wist.Node.Core
         private readonly IConfigurationService _configurationService;
         private readonly ICommunicationHub _communicationHubNodes;
         private readonly ICommunicationHub _communicationHubAccounts;
+        private readonly IBlocksProcessor _blocksProcessor;
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
-        internal NodeMain(IConfigurationService configurationService, ICommunicationHub communicationHubNodes, ICommunicationHub communicationHubAccounts)
+        internal NodeMain(IConfigurationService configurationService, ICommunicationHub communicationHubNodes, ICommunicationHub communicationHubAccounts, IBlocksProcessor blocksProcessor)
         {
             _configurationService = configurationService;
             _communicationHubNodes = communicationHubNodes;
             _communicationHubAccounts = communicationHubAccounts;
+            _blocksProcessor = blocksProcessor;
+
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         internal void Initialize()
@@ -55,7 +62,7 @@ namespace Wist.Node.Core
 
         internal void Start()
         {
-
+            _blocksProcessor.Initialize(_cancellationTokenSource.Token);
         }
     }
 }

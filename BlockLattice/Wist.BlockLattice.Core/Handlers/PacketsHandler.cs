@@ -13,6 +13,7 @@ using Wist.Core.ExtensionMethods;
 using Wist.Core.Models;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Enums;
+using Wist.BlockLattice.Core.DataModel;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
@@ -20,16 +21,20 @@ namespace Wist.BlockLattice.Core.Handlers
     public class PacketsHandler : IPacketsHandler
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(PacketsHandler));
-        private readonly IPacketTypeHandlersFactory _packetTypeHandlersFactory;
+        private readonly IChainTypeValidationHandlersFactory _chainTypeValidationHandlersFactory;
+        private readonly IBlockParsersFactory _blockParsersFactory;
+        private readonly IBlocksProcessor _blocksProcessor;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
         private CancellationTokenSource _cancellationTokenSource;
         private ManualResetEventSlim _messageTrigger;
         private readonly ConcurrentQueue<PacketErrorMessage> _messageErrorPackets;
         private ManualResetEventSlim _messageErrorTrigger;
 
-        public PacketsHandler(IPacketTypeHandlersFactory packetTypeHandlersFactory)
+        public PacketsHandler(IChainTypeValidationHandlersFactory packetTypeHandlersFactory, IBlockParsersFactory blockParsersFactory, IBlocksProcessor blocksProcessor)
         {
-            _packetTypeHandlersFactory = packetTypeHandlersFactory;
+            _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
+            _blockParsersFactory = blockParsersFactory;
+            _blocksProcessor = blocksProcessor;
             _messagePackets = new ConcurrentQueue<byte[]>();
             _messageTrigger = new ManualResetEventSlim();
             _messageErrorPackets = new ConcurrentQueue<PacketErrorMessage>();
@@ -98,40 +103,83 @@ namespace Wist.BlockLattice.Core.Handlers
             byte[] messagePacket;
             while (!token.IsCancellationRequested && _messagePackets.TryDequeue(out messagePacket))
             {
-                Task task = ProcessMessagePacket(messagePacket);
+                object @message = messagePacket;
+                Task.Factory.StartNew(m => ProcessMessagePacket((byte[])m), @message, token);
             }
         }
 
-        private async Task ProcessMessagePacket(byte[] messagePacket)
+        private void ProcessMessagePacket(byte[] messagePacket)
         {
-            if(messagePacket == null)
+            if (messagePacket == null)
             {
                 _log.Warn("An EMPTY packet obtained at ProcessMessagePacket");
                 return;
             }
 
-            IPacketTypeHandler packetTypeHandler = null;
+            if (!ValidateByChainType(messagePacket))
+                return;
+
+            BlockBase blockBase = ParseMessagePacket(messagePacket);
+
+            DispatchBlock(blockBase);
+        }
+
+        private bool ValidateByChainType(byte[] messagePacket)
+        {
+            IChainTypeValidationHandler chainTypeValidationHandler = null;
             try
             {
                 ChainType chainType = (ChainType)BitConverter.ToUInt16(messagePacket, 0);
-                packetTypeHandler = _packetTypeHandlersFactory.Create(chainType);
+                chainTypeValidationHandler = _chainTypeValidationHandlersFactory.Create(chainType);
 
-                PacketErrorMessage packetErrorMessage = await packetTypeHandler.ProcessPacket(messagePacket);
+                PacketErrorMessage packetErrorMessage = chainTypeValidationHandler.ProcessPacket(messagePacket);
                 if (packetErrorMessage.ErrorCode != PacketsErrors.NO_ERROR)
                 {
                     PushPacketErrorPacket(packetErrorMessage);
+                    return false;
                 }
             }
             catch (Exception ex)
             {
                 _log.Error($"Failed to process packet {messagePacket.ToHexString()}", ex);
+                return false;
             }
             finally
             {
-                if (packetTypeHandler != null)
+                if (chainTypeValidationHandler != null)
                 {
-                    _packetTypeHandlersFactory.Utilize(packetTypeHandler);
+                    _chainTypeValidationHandlersFactory.Utilize(chainTypeValidationHandler);
                 }
+            }
+
+            return true;
+        }
+
+        private BlockBase ParseMessagePacket(byte[] messagePacket)
+        {
+            BlockBase blockBase = null;
+
+            try
+            {
+                BlockType blockType = (BlockType)BitConverter.ToUInt16(messagePacket, 2);
+
+                IBlockParser blockParser = _blockParsersFactory.Create(blockType);
+
+                blockBase = blockParser.Parse(messagePacket);
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failed to parse message {messagePacket.ToHexString()}", ex);
+            }
+
+            return blockBase;
+        }
+
+        private void DispatchBlock(BlockBase block)
+        {
+            if (block != null)
+            {
+                _blocksProcessor.ProcessBlock(block);
             }
         }
 

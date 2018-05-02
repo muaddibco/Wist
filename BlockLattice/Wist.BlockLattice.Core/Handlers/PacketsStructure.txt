@@ -1,17 +1,15 @@
 ﻿<DLE><STX><LENGTH OF PACKET BODY + PACKET TYPE = 2 BYTES><CHAIN TYPE = 2 BYTE><PACKET BODY>
 ===================================================================================================================================================================
 PACKET BODY:
-
-SIGNATURED:
 	Message Type		: 2 bytes
 	Length				: 2 bytes
+
+SIGNATURED:
 	Body				: N bytes
 	Signature			: 64 bytes
 	PublicKey			: 32 bytes
 
 HASH BASED:
-	Message Type		: 2 bytes
-	Length				: 2 bytes
 	Body				: N bytes
 	Hash Original		: 64 bytes
 	Hash N-backed		: 64 bytes

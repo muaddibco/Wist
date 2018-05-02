@@ -11,7 +11,7 @@ using Wist.Core.Cryptography;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterExtension(typeof(IPacketTypeHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterExtension(typeof(IChainTypeValidationHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class HashBasedPacketTypeHandler : PacketTypeHandlerBase
     {
         public const int MESSAGE_TYPE_SIZE = 2;

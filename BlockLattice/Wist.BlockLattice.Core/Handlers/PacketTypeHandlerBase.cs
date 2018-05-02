@@ -12,10 +12,9 @@ using Wist.Core.ExtensionMethods;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    public abstract class PacketTypeHandlerBase : IPacketTypeHandler
+    public abstract class PacketTypeHandlerBase : IChainTypeValidationHandler
     {
         private readonly ILog _log;
-        private List<IObserver<PacketErrorMessage>> _packetErrorsObservers;
 
         public PacketTypeHandlerBase()
         {
@@ -24,7 +23,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
         public abstract ChainType ChainType { get; }
 
-        public async Task<PacketErrorMessage> ProcessPacket(byte[] packet)
+        public PacketErrorMessage ProcessPacket(byte[] packet)
         {
             PacketErrorMessage packetErrorMessage;
 
@@ -38,7 +37,7 @@ namespace Wist.BlockLattice.Core.Handlers
                 }
             }
 
-            return await Task.FromResult(packetErrorMessage);
+            return packetErrorMessage;
         }
 
         protected abstract PacketsErrors ProcessPacket(BinaryReader br);
