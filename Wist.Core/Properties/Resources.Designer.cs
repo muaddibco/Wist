@@ -61,6 +61,15 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to convert value &apos;{0}&apos; specified in configuration parameter &apos;{1}&apos; to type &apos;{2}&apos; of property &apos;{3}&apos; of class &apos;{4}&apos;..
+        /// </summary>
+        internal static string ERR_APPLICATION_CONFIGURATION_CONVERSION_FAILED {
+            get {
+                return ResourceManager.GetString("ERR_APPLICATION_CONFIGURATION_CONVERSION_FAILED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to resolve factory Type {0}..
         /// </summary>
         internal static string ERR_FACTORY_TYPE_RESOLUTION_FAILURE {

@@ -1,5 +1,4 @@
-﻿using Wist.Communication.Interfaces;
-using log4net;
+﻿using log4net;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,8 +11,10 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.Models;
+using Wist.BlockLattice.Core.Interfaces;
+using Wist.BlockLattice.Core.Enums;
 
-namespace Wist.Communication.Messages
+namespace Wist.BlockLattice.Core.Handlers
 {
     [RegisterDefaultImplementation(typeof(IPacketsHandler), Lifetime = LifetimeManagement.Singleton)]
     public class PacketsHandler : IPacketsHandler
@@ -51,7 +52,15 @@ namespace Wist.Communication.Messages
 
             _cancellationTokenSource = new CancellationTokenSource();
 
-            Task.Factory.StartNew(() => ParseMain(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
+            Task.Factory.StartNew(() => 
+            {
+                while (!_cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    _messageTrigger.Reset();
+                    Parse(_cancellationTokenSource.Token);
+                    _messageTrigger.Wait(_cancellationTokenSource.Token);
+                }
+            }, TaskCreationOptions.LongRunning);
 
             PeriodicTaskFactory.Start(() => 
             {
@@ -104,8 +113,9 @@ namespace Wist.Communication.Messages
             IPacketTypeHandler packetTypeHandler = null;
             try
             {
-                PacketTypes packetType = (PacketTypes)messagePacket[0];
-                packetTypeHandler = _packetTypeHandlersFactory.Create(packetType);
+                ChainType chainType = (ChainType)BitConverter.ToUInt16(messagePacket, 0);
+                packetTypeHandler = _packetTypeHandlersFactory.Create(chainType);
+
                 PacketErrorMessage packetErrorMessage = await packetTypeHandler.ProcessPacket(messagePacket);
                 if (packetErrorMessage.ErrorCode != PacketsErrors.NO_ERROR)
                 {

@@ -39,7 +39,7 @@ namespace Wist.Communication.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CommunicationLibrary.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Wist.Communication.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,24 +57,6 @@ namespace Wist.Communication.Properties {
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Packet type handler {0} is not supported..
-        /// </summary>
-        internal static string ERR_NOT_SUPPORTED_PACKET_TYPE_HANDLER {
-            get {
-                return ResourceManager.GetString("ERR_NOT_SUPPORTED_PACKET_TYPE_HANDLER", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Response factories with following OpCodes are not unique: {0}..
-        /// </summary>
-        internal static string ERR_NOT_UNIQUE_RESPONSE_FACTORIES {
-            get {
-                return ResourceManager.GetString("ERR_NOT_UNIQUE_RESPONSE_FACTORIES", resourceCulture);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿<DLE><STX><LENGTH OF PACKET BODY + PACKET TYPE = 2 BYTES><PACKET TYPE = 1 BYTE><PACKET BODY>
+﻿<DLE><STX><LENGTH OF PACKET BODY + PACKET TYPE = 2 BYTES><CHAIN TYPE = 2 BYTE><PACKET BODY>
 ===================================================================================================================================================================
 PACKET BODY:
 

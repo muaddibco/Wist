@@ -126,4 +126,7 @@
   <data name="ERR_NOT_SUPPORTED_BLOCK_TYPE" xml:space="preserve">
     <value>Block type {0} is not supported for parsing.</value>
   </data>
+  <data name="ERR_NOT_SUPPORTED_PACKET_TYPE_HANDLER" xml:space="preserve">
+    <value>Packet type handler {0} is not supported.</value>
+  </data>
 </root>

@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ERR_APPLICATION_CONFIGURATION_CONVERSION_FAILED" xml:space="preserve">
+    <value>Failed to convert value '{0}' specified in configuration parameter '{1}' to type '{2}' of property '{3}' of class '{4}'.</value>
+  </data>
   <data name="ERR_FACTORY_TYPE_RESOLUTION_FAILURE" xml:space="preserve">
     <value>Unable to resolve factory Type {0}.</value>
   </data>

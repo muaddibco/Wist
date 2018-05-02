@@ -3,30 +3,30 @@ using System.Collections.Generic;
 using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Aspects;
 
 namespace Wist.Core.Configuration
 {
-    [RegisterDefaultImplementation(typeof(ICommunicationConfigurationService), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class CommunicationConfigurationService : ICommunicationConfigurationService
+    [ConfigurationSectionSupport]
+    public class CommunicationConfigurationService : IConfigurationSectionSupport
     {
-        private readonly IAppConfig _appConfig;
-        private string _sectionName = null;
+        private readonly string _sectionName;
 
-        public CommunicationConfigurationService(IAppConfig appConfig)
+        public CommunicationConfigurationService(string sectionName)
         {
-            _appConfig = appConfig;
+            _sectionName = sectionName;
         }
 
-        public ushort MaxConnections => (ushort)_appConfig.GetLong($"{(string.IsNullOrEmpty(_sectionName) ? nameof(CommunicationConfigurationService) : _sectionName)}:{nameof(MaxConnections)}");
+        public ushort MaxConnections { get; set; }
 
-        public ushort MaxPendingConnections => (ushort)_appConfig.GetLong($"{(string.IsNullOrEmpty(_sectionName) ? nameof(CommunicationConfigurationService) : _sectionName)}:{nameof(MaxPendingConnections)}");
+        public ushort MaxPendingConnections { get; set; }
 
-        public ushort MaxSimultaneousAcceptOps => (ushort)_appConfig.GetLong($"{(string.IsNullOrEmpty(_sectionName) ? nameof(CommunicationConfigurationService) : _sectionName)}:{nameof(MaxSimultaneousAcceptOps)}");
+        public ushort MaxSimultaneousAcceptOps { get; set; }
 
-        public ushort ReceiveBufferSize => (ushort)_appConfig.GetLong($"{(string.IsNullOrEmpty(_sectionName) ? nameof(CommunicationConfigurationService) : _sectionName)}:{nameof(ReceiveBufferSize)}");
+        public ushort ReceiveBufferSize { get; set; }
 
-        public ushort ListeningPort => (ushort)_appConfig.GetLong($"{(string.IsNullOrEmpty(_sectionName) ? nameof(CommunicationConfigurationService) : _sectionName)}:{nameof(ListeningPort)}");
+        public ushort ListeningPort { get; set; }
 
-        public string SectionName { set { _sectionName = value; } }
+        public string SectionName => _sectionName;
     }
 }

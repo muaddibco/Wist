@@ -86,5 +86,14 @@ namespace Wist.BlockLattice.Core.Properties {
                 return ResourceManager.GetString("ERR_NOT_SUPPORTED_BLOCK_TYPE", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Packet type handler {0} is not supported..
+        /// </summary>
+        internal static string ERR_NOT_SUPPORTED_PACKET_TYPE_HANDLER {
+            get {
+                return ResourceManager.GetString("ERR_NOT_SUPPORTED_PACKET_TYPE_HANDLER", resourceCulture);
+            }
+        }
     }
 }

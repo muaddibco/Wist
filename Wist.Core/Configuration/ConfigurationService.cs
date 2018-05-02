@@ -9,18 +9,13 @@ namespace Wist.Core.Configuration
     [RegisterDefaultImplementation(typeof(IConfigurationService), Lifetime = LifetimeManagement.Singleton)]
     public class ConfigurationService : IConfigurationService
     {
-        private readonly ICommunicationConfigurationService _communicationConfigurationServiceNodes;
-        private readonly ICommunicationConfigurationService _communicationConfigurationServiceAccounts;
-
-        public ConfigurationService(ICommunicationConfigurationService communicationConfigurationServiceNodes, ICommunicationConfigurationService communicationConfigurationServiceAccounts)
+        public ConfigurationService()
         {
-            _communicationConfigurationServiceNodes = communicationConfigurationServiceNodes;
-            _communicationConfigurationServiceNodes.SectionName = "nodesCommunication";
-            _communicationConfigurationServiceAccounts = communicationConfigurationServiceAccounts;
-            _communicationConfigurationServiceAccounts.SectionName = "accountsCommunication";
+            NodesCommunication = new CommunicationConfigurationService(nameof(NodesCommunication));
+            AccountsCommunication = new CommunicationConfigurationService(nameof(AccountsCommunication));
         }
 
-        public ICommunicationConfigurationService NodesCommunicationConfiguration => _communicationConfigurationServiceNodes;
-        public ICommunicationConfigurationService AccountsCommunicationConfiguration => _communicationConfigurationServiceAccounts;
+        public CommunicationConfigurationService NodesCommunication { get; }
+        public CommunicationConfigurationService AccountsCommunication { get; }
     }
 }

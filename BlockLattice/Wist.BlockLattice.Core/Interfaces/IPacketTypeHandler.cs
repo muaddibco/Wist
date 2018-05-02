@@ -1,16 +1,17 @@
-﻿using Wist.Communication.Messages;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Wist.Core.Architecture;
+using Wist.BlockLattice.Core.Enums;
+using Wist.BlockLattice.Core.Handlers;
 
-namespace Wist.Communication.Interfaces
+namespace Wist.BlockLattice.Core.Interfaces
 {
     [ServiceContract]
     public interface IPacketTypeHandler
     {
-        PacketTypes PacketType { get; }
+        ChainType ChainType { get; }
 
         Task<PacketErrorMessage> ProcessPacket(byte[] packet);
     }

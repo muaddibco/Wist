@@ -34,11 +34,11 @@ namespace Wist.Node.Core
         {
             _communicationHubNodes.Init(
                 new SocketListenerSettings(
-                    _configurationService.NodesCommunicationConfiguration.MaxConnections, 
-                    _configurationService.NodesCommunicationConfiguration.MaxPendingConnections, 
-                    _configurationService.NodesCommunicationConfiguration.MaxSimultaneousAcceptOps, 
-                    _configurationService.NodesCommunicationConfiguration.ReceiveBufferSize, 2, 
-                    new IPEndPoint(IPAddress.Loopback, _configurationService.NodesCommunicationConfiguration.ListeningPort), false));
+                    _configurationService.NodesCommunication.MaxConnections, 
+                    _configurationService.NodesCommunication.MaxPendingConnections, 
+                    _configurationService.NodesCommunication.MaxSimultaneousAcceptOps, 
+                    _configurationService.NodesCommunication.ReceiveBufferSize, 2, 
+                    new IPEndPoint(IPAddress.Loopback, _configurationService.NodesCommunication.ListeningPort), false));
 
             _communicationHubNodes.StartListen();
         }

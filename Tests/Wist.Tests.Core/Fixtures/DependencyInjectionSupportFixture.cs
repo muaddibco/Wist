@@ -6,11 +6,11 @@ using Unity;
 using Unity.Lifetime;
 using Unity.ServiceLocation;
 
-namespace Wist.Core.Tests.Fixtures
+namespace Wist.Tests.Core.Fixtures
 {
-    public class DependencyInjectionFixture : IDisposable
+    public class DependencyInjectionSupportFixture : IDisposable
     {
-        public DependencyInjectionFixture()
+        public DependencyInjectionSupportFixture()
         {
             UnityContainer container = new UnityContainer();
             container.RegisterInstance<IUnityContainer>(container, new ContainerControlledLifetimeManager());
@@ -20,7 +20,6 @@ namespace Wist.Core.Tests.Fixtures
 
         public void Dispose()
         {
-            
         }
     }
 }

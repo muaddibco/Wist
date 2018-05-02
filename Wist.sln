@@ -31,6 +31,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.DataModel
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Node", "Node\Wist.Node\Wist.Node.csproj", "{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A80B47B4-9389-4348-8645-FFC17974D5EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Tests.Core", "Tests\Wist.Tests.Core\Wist.Tests.Core.csproj", "{59DB939E-42CA-4995-A03B-30B71925887D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +81,10 @@ Global
 		{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59DB939E-42CA-4995-A03B-30B71925887D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59DB939E-42CA-4995-A03B-30B71925887D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59DB939E-42CA-4995-A03B-30B71925887D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59DB939E-42CA-4995-A03B-30B71925887D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -90,6 +98,7 @@ Global
 		{D3E3B9B5-54A4-4F30-BCC3-121FFC182402} = {7EAABD3F-EDFD-4E08-B9AC-4F28F17C3CD6}
 		{C00D10B5-3641-487F-9CBD-F7E8A0890112} = {7EAABD3F-EDFD-4E08-B9AC-4F28F17C3CD6}
 		{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E} = {FC085ED7-E813-480A-A197-5ECE13BBF9DB}
+		{59DB939E-42CA-4995-A03B-30B71925887D} = {A80B47B4-9389-4348-8645-FFC17974D5EF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7EB9BA20-4E24-4DF9-871A-597326B66D91}

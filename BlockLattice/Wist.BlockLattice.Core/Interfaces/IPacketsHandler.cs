@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Wist.Core.Architecture;
 
-namespace Wist.Communication.Interfaces
+namespace Wist.BlockLattice.Core.Interfaces
 {
     /// <summary>
     /// Service receives raw arrays of bytes representing all types of messages exchanges over network. 

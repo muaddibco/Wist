@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Wist.BlockLattice.Core.DataModel.Enums;
+using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;

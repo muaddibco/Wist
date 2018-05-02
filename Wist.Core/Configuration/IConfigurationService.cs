@@ -8,7 +8,7 @@ namespace Wist.Core.Configuration
     [ServiceContract]
     public interface IConfigurationService
     {
-        ICommunicationConfigurationService NodesCommunicationConfiguration { get; }
-        ICommunicationConfigurationService AccountsCommunicationConfiguration { get; }
+        CommunicationConfigurationService NodesCommunication { get; }
+        CommunicationConfigurationService AccountsCommunication { get; }
     }
 }

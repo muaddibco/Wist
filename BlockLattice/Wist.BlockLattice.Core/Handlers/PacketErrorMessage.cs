@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Wist.BlockLattice.Core.Enums;
 
-namespace Wist.Communication.Messages
+namespace Wist.BlockLattice.Core.Handlers
 {
     public class PacketErrorMessage
     {
@@ -13,6 +14,6 @@ namespace Wist.Communication.Messages
         }
 
         public PacketsErrors ErrorCode { get; }
-        public byte[] MessagePacket { get; }
+        public byte[] MessagePacket { get; set; }
     }
 }

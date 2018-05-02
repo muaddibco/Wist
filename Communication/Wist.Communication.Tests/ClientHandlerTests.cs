@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using Wist.Communication.Tests.Fixtures;
 using Xunit;
+using Wist.BlockLattice.Core.Interfaces;
 
 namespace Wist.Communication.Tests
 {

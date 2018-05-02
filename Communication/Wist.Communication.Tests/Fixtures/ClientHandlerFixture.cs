@@ -10,23 +10,17 @@ using Unity;
 using Unity.Lifetime;
 using Unity.ServiceLocation;
 using Xunit;
+using Wist.BlockLattice.Core.Interfaces;
+using Wist.Tests.Core.Fixtures;
 
 namespace Wist.Communication.Tests.Fixtures
 {
-    public class DependencyInjectionFixture : IDisposable
+    public class DependencyInjectionFixture : DependencyInjectionSupportFixture
     {
-        public DependencyInjectionFixture()
+        public DependencyInjectionFixture() : base()
         {
-            UnityContainer container = new UnityContainer();
-            container.RegisterInstance<IUnityContainer>(container, new ContainerControlledLifetimeManager());
-
-            ServiceLocator.SetLocatorProvider(() => new UnityServiceLocator(container));
             BufferManager = new BufferManager();
             BufferManager.InitBuffer(200, 100);
-        }
-
-        public void Dispose()
-        {
         }
 
         public IPacketsHandler PacketsHandler { get; }

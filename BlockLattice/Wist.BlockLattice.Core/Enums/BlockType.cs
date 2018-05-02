@@ -1,4 +1,4 @@
-﻿namespace Wist.BlockLattice.Core.DataModel.Enums
+﻿namespace Wist.BlockLattice.Core.Enums
 {
     public enum BlockType : ushort
     {
