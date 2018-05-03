@@ -158,18 +158,26 @@ namespace Wist.BlockLattice.Core.Handlers
         private BlockBase ParseMessagePacket(byte[] messagePacket)
         {
             BlockBase blockBase = null;
+            IBlockParser blockParser = null;
 
             try
             {
                 BlockType blockType = (BlockType)BitConverter.ToUInt16(messagePacket, 2);
 
-                IBlockParser blockParser = _blockParsersFactory.Create(blockType);
+                blockParser = _blockParsersFactory.Create(blockType);
 
                 blockBase = blockParser.Parse(messagePacket);
             }
             catch (Exception ex)
             {
                 _log.Error($"Failed to parse message {messagePacket.ToHexString()}", ex);
+            }
+            finally
+            {
+                if (blockParser != null)
+                {
+                    _blockParsersFactory.Utilize(blockParser);
+                }
             }
 
             return blockBase;
