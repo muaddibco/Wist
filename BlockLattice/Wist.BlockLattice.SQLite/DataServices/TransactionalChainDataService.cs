@@ -13,7 +13,7 @@ using Wist.Core.ExtensionMethods;
 namespace Wist.BlockLattice.SQLite.DataServices
 {
     [RegisterExtension(typeof(IChainDataService), Lifetime = LifetimeManagement.Singleton)]
-    public class TransactionalChainDataService : IChainDataService<TransactionalGenesisBlock, TransactionalBlockBase>
+    public class TransactionalChainDataService : IChainDataService<TransactionalGenesisBlockV1, TransactionalBlockBase>
     {
         public ChainType ChainType => ChainType.TransactionalChain;
 
@@ -29,7 +29,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
             throw new NotImplementedException();
         }
 
-        public void CreateGenesisBlock(TransactionalGenesisBlock genesisBlock)
+        public void CreateGenesisBlock(TransactionalGenesisBlockV1 genesisBlock)
         {
             LatticeDataService.Instance.CreateTransactionalGenesisBlock(genesisBlock.OriginalHash);
         }
@@ -49,11 +49,11 @@ namespace Wist.BlockLattice.SQLite.DataServices
             throw new NotImplementedException();
         }
 
-        public TransactionalGenesisBlock GetGenesisBlock(byte[] key)
+        public TransactionalGenesisBlockV1 GetGenesisBlock(byte[] key)
         {
             TransactionalGenesis transactionalGenesis = LatticeDataService.Instance.GetTransactionalGenesisBlock(key);
 
-            return new TransactionalGenesisBlock
+            return new TransactionalGenesisBlockV1
             {
                 OriginalHash = transactionalGenesis.OriginalHash.HexStringToByteArray(),
                 BlockOrder = 0
@@ -76,7 +76,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
                 switch (blockType)
                 {
                     case BlockType.Transaction_AcceptFunds:
-                        transactionalBlockBase = new AcceptFundsBlock
+                        transactionalBlockBase = new AcceptFundsBlockV1
                         {
                             OriginalHash = transactionalBlock.TransactionalGenesis.OriginalHash.HexStringToByteArray(),
                             BlockOrder = transactionalBlock.BlockOrder

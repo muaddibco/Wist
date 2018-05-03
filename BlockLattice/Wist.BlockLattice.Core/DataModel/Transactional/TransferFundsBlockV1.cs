@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
-    public class TransferFundsBlock : TransactionalBlockBase
+    public class TransferFundsBlockV1 : TransactionalBlockBaseV1
     {
         public override BlockType BlockType => BlockType.Transaction_TransferFunds;
-
-        public override ushort Version => 1;
 
         /// <summary>
         /// 32 byte of Original Hash value of Transactional Account that is target of transaction

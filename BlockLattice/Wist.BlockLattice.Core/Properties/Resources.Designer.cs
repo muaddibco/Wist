@@ -61,6 +61,15 @@ namespace Wist.BlockLattice.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Version &apos;{0}&apos; is not supported for block type &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_BLOCK_VERSION_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_BLOCK_VERSION_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Genesis blockwith original hash value {0} already exist..
         /// </summary>
         internal static string ERR_GENESIS_BLOCK_ALREADY_EXISTS {
