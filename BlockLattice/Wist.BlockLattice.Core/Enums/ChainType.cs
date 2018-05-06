@@ -4,6 +4,7 @@
     {
         Unknown = 0,
         AccountChain = 1,
-        TransactionalChain = 2
+        TransactionalChain = 2,
+        Consensus = ushort.MaxValue
     }
 }

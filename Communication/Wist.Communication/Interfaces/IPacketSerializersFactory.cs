@@ -5,10 +5,10 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.Core;
 using Wist.Core.Architecture;
 
-namespace Wist.BlockLattice.Core.Interfaces
+namespace Wist.Communication.Interfaces
 {
     [ServiceContract]
-    public interface IChainTypeValidationHandlersFactory : IFactory<IChainTypeValidationHandler, ChainType>
+    public interface IPacketSerializersFactory : IFactory<IPacketSerializer, ChainType, ushort>
     {
     }
 }

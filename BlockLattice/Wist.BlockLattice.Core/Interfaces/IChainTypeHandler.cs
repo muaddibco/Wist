@@ -9,10 +9,12 @@ using Wist.BlockLattice.Core.Handlers;
 namespace Wist.BlockLattice.Core.Interfaces
 {
     [ServiceContract]
-    public interface IChainTypeValidationHandler
+    public interface IChainTypeHandler
     {
         ChainType ChainType { get; }
 
-        PacketErrorMessage ProcessPacket(byte[] packet);
+        PacketErrorMessage ValidatePacket(byte[] packet);
+
+        IBlockParsersFactory BlockParsersFactory { get; }
     }
 }

@@ -11,6 +11,7 @@ using System.Threading;
 using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.BlockLattice.Core.DataModel;
 
 namespace Wist.Communication.Sockets
 {
@@ -19,7 +20,7 @@ namespace Wist.Communication.Sockets
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationHub));
         private readonly IBufferManager _bufferManager;
-
+        private readonly IPacketSerializersFactory _packetSerializersFactory;
         private Semaphore _maxConnectedClients;
         private GenericPool<SocketAsyncEventArgs> _acceptEventArgsPool;
         private GenericPool<IClientHandler> _clientHandlersPool;
@@ -36,9 +37,10 @@ namespace Wist.Communication.Sockets
         /// </summary>
         /// <param name="settings">instance of <see cref="SocketListenerSettings"/> with defined settings of listener</param>
         /// <param name="receiveBufferSize">buffer size to use for each socket I/O operation</param>
-        public CommunicationHub(IBufferManager bufferManager)
+        public CommunicationHub(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory)
         {
             _bufferManager = bufferManager;
+            _packetSerializersFactory = packetSerializersFactory;
             _clientConnectedList = new List<IClientHandler>();
         }
 
@@ -101,6 +103,22 @@ namespace Wist.Communication.Sockets
             }
 
             StartAccept();
+        }
+
+        public void BroadcastMessage(BlockBase message)
+        {
+            foreach (IClientHandler clientHandler in _clientConnectedList)
+            {
+                try
+                {
+                    IPacketSerializer packetSerializer = _packetSerializersFactory.Create(message.ChainType, message.BlockType);
+                    clientHandler.PostMessage(packetSerializer.GetBodyBytes(message));
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Error during broadcasting message", ex);
+                }
+            }
         }
 
         #endregion ICommunicationHub implementation

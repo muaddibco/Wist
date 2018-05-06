@@ -17,4 +17,11 @@ namespace Wist.Core
 
         void Utilize(T obj);
     }
+
+    public interface IFactory<T, Key1, Key2>
+    {
+        T Create(Key1 key1, Key2 key2);
+
+        void Utilize(T obj);
+    }
 }

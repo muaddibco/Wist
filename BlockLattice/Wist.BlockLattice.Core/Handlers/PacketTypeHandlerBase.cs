@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,18 +13,21 @@ using Wist.Core.ExtensionMethods;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    public abstract class PacketTypeHandlerBase : IChainTypeValidationHandler
+    public abstract class PacketTypeHandlerBase : IChainTypeHandler
     {
         private readonly ILog _log;
 
-        public PacketTypeHandlerBase()
+        public PacketTypeHandlerBase(IBlockParsersFactory[] blockParsersFactories)
         {
             _log = LogManager.GetLogger(GetType());
+            BlockParsersFactory = blockParsersFactories.FirstOrDefault(f => f.ChainType == ChainType);
         }
 
         public abstract ChainType ChainType { get; }
 
-        public PacketErrorMessage ProcessPacket(byte[] packet)
+        public IBlockParsersFactory BlockParsersFactory { get; }
+
+        public PacketErrorMessage ValidatePacket(byte[] packet)
         {
             PacketErrorMessage packetErrorMessage;
 
@@ -33,13 +37,13 @@ namespace Wist.BlockLattice.Core.Handlers
                 {
                     br.ReadUInt16();
 
-                    packetErrorMessage = new PacketErrorMessage(ProcessPacket(br), packet);
+                    packetErrorMessage = new PacketErrorMessage(ValidatePacket(br), packet);
                 }
             }
 
             return packetErrorMessage;
         }
 
-        protected abstract PacketsErrors ProcessPacket(BinaryReader br);
+        protected abstract PacketsErrors ValidatePacket(BinaryReader br);
     }
 }

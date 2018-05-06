@@ -59,5 +59,14 @@ namespace Wist.Communication.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Packet exceeded max message size limit..
+        /// </summary>
+        internal static string ERR_MAX_MESSAGE_SIZE_EXCEEDED {
+            get {
+                return ResourceManager.GetString("ERR_MAX_MESSAGE_SIZE_EXCEEDED", resourceCulture);
+            }
+        }
     }
 }

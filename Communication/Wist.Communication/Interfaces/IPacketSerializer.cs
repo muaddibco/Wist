@@ -5,17 +5,15 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
 
-namespace Wist.BlockLattice.Core.Interfaces
+namespace Wist.Communication.Interfaces
 {
     [ExtensionPoint]
-    public interface IBlockParser
+    public interface IPacketSerializer
     {
         ChainType ChainType { get; }
 
         ushort BlockType { get; }
 
-        BlockBase Parse(byte[] source);
-
-        void FillBlockBody(BlockBase block, byte[] blockBody);
+        byte[] GetBodyBytes(BlockBase block);
     }
 }

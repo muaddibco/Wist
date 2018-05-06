@@ -12,10 +12,12 @@ namespace Wist.BlockLattice.Core.DataModel
     {
         public abstract ChainType ChainType { get; }
 
-        public abstract BlockType BlockType { get; }
+        public abstract ushort BlockType { get; }
 
         public abstract ushort Version { get; }
 
         public uint BlockOrder { get; set; }
+
+        public byte[] Hash { get; set; }
     }
 }

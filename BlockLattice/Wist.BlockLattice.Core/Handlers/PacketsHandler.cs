@@ -21,7 +21,7 @@ namespace Wist.BlockLattice.Core.Handlers
     public class PacketsHandler : IPacketsHandler
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(PacketsHandler));
-        private readonly IChainTypeValidationHandlersFactory _chainTypeValidationHandlersFactory;
+        private readonly IChainTypeHandlersFactory _chainTypeValidationHandlersFactory;
         private readonly IBlockParsersFactory _blockParsersFactory;
         private readonly IBlocksProcessor _blocksProcessor;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
@@ -31,7 +31,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
         private CancellationTokenSource _cancellationTokenSource;
 
-        public PacketsHandler(IChainTypeValidationHandlersFactory packetTypeHandlersFactory, IBlockParsersFactory blockParsersFactory, IBlocksProcessor blocksProcessor)
+        public PacketsHandler(IChainTypeHandlersFactory packetTypeHandlersFactory, IBlockParsersFactory blockParsersFactory, IBlocksProcessor blocksProcessor)
         {
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
             _blockParsersFactory = blockParsersFactory;
@@ -117,55 +117,48 @@ namespace Wist.BlockLattice.Core.Handlers
                 return;
             }
 
-            if (!ValidateByChainType(messagePacket))
-                return;
+            IChainTypeHandler chainTypeHandler = null;
 
-            BlockBase blockBase = ParseMessagePacket(messagePacket);
+            ChainType chainType = (ChainType)BitConverter.ToUInt16(messagePacket, 0);
+            chainTypeHandler = _chainTypeValidationHandlersFactory.Create(chainType);
 
-            DispatchBlock(blockBase);
-        }
-
-        private bool ValidateByChainType(byte[] messagePacket)
-        {
-            IChainTypeValidationHandler chainTypeValidationHandler = null;
             try
             {
-                ChainType chainType = (ChainType)BitConverter.ToUInt16(messagePacket, 0);
-                chainTypeValidationHandler = _chainTypeValidationHandlersFactory.Create(chainType);
-
-                PacketErrorMessage packetErrorMessage = chainTypeValidationHandler.ProcessPacket(messagePacket);
+                PacketErrorMessage packetErrorMessage = chainTypeHandler.ValidatePacket(messagePacket);
                 if (packetErrorMessage.ErrorCode != PacketsErrors.NO_ERROR)
                 {
                     PushPacketErrorPacket(packetErrorMessage);
-                    return false;
+                }
+                else
+                {
+                    BlockBase blockBase = ParseMessagePacket(chainTypeHandler.BlockParsersFactory, messagePacket);
+
+                    DispatchBlock(blockBase);
                 }
             }
             catch (Exception ex)
             {
                 _log.Error($"Failed to process packet {messagePacket.ToHexString()}", ex);
-                return false;
             }
             finally
             {
-                if (chainTypeValidationHandler != null)
+                if (chainTypeHandler != null)
                 {
-                    _chainTypeValidationHandlersFactory.Utilize(chainTypeValidationHandler);
+                    _chainTypeValidationHandlersFactory.Utilize(chainTypeHandler);
                 }
             }
-
-            return true;
         }
 
-        private BlockBase ParseMessagePacket(byte[] messagePacket)
+        private BlockBase ParseMessagePacket(IBlockParsersFactory blockParsersFactory, byte[] messagePacket)
         {
             BlockBase blockBase = null;
             IBlockParser blockParser = null;
 
             try
             {
-                BlockType blockType = (BlockType)BitConverter.ToUInt16(messagePacket, 2);
+                ushort blockType = BitConverter.ToUInt16(messagePacket, 2);
 
-                blockParser = _blockParsersFactory.Create(blockType);
+                blockParser = blockParsersFactory.Create(blockType);
 
                 blockBase = blockParser.Parse(messagePacket);
             }
@@ -177,7 +170,7 @@ namespace Wist.BlockLattice.Core.Handlers
             {
                 if (blockParser != null)
                 {
-                    _blockParsersFactory.Utilize(blockParser);
+                    blockParsersFactory.Utilize(blockParser);
                 }
             }
 

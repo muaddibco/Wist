@@ -88,7 +88,7 @@ namespace Wist.BlockLattice.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Block type {0} is not supported for parsing..
+        ///   Looks up a localized string similar to Block type {0} is not supported for parsing on Chain Type {1}..
         /// </summary>
         internal static string ERR_NOT_SUPPORTED_BLOCK_TYPE {
             get {

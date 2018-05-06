@@ -12,6 +12,6 @@ namespace Wist.BlockLattice.Core.DataModel
             BlockOrder = 0;
         }
 
-        public override BlockType BlockType => BlockType.Genesis;
+        public override ushort BlockType => BlockTypes.Genesis;
     }
 }

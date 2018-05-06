@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
-using Wist.Node.Core.Enums;
 using Wist.Node.Core.Interfaces;
+using Wist.Node.Core.Model.Blocks;
 
 namespace Wist.Node.Core
 {
@@ -25,22 +26,23 @@ namespace Wist.Node.Core
 
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _blocks;
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _locallyApproved;
-        private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _locallyRejected;
+        private readonly BlockingCollection<GenericConsensusBlock> _consensusItems;
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _consensusAchievedBlocks;
+        private readonly ICommunicationHub _communicationHub;
 
-        public ConsensusBlocksProcessor(IChainConsensusServiceManager chainConsensusServiceManager)
+        public ConsensusBlocksProcessor(IChainConsensusServiceManager chainConsensusServiceManager, ICommunicationHub communicationHub)
         {
             _chainConsensusServiceManager = chainConsensusServiceManager;
+            _communicationHub = communicationHub;
             _blocks = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
             _locallyApproved = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
-            _locallyRejected = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
             _consensusAchievedBlocks = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
+            _consensusItems = new BlockingCollection<GenericConsensusBlock>();
 
             foreach (var chainType in Enum.GetValues(typeof(ChainType)))
             {
                 _blocks.Add((ChainType)chainType, new ConcurrentQueue<BlockBase>());
                 _locallyApproved.Add((ChainType)chainType, new ConcurrentQueue<BlockBase>());
-                _locallyRejected.Add((ChainType)chainType, new ConcurrentQueue<BlockBase>());
                 _consensusAchievedBlocks.Add((ChainType)chainType, new ConcurrentQueue<BlockBase>());
             }
         }
@@ -67,7 +69,7 @@ namespace Wist.Node.Core
                     {
                         Tuple<ChainType, CancellationToken> inputArgs = (Tuple<ChainType, CancellationToken>)o;
 
-                        ProcessBlocks(_blocks[inputArgs.Item1], _locallyApproved[inputArgs.Item1], _locallyRejected[inputArgs.Item1], inputArgs.Item2);
+                        ProcessBlocks(_blocks[inputArgs.Item1], inputArgs.Item2);
                     }, new Tuple<ChainType, CancellationToken>( chainType, ct), TaskCreationOptions.LongRunning);
                 }
 
@@ -81,6 +83,13 @@ namespace Wist.Node.Core
             if (!_isInitialized)
                 return;
 
+            BlockBase blockToProcess = blockBase;
+
+            if (blockBase is GenericConsensusBlock)
+            {
+                blockToProcess = ((GenericConsensusBlock)blockBase).Block;
+            }
+
             if (_blocks.ContainsKey(blockBase.ChainType))
             {
                 _blocks[blockBase.ChainType].Enqueue(blockBase);
@@ -92,12 +101,8 @@ namespace Wist.Node.Core
             switch (consensusState)
             {
                 case ConsensusState.Approved:
-
-                    break;
                 case ConsensusState.Rejected:
-                    _locallyRejected[block.ChainType].Enqueue(block);
-                    break;
-                case ConsensusState.Postponed:
+                    _consensusItems.Add(new GenericConsensusBlock { Block = block, ConsensusState = consensusState});
                     break;
                 default:
                     break;
@@ -106,14 +111,12 @@ namespace Wist.Node.Core
 
         #region Private Functions
 
-        private bool CheckBlockUniqueness(BlockBase block)
+        private bool CheckBlockIsNotEnrolledYet(BlockBase block)
         {
-            bool result = false;
 
-            return result;
         }
 
-        private void ProcessBlocks(ConcurrentQueue<BlockBase> blocks, ConcurrentQueue<BlockBase> locallyApprovedBlocks, ConcurrentQueue<BlockBase> locallyRejected, CancellationToken cancellationToken)
+        private void ProcessBlocks(ConcurrentQueue<BlockBase> blocks, CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -124,12 +127,20 @@ namespace Wist.Node.Core
                     // TODO: need to understand whether consensus on blocks must be reasched sequentially or it can be done in parallel
                     IChainConsensusService chainConsensysService = _chainConsensusServiceManager.GetChainConsensysService(blockBase.ChainType);
 
-                    chainConsensysService.ReachLocalConsensus(blockBase);
+                    chainConsensysService.EnrollForConsensus(blockBase);
                 }
                 else
                 {
                     Thread.Sleep(50);
                 }
+            }
+        }
+
+        private void RetransmitBloksConsensus(CancellationToken cancellationToken)
+        {
+            foreach (var item in _consensusItems.GetConsumingEnumerable(cancellationToken))
+            {
+                _communicationHub.BroadcastMessage(item);
             }
         }
 

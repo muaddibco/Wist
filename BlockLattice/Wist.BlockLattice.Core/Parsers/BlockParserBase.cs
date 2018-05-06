@@ -10,7 +10,9 @@ namespace Wist.BlockLattice.Core.Parsers
 {
     public abstract class BlockParserBase : IBlockParser
     {
-        public abstract BlockType BlockType { get; }
+        public abstract ushort BlockType { get; }
+
+        public abstract ChainType ChainType { get; }
 
         public abstract void FillBlockBody(BlockBase block, byte[] blockBody);
 

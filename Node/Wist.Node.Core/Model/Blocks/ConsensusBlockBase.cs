@@ -4,10 +4,10 @@ using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 
-namespace Wist.Node.Core.Interfaces
+namespace Wist.Node.Core.Model.Blocks
 {
-    public interface IReportConsensus
+    public abstract class ConsensusBlockBase : BlockBase
     {
-        void OnReportConsensus(BlockBase block, ConsensusState consensusState);
+        public override ChainType ChainType => ChainType.Consensus;
     }
 }

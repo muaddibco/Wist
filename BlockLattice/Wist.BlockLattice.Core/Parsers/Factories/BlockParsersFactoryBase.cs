@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
@@ -7,21 +8,21 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
-namespace Wist.BlockLattice.Core.Parsers
+namespace Wist.BlockLattice.Core.Parsers.Factories
 {
-    [RegisterDefaultImplementation(typeof(IBlockParsersFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class BlockParsersFactory : IBlockParsersFactory
+    [RegisterExtension(typeof(IBlockParsersFactory), Lifetime = LifetimeManagement.Singleton)]
+    public abstract class BlockParsersFactoryBase : IBlockParsersFactory
     {
-        private Dictionary<BlockType, Stack<IBlockParser>> _blockParsersStack;
+        protected Dictionary<ushort, Stack<IBlockParser>> _blockParsersStack;
         private readonly object _sync = new object();
 
-        public BlockParsersFactory(IBlockParser[] blockParsers)
+        public BlockParsersFactoryBase(IBlockParser[] blockParsers)
         {
-            _blockParsersStack = new Dictionary<BlockType, Stack<IBlockParser>>();
+            _blockParsersStack = new Dictionary<ushort, Stack<IBlockParser>>();
 
-            foreach (IBlockParser blockParser in blockParsers)
+            foreach (IBlockParser blockParser in blockParsers.Where(bp => bp.ChainType == ChainType))
             {
-                if(!_blockParsersStack.ContainsKey(blockParser.BlockType))
+                if (!_blockParsersStack.ContainsKey(blockParser.BlockType))
                 {
                     _blockParsersStack.Add(blockParser.BlockType, new Stack<IBlockParser>());
                     _blockParsersStack[blockParser.BlockType].Push(blockParser);
@@ -29,18 +30,20 @@ namespace Wist.BlockLattice.Core.Parsers
             }
         }
 
-        public IBlockParser Create(BlockType blockType)
+        public abstract ChainType ChainType { get; }
+
+        public IBlockParser Create(ushort blockType)
         {
-            if(!_blockParsersStack.ContainsKey(blockType))
+            if (!_blockParsersStack.ContainsKey(blockType))
             {
-                throw new BlockTypeNotSupportedException(blockType);
+                throw new BlockTypeNotSupportedException(blockType, ChainType);
             }
 
-            lock(_sync)
+            lock (_sync)
             {
                 IBlockParser blockParser = null;
 
-                if(_blockParsersStack[blockType].Count > 1)
+                if (_blockParsersStack[blockType].Count > 1)
                 {
                     blockParser = _blockParsersStack[blockType].Pop();
                 }
@@ -64,7 +67,7 @@ namespace Wist.BlockLattice.Core.Parsers
 
             if (!_blockParsersStack.ContainsKey(blockParser.BlockType))
             {
-                throw new BlockTypeNotSupportedException(blockParser.BlockType);
+                throw new BlockTypeNotSupportedException(blockParser.BlockType, ChainType);
             }
 
             _blockParsersStack[blockParser.BlockType].Push(blockParser);

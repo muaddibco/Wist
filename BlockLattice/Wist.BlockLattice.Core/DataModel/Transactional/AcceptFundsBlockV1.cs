@@ -7,7 +7,7 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
     public class AcceptFundsBlockV1 : TransactionalBlockBaseV1
     {
-        public override BlockType BlockType => BlockType.Transaction_AcceptFunds;
+        public override ushort BlockType => BlockTypes.Transaction_AcceptFunds;
 
         /// <summary>
         /// 32 byte of Original Hash value of Transactional Account that is source of transaction that Income Transaction relates to

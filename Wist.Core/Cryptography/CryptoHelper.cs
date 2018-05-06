@@ -78,7 +78,7 @@ namespace Wist.Core.Cryptography
         }
 
         /// <summary>
-        /// Checks equality of hash values. Function checks only hash values with sizes multiple of 16.
+        /// Checks equality of hash values. Function checks only hash values with sizes of 64.
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>

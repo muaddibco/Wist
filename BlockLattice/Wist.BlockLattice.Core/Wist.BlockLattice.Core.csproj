@@ -34,7 +34,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DataModel\Enums\" />
+    <Folder Include="DataModel\Consensus\" />
+    <Folder Include="Parsers\Accounting\" />
+    <Folder Include="Parsers\Consensus\" />
   </ItemGroup>
 
 </Project>

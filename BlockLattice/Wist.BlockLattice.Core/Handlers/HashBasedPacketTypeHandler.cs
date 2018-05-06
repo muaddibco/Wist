@@ -11,7 +11,7 @@ using Wist.Core.Cryptography;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterExtension(typeof(IChainTypeValidationHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterExtension(typeof(IChainTypeHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class HashBasedPacketTypeHandler : PacketTypeHandlerBase
     {
         public const int MESSAGE_TYPE_SIZE = 2;
@@ -19,9 +19,13 @@ namespace Wist.BlockLattice.Core.Handlers
         public const int MESSAGE_HASH_SIZE = 64;
         public const int MAX_HASH_NBACK = 1000000;
 
+        public HashBasedPacketTypeHandler(IBlockParsersFactory[] blockParsersFactories) : base(blockParsersFactories)
+        {
+        }
+
         public override ChainType ChainType => ChainType.TransactionalChain;
 
-        protected override PacketsErrors ProcessPacket(BinaryReader br)
+        protected override PacketsErrors ValidatePacket(BinaryReader br)
         {
             ushort messageType = br.ReadUInt16();
             ushort length = br.ReadUInt16();

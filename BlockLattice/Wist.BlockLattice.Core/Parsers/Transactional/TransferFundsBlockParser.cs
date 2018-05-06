@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Transactional;
@@ -10,12 +11,12 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
-namespace Wist.BlockLattice.Core.Parsers
+namespace Wist.BlockLattice.Core.Parsers.Transactional
 {
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class AcceptFundsBlockParser : BlockParserBase
+    public class TransferFundsBlockParser : TransactionalBlockParserBase
     {
-        public override BlockType BlockType => throw new NotImplementedException();
+        public override ushort BlockType => BlockTypes.Transaction_TransferFunds;
 
         public override void FillBlockBody(BlockBase block, byte[] blockBody)
         {
@@ -26,17 +27,17 @@ namespace Wist.BlockLattice.Core.Parsers
         {
             BlockBase block = null;
             ushort version = br.ReadUInt16();
-
+            
             if (version == 1)
             {
-                byte[] origin = br.ReadBytes(64);
+                byte[] target = br.ReadBytes(64);
                 ulong funds = br.ReadUInt64();
                 byte[] nbackHash = br.ReadBytes(64);
                 byte[] source = br.ReadBytes(64);
 
-                block = new AcceptFundsBlockV1()
+                block = new TransferFundsBlockV1()
                 {
-                    SourceOriginalHash = origin,
+                    TargetOriginalHash = target,
                     UptodateFunds = funds,
                     NBackHash = nbackHash,
                     OriginalHash = source

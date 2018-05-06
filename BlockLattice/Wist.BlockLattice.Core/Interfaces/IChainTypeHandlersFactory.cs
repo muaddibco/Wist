@@ -8,8 +8,7 @@ using Wist.Core.Architecture;
 namespace Wist.BlockLattice.Core.Interfaces
 {
     [ServiceContract]
-    public interface IBlockParsersFactory : IFactory<IBlockParser, ushort>
+    public interface IChainTypeHandlersFactory : IFactory<IChainTypeHandler, ChainType>
     {
-        ChainType ChainType { get; }
     }
 }

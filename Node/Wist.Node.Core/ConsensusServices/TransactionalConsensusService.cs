@@ -12,7 +12,6 @@ using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
-using Wist.Node.Core.Enums;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.ConsensusServices
@@ -23,20 +22,22 @@ namespace Wist.Node.Core.ConsensusServices
         public ChainType ChainType => ChainType.TransactionalChain;
 
         private readonly ManualResetEventSlim _messageTrigger;
-        private readonly ConcurrentQueue<BlockBase> _blocksAwaiting;
+        private readonly ConcurrentQueue<TransactionalBlockBase> _blocksAwaiting;
         private readonly HashSet<string> _blocksBeingProcessed;
 
         private IReportConsensus _reportConsensus;
         private readonly Dictionary<string, Task> _consensusTasks;
         private readonly IConsensusOperationFactory _consensusOperationFactory;
+        private readonly Dictionary<string, Dictionary<string, Dictionary<string, ConsensusState>>> _consensusMap;
 
         public TransactionalConsensusService(IConsensusOperationFactory consensusOperationFactory)
         {
             _messageTrigger = new ManualResetEventSlim();
             _consensusOperationFactory = consensusOperationFactory;
+            _consensusMap = new Dictionary<string, Dictionary<string, Dictionary<string, ConsensusState>>>();
         }
 
-        public void ReachLocalConsensus(BlockBase block)
+        public void EnrollForConsensus(BlockBase block)
         {
             // Flow will as follows:
             // 1. Check whether processed block is the only block at the same order received from the same sender?
@@ -45,8 +46,48 @@ namespace Wist.Node.Core.ConsensusServices
             // 4. Once local decision was made it will be retranslated to other nodes in group and their decisions will be accepted
             // 5. Block, that received majority of votes will be stored to local storage, that means it is correct block
 
-            _blocksAwaiting.Enqueue(block);
+            TransactionalBlockBase transactionalBlock = (TransactionalBlockBase)block;
+
+            string originalHash = transactionalBlock.OriginalHash.ToHexString();
+            string nbackHash = transactionalBlock.NBackHash.ToHexString();
+            string hashOfBody = transactionalBlock.Hash.ToHexString();
+
+            Dictionary<string, Dictionary<string, ConsensusState>> nbackHashToConsensusMap = null;
+            Dictionary<string, ConsensusState> bodyHashToConsensusMap = null;
+
+            if (!_consensusMap.ContainsKey(originalHash))
+            {
+                nbackHashToConsensusMap = new Dictionary<string, Dictionary<string, ConsensusState>>();
+                _consensusMap.Add(originalHash, nbackHashToConsensusMap);
+            }
+            else
+            {
+                nbackHashToConsensusMap = _consensusMap[originalHash];
+            }
+
+            if (!nbackHashToConsensusMap.ContainsKey(nbackHash))
+            {
+                bodyHashToConsensusMap = new Dictionary<string, ConsensusState>();
+                nbackHashToConsensusMap.Add(nbackHash, bodyHashToConsensusMap);
+            }
+            else
+            {
+                bodyHashToConsensusMap = nbackHashToConsensusMap[nbackHash];
+            }
+
+            if (!bodyHashToConsensusMap.ContainsKey(hashOfBody))
+            {
+                bodyHashToConsensusMap.Add(hashOfBody, ConsensusState.Undefined);
+
+                _blocksAwaiting.Enqueue(transactionalBlock);
+            }
+
             _messageTrigger.Set();
+        }
+
+        public bool IsBlockEnrolled(BlockBase block)
+        {
+            throw new NotImplementedException();
         }
 
         public void Initialize(IReportConsensus reportConsensus, CancellationToken cancellationToken)

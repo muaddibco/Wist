@@ -11,8 +11,8 @@ namespace Wist.BlockLattice.Core.Exceptions
     public class BlockTypeNotSupportedException : Exception
     {
         public BlockTypeNotSupportedException() { }
-        public BlockTypeNotSupportedException(BlockType blockType) : base(string.Format(Resources.ERR_NOT_SUPPORTED_BLOCK_TYPE, blockType)) { }
-        public BlockTypeNotSupportedException(BlockType blockType, Exception inner) : base(string.Format(Resources.ERR_NOT_SUPPORTED_BLOCK_TYPE, blockType), inner) { }
+        public BlockTypeNotSupportedException(ushort blockType, ChainType chainType) : base(string.Format(Resources.ERR_NOT_SUPPORTED_BLOCK_TYPE, blockType, chainType)) { }
+        public BlockTypeNotSupportedException(ushort blockType, ChainType chainType, Exception inner) : base(string.Format(Resources.ERR_NOT_SUPPORTED_BLOCK_TYPE, blockType, chainType), inner) { }
         protected BlockTypeNotSupportedException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }

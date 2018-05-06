@@ -15,6 +15,8 @@ namespace Wist.Node.Core.Interfaces
 
         void Initialize(IReportConsensus reportConsensus, CancellationToken cancellationToken);
 
-        void ReachLocalConsensus(BlockBase block);
+        void EnrollForConsensus(BlockBase block);
+
+        bool IsBlockEnrolled(BlockBase block);
     }
 }
