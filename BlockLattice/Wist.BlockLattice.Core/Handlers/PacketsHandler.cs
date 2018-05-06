@@ -25,10 +25,11 @@ namespace Wist.BlockLattice.Core.Handlers
         private readonly IBlockParsersFactory _blockParsersFactory;
         private readonly IBlocksProcessor _blocksProcessor;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
-        private CancellationTokenSource _cancellationTokenSource;
-        private ManualResetEventSlim _messageTrigger;
+        private readonly ManualResetEventSlim _messageTrigger;
         private readonly ConcurrentQueue<PacketErrorMessage> _messageErrorPackets;
-        private ManualResetEventSlim _messageErrorTrigger;
+        private readonly ManualResetEventSlim _messageErrorTrigger;
+
+        private CancellationTokenSource _cancellationTokenSource;
 
         public PacketsHandler(IChainTypeValidationHandlersFactory packetTypeHandlersFactory, IBlockParsersFactory blockParsersFactory, IBlocksProcessor blocksProcessor)
         {

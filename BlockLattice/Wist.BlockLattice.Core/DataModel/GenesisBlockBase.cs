@@ -13,7 +13,5 @@ namespace Wist.BlockLattice.Core.DataModel
         }
 
         public override BlockType BlockType => BlockType.Genesis;
-
-        public abstract ChainType ChainType { get; }
     }
 }

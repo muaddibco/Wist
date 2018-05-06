@@ -25,8 +25,8 @@ namespace Wist.Core.Aspects
 
         public override bool CompileTimeValidate(LocationInfo locationInfo)
         {
-            if (!typeof(IConfigurationSectionSupport).IsAssignableFrom(locationInfo.DeclaringType))
-                throw new MandatoryInterfaceNotImplementedException(GetType(), typeof(IConfigurationSectionSupport), locationInfo.DeclaringType);
+            if (!typeof(IConfigurationSection).IsAssignableFrom(locationInfo.DeclaringType))
+                throw new MandatoryInterfaceNotImplementedException(GetType(), typeof(IConfigurationSection), locationInfo.DeclaringType);
 
             return !"SectionName".Equals(locationInfo.Name) && (locationInfo.PropertyInfo?.GetMethod.IsPublic ?? false) && (locationInfo.PropertyInfo?.SetMethod.IsPublic ?? false) && base.CompileTimeValidate(locationInfo);
         }
@@ -35,7 +35,7 @@ namespace Wist.Core.Aspects
         {
             IAppConfig appConfig = ServiceLocator.Current.GetInstance<IAppConfig>();
 
-            IConfigurationSectionSupport sectionSupportInstance = args.Instance as IConfigurationSectionSupport;
+            IConfigurationSection sectionSupportInstance = args.Instance as IConfigurationSection;
 
             string sectionName = sectionSupportInstance.SectionName;
             string key = string.IsNullOrWhiteSpace(sectionName) ? _propertyName : $"{sectionName}:{_propertyName}";

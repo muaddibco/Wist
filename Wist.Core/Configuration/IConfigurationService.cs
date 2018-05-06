@@ -8,7 +8,6 @@ namespace Wist.Core.Configuration
     [ServiceContract]
     public interface IConfigurationService
     {
-        CommunicationConfigurationService NodesCommunication { get; }
-        CommunicationConfigurationService AccountsCommunication { get; }
+        IConfigurationSection this[string sectionName] { get; }
     }
 }

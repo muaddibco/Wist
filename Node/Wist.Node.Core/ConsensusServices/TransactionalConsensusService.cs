@@ -1,0 +1,141 @@
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Wist.BlockLattice.Core.DataModel;
+using Wist.BlockLattice.Core.DataModel.Transactional;
+using Wist.BlockLattice.Core.Enums;
+using Wist.Core;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
+using Wist.Core.ExtensionMethods;
+using Wist.Node.Core.Enums;
+using Wist.Node.Core.Interfaces;
+
+namespace Wist.Node.Core.ConsensusServices
+{
+    [RegisterExtension(typeof(IChainConsensusService), Lifetime = LifetimeManagement.Singleton)]
+    public class TransactionalConsensusService : IChainConsensusService
+    {
+        public ChainType ChainType => ChainType.TransactionalChain;
+
+        private readonly ManualResetEventSlim _messageTrigger;
+        private readonly ConcurrentQueue<BlockBase> _blocksAwaiting;
+        private readonly HashSet<string> _blocksBeingProcessed;
+
+        private IReportConsensus _reportConsensus;
+        private readonly Dictionary<string, Task> _consensusTasks;
+        private readonly IConsensusOperationFactory _consensusOperationFactory;
+
+        public TransactionalConsensusService(IConsensusOperationFactory consensusOperationFactory)
+        {
+            _messageTrigger = new ManualResetEventSlim();
+            _consensusOperationFactory = consensusOperationFactory;
+        }
+
+        public void ReachLocalConsensus(BlockBase block)
+        {
+            // Flow will as follows:
+            // 1. Check whether processed block is the only block at the same order received from the same sender?
+            // 2. Check whether processed block is block right after last
+            // 3. Context-dependent data (funds for Transfer and Accept) validation
+            // 4. Once local decision was made it will be retranslated to other nodes in group and their decisions will be accepted
+            // 5. Block, that received majority of votes will be stored to local storage, that means it is correct block
+
+            _blocksAwaiting.Enqueue(block);
+            _messageTrigger.Set();
+        }
+
+        public void Initialize(IReportConsensus reportConsensus, CancellationToken cancellationToken)
+        {
+            _reportConsensus = reportConsensus;
+            Task.Factory.StartNew(() =>
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    _messageTrigger.Reset();
+                    FetchAndProcess(cancellationToken);
+                    _messageTrigger.Wait(cancellationToken);
+                }
+            }, TaskCreationOptions.LongRunning);
+
+            PeriodicTaskFactory.Start(() =>
+            {
+                if (_blocksAwaiting.Count > 100)
+                {
+                    Task.Factory.StartNew(() => FetchAndProcess(cancellationToken), TaskCreationOptions.LongRunning);
+                }
+            }, 1000, cancelToken: cancellationToken, delayInMilliseconds: 3000);
+        }
+
+        private void DoProcess(CancellationToken cancellationToken)
+        {
+            while(!cancellationToken.IsCancellationRequested)
+            {
+                _messageTrigger.Reset();
+                FetchAndProcess(cancellationToken);
+                _messageTrigger.Wait();
+            }
+        }
+
+        private void FetchAndProcess(CancellationToken cancellationToken)
+        {
+            BlockBase block = null;
+            while (!cancellationToken.IsCancellationRequested && (block = FetchNextBlock(cancellationToken)) != null)
+            {
+                Task.Run(async () => 
+                {
+                    IConsensusOperation consensusOperation = null;
+                    ConsensusState consensusState = ConsensusState.Undefined;
+
+                    while ((consensusOperation = _consensusOperationFactory.GetNextOperation(ChainType, consensusOperation)) != null)
+                    {
+                        if (!await consensusOperation.Validate(block))
+                        {
+                            consensusState = ConsensusState.Rejected;
+                            break;
+                        }
+                    }
+
+                    _reportConsensus.OnReportConsensus(block, consensusState);
+                });
+            }
+        }
+
+        private BlockBase FetchNextBlock(CancellationToken cancellationToken)
+        {
+            lock(_blocksAwaiting)
+            {
+                while (_blocksAwaiting.Count > 0)
+                {
+                    BlockBase block;
+                    if (_blocksAwaiting.TryDequeue(out block))
+                    {
+                        TransactionalBlockBase transactionalBlock = (TransactionalBlockBase)block;
+
+                        string originalHash = transactionalBlock.OriginalHash.ToHexString();
+
+                        if (!_blocksBeingProcessed.Contains(originalHash))
+                        {
+                            _blocksBeingProcessed.Add(originalHash);
+                            return transactionalBlock;
+                        }
+                        else
+                        {
+                            _blocksAwaiting.Enqueue(block);
+                            if (_blocksAwaiting.Count == 1)
+                                return null;
+                        }
+                    }
+
+                    return null;
+                }
+
+                return null;
+            }
+        }
+    }
+}

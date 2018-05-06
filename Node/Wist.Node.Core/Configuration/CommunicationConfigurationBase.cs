@@ -4,17 +4,15 @@ using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Aspects;
+using Wist.Core.Configuration;
 
-namespace Wist.Core.Configuration
+namespace Wist.Node.Core.Configuration
 {
     [ConfigurationSectionSupport]
-    public class CommunicationConfigurationService : IConfigurationSectionSupport
+    public abstract class CommunicationConfigurationBase : IConfigurationSection
     {
-        private readonly string _sectionName;
-
-        public CommunicationConfigurationService(string sectionName)
+        public CommunicationConfigurationBase()
         {
-            _sectionName = sectionName;
         }
 
         public ushort MaxConnections { get; set; }
@@ -27,6 +25,6 @@ namespace Wist.Core.Configuration
 
         public ushort ListeningPort { get; set; }
 
-        public string SectionName => _sectionName;
+        public abstract string SectionName { get; }
     }
 }

@@ -6,6 +6,7 @@ using System.Net;
 using Wist.Core.Configuration;
 using Wist.BlockLattice.Core.Interfaces;
 using System.Threading;
+using Wist.Node.Core.Configuration;
 
 namespace Wist.Node.Core
 {
@@ -39,13 +40,15 @@ namespace Wist.Node.Core
 
         internal void Initialize()
         {
+            // TODO: add accounts listener
+            NodesCommunicationConfiguration nodesCommunicationConfiguration = (NodesCommunicationConfiguration)_configurationService["nodesCommunication"];
             _communicationHubNodes.Init(
                 new SocketListenerSettings(
-                    _configurationService.NodesCommunication.MaxConnections, 
-                    _configurationService.NodesCommunication.MaxPendingConnections, 
-                    _configurationService.NodesCommunication.MaxSimultaneousAcceptOps, 
-                    _configurationService.NodesCommunication.ReceiveBufferSize, 2, 
-                    new IPEndPoint(IPAddress.Loopback, _configurationService.NodesCommunication.ListeningPort), false));
+                    nodesCommunicationConfiguration.MaxConnections,
+                    nodesCommunicationConfiguration.MaxPendingConnections,
+                    nodesCommunicationConfiguration.MaxSimultaneousAcceptOps,
+                    nodesCommunicationConfiguration.ReceiveBufferSize, 2, 
+                    new IPEndPoint(IPAddress.Loopback, nodesCommunicationConfiguration.ListeningPort), false));
 
             _communicationHubNodes.StartListen();
         }
