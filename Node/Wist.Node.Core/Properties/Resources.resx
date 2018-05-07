@@ -120,4 +120,7 @@
   <data name="ERR_CONSENSUS_ON_CHAINTYPE_NOT_SUPPORTED" xml:space="preserve">
     <value>Consensus on Chain Type {0} is not supported.</value>
   </data>
+  <data name="ERR_UNEXPECTED_ARGUMENT_TYPE" xml:space="preserve">
+    <value>Argument passed to function must be of type '{0}'.</value>
+  </data>
 </root>

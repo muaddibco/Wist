@@ -10,7 +10,9 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.ExtensionMethods;
 using Wist.Node.Core.Interfaces;
+using Wist.Node.Core.Model;
 using Wist.Node.Core.Model.Blocks;
 
 namespace Wist.Node.Core
@@ -21,6 +23,7 @@ namespace Wist.Node.Core
         private CancellationToken _cancellationToken;
 
         private readonly object _sync = new object();
+        private readonly INodeContext _nodeContext;
         private readonly IChainConsensusServiceManager _chainConsensusServiceManager;
         private bool _isInitialized;
 
@@ -30,8 +33,9 @@ namespace Wist.Node.Core
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _consensusAchievedBlocks;
         private readonly ICommunicationHub _communicationHub;
 
-        public ConsensusBlocksProcessor(IChainConsensusServiceManager chainConsensusServiceManager, ICommunicationHub communicationHub)
+        public ConsensusBlocksProcessor(INodeContext nodeContext, IChainConsensusServiceManager chainConsensusServiceManager, ICommunicationHub communicationHub)
         {
+            _nodeContext = nodeContext;
             _chainConsensusServiceManager = chainConsensusServiceManager;
             _communicationHub = communicationHub;
             _blocks = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
@@ -96,16 +100,26 @@ namespace Wist.Node.Core
             }
         }
 
-        public void OnReportConsensus(BlockBase block, ConsensusState consensusState)
+        public void OnReportConsensus(BlockBase block, IEnumerable<ConsensusDecision> consensusDecisions)
         {
-            switch (consensusState)
+            foreach (var consensusDecision in consensusDecisions)
             {
-                case ConsensusState.Approved:
-                case ConsensusState.Rejected:
-                    _consensusItems.Add(new GenericConsensusBlock { Block = block, ConsensusState = consensusState});
-                    break;
-                default:
-                    break;
+                if(consensusDecision.Participant.PublicKey.Equals32(_nodeContext.PublicKey))
+                {
+                    switch (consensusDecision.State)
+                    {
+                        case ConsensusState.Approved:
+                        case ConsensusState.Rejected:
+                            _consensusItems.Add(new GenericConsensusBlock { Block = block, ConsensusState = consensusDecision.State });
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+
+                }
             }
         }
 

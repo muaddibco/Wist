@@ -68,5 +68,14 @@ namespace Wist.Node.Core.Properties {
                 return ResourceManager.GetString("ERR_CONSENSUS_ON_CHAINTYPE_NOT_SUPPORTED", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Argument passed to function must be of type &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_UNEXPECTED_ARGUMENT_TYPE {
+            get {
+                return ResourceManager.GetString("ERR_UNEXPECTED_ARGUMENT_TYPE", resourceCulture);
+            }
+        }
     }
 }

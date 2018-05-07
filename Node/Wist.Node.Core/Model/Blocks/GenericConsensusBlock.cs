@@ -10,10 +10,14 @@ namespace Wist.Node.Core.Model.Blocks
     {
         public override ushort BlockType => BlockTypes.Consensus_GenericConsensus;
 
-        public byte[] PublickKey { get; set; }
-
         public BlockBase Block { get; set; }
 
-        public ConsensusState ConsensusState { get; set; }
+        public ConsensusDecisionItem[] ConsensusDecisions { get; set; }
+
+        public class ConsensusDecisionItem
+        {
+            public byte[] PublickKey { get; set; }
+            public ConsensusState ConsensusState { get; set; }
+        }
     }
 }
