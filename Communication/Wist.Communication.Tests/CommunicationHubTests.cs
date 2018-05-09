@@ -19,7 +19,7 @@ namespace Wist.Communication.Tests
         public void ConnectivityBaseTest(int listeningPort)
         {
             IClientHandler clientHandler = Substitute.For<IClientHandler>();
-            ServiceLocator.Current.GetInstance<IUnityContainer>().RegisterInstance<IClientHandler>(clientHandler);
+            ServiceLocator.Current.GetInstance<IUnityContainer>().RegisterInstance(clientHandler);
 
             IBufferManager bufferManager = Substitute.For<IBufferManager>();
             CommunicationHub communicationHub = new CommunicationHub(bufferManager, null);

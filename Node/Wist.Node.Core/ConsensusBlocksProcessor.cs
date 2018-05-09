@@ -86,6 +86,12 @@ namespace Wist.Node.Core
                     }, new Tuple<ChainType, CancellationToken>( chainType, ct), TaskCreationOptions.LongRunning);
                 }
 
+                Task.Factory.StartNew(o => 
+                {
+                    CancellationToken cancellationToken = (CancellationToken)o;
+                    CheckConsensusDecisions(cancellationToken);
+                }, ct, TaskCreationOptions.LongRunning);
+
                 _isInitialized = true;
             }
         }
