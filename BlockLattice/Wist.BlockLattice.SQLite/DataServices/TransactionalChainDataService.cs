@@ -9,11 +9,12 @@ using Wist.BlockLattice.MySql;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
+using Wist.BlockLattice.Core.DataModel;
 
 namespace Wist.BlockLattice.SQLite.DataServices
 {
     [RegisterExtension(typeof(IChainDataService), Lifetime = LifetimeManagement.Singleton)]
-    public class TransactionalChainDataService : IChainDataService<TransactionalGenesisBlockV1, TransactionalBlockBase>
+    public class TransactionalChainDataService : IChainDataService
     {
         public ChainType ChainType => ChainType.TransactionalChain;
 
@@ -24,14 +25,26 @@ namespace Wist.BlockLattice.SQLite.DataServices
             _blockParsersFactory = blockParsersFactory;
         }
 
-        public void AddBlock(TransactionalBlockBase block)
+        public void AddBlock(BlockBase block)
         {
             throw new NotImplementedException();
         }
 
-        public void CreateGenesisBlock(TransactionalGenesisBlockV1 genesisBlock)
+        public void CreateGenesisBlock(GenesisBlockBase genesisBlock)
         {
-            LatticeDataService.Instance.CreateTransactionalGenesisBlock(genesisBlock.OriginalHash);
+            if (genesisBlock == null)
+            {
+                throw new ArgumentNullException(nameof(genesisBlock));
+            }
+
+            TransactionalGenesisBlockV1 transactionalGenesisBlock = genesisBlock as TransactionalGenesisBlockV1;
+
+            if(transactionalGenesisBlock == null)
+            {
+                throw new ArgumentOutOfRangeException(nameof(genesisBlock));
+            }
+
+            LatticeDataService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.OriginalHash);
         }
 
         public bool DoesChainExist(byte[] key)
@@ -39,17 +52,17 @@ namespace Wist.BlockLattice.SQLite.DataServices
             return LatticeDataService.Instance.IsGenesisBlockExists(key);
         }
 
-        public TransactionalBlockBase[] GetAllBlocks(byte[] key)
+        public BlockBase[] GetAllBlocks(byte[] key)
         {
             throw new NotImplementedException();
         }
 
-        public TransactionalBlockBase GetBlockByOrder(byte[] key, uint order)
+        public BlockBase GetBlockByOrder(byte[] key, uint order)
         {
             throw new NotImplementedException();
         }
 
-        public TransactionalGenesisBlockV1 GetGenesisBlock(byte[] key)
+        public GenesisBlockBase GetGenesisBlock(byte[] key)
         {
             TransactionalGenesis transactionalGenesis = LatticeDataService.Instance.GetTransactionalGenesisBlock(key);
 
@@ -60,12 +73,12 @@ namespace Wist.BlockLattice.SQLite.DataServices
             };
         }
 
-        public TransactionalBlockBase GetLastBlock(byte[] key)
+        public BlockBase GetLastBlock(byte[] key)
         {
             TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(key);
             TransactionalBlockBase transactionalBlockBase = null;
 
-            BlockType blockType = (BlockType)transactionalBlock.BlockType;
+            ushort blockType = transactionalBlock.BlockType;
 
             IBlockParser blockParser = null;
 
@@ -75,7 +88,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
                 switch (blockType)
                 {
-                    case BlockType.Transaction_AcceptFunds:
+                    case BlockTypes.Transaction_AcceptFunds:
                         transactionalBlockBase = new AcceptFundsBlockV1
                         {
                             OriginalHash = transactionalBlock.TransactionalGenesis.OriginalHash.HexStringToByteArray(),
@@ -83,15 +96,15 @@ namespace Wist.BlockLattice.SQLite.DataServices
                         };
                         blockParser.FillBlockBody(transactionalBlockBase, transactionalBlock.BlockContent);
                         break;
-                    case BlockType.Transaction_TransferFunds:
-                        transactionalBlockBase = new TransferFundsBlock
+                    case BlockTypes.Transaction_TransferFunds:
+                        transactionalBlockBase = new TransferFundsBlockV1
                         {
                             OriginalHash = transactionalBlock.TransactionalGenesis.OriginalHash.HexStringToByteArray(),
                             BlockOrder = transactionalBlock.BlockOrder
                         };
                         blockParser.FillBlockBody(transactionalBlockBase, transactionalBlock.BlockContent);
                         break;
-                    case BlockType.Transaction_Confirm:
+                    case BlockTypes.Transaction_Confirm:
                         break;
                     default:
                         break;

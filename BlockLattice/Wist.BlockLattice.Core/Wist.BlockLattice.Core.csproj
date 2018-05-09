@@ -10,8 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DataModel\Consensus\**" />
+    <EmbeddedResource Remove="DataModel\Consensus\**" />
+    <None Remove="DataModel\Consensus\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="Mpir.NET" Version="0.4.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,7 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DataModel\Consensus\" />
     <Folder Include="Parsers\Accounting\" />
     <Folder Include="Parsers\Consensus\" />
   </ItemGroup>

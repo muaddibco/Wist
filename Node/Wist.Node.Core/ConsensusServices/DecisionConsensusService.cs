@@ -1,6 +1,7 @@
 ﻿using CommonServiceLocator;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -8,6 +9,7 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.ExtensionMethods;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Model.Blocks;
 using Wist.Node.Core.Properties;
@@ -20,6 +22,12 @@ namespace Wist.Node.Core.ConsensusServices
         public ChainType ChainType => ChainType.Consensus;
         private IReportConsensus _reportConsensus;
         private IChainConsensusServiceManager _chainConsensusServiceManager;
+        private readonly IConsensusHub _consensusHub;
+
+        public DecisionConsensusService(IConsensusHub consensusHub)
+        {
+            _consensusHub = consensusHub;
+        }
 
         public void EnrollForConsensus(BlockBase block)
         {
@@ -38,6 +46,8 @@ namespace Wist.Node.Core.ConsensusServices
             {
                 consensusService.EnrollForConsensus(consensusBlock.Block);
             }
+
+            _reportConsensus.OnReportConsensus(consensusBlock.Block, consensusBlock.ConsensusDecisions.Select(c => new Model.ConsensusDecision() { Participant = _consensusHub.GroupParticipants.FirstOrDefault(p => p.PublicKey.Equals32(c.PublickKey)), State = c.ConsensusState }));
         }
 
         public void Initialize(IReportConsensus reportConsensus, CancellationToken cancellationToken)

@@ -13,6 +13,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
 using Wist.Node.Core.Interfaces;
+using Wist.Node.Core.Model;
 
 namespace Wist.Node.Core.ConsensusServices
 {
@@ -28,12 +29,14 @@ namespace Wist.Node.Core.ConsensusServices
         private IReportConsensus _reportConsensus;
         private readonly Dictionary<string, Task> _consensusTasks;
         private readonly IConsensusOperationFactory _consensusOperationFactory;
+        private readonly INodeContext _nodeContext;
         private readonly Dictionary<string, Dictionary<string, Dictionary<string, ConsensusState>>> _consensusMap;
 
-        public TransactionalConsensusService(IConsensusOperationFactory consensusOperationFactory)
+        public TransactionalConsensusService(IConsensusOperationFactory consensusOperationFactory, INodeContext nodeContext)
         {
             _messageTrigger = new ManualResetEventSlim();
             _consensusOperationFactory = consensusOperationFactory;
+            _nodeContext = nodeContext;
             _consensusMap = new Dictionary<string, Dictionary<string, Dictionary<string, ConsensusState>>>();
         }
 
@@ -141,7 +144,7 @@ namespace Wist.Node.Core.ConsensusServices
                         }
                     }
 
-                    _reportConsensus.OnReportConsensus(block, consensusState);
+                    _reportConsensus.OnReportConsensus(block, new ConsensusDecision[1] { new ConsensusDecision() { Participant = _nodeContext.ThisNode, State = consensusState } });
                 });
             }
         }
@@ -152,17 +155,15 @@ namespace Wist.Node.Core.ConsensusServices
             {
                 while (_blocksAwaiting.Count > 0)
                 {
-                    BlockBase block;
+                    TransactionalBlockBase block;
                     if (_blocksAwaiting.TryDequeue(out block))
                     {
-                        TransactionalBlockBase transactionalBlock = (TransactionalBlockBase)block;
-
-                        string originalHash = transactionalBlock.OriginalHash.ToHexString();
+                        string originalHash = block.OriginalHash.ToHexString();
 
                         if (!_blocksBeingProcessed.Contains(originalHash))
                         {
                             _blocksBeingProcessed.Add(originalHash);
-                            return transactionalBlock;
+                            return block;
                         }
                         else
                         {

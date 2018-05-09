@@ -7,28 +7,22 @@ using Wist.Core.Architecture;
 
 namespace Wist.BlockLattice.Core.Interfaces
 {
-    public interface IChainDataService<TGenesisBlock, TBlockBase> : IChainDataService
-        where TGenesisBlock : GenesisBlockBase 
-        where TBlockBase : BlockBase
-    {
-        bool DoesChainExist(byte[] key);
-
-        TGenesisBlock GetGenesisBlock(byte[] key);
-
-        TBlockBase GetLastBlock(byte[] key);
-
-        TBlockBase GetBlockByOrder(byte[] key, uint order);
-
-        TBlockBase[] GetAllBlocks(byte[] key);
-
-        void CreateGenesisBlock(TGenesisBlock genesisBlock);
-
-        void AddBlock(TBlockBase block);
-    }
-
     [ExtensionPoint]
     public interface IChainDataService
     {
         ChainType ChainType { get; }
+        bool DoesChainExist(byte[] key);
+
+        GenesisBlockBase GetGenesisBlock(byte[] key);
+
+        BlockBase GetLastBlock(byte[] key);
+
+        BlockBase GetBlockByOrder(byte[] key, uint order);
+
+        BlockBase[] GetAllBlocks(byte[] key);
+
+        void CreateGenesisBlock(GenesisBlockBase genesisBlock);
+
+        void AddBlock(BlockBase block);
     }
 }
