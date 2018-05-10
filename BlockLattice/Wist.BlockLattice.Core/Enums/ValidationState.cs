@@ -1,6 +1,6 @@
 ﻿namespace Wist.BlockLattice.Core.Enums
 {
-    public enum ConsensusState : byte
+    public enum ValidationState : byte
     {
         Undefined = 0,
         Approved,

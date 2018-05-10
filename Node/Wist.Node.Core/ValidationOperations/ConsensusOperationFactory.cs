@@ -8,27 +8,27 @@ using Wist.Core.Architecture.Enums;
 using Wist.Node.Core.Exceptions;
 using Wist.Node.Core.Interfaces;
 
-namespace Wist.Node.Core.ConsensusOperations
+namespace Wist.Node.Core.ValidationOperations
 {
-    [RegisterDefaultImplementation(typeof(IConsensusOperationFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class ConsensusOperationFactory : IConsensusOperationFactory
+    [RegisterDefaultImplementation(typeof(IValidationOperationFactory), Lifetime = LifetimeManagement.Singleton)]
+    public class ValidationOperationFactory : IValidationOperationFactory
     {
-        private readonly Dictionary<ChainType, SortedList<ushort, Stack<IConsensusOperation>>> _consensusOperations;
+        private readonly Dictionary<ChainType, SortedList<ushort, Stack<IValidationOperation>>> _consensusOperations;
 
-        public ConsensusOperationFactory(IConsensusOperation[] consensusOperations)
+        public ValidationOperationFactory(IValidationOperation[] consensusOperations)
         {
-            _consensusOperations = new Dictionary<ChainType, SortedList<ushort, Stack<IConsensusOperation>>>();
+            _consensusOperations = new Dictionary<ChainType, SortedList<ushort, Stack<IValidationOperation>>>();
             
-            foreach (IConsensusOperation consensusOperation in consensusOperations)
+            foreach (IValidationOperation consensusOperation in consensusOperations)
             {
                 if(!_consensusOperations.ContainsKey(consensusOperation.ChainType))
                 {
-                    _consensusOperations.Add(consensusOperation.ChainType, new SortedList<ushort, Stack<IConsensusOperation>>());
+                    _consensusOperations.Add(consensusOperation.ChainType, new SortedList<ushort, Stack<IValidationOperation>>());
                 }
 
                 if (!_consensusOperations[consensusOperation.ChainType].ContainsKey(consensusOperation.Priority))
                 {
-                    _consensusOperations[consensusOperation.ChainType].Add(consensusOperation.Priority, new Stack<IConsensusOperation>());
+                    _consensusOperations[consensusOperation.ChainType].Add(consensusOperation.Priority, new Stack<IValidationOperation>());
                 }
 
                 if(_consensusOperations[consensusOperation.ChainType][consensusOperation.Priority].Count == 0)
@@ -38,15 +38,15 @@ namespace Wist.Node.Core.ConsensusOperations
             }
         }
 
-        public IConsensusOperation GetNextOperation(ChainType chainType, IConsensusOperation prevOperation = null)
+        public IValidationOperation GetNextOperation(ChainType chainType, IValidationOperation prevOperation = null)
         {
             if(!_consensusOperations.ContainsKey(chainType))
             {
                 throw new ConsensusOnChainTypeNotSupportedException(chainType);
             }
 
-            IConsensusOperation consensusOperation = null;
-            Stack<IConsensusOperation> consensusOperationsStack = null;
+            IValidationOperation consensusOperation = null;
+            Stack<IValidationOperation> consensusOperationsStack = null;
             if (prevOperation == null)
             {
                 consensusOperationsStack = _consensusOperations[chainType][_consensusOperations[chainType].Keys[0]];
@@ -68,8 +68,8 @@ namespace Wist.Node.Core.ConsensusOperations
                 }
                 else
                 {
-                    IConsensusOperation template = consensusOperationsStack.Pop();
-                    consensusOperation = (IConsensusOperation)ServiceLocator.Current.GetInstance(template.GetType());
+                    IValidationOperation template = consensusOperationsStack.Pop();
+                    consensusOperation = (IValidationOperation)ServiceLocator.Current.GetInstance(template.GetType());
                     consensusOperationsStack.Push(template);
                 }
             }
@@ -77,7 +77,7 @@ namespace Wist.Node.Core.ConsensusOperations
             return consensusOperation;
         }
 
-        public void Utilize(IConsensusOperation operation)
+        public void Utilize(IValidationOperation operation)
         {
             if (!_consensusOperations.ContainsKey(operation.ChainType))
             {
@@ -86,7 +86,7 @@ namespace Wist.Node.Core.ConsensusOperations
 
             if (_consensusOperations[operation.ChainType].ContainsKey(operation.Priority))
             {
-                Stack<IConsensusOperation> consensusOperationsStack = _consensusOperations[operation.ChainType][operation.Priority];
+                Stack<IValidationOperation> consensusOperationsStack = _consensusOperations[operation.ChainType][operation.Priority];
 
                 consensusOperationsStack.Push(operation);
             }

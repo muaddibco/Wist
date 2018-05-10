@@ -15,10 +15,10 @@ using Wist.Core.ExtensionMethods;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Model;
 
-namespace Wist.Node.Core.ConsensusServices
+namespace Wist.Node.Core.ValidationServices
 {
-    [RegisterExtension(typeof(IChainConsensusService), Lifetime = LifetimeManagement.Singleton)]
-    public class TransactionalConsensusService : IChainConsensusService
+    [RegisterExtension(typeof(IChainValidationService), Lifetime = LifetimeManagement.Singleton)]
+    public class TransactionalValidationService : IChainValidationService
     {
         public ChainType ChainType => ChainType.TransactionalChain;
 
@@ -26,18 +26,18 @@ namespace Wist.Node.Core.ConsensusServices
         private readonly ConcurrentQueue<TransactionalBlockBase> _blocksAwaiting;
         private readonly HashSet<string> _blocksBeingProcessed;
 
-        private IReportConsensus _reportConsensus;
+        private IConsumeValidationReport _reportConsensus;
         private readonly Dictionary<string, Task> _consensusTasks;
-        private readonly IConsensusOperationFactory _consensusOperationFactory;
+        private readonly IValidationOperationFactory _consensusOperationFactory;
         private readonly INodeContext _nodeContext;
-        private readonly Dictionary<string, Dictionary<string, Dictionary<string, ConsensusState>>> _consensusMap;
+        private readonly Dictionary<string, Dictionary<string, Dictionary<string, ValidationState>>> _consensusMap;
 
-        public TransactionalConsensusService(IConsensusOperationFactory consensusOperationFactory, INodeContext nodeContext)
+        public TransactionalValidationService(IValidationOperationFactory consensusOperationFactory, INodeContext nodeContext)
         {
             _messageTrigger = new ManualResetEventSlim();
             _consensusOperationFactory = consensusOperationFactory;
             _nodeContext = nodeContext;
-            _consensusMap = new Dictionary<string, Dictionary<string, Dictionary<string, ConsensusState>>>();
+            _consensusMap = new Dictionary<string, Dictionary<string, Dictionary<string, ValidationState>>>();
         }
 
         public void EnrollForConsensus(BlockBase block)
@@ -55,12 +55,12 @@ namespace Wist.Node.Core.ConsensusServices
             string nbackHash = transactionalBlock.NBackHash.ToHexString();
             string hashOfBody = transactionalBlock.Hash.ToHexString();
 
-            Dictionary<string, Dictionary<string, ConsensusState>> nbackHashToConsensusMap = null;
-            Dictionary<string, ConsensusState> bodyHashToConsensusMap = null;
+            Dictionary<string, Dictionary<string, ValidationState>> nbackHashToConsensusMap = null;
+            Dictionary<string, ValidationState> bodyHashToConsensusMap = null;
 
             if (!_consensusMap.ContainsKey(originalHash))
             {
-                nbackHashToConsensusMap = new Dictionary<string, Dictionary<string, ConsensusState>>();
+                nbackHashToConsensusMap = new Dictionary<string, Dictionary<string, ValidationState>>();
                 _consensusMap.Add(originalHash, nbackHashToConsensusMap);
             }
             else
@@ -70,7 +70,7 @@ namespace Wist.Node.Core.ConsensusServices
 
             if (!nbackHashToConsensusMap.ContainsKey(nbackHash))
             {
-                bodyHashToConsensusMap = new Dictionary<string, ConsensusState>();
+                bodyHashToConsensusMap = new Dictionary<string, ValidationState>();
                 nbackHashToConsensusMap.Add(nbackHash, bodyHashToConsensusMap);
             }
             else
@@ -80,7 +80,7 @@ namespace Wist.Node.Core.ConsensusServices
 
             if (!bodyHashToConsensusMap.ContainsKey(hashOfBody))
             {
-                bodyHashToConsensusMap.Add(hashOfBody, ConsensusState.Undefined);
+                bodyHashToConsensusMap.Add(hashOfBody, ValidationState.Undefined);
 
                 _blocksAwaiting.Enqueue(transactionalBlock);
             }
@@ -93,7 +93,7 @@ namespace Wist.Node.Core.ConsensusServices
             throw new NotImplementedException();
         }
 
-        public void Initialize(IReportConsensus reportConsensus, CancellationToken cancellationToken)
+        public void Initialize(IConsumeValidationReport reportConsensus, CancellationToken cancellationToken)
         {
             _reportConsensus = reportConsensus;
             Task.Factory.StartNew(() =>
@@ -132,19 +132,19 @@ namespace Wist.Node.Core.ConsensusServices
             {
                 Task.Run(async () => 
                 {
-                    IConsensusOperation consensusOperation = null;
-                    ConsensusState consensusState = ConsensusState.Undefined;
+                    IValidationOperation consensusOperation = null;
+                    ValidationState consensusState = ValidationState.Undefined;
 
                     while ((consensusOperation = _consensusOperationFactory.GetNextOperation(ChainType, consensusOperation)) != null)
                     {
                         if (!await consensusOperation.Validate(block))
                         {
-                            consensusState = ConsensusState.Rejected;
+                            consensusState = ValidationState.Rejected;
                             break;
                         }
                     }
 
-                    _reportConsensus.OnReportConsensus(block, new ConsensusDecision[1] { new ConsensusDecision() { Participant = _nodeContext.ThisNode, State = consensusState } });
+                    _reportConsensus.OnValidationReport(block, new ValidationDecision[1] { new ValidationDecision() { Participant = _nodeContext.ThisNode, State = consensusState } });
                 });
             }
         }

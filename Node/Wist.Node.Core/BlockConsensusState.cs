@@ -8,7 +8,7 @@ namespace Wist.Node.Core
 {
     public class BlockConsensusState
     {
-        public BlockConsensusState(BlockBase block, Dictionary<string, ConsensusState> decisionMap)
+        public BlockConsensusState(BlockBase block, Dictionary<string, ValidationState> decisionMap)
         {
             Block = block;
             ParticipantDecisionsMap = decisionMap;
@@ -18,7 +18,7 @@ namespace Wist.Node.Core
 
         public BlockBase Block { get; }
 
-        public Dictionary<string, ConsensusState> ParticipantDecisionsMap { get; }
+        public Dictionary<string, ValidationState> ParticipantDecisionsMap { get; }
 
         public bool IsChecked { get; set; }
         public bool IsConsensusReached { get; set; }

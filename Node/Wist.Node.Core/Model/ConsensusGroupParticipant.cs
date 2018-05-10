@@ -10,6 +10,7 @@ namespace Wist.Node.Core.Model
         /// 32 byte length Public Key of Consensus Group Participant
         /// </summary>
         public byte[] PublicKey { get; set; }
+        public string PublicKeyString { get; set; }
 
         public double Weight { get; set; }
     }
