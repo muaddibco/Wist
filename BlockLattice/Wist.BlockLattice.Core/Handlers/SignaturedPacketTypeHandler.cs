@@ -15,7 +15,6 @@ namespace Wist.BlockLattice.Core.Handlers
     public class SignaturedPacketTypeHandler : PacketTypeHandlerBase
     {
         public const int MESSAGE_TYPE_SIZE = 2;
-        public const int MESSAGE_LENGTH_SIZE = 2;
         public const int MESSAGE_SIGNATURE_SIZE = 64;
         public const int MESSAGE_PUBLICKEY_SIZE = 32;
 
@@ -28,20 +27,10 @@ namespace Wist.BlockLattice.Core.Handlers
         protected override PacketsErrors ValidatePacket(BinaryReader br)
         {
             ushort messageType = br.ReadUInt16();
-            ushort length = br.ReadUInt16();
 
-            if (length == 0)
-            {
-                return PacketsErrors.LENGTH_IS_INVALID;
-            }
+            int actualMessageBodyLength = (int)(br.BaseStream.Length - (MESSAGE_TYPE_SIZE + MESSAGE_SIGNATURE_SIZE + MESSAGE_PUBLICKEY_SIZE));
 
-            int actualMessageBodyLength = (int)(br.BaseStream.Length - (MESSAGE_TYPE_SIZE + MESSAGE_LENGTH_SIZE + MESSAGE_SIGNATURE_SIZE + MESSAGE_PUBLICKEY_SIZE));
-            if (actualMessageBodyLength != length)
-            {
-                return PacketsErrors.LENGTH_DOES_NOT_MATCH;
-            }
-
-            byte[] messageBody = br.ReadBytes(length);
+            byte[] messageBody = br.ReadBytes(actualMessageBodyLength);
             byte[] signature = br.ReadBytes(MESSAGE_SIGNATURE_SIZE);
             byte[] publickKey = br.ReadBytes(MESSAGE_PUBLICKEY_SIZE);
 

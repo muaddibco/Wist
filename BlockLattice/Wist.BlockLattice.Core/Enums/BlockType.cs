@@ -5,7 +5,7 @@
         public const ushort Unknown = 0;
         public const ushort Genesis = 1;
 
-        public const ushort Transaction_AccountBlock = 2;
+        public const ushort Transaction_Genesis = 2;
         public const ushort Transaction_AcceptFunds = 3;
         public const ushort Transaction_TransferFunds = 4;
         public const ushort Transaction_Confirm = 5;
