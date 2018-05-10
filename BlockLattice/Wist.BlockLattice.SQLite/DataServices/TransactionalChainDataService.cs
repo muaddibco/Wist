@@ -5,7 +5,7 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.DataModel;
-using Wist.BlockLattice.MySql;
+using Wist.BlockLattice.SQLite;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;

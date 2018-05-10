@@ -34,11 +34,9 @@ namespace Wist.Core.Tests
 
                 return null;
             });
-            unityContainer.RegisterInstance<IAppConfig>(appConfig);
-            unityContainer.RegisterType<IConfigurationSection, ConfigA>();
-            unityContainer.RegisterType<IConfigurationSection, ConfigB>();
+            unityContainer.RegisterInstance(appConfig);
 
-            ConfigurationService configurationService = ServiceLocator.Current.GetInstance<ConfigurationService>();
+            ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[2] { new ConfigA(), new ConfigB() });
 
             ConfigA configA = (ConfigA)configurationService["configA"];
             ConfigB configB = (ConfigB)configurationService["configB"];

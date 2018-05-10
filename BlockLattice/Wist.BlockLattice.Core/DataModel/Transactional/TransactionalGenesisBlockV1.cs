@@ -15,5 +15,15 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
         /// 64 byte of Hash value level N of account name encoded with Parent Account's Public Key
         /// </summary>
         public byte[] OriginalHash { get; set; }
+
+        /// <summary>
+        /// 64 byte of Hash value level N of account name encoded with Verifier Account's Public Key
+        /// </summary>
+        public byte[] VerifierOriginalHash { get; set; }
+
+        /// <summary>
+        /// 64 byte of Hash value level L of _unencrypted_ recovery passphrase
+        /// </summary>
+        public byte[] RecoveryOriginalHash { get; set; }
     }
 }

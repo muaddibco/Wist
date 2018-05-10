@@ -11,8 +11,14 @@
 
   <ItemGroup>
     <Compile Remove="DataModel\Consensus\**" />
+    <Compile Remove="Parsers\Accounting\**" />
+    <Compile Remove="Parsers\Consensus\**" />
     <EmbeddedResource Remove="DataModel\Consensus\**" />
+    <EmbeddedResource Remove="Parsers\Accounting\**" />
+    <EmbeddedResource Remove="Parsers\Consensus\**" />
     <None Remove="DataModel\Consensus\**" />
+    <None Remove="Parsers\Accounting\**" />
+    <None Remove="Parsers\Consensus\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,11 +42,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Parsers\Accounting\" />
-    <Folder Include="Parsers\Consensus\" />
   </ItemGroup>
 
 </Project>
