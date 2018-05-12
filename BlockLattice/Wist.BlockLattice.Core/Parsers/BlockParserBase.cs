@@ -23,7 +23,7 @@ namespace Wist.BlockLattice.Core.Parsers
             {
                 using (BinaryReader br = new BinaryReader(ms))
                 {
-                    br.ReadBytes(8); // skip Chain Type, Message Type and Length of Body
+                    br.ReadBytes(4); // skip Chain Type, Message Type
                     block = Parse(br);
                 }
             }

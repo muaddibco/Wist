@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Wist.BlockLattice.Core.DataModel;
+using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
@@ -22,7 +23,31 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         protected override BlockBase Parse(BinaryReader br)
         {
-            throw new NotImplementedException();
+            BlockBase block = null;
+
+            ushort version = br.ReadUInt16();
+
+            switch(version)
+            {
+                case 1:
+                    block = new TransactionalGenesisBlockV1();
+                    TransactionalGenesisBlockV1 genesisBlock = (TransactionalGenesisBlockV1)block;
+                    genesisBlock.OriginalHash = br.ReadBytes(Globals.HASH_SIZE);
+                    byte verifiersCount = br.ReadByte();
+                    for (int i = 0; i < verifiersCount; i++)
+                    {
+                        genesisBlock.VerifierOriginalHashList.Add(br.ReadBytes(Globals.HASH_SIZE));
+                    }
+                    genesisBlock.RecoveryOriginalHash = br.ReadBytes(Globals.HASH_SIZE);
+                    genesisBlock.Nonce = br.ReadBytes(Globals.NONCE_SIZE);
+                    genesisBlock.HashNonce = br.ReadBytes(Globals.HASH_SIZE);
+                    genesisBlock.Hash = br.ReadBytes(Globals.HASH_SIZE);
+                    break;
+                default:
+                    throw new Exceptions.BlockVersionNotSupportedException(version, BlockTypes.Transaction_Genesis);
+            }
+            
+            return block;
         }
     }
 }
