@@ -10,5 +10,10 @@ namespace Wist.BlockLattice.Core.DataModel.Account
         public override ChainType ChainType => ChainType.AccountChain;
 
         public override ushort Version => 1;
+
+        /// <summary>
+        /// 32-byte length Public Key
+        /// </summary>
+        public byte[] PublicKey { get; set; }
     }
 }

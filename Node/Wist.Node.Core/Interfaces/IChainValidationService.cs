@@ -9,11 +9,11 @@ using Wist.Core.Architecture;
 namespace Wist.Node.Core.Interfaces
 {
     [ExtensionPoint]
-    public interface IChainConsensusService
+    public interface IChainValidationService
     {
         ChainType ChainType { get; }
 
-        void Initialize(IReportConsensus reportConsensus, CancellationToken cancellationToken);
+        void Initialize(IConsumeValidationReport reportConsensus, CancellationToken cancellationToken);
 
         void EnrollForConsensus(BlockBase block);
 

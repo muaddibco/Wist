@@ -10,8 +10,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DataModel\Consensus\**" />
+    <Compile Remove="Parsers\Accounting\**" />
+    <Compile Remove="Parsers\Consensus\**" />
+    <EmbeddedResource Remove="DataModel\Consensus\**" />
+    <EmbeddedResource Remove="Parsers\Accounting\**" />
+    <EmbeddedResource Remove="Parsers\Consensus\**" />
+    <None Remove="DataModel\Consensus\**" />
+    <None Remove="Parsers\Accounting\**" />
+    <None Remove="Parsers\Consensus\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="Mpir.NET" Version="0.4.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,12 +42,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="DataModel\Consensus\" />
-    <Folder Include="Parsers\Accounting\" />
-    <Folder Include="Parsers\Consensus\" />
   </ItemGroup>
 
 </Project>

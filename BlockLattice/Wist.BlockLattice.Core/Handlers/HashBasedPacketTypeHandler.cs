@@ -15,7 +15,6 @@ namespace Wist.BlockLattice.Core.Handlers
     public class HashBasedPacketTypeHandler : PacketTypeHandlerBase
     {
         public const int MESSAGE_TYPE_SIZE = 2;
-        public const int MESSAGE_LENGTH_SIZE = 2;
         public const int MESSAGE_HASH_SIZE = 64;
         public const int MAX_HASH_NBACK = 1000000;
 
@@ -28,20 +27,10 @@ namespace Wist.BlockLattice.Core.Handlers
         protected override PacketsErrors ValidatePacket(BinaryReader br)
         {
             ushort messageType = br.ReadUInt16();
-            ushort length = br.ReadUInt16();
-
-            if (length == 0)
-            {
-                return PacketsErrors.LENGTH_IS_INVALID;
-            }
             
-            int actualMessageBodyLength = (int)(br.BaseStream.Length - (2 + MESSAGE_TYPE_SIZE + MESSAGE_LENGTH_SIZE + MESSAGE_HASH_SIZE + MESSAGE_HASH_SIZE));
-            if (actualMessageBodyLength != length)
-            {
-                return PacketsErrors.LENGTH_DOES_NOT_MATCH;
-            }
+            int actualMessageBodyLength = (int)(br.BaseStream.Length - (2 + MESSAGE_TYPE_SIZE + MESSAGE_HASH_SIZE + MESSAGE_HASH_SIZE));
 
-            byte[] messageBody = br.ReadBytes(length);
+            byte[] messageBody = br.ReadBytes(actualMessageBodyLength);
             byte[] hashOriginal = br.ReadBytes(MESSAGE_HASH_SIZE);
             byte[] hashNBack = br.ReadBytes(MESSAGE_HASH_SIZE);
 
@@ -53,7 +42,7 @@ namespace Wist.BlockLattice.Core.Handlers
             return PacketsErrors.NO_ERROR;
         }
 
-        //TODO: weigh real neccessity of such a check. Reason - hashNBack will be chacked later by Consensus Service against last block in chain and if will no match will mean that, probably hashNBack is not valid at all. Such a way will allow to reduce weight of checking hashNBack against original hash value
+        //TODO: weigh real necessity of such a check. Reason - hashNBack will be checked later by Consensus Service against last block in chain and if will no match will mean that, probably hashNBack is not valid at all. Such a way will allow to reduce weight of checking hashNBack against original hash value
         private bool VerifyHashNBack(byte[] hashOriginal, byte[] hashNBack)
         {
             // if the same hashes were provided so return false

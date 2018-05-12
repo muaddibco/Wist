@@ -19,5 +19,9 @@ namespace Wist.BlockLattice.Core.DataModel
         public uint BlockOrder { get; set; }
 
         public byte[] Hash { get; set; }
+
+        public byte[] Nonce { get; set; }
+
+        public byte[] HashNonce { get; set; }
     }
 }

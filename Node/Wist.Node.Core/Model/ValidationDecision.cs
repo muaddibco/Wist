@@ -5,10 +5,10 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.Node.Core.Model
 {
-    public class ConsensusDecision
+    public class ValidationDecision
     {
         public ConsensusGroupParticipant Participant { get; set; }
 
-        public ConsensusState State { get; set; }
+        public ValidationState State { get; set; }
     }
 }

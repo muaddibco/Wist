@@ -16,8 +16,8 @@ namespace Wist.Node.Core.Model.Blocks
 
         public class ConsensusDecisionItem
         {
-            public byte[] PublickKey { get; set; }
-            public ConsensusState ConsensusState { get; set; }
+            public string PublickKey { get; set; }
+            public ValidationState ConsensusState { get; set; }
         }
     }
 }

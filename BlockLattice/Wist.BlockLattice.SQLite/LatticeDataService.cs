@@ -13,8 +13,11 @@ using Wist.Core.ExtensionMethods;
 using Z.EntityFramework.Plus;
 using Wist.BlockLattice.Core.Exceptions;
 using Wist.Core.Cryptography;
+using Wist.Core.Configuration;
+using CommonServiceLocator;
+using Wist.BlockLattice.SQLite.Configuration;
 
-namespace Wist.BlockLattice.MySql
+namespace Wist.BlockLattice.SQLite
 {
     [InitializationMandatory]
     [AutoLog]
@@ -25,13 +28,14 @@ namespace Wist.BlockLattice.MySql
 
         private readonly DataContext _dataContext;
         private readonly CancellationTokenSource _cancellationTokenSource;
-
+        private readonly IConfigurationService _configurationService;
         private bool _isSaving;
 
-        private LatticeDataService()
+        private LatticeDataService(IConfigurationService configurationService)
         {
-            _dataContext = new DataContext();
             _cancellationTokenSource = new CancellationTokenSource();
+            _configurationService = configurationService;
+            _dataContext = new DataContext((SQLiteConfiguration)_configurationService["sqlite"]);
         }
 
         public static LatticeDataService Instance
@@ -44,7 +48,7 @@ namespace Wist.BlockLattice.MySql
                     {
                         if(_instance == null)
                         {
-                            _instance = new LatticeDataService();
+                            _instance = ServiceLocator.Current.GetInstance<LatticeDataService>();
                             _instance.Initialize();
                         }
                     }

@@ -6,13 +6,14 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Aspects;
 using Wist.Core.Configuration;
 
-namespace Wist.Core.Tests.Classes
+namespace Wist.BlockLattice.SQLite.Configuration
 {
     [ConfigurationSectionSupport]
     [RegisterExtension(typeof(IConfigurationSection), Lifetime = LifetimeManagement.Singleton)]
-    public class ConfigA : IConfigurationSection
+    public class SQLiteConfiguration : IConfigurationSection
     {
-        public string SectionName => nameof(ConfigA);
-        public ushort MaxValue { get; set; }
+        public string SectionName => "sqlite";
+
+        public string ConnectionString { get; set; }
     }
 }

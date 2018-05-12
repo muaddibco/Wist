@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,26 +19,29 @@ using Wist.Node.Core.Model.Blocks;
 namespace Wist.Node.Core
 {
     [RegisterDefaultImplementation(typeof(IBlocksProcessor), Lifetime = LifetimeManagement.Singleton)]
-    public class ConsensusBlocksProcessor : IBlocksProcessor, IReportConsensus
+    public class ConsensusBlocksProcessor : IBlocksProcessor, IConsumeValidationReport
     {
         private CancellationToken _cancellationToken;
 
         private readonly object _sync = new object();
         private readonly INodeContext _nodeContext;
-        private readonly IChainConsensusServiceManager _chainConsensusServiceManager;
+        private readonly IChainValidationServiceManager _chainConsensusServiceManager;
         private bool _isInitialized;
 
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _blocks;
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _locallyApproved;
-        private readonly BlockingCollection<GenericConsensusBlock> _consensusItems;
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _consensusAchievedBlocks;
         private readonly ICommunicationHub _communicationHub;
+        private readonly IConsensusCheckingService _consensusCheckingService;
+        private readonly BlockingCollection<GenericConsensusBlock> _consensusItems; // TODO: need to decide how to know, that decision must be retransmitted
 
-        public ConsensusBlocksProcessor(INodeContext nodeContext, IChainConsensusServiceManager chainConsensusServiceManager, ICommunicationHub communicationHub)
+
+        public ConsensusBlocksProcessor(INodeContext nodeContext, IChainValidationServiceManager chainConsensusServiceManager, ICommunicationHub communicationHub, IConsensusCheckingService consensusCheckingService)
         {
             _nodeContext = nodeContext;
             _chainConsensusServiceManager = chainConsensusServiceManager;
             _communicationHub = communicationHub;
+            _consensusCheckingService = consensusCheckingService;
             _blocks = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
             _locallyApproved = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
             _consensusAchievedBlocks = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
@@ -66,7 +70,7 @@ namespace Wist.Node.Core
 
                 foreach (ChainType chainType in Enum.GetValues(typeof(ChainType)))
                 {
-                    IChainConsensusService chainConsensysService = _chainConsensusServiceManager.GetChainConsensysService(chainType);
+                    IChainValidationService chainConsensysService = _chainConsensusServiceManager.GetChainValidationService(chainType);
                     chainConsensysService.Initialize(this, ct);
 
                     Task.Factory.StartNew(o =>
@@ -76,6 +80,8 @@ namespace Wist.Node.Core
                         ProcessBlocks(_blocks[inputArgs.Item1], inputArgs.Item2);
                     }, new Tuple<ChainType, CancellationToken>( chainType, ct), TaskCreationOptions.LongRunning);
                 }
+
+                _consensusCheckingService.Initialize(ct);
 
                 _isInitialized = true;
             }
@@ -100,35 +106,18 @@ namespace Wist.Node.Core
             }
         }
 
-        public void OnReportConsensus(BlockBase block, IEnumerable<ConsensusDecision> consensusDecisions)
+        public void OnValidationReport(BlockBase block, IEnumerable<ValidationDecision> consensusDecisions)
         {
-            foreach (var consensusDecision in consensusDecisions)
-            {
-                if(consensusDecision.Participant.PublicKey.Equals32(_nodeContext.PublicKey))
-                {
-                    switch (consensusDecision.State)
-                    {
-                        case ConsensusState.Approved:
-                        case ConsensusState.Rejected:
-                            _consensusItems.Add(new GenericConsensusBlock { Block = block, ConsensusState = consensusDecision.State });
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                else
-                {
+            _consensusCheckingService.EnrollConsensusDecisions(block, consensusDecisions);
 
-                }
+            if (consensusDecisions.Any(p => p.Participant.PublicKey.Equals32(_nodeContext.PublicKey)))
+            {
+                _consensusItems.Add(new GenericConsensusBlock() { Block = block, ConsensusDecisions = consensusDecisions.Select(d => new GenericConsensusBlock.ConsensusDecisionItem { PublickKey = d.Participant.PublicKeyString, ConsensusState = d.State }).ToArray() });
             }
         }
 
         #region Private Functions
 
-        private bool CheckBlockIsNotEnrolledYet(BlockBase block)
-        {
-
-        }
 
         private void ProcessBlocks(ConcurrentQueue<BlockBase> blocks, CancellationToken cancellationToken)
         {
@@ -138,8 +127,8 @@ namespace Wist.Node.Core
 
                 if (blocks.TryDequeue(out blockBase))
                 {
-                    // TODO: need to understand whether consensus on blocks must be reasched sequentially or it can be done in parallel
-                    IChainConsensusService chainConsensysService = _chainConsensusServiceManager.GetChainConsensysService(blockBase.ChainType);
+                    // TODO: need to understand whether consensus on blocks must be reached sequentially or it can be done in parallel
+                    IChainValidationService chainConsensysService = _chainConsensusServiceManager.GetChainValidationService(blockBase.ChainType);
 
                     chainConsensysService.EnrollForConsensus(blockBase);
                 }

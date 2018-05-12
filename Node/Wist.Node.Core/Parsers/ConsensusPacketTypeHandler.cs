@@ -66,7 +66,7 @@ namespace Wist.Node.Core.Parsers
 
         private bool VerifyConsensusParticipant(byte[] publicKey)
         {
-            return _consensusHub.GroupParticipants.Any(c => c.PublicKey.Equals32(publicKey));
+            return _consensusHub.GroupParticipants.ContainsKey(publicKey.ToHexString());
         }
 
         private bool VerifySignature(byte[] messageBody, byte[] signature, byte[] publicKey)
