@@ -22,7 +22,7 @@ namespace Wist.Communication.Tests
             ServiceLocator.Current.GetInstance<IUnityContainer>().RegisterInstance<IClientHandler>(clientHandler);
 
             IBufferManager bufferManager = Substitute.For<IBufferManager>();
-            CommunicationHub communicationHub = new CommunicationHub(bufferManager);
+            CommunicationHub communicationHub = new CommunicationHub(bufferManager, null);
 
             IPEndPoint communicationEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), listeningPort);
             SocketListenerSettings settings = new SocketListenerSettings(1, 1, 1, 100, 2, communicationEndPoint, false);
@@ -35,5 +35,8 @@ namespace Wist.Communication.Tests
 
             Assert.True(tcpClient.Connected);
         }
+
+        // TODO: 
+        // CommunicationProvisioning tests
     }
 }
