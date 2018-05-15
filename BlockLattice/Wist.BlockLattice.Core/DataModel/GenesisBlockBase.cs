@@ -5,7 +5,7 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel
 {
-    public abstract class GenesisBlockBase : BlockBase
+    public abstract class GenesisBlockBase : BlockSyncedBase
     {
         public GenesisBlockBase()
         {

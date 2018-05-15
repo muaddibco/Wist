@@ -23,8 +23,8 @@ namespace Wist.Communication.Sockets
         private readonly IPacketSerializersFactory _packetSerializersFactory;
         private Semaphore _maxConnectedClients;
         private GenericPool<SocketAsyncEventArgs> _acceptEventArgsPool;
-        private GenericPool<IClientHandler> _clientHandlersPool;
-        private readonly List<IClientHandler> _clientConnectedList;
+        private GenericPool<ICommunicationChannel> _clientHandlersPool;
+        private readonly List<ICommunicationChannel> _clientConnectedList;
         private SocketListenerSettings _settings;
         private Socket _listenSocket;
         private int _connectedSockets = 0;
@@ -41,7 +41,7 @@ namespace Wist.Communication.Sockets
         {
             _bufferManager = bufferManager;
             _packetSerializersFactory = packetSerializersFactory;
-            _clientConnectedList = new List<IClientHandler>();
+            _clientConnectedList = new List<ICommunicationChannel>();
         }
 
         #region ICommunicationHub implementation
@@ -71,7 +71,7 @@ namespace Wist.Communication.Sockets
             // Allocates one large byte buffer which all I/O operations use a piece of.  This guards against memory fragmentation
             _bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * _settings.OpsToPreAllocate, _settings.ReceiveBufferSize);
             _acceptEventArgsPool = new GenericPool<SocketAsyncEventArgs>(_settings.MaxSimultaneousAcceptOps);
-            _clientHandlersPool = new GenericPool<IClientHandler>(_settings.MaxConnections);
+            _clientHandlersPool = new GenericPool<ICommunicationChannel>(_settings.MaxConnections);
             _maxConnectedClients = new Semaphore(_settings.MaxConnections, _settings.MaxConnections);
 
             for (Int32 i = 0; i < _settings.MaxSimultaneousAcceptOps; i++)
@@ -85,7 +85,7 @@ namespace Wist.Communication.Sockets
             {
                 tokenId = _clientHandlersPool.AssignTokenId() + 1000000;
 
-                IClientHandler clientHandler = ServiceLocator.Current.GetInstance<IClientHandler>();
+                ICommunicationChannel clientHandler = ServiceLocator.Current.GetInstance<ICommunicationChannel>();
                 clientHandler.SocketClosedEvent += ClientHandler_SocketClosedEvent;
                 clientHandler.Init(tokenId, _settings.ReceiveBufferSize, _settings.KeepAlive);
                 _clientHandlersPool.Push(clientHandler);
@@ -107,7 +107,7 @@ namespace Wist.Communication.Sockets
 
         public void BroadcastMessage(BlockBase message)
         {
-            foreach (IClientHandler clientHandler in _clientConnectedList)
+            foreach (ICommunicationChannel clientHandler in _clientConnectedList)
             {
                 try
                 {
@@ -127,9 +127,9 @@ namespace Wist.Communication.Sockets
 
         private void CommunicationProvisioning_AllowedEndpointsChanged(object sender, EventArgs e)
         {
-            List<IClientHandler> clientsToBeDisconnected = _clientConnectedList.Where(c => _communicationProvisioning.AllowedEndpoints.All(ep => !ep.Address.Equals(c.RemoteEndPoint.Address))).ToList();
+            List<ICommunicationChannel> clientsToBeDisconnected = _clientConnectedList.Where(c => _communicationProvisioning.AllowedEndpoints.All(ep => !ep.Address.Equals(c.RemoteEndPoint.Address))).ToList();
 
-            foreach (IClientHandler clientHandler in clientsToBeDisconnected)
+            foreach (ICommunicationChannel clientHandler in clientsToBeDisconnected)
             {
                 clientHandler.Close();
             }
@@ -141,7 +141,7 @@ namespace Wist.Communication.Sockets
 
             foreach (IPEndPoint endPoint in _communicationProvisioning.AllowedEndpoints.Where(ep => _clientConnectedList.All(cc => !cc.RemoteEndPoint.Address.Equals(ep.Address))))
             {
-                IClientHandler clientHandler = _clientHandlersPool.Pop();
+                ICommunicationChannel clientHandler = _clientHandlersPool.Pop();
 
                 Interlocked.Increment(ref _connectedSockets);
 
@@ -160,12 +160,12 @@ namespace Wist.Communication.Sockets
 
         private void ClientHandler_SocketClosedEvent(object sender, EventArgs e)
         {
-            IClientHandler clientHandler = (IClientHandler)sender;
+            ICommunicationChannel clientHandler = (ICommunicationChannel)sender;
             _clientConnectedList.Remove(clientHandler);
             ReleaseClientHandler(clientHandler);
         }
 
-        private void ReleaseClientHandler(IClientHandler clientHandler)
+        private void ReleaseClientHandler(ICommunicationChannel clientHandler)
         {
             _clientHandlersPool.Push(clientHandler);
 
@@ -254,7 +254,7 @@ namespace Wist.Communication.Sockets
         private void InitializeClientHandler(SocketAsyncEventArgs acceptEventArgs)
         {
             AcceptOpUserToken acceptOpToken;
-            IClientHandler clientHandler = _clientHandlersPool.Pop();
+            ICommunicationChannel clientHandler = _clientHandlersPool.Pop();
 
             Int32 numberOfConnectedSockets = Interlocked.Increment(ref _connectedSockets);
             acceptOpToken = (AcceptOpUserToken)acceptEventArgs.UserToken;

@@ -8,7 +8,7 @@ namespace Wist.Communication.Sockets
     {
         private SocketAsyncEventArgs _socketAsyncEventArgs;
 
-        public DataHoldingUserToken(IClientHandlerFactory clientHandlerFactory)
+        public DataHoldingUserToken(ICommunicationChannelFactory clientHandlerFactory)
         {
             ClientHandler = clientHandlerFactory.Create();
         }
@@ -30,6 +30,6 @@ namespace Wist.Communication.Sockets
 
         public Int32 ReceiveSendMaxBufferSize { get; private set; }
 
-        public IClientHandler ClientHandler { get; }
+        public ICommunicationChannel ClientHandler { get; }
     }
 }

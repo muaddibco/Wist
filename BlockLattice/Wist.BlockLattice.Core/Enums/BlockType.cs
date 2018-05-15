@@ -11,6 +11,9 @@
         public const ushort Transaction_Confirm = 5;
 
         public const ushort Consensus_GenericConsensus = ushort.MaxValue;
-        public const ushort Synchronization_TimeSyncBlock = ushort.MaxValue;
+        public const ushort Synchronization_TimeSyncBlock = 1;
+        public const ushort Synchronization_RetransmissionBlock = 2;
+        public const ushort Synchronization_ReadyToParticipateBlock = 3;
+        public const ushort Synchronization_ConfirmedBlock = ushort.MaxValue;
     }
 }

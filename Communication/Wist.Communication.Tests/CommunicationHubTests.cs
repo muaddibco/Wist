@@ -18,7 +18,7 @@ namespace Wist.Communication.Tests
         [InlineData(3001)]
         public void ConnectivityBaseTest(int listeningPort)
         {
-            IClientHandler clientHandler = Substitute.For<IClientHandler>();
+            ICommunicationChannel clientHandler = Substitute.For<ICommunicationChannel>();
             ServiceLocator.Current.GetInstance<IUnityContainer>().RegisterInstance(clientHandler);
 
             IBufferManager bufferManager = Substitute.For<IBufferManager>();

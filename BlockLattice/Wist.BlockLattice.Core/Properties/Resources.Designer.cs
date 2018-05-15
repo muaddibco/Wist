@@ -104,5 +104,23 @@ namespace Wist.BlockLattice.Core.Properties {
                 return ResourceManager.GetString("ERR_NOT_SUPPORTED_PACKET_TYPE_HANDLER", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Block Type {0} of Chain Type {1} is not supported by Signature Supporting Serializers..
+        /// </summary>
+        internal static string ERR_SIGNATURE_SUPPORTING_SERIALIZERS_BLOCK_TYPE_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_SIGNATURE_SUPPORTING_SERIALIZERS_BLOCK_TYPE_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Chain Type {0} is not supported by Signature Supporting Serializers..
+        /// </summary>
+        internal static string ERR_SIGNATURE_SUPPORTING_SERIALIZERS_CHAIN_TYPE_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_SIGNATURE_SUPPORTING_SERIALIZERS_CHAIN_TYPE_NOT_SUPPORTED", resourceCulture);
+            }
+        }
     }
 }

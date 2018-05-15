@@ -5,7 +5,7 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Account
 {
-    public abstract class AccountBlockBase : BlockBase
+    public abstract class AccountBlockBase : BlockSyncedBase
     {
         public override ChainType ChainType => ChainType.AccountChain;
     }

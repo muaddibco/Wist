@@ -5,7 +5,7 @@ using Wist.Core;
 
 namespace Wist.Communication.Interfaces
 {
-    public interface IClientHandlerFactory : IFactory<IClientHandler>
+    public interface ICommunicationChannelFactory : IFactory<ICommunicationChannel>
     {
     }
 }

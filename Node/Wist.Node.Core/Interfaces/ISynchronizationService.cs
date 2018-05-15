@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Wist.BlockLattice.Core.DataModel.Synchronization;
+using System.Threading;
 using Wist.Core.Architecture;
 
 namespace Wist.Node.Core.Interfaces
 {
     [ServiceContract]
-    public interface ISynchronizationContext
+    public interface ISynchronizationService
     {
-        SynchronizationConfirmedBlock LastSyncBlock { get; set; }
+        void Initialize(CancellationToken cancellationToken);
+
+        void Start();
     }
 }

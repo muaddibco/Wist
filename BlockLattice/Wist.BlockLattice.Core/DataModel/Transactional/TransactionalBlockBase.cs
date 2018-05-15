@@ -5,7 +5,7 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
-    public abstract class TransactionalBlockBase : BlockBase
+    public abstract class TransactionalBlockBase : BlockSyncedBase
     {
         public override ChainType ChainType => ChainType.TransactionalChain;
         /// <summary>

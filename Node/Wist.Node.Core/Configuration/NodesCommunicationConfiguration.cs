@@ -10,6 +10,7 @@ namespace Wist.Node.Core.Configuration
     [RegisterExtension(typeof(IConfigurationSection), Lifetime = LifetimeManagement.Singleton)]
     public class NodesCommunicationConfiguration : CommunicationConfigurationBase
     {
-        public override string SectionName => "nodesCommunication";
+        public const string SECTION_NAME = "nodesCommunication";
+        public override string SectionName => SECTION_NAME;
     }
 }

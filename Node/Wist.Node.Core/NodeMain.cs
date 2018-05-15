@@ -41,7 +41,7 @@ namespace Wist.Node.Core
         internal void Initialize()
         {
             // TODO: add accounts listener
-            NodesCommunicationConfiguration nodesCommunicationConfiguration = (NodesCommunicationConfiguration)_configurationService["nodesCommunication"];
+            NodesCommunicationConfiguration nodesCommunicationConfiguration = (NodesCommunicationConfiguration)_configurationService[NodesCommunicationConfiguration.SECTION_NAME];
             _communicationHubNodes.Init(
                 new SocketListenerSettings(
                     nodesCommunicationConfiguration.MaxConnections,
