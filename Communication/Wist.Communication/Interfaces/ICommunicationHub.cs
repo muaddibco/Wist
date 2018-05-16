@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Text;
 using Wist.Core.Architecture;
 using Wist.BlockLattice.Core.DataModel;
+using Wist.BlockLattice.Core.Interfaces;
 
 namespace Wist.Communication.Interfaces
 {
     [ServiceContract]
     public interface ICommunicationHub
     {
-        void Init(SocketListenerSettings settings, ICommunicationProvisioning communicationProvisioning = null);
+        void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null);
 
         void StartListen();
 

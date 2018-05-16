@@ -14,32 +14,44 @@ using Wist.Core.Models;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.DataModel;
+using Wist.Core.Aspects;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterDefaultImplementation(typeof(IPacketsHandler), Lifetime = LifetimeManagement.Singleton)]
-    public class PacketsHandler : IPacketsHandler
+    [InitializationMandatory]
+    [RegisterDefaultImplementation(typeof(IPacketsHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
+    public class PacketsHandler : IPacketsHandler, ISupportInitialization
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(PacketsHandler));
         private readonly IChainTypeHandlersFactory _chainTypeValidationHandlersFactory;
         private readonly IBlockParsersFactory _blockParsersFactory;
-        private readonly IBlocksProcessor _blocksProcessor;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
         private readonly ManualResetEventSlim _messageTrigger;
         private readonly ConcurrentQueue<PacketErrorMessage> _messageErrorPackets;
         private readonly ManualResetEventSlim _messageErrorTrigger;
 
+        private IBlocksProcessor _blocksProcessor;
         private CancellationTokenSource _cancellationTokenSource;
 
-        public PacketsHandler(IChainTypeHandlersFactory packetTypeHandlersFactory, IBlockParsersFactory blockParsersFactory, IBlocksProcessor blocksProcessor)
+        public bool IsInitialized { get; private set; }
+
+        public PacketsHandler(IChainTypeHandlersFactory packetTypeHandlersFactory, IBlockParsersFactory blockParsersFactory)
         {
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
             _blockParsersFactory = blockParsersFactory;
-            _blocksProcessor = blocksProcessor;
             _messagePackets = new ConcurrentQueue<byte[]>();
             _messageTrigger = new ManualResetEventSlim();
             _messageErrorPackets = new ConcurrentQueue<PacketErrorMessage>();
             _messageErrorTrigger = new ManualResetEventSlim();
+        }
+
+        public void Initialize(IBlocksProcessor blocksProcessor)
+        {
+            if(!IsInitialized)
+            {
+                _blocksProcessor = blocksProcessor;
+                IsInitialized = true;
+            }
         }
 
         /// <summary>

@@ -9,9 +9,11 @@ namespace Wist.BlockLattice.Core.Interfaces
     /// Service receives raw arrays of bytes representing all types of messages exchanges over network. 
     /// Byte arrays must contain exact bytes of message to be processed correctly.
     /// </summary>
-    [ExtensionPoint]
+    [ServiceContract]
     public interface IPacketsHandler
     {
+        void Initialize(IBlocksProcessor blocksProcessor);
+
         /// <summary>
         /// Bytes being pushed to <see cref="IPacketsHandler"/> must form complete packet for following validation and processing
         /// </summary>

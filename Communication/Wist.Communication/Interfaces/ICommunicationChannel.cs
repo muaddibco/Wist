@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Wist.BlockLattice.Core.Interfaces;
 
 namespace Wist.Communication.Interfaces
 {
@@ -20,7 +21,7 @@ namespace Wist.Communication.Interfaces
 
         IEnumerable<byte[]> GetMessagesToSend();
 
-        void Init(int tokenId, int sendReceiveBufferSize, bool keepAlive);
+        void Init(int tokenId, int sendReceiveBufferSize, bool keepAlive, IPacketsHandler packetsHandler);
 
         void Stop();
 

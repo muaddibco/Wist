@@ -12,6 +12,7 @@ using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.BlockLattice.Core.DataModel;
+using Wist.BlockLattice.Core.Interfaces;
 
 namespace Wist.Communication.Sockets
 {
@@ -20,10 +21,11 @@ namespace Wist.Communication.Sockets
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationHub));
         private readonly IBufferManager _bufferManager;
+        private readonly IPacketsHandler _packetsHandler;
         private readonly IPacketSerializersFactory _packetSerializersFactory;
         private Semaphore _maxConnectedClients;
         private GenericPool<SocketAsyncEventArgs> _acceptEventArgsPool;
-        private GenericPool<ICommunicationChannel> _clientHandlersPool;
+        private GenericPool<ICommunicationChannel> _communicationChannelsPool;
         private readonly List<ICommunicationChannel> _clientConnectedList;
         private SocketListenerSettings _settings;
         private Socket _listenSocket;
@@ -37,10 +39,11 @@ namespace Wist.Communication.Sockets
         /// </summary>
         /// <param name="settings">instance of <see cref="SocketListenerSettings"/> with defined settings of listener</param>
         /// <param name="receiveBufferSize">buffer size to use for each socket I/O operation</param>
-        public CommunicationHub(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory)
+        public CommunicationHub(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler)
         {
             _bufferManager = bufferManager;
             _packetSerializersFactory = packetSerializersFactory;
+            _packetsHandler = packetsHandler;
             _clientConnectedList = new List<ICommunicationChannel>();
         }
 
@@ -52,7 +55,7 @@ namespace Wist.Communication.Sockets
         /// or reused, but it is done this way to illustrate how the API can 
         /// easily be used to create reusable objects to increase server performance.
         /// </summary>
-        public void Init(SocketListenerSettings settings, ICommunicationProvisioning communicationProvisioning = null)
+        public void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null)
         {
             _settings = settings;
 
@@ -68,10 +71,12 @@ namespace Wist.Communication.Sockets
                 _communicationProvisioning.AllowedEndpointsChanged += CommunicationProvisioning_AllowedEndpointsChanged;
             }
 
+            _packetsHandler?.Initialize(blocksProcessor);
+
             // Allocates one large byte buffer which all I/O operations use a piece of.  This guards against memory fragmentation
             _bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * _settings.OpsToPreAllocate, _settings.ReceiveBufferSize);
             _acceptEventArgsPool = new GenericPool<SocketAsyncEventArgs>(_settings.MaxSimultaneousAcceptOps);
-            _clientHandlersPool = new GenericPool<ICommunicationChannel>(_settings.MaxConnections);
+            _communicationChannelsPool = new GenericPool<ICommunicationChannel>(_settings.MaxConnections);
             _maxConnectedClients = new Semaphore(_settings.MaxConnections, _settings.MaxConnections);
 
             for (Int32 i = 0; i < _settings.MaxSimultaneousAcceptOps; i++)
@@ -83,12 +88,12 @@ namespace Wist.Communication.Sockets
 
             for (int i = 0; i < _settings.MaxConnections; i++)
             {
-                tokenId = _clientHandlersPool.AssignTokenId() + 1000000;
+                tokenId = _communicationChannelsPool.AssignTokenId() + 1000000;
 
-                ICommunicationChannel clientHandler = ServiceLocator.Current.GetInstance<ICommunicationChannel>();
-                clientHandler.SocketClosedEvent += ClientHandler_SocketClosedEvent;
-                clientHandler.Init(tokenId, _settings.ReceiveBufferSize, _settings.KeepAlive);
-                _clientHandlersPool.Push(clientHandler);
+                ICommunicationChannel communicationChannel = ServiceLocator.Current.GetInstance<ICommunicationChannel>();
+                communicationChannel.SocketClosedEvent += ClientHandler_SocketClosedEvent;
+                communicationChannel.Init(tokenId, _settings.ReceiveBufferSize, _settings.KeepAlive, _packetsHandler);
+                _communicationChannelsPool.Push(communicationChannel);
             }
         }
 
@@ -141,19 +146,19 @@ namespace Wist.Communication.Sockets
 
             foreach (IPEndPoint endPoint in _communicationProvisioning.AllowedEndpoints.Where(ep => _clientConnectedList.All(cc => !cc.RemoteEndPoint.Address.Equals(ep.Address))))
             {
-                ICommunicationChannel clientHandler = _clientHandlersPool.Pop();
+                ICommunicationChannel communicationChannel = _communicationChannelsPool.Pop();
 
                 Interlocked.Increment(ref _connectedSockets);
 
-                _log.Info($"Socket with tokenId {clientHandler.TokenId} disconnected. {_connectedSockets} client(s) connected.");
+                _log.Info($"Socket with tokenId {communicationChannel.TokenId} disconnected. {_connectedSockets} client(s) connected.");
 
                 try
                 {
-                    clientHandler.Connect(endPoint);
+                    communicationChannel.Connect(endPoint);
                 }
                 catch
                 {
-                    ReleaseClientHandler(clientHandler);
+                    ReleaseClientHandler(communicationChannel);
                 }
             }
         }
@@ -167,7 +172,7 @@ namespace Wist.Communication.Sockets
 
         private void ReleaseClientHandler(ICommunicationChannel clientHandler)
         {
-            _clientHandlersPool.Push(clientHandler);
+            _communicationChannelsPool.Push(clientHandler);
 
             Interlocked.Decrement(ref _connectedSockets);
 
@@ -247,14 +252,14 @@ namespace Wist.Communication.Sockets
             {
                 StartAccept();
 
-                InitializeClientHandler(acceptEventArgs);
+                InitializeCommunicationChannel(acceptEventArgs);
             }
         }
 
-        private void InitializeClientHandler(SocketAsyncEventArgs acceptEventArgs)
+        private void InitializeCommunicationChannel(SocketAsyncEventArgs acceptEventArgs)
         {
             AcceptOpUserToken acceptOpToken;
-            ICommunicationChannel clientHandler = _clientHandlersPool.Pop();
+            ICommunicationChannel communicationChannel = _communicationChannelsPool.Pop();
 
             Int32 numberOfConnectedSockets = Interlocked.Increment(ref _connectedSockets);
             acceptOpToken = (AcceptOpUserToken)acceptEventArgs.UserToken;
@@ -266,12 +271,12 @@ namespace Wist.Communication.Sockets
 
             try
             {
-                clientHandler.AcceptSocket(acceptEventArgs.AcceptSocket);
-                _clientConnectedList.Add(clientHandler);
+                communicationChannel.AcceptSocket(acceptEventArgs.AcceptSocket);
+                _clientConnectedList.Add(communicationChannel);
             }
             catch
             {
-                ReleaseClientHandler(clientHandler);
+                ReleaseClientHandler(communicationChannel);
             }
             finally
             {

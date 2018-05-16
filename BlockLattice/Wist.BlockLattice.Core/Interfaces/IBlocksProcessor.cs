@@ -7,9 +7,11 @@ using Wist.Core.Architecture;
 
 namespace Wist.BlockLattice.Core.Interfaces
 {
-    [ServiceContract]
+    [ExtensionPoint]
     public interface IBlocksProcessor
     {
+        string Name { get; }
+
         void Initialize(CancellationToken ct);
         void ProcessBlock(BlockBase blockBase);
     }

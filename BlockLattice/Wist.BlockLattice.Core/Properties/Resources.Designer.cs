@@ -70,6 +70,15 @@ namespace Wist.BlockLattice.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Blocks Processor with name {0} is not registered..
+        /// </summary>
+        internal static string ERR_BLOCKS_PROCESSOR_NOT_REGISTERED {
+            get {
+                return ResourceManager.GetString("ERR_BLOCKS_PROCESSOR_NOT_REGISTERED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Genesis blockwith original hash value {0} already exist..
         /// </summary>
         internal static string ERR_GENESIS_BLOCK_ALREADY_EXISTS {

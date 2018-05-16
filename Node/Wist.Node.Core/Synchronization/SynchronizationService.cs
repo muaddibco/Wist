@@ -27,23 +27,25 @@ namespace Wist.Node.Core.Synchronization
 
         private readonly object _joinSync = new object();
         private readonly ILog _log = LogManager.GetLogger(typeof(SynchronizationService));
-        private readonly ICommunicationHub _communicationHubSync;
+        private ICommunicationHub _communicationHubSync;
         private readonly IConfigurationService _configurationService;
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
+        private readonly ISynchronizationProducer _synchronizationProducer;
         private CancellationToken _cancellationToken;
         private CancellationTokenSource _groupParticipationCheckingCancellationToken;
 
         private bool _joinedToSyncGroup;
 
-        public SynchronizationService(ICommunicationHub communicationHubSync, IConfigurationService configurationService, ISynchronizationContext synchronizationContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext)
+        public SynchronizationService(ICommunicationHubFactory communicationHubFactory, IConfigurationService configurationService, ISynchronizationContext synchronizationContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, ISynchronizationProducer synchronizationProducer)
         {
-            _communicationHubSync = communicationHubSync;
+            _communicationHubSync = communicationHubFactory.Create();
             _configurationService = configurationService;
             _synchronizationContext = synchronizationContext;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodeContext = nodeContext;
+            _synchronizationProducer = synchronizationProducer;
         }
 
         /// <summary>
@@ -52,18 +54,20 @@ namespace Wist.Node.Core.Synchronization
         ///   2. Starts process of checking whether current node must participate in Synchronization Group
         /// </summary>
         /// <param name="cancellationToken"></param>
-        public void Initialize(CancellationToken cancellationToken)
+        public void Initialize(IBlocksProcessor blocksProcessor, CancellationToken cancellationToken)
         {
-            SynchronizationCommunicationConfiguration syncCommunicationConfiguration = (SynchronizationCommunicationConfiguration)_configurationService[SynchronizationCommunicationConfiguration.SECTION_NAME];
+               SynchronizationCommunicationConfiguration syncCommunicationConfiguration = (SynchronizationCommunicationConfiguration)_configurationService[SynchronizationCommunicationConfiguration.SECTION_NAME];
             _communicationHubSync.Init(
                 new SocketListenerSettings(
                     syncCommunicationConfiguration.MaxConnections, // TODO: this value must be taken from the corresponding chain from block-lattice
                     syncCommunicationConfiguration.MaxPendingConnections,
                     syncCommunicationConfiguration.MaxSimultaneousAcceptOps,
                     syncCommunicationConfiguration.ReceiveBufferSize, 2,
-                    new IPEndPoint(IPAddress.Loopback, syncCommunicationConfiguration.ListeningPort), false));
+                    new IPEndPoint(IPAddress.Loopback, syncCommunicationConfiguration.ListeningPort), false), blocksProcessor);
 
             _communicationHubSync.StartListen();
+
+            _synchronizationProducer.Initialize(_communicationHubSync);
 
             _cancellationToken = cancellationToken;
             _cancellationToken.Register(() => 
@@ -179,21 +183,28 @@ namespace Wist.Node.Core.Synchronization
             if (_cancellationToken.IsCancellationRequested)
                 return;
 
-            Task.Run(() => 
+            Task.Run(() =>
             {
                 while (_synchronizationContext.LastSyncBlock == null)
                 {
                     Thread.Sleep(60000);
                 }
 
-                ISignatureSupportSerializer serializer = _signatureSupportSerializersFactory.Create(ChainType.Synchronization, BlockTypes.Synchronization_ReadyToParticipateBlock);
-                ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockOrder = _synchronizationContext.LastSyncBlock.BlockOrder };
-                byte[] body = serializer.GetBody(block);
-                byte[] signature = _nodeContext.Sign(body);
-                block.PublicKey = _nodeContext.PublicKey;
-                block.Signature = signature;
-                _communicationHubSync.BroadcastMessage(block);
+                DistributeReadyForParticipationMessage();
+
+                _synchronizationProducer.Launch();
             });
+        }
+
+        private void DistributeReadyForParticipationMessage()
+        {
+            ISignatureSupportSerializer serializer = _signatureSupportSerializersFactory.Create(ChainType.Synchronization, BlockTypes.Synchronization_ReadyToParticipateBlock);
+            ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockOrder = _synchronizationContext.LastSyncBlock.BlockOrder };
+            byte[] body = serializer.GetBody(block);
+            byte[] signature = _nodeContext.Sign(body);
+            block.PublicKey = _nodeContext.PublicKey;
+            block.Signature = signature;
+            _communicationHubSync.BroadcastMessage(block);
         }
     }
 }

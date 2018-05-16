@@ -18,29 +18,32 @@ using Wist.Node.Core.Model.Blocks;
 
 namespace Wist.Node.Core
 {
-    [RegisterDefaultImplementation(typeof(IBlocksProcessor), Lifetime = LifetimeManagement.Singleton)]
-    public class ConsensusBlocksProcessor : IBlocksProcessor, IConsumeValidationReport
+    [RegisterExtension(typeof(IBlocksProcessor), Lifetime = LifetimeManagement.Singleton)]
+    public class ConsensusBlocksProcessor : IBlocksProcessor, IConsumeValidationReport, IRequiresCommunicationHub
     {
+        public const string BLOCKS_PROCESSOR_NAME = "ConsensusBlocksProcessor";
+
         private CancellationToken _cancellationToken;
 
         private readonly object _sync = new object();
         private readonly INodeContext _nodeContext;
         private readonly IChainValidationServiceManager _chainConsensusServiceManager;
-        private bool _isInitialized;
 
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _blocks;
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _locallyApproved;
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _consensusAchievedBlocks;
-        private readonly ICommunicationHub _communicationHub;
         private readonly IConsensusCheckingService _consensusCheckingService;
         private readonly BlockingCollection<GenericConsensusBlock> _consensusItems; // TODO: need to decide how to know, that decision must be retransmitted
 
+        private ICommunicationHub _communicationHub;
+        private bool _isInitialized;
 
-        public ConsensusBlocksProcessor(INodeContext nodeContext, IChainValidationServiceManager chainConsensusServiceManager, ICommunicationHub communicationHub, IConsensusCheckingService consensusCheckingService)
+        public string Name => BLOCKS_PROCESSOR_NAME;
+
+        public ConsensusBlocksProcessor(INodeContext nodeContext, IChainValidationServiceManager chainConsensusServiceManager, IConsensusCheckingService consensusCheckingService)
         {
             _nodeContext = nodeContext;
             _chainConsensusServiceManager = chainConsensusServiceManager;
-            _communicationHub = communicationHub;
             _consensusCheckingService = consensusCheckingService;
             _blocks = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
             _locallyApproved = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
@@ -53,6 +56,11 @@ namespace Wist.Node.Core
                 _locallyApproved.Add((ChainType)chainType, new ConcurrentQueue<BlockBase>());
                 _consensusAchievedBlocks.Add((ChainType)chainType, new ConcurrentQueue<BlockBase>());
             }
+        }
+
+        public void RegisterCommunicationHub(ICommunicationHub communicationHub)
+        {
+            _communicationHub = communicationHub;
         }
 
         public void Initialize(CancellationToken ct)

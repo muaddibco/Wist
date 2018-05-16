@@ -10,5 +10,7 @@ namespace Wist.Node.Core.Interfaces
     public interface ISynchronizationContext
     {
         SynchronizationConfirmedBlock LastSyncBlock { get; set; }
+
+        DateTime LastSyncBlockReceivingTime { get; set; }
     }
 }

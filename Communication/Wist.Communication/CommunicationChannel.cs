@@ -19,12 +19,12 @@ namespace Wist.Communication
         private readonly Queue<byte[]> _packets;
         private readonly Queue<byte[]> _messagePackets;
         private readonly ConcurrentQueue<byte[]> _postedMessages;
-        private readonly IPacketsHandler _packetsHandler;
         private readonly IBufferManager _bufferManager;
         private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
         private readonly SocketAsyncEventArgs _socketSendAsyncEventArgs;
         private readonly SocketAsyncEventArgs _socketConnectAsyncEventArgs;
 
+        private IPacketsHandler _packetsHandler;
         private CancellationTokenSource _cancellationTokenSource;
 
         public const byte STX = 0x02;
@@ -55,10 +55,9 @@ namespace Wist.Communication
 
         public event EventHandler<EventArgs> SocketClosedEvent;
 
-        public CommunicationChannel(IBufferManager bufferManager, IPacketsHandler messagesHandler)
+        public CommunicationChannel(IBufferManager bufferManager)
         {
             _bufferManager = bufferManager;
-            _packetsHandler = messagesHandler;
             _packets = new Queue<byte[]>();
             _messagePackets = new Queue<byte[]>();
             _postedMessages = new ConcurrentQueue<byte[]>();
@@ -257,11 +256,12 @@ namespace Wist.Communication
             _cancellationTokenSource = null;
         }
 
-        public void Init(int tokenId, int sendReceiveBufferSize, bool keepAlive)
+        public void Init(int tokenId, int sendReceiveBufferSize, bool keepAlive, IPacketsHandler packetsHandler)
         {
             TokenId = tokenId;
             _sendReceiveBufferSize = sendReceiveBufferSize;
             _keepAlive = keepAlive;
+            _packetsHandler = packetsHandler;
 
             _bufferManager.SetBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
             _offsetReceive = _socketReceiveAsyncEventArgs.Offset;

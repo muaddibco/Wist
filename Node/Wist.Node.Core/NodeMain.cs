@@ -25,15 +25,19 @@ namespace Wist.Node.Core
         private readonly IConfigurationService _configurationService;
         private readonly ICommunicationHub _communicationHubNodes;
         private readonly ICommunicationHub _communicationHubAccounts;
-        private readonly IBlocksProcessor _blocksProcessor;
         private readonly CancellationTokenSource _cancellationTokenSource;
+        private IBlocksProcessor _consensusBlocksProcessor;
+        private IBlocksProcessor _synchronizationBlocksProcessor;
 
-        internal NodeMain(IConfigurationService configurationService, ICommunicationHub communicationHubNodes, ICommunicationHub communicationHubAccounts, IBlocksProcessor blocksProcessor)
+        //private readonly IBlocksProcessor _blocksProcessor
+
+        internal NodeMain(IConfigurationService configurationService, ICommunicationHubFactory communicationHubFactory, IBlocksProcessorFactory blocksProcessorFactory)
         {
             _configurationService = configurationService;
-            _communicationHubNodes = communicationHubNodes;
-            _communicationHubAccounts = communicationHubAccounts;
-            _blocksProcessor = blocksProcessor;
+            _communicationHubNodes = communicationHubFactory.Create();
+            _communicationHubAccounts = communicationHubFactory.Create();
+            _consensusBlocksProcessor = blocksProcessorFactory.Create(ConsensusBlocksProcessor.BLOCKS_PROCESSOR_NAME);
+            _synchronizationBlocksProcessor = blocksProcessorFactory.Create(SynchronizationBlocksProcessor.BLOCKS_PROCESSOR_NAME);
 
             _cancellationTokenSource = new CancellationTokenSource();
         }
@@ -42,15 +46,25 @@ namespace Wist.Node.Core
         {
             // TODO: add accounts listener
             NodesCommunicationConfiguration nodesCommunicationConfiguration = (NodesCommunicationConfiguration)_configurationService[NodesCommunicationConfiguration.SECTION_NAME];
+            AccountsCommunicationConfiguration accountsCommunicationConfiguration = (AccountsCommunicationConfiguration)_configurationService[AccountsCommunicationConfiguration.SECTION_NAME];
+
             _communicationHubNodes.Init(
                 new SocketListenerSettings(
                     nodesCommunicationConfiguration.MaxConnections,
                     nodesCommunicationConfiguration.MaxPendingConnections,
                     nodesCommunicationConfiguration.MaxSimultaneousAcceptOps,
                     nodesCommunicationConfiguration.ReceiveBufferSize, 2, 
-                    new IPEndPoint(IPAddress.Loopback, nodesCommunicationConfiguration.ListeningPort), false));
+                    new IPEndPoint(IPAddress.Loopback, nodesCommunicationConfiguration.ListeningPort), false), _consensusBlocksProcessor);
+
+            _communicationHubAccounts.Init(new SocketListenerSettings(
+                accountsCommunicationConfiguration.MaxConnections,
+                accountsCommunicationConfiguration.MaxPendingConnections,
+                accountsCommunicationConfiguration.MaxSimultaneousAcceptOps,
+                accountsCommunicationConfiguration.ReceiveBufferSize, 2,
+                new IPEndPoint(IPAddress.Loopback, accountsCommunicationConfiguration.ListeningPort), false), null);
 
             _communicationHubNodes.StartListen();
+            _communicationHubAccounts.StartListen();
         }
 
         internal void UpdateKnownNodes()
@@ -65,7 +79,7 @@ namespace Wist.Node.Core
 
         internal void Start()
         {
-            _blocksProcessor.Initialize(_cancellationTokenSource.Token);
+            _consensusBlocksProcessor.Initialize(_cancellationTokenSource.Token);
         }
     }
 }
