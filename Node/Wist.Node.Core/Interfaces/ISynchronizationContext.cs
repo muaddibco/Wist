@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.Core.Architecture;
+using Wist.Node.Core.Model;
 
 namespace Wist.Node.Core.Interfaces
 {
@@ -12,5 +13,7 @@ namespace Wist.Node.Core.Interfaces
         SynchronizationConfirmedBlock LastSyncBlock { get; set; }
 
         DateTime LastSyncBlockReceivingTime { get; set; }
+
+        List<ConsensusGroupParticipant> Participants { get; set; }
     }
 }

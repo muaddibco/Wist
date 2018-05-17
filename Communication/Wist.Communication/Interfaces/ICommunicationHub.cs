@@ -5,6 +5,7 @@ using System.Text;
 using Wist.Core.Architecture;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Interfaces;
+using System.Threading.Tasks;
 
 namespace Wist.Communication.Interfaces
 {
@@ -15,6 +16,6 @@ namespace Wist.Communication.Interfaces
 
         void StartListen();
 
-        void BroadcastMessage(BlockBase message);
+        Task BroadcastMessage(BlockBase message);
     }
 }

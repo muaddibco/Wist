@@ -13,6 +13,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Interfaces;
+using System.Threading.Tasks;
 
 namespace Wist.Communication.Sockets
 {
@@ -110,20 +111,22 @@ namespace Wist.Communication.Sockets
             StartAccept();
         }
 
-        public void BroadcastMessage(BlockBase message)
+        public Task BroadcastMessage(BlockBase message)
         {
-            foreach (ICommunicationChannel clientHandler in _clientConnectedList)
-            {
-                try
+            return Task.Run(() => {
+                foreach (ICommunicationChannel clientHandler in _clientConnectedList)
                 {
-                    IPacketSerializer packetSerializer = _packetSerializersFactory.Create(message.ChainType, message.BlockType);
-                    clientHandler.PostMessage(packetSerializer.GetBodyBytes(message));
+                    try
+                    {
+                        IPacketSerializer packetSerializer = _packetSerializersFactory.Create(message.ChainType, message.BlockType);
+                        clientHandler.PostMessage(packetSerializer.GetBodyBytes(message));
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error($"Error during broadcasting message", ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _log.Error($"Error during broadcasting message", ex);
-                }
-            }
+            });
         }
 
         #endregion ICommunicationHub implementation

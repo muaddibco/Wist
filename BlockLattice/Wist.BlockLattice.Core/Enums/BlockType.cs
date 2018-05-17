@@ -14,6 +14,7 @@
         public const ushort Synchronization_TimeSyncBlock = 1;
         public const ushort Synchronization_RetransmissionBlock = 2;
         public const ushort Synchronization_ReadyToParticipateBlock = 3;
+        public const ushort Synchronization_MedianApproval = 4;
         public const ushort Synchronization_ConfirmedBlock = ushort.MaxValue;
     }
 }

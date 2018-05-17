@@ -29,7 +29,7 @@ namespace Wist.Node.Core
         private IBlocksProcessor _consensusBlocksProcessor;
         private IBlocksProcessor _synchronizationBlocksProcessor;
 
-        //private readonly IBlocksProcessor _blocksProcessor
+        //private read-only IBlocksProcessor _blocksProcessor
 
         internal NodeMain(IConfigurationService configurationService, ICommunicationHubFactory communicationHubFactory, IBlocksProcessorFactory blocksProcessorFactory)
         {
@@ -56,6 +56,7 @@ namespace Wist.Node.Core
                     nodesCommunicationConfiguration.ReceiveBufferSize, 2, 
                     new IPEndPoint(IPAddress.Loopback, nodesCommunicationConfiguration.ListeningPort), false), _consensusBlocksProcessor);
 
+            // TODO: need to understand what blocks processor need to provide here
             _communicationHubAccounts.Init(new SocketListenerSettings(
                 accountsCommunicationConfiguration.MaxConnections,
                 accountsCommunicationConfiguration.MaxPendingConnections,
