@@ -15,7 +15,9 @@ using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core
 {
-    // TODO: need to implement logic with time limit for confirmation of retransmitted blocks, etc
+    // TODO: features
+    // need to implement logic with time limit for confirmation of retransmitted blocks, etc
+    // what happens when consensus was not achieved
     public class SynchronizationBlocksProcessor : IBlocksProcessor, IRequiresCommunicationHub
     {
         public const string BLOCKS_PROCESSOR_NAME = "SynchronizationBlocksProcessor";
@@ -65,7 +67,6 @@ namespace Wist.Node.Core
         {
             SynchronizationBlockBase synchronizationBlock = blockBase as SynchronizationBlockBase;
             SynchronizationConfirmedBlock synchronizationConfirmedBlock = blockBase as SynchronizationConfirmedBlock;
-            SynchronizationMedianApprovalBlock synchronizationMedianApprovalBlock = blockBase as SynchronizationMedianApprovalBlock;
 
             if (synchronizationBlock != null && !_synchronizationBlocks.IsAddingCompleted)
             {
@@ -75,7 +76,7 @@ namespace Wist.Node.Core
             {
                 _synchronizationContext.LastSyncBlock = synchronizationConfirmedBlock;
                 _synchronizationContext.LastSyncBlockReceivingTime = DateTime.Now;
-                _synchronizationProducer.Launch();
+                _synchronizationProducer.DeferredBroadcast();
             }
 
             // if received ReadyForParticipationBlock and consensus on Synchronization not achieved yet so it is needed to involve joined participant into it. Otherwise it will be involved on the next loop.
@@ -151,77 +152,49 @@ namespace Wist.Node.Core
                     _synchronizationBlocksByHeight[retransmittedBlock.BlockOrder][publicKey].Add(retransmittedBlock);
                 }
 
-                DateTime consensusMedianTime;
-                if(CheckSynchronizationCompleteConsensusAchieved(retransmittedBlock.BlockOrder, out consensusMedianTime))
+                if(CheckSynchronizationCompleteConsensusAchieved(retransmittedBlock.BlockOrder))
                 {
-                    BroadcastMedianApproval(retransmittedBlock, consensusMedianTime);
+                    BroadcastConfirmation(retransmittedBlock.BlockOrder);
                 }
             }
         }
 
-        private void BroadcastMedianApproval(SynchronizationBlockRetransmissionV1 retransmittedBlock, DateTime consensusMedianTime)
+        private void BroadcastConfirmation(uint height)
         {
-            SynchronizationMedianApprovalBlock synchronizationMedianApprovalBlock = new SynchronizationMedianApprovalBlock
+            List<SynchronizationBlockRetransmissionV1> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height].Where(r => _synchronizationContext.Participants.Any(p => p.PublicKeyString == r.Key)).Select(kv => kv.Value.First()).OrderBy(s => s.ConfirmationPublicKey.ToHexString()).ToList();
+
+            SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock
             {
-                BlockOrder = retransmittedBlock.BlockOrder,
-                ReportedTime = consensusMedianTime,
-                PublicKey = _nodeContext.PublicKey
+                BlockOrder = height,
+                ReportedTimes = retransmittedSyncBlocks.Select(b => b.ReportedTime).ToArray(),
+                PublicKeys = retransmittedSyncBlocks.Select(b => b.ConfirmationPublicKey).ToArray(),
+                Signatures = retransmittedSyncBlocks.Select(b => b.ConfirmationSignature).ToArray()
             };
 
-            byte[] body = _signatureSupportSerializersFactory.Create(ChainType.Synchronization, BlockTypes.Synchronization_MedianApproval).GetBody(synchronizationMedianApprovalBlock);
-            synchronizationMedianApprovalBlock.Signature = _nodeContext.Sign(body);
-
-            _communicationHub.BroadcastMessage(synchronizationMedianApprovalBlock);
+            _communicationHub.BroadcastMessage(synchronizationConfirmedBlock);
         }
 
-        private DateTime GetMedianValue(IEnumerable<DateTime> retransmittedBlocks)
-        {
-            IOrderedEnumerable<DateTime> orderedRetransmittedBlocks = retransmittedBlocks.OrderBy(v => v);
-
-            int count = orderedRetransmittedBlocks.Count();
-            if (count % 2 == 0)
-            {
-                int indexMidLow = count / 2 - 1;
-                int indexMidHigh = count / 2;
-
-                DateTime dtLow = orderedRetransmittedBlocks.ElementAt(indexMidLow);
-                DateTime dtHigh = orderedRetransmittedBlocks.ElementAt(indexMidHigh);
-
-                return dtLow.AddSeconds((dtHigh - dtLow).TotalSeconds / 2);
-            }
-            else
-            {
-                int index = count / 2;
-
-                return orderedRetransmittedBlocks.ElementAt(index);
-            }
-        }
-
-        private bool CheckSynchronizationCompleteConsensusAchieved(uint height, out DateTime consensusMedianTime)
+        private bool CheckSynchronizationCompleteConsensusAchieved(uint height)
         {
             if (!_synchronizationBlocksByHeight.ContainsKey(height))
             {
-                consensusMedianTime = DateTime.MinValue;
                 return false;
             }
 
             ushort count = 0;
-            List<DateTime> medianDateTimes = new List<DateTime>();
             Dictionary<string, List<SynchronizationBlockRetransmissionV1>> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height];
             foreach (string publicKey in retransmittedSyncBlocks.Keys)
             {
                 if (_synchronizationContext.Participants.Any(p => p.PublicKeyString == publicKey))
                 {
                     IEnumerable<SynchronizationBlockRetransmissionV1> lst = retransmittedSyncBlocks[publicKey].Where(s => _synchronizationContext.Participants.Any(p => p.PublicKey.Equals32(s.ConfirmationPublicKey)));
-                    if (lst.Count() >= TARGET_CONSENSUS_LOW_LIMIT)
+                    if (lst.Count() >= TARGET_CONSENSUS_LOW_LIMIT && lst.Any(l => lst.First().ReportedTime == l.ReportedTime))
                     {
-                        medianDateTimes.Add(GetMedianValue(lst.Select(b => b.ReportedTime)));
                         count++;
                     }
                 }
             }
 
-            consensusMedianTime = GetMedianValue(medianDateTimes);
             return count == TARGET_CONSENSUS_SIZE;
         }
 

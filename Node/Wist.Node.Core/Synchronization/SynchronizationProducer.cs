@@ -20,7 +20,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
         private ICommunicationHub _communicationHub;
-        private uint _lastLaunchedSyncBlockOrder;
+        private uint _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
         public SynchronizationProducer(ISynchronizationContext synchronizationContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext)
@@ -35,7 +35,7 @@ namespace Wist.Node.Core.Synchronization
             _communicationHub = communicationHub;
         }
 
-        public void Launch()
+        public void DeferredBroadcast()
         {
             if (_synchronizationContext == null)
             {
@@ -44,7 +44,7 @@ namespace Wist.Node.Core.Synchronization
 
             if(_synchronizationContext.LastSyncBlock.BlockOrder > _lastLaunchedSyncBlockOrder)
             {
-                if(_synchronizationContext.LastSyncBlock.BlockOrder -1 > _lastLaunchedSyncBlockOrder)
+                if(_synchronizationContext.LastSyncBlock.BlockOrder - 1 > _lastLaunchedSyncBlockOrder)
                 {
                     _syncProducingCancellation?.Cancel();
                 }
@@ -61,7 +61,7 @@ namespace Wist.Node.Core.Synchronization
                             SynchronizationBlockV1 synchronizationBlock = new SynchronizationBlockV1
                             {
                                 BlockOrder = confirmedBlock.BlockOrder + 1,
-                                ReportedTime = confirmedBlock.ReportedTime.AddMinutes(1)
+                                ReportedTime = _synchronizationContext.GetMedianValue(confirmedBlock.ReportedTimes).AddMinutes(1)
                             };
 
                             ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(ChainType.Synchronization, BlockTypes.Synchronization_TimeSyncBlock);
@@ -71,6 +71,7 @@ namespace Wist.Node.Core.Synchronization
                             synchronizationBlock.Signature = signature;
 
                             _communicationHub.BroadcastMessage(synchronizationBlock);
+                            _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockOrder;
                         }, _synchronizationContext.LastSyncBlock, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }
             }

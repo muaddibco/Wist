@@ -14,6 +14,6 @@ namespace Wist.Node.Core.Interfaces
         /// <summary>
         /// Function checks for last obtained synchronization block, checks at what time it was obtained and 60 seconds later it invokes sending new synchronization block for confirmation
         /// </summary>
-        void Launch();
+        void DeferredBroadcast();
     }
 }

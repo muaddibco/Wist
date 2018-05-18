@@ -13,7 +13,7 @@ namespace Wist.BlockLattice.Core.DataModel.Synchronization
 
         public override ushort Version => 1;
 
-        public DateTime ReportedTime { get; set; }
+        public DateTime[] ReportedTimes { get; set; }
 
         public byte[][] Signatures { get; set; }
 

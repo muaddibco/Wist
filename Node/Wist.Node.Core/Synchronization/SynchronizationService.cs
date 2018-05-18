@@ -192,7 +192,7 @@ namespace Wist.Node.Core.Synchronization
 
                 DistributeReadyForParticipationMessage();
 
-                _synchronizationProducer.Launch();
+                _synchronizationProducer.DeferredBroadcast();
             });
         }
 
