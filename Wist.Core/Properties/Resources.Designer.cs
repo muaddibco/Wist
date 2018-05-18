@@ -106,6 +106,15 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Proof of work algorithm {0} not supported..
+        /// </summary>
+        internal static string ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Required configuration parameter &apos;{0}&apos; not specified at application configuration file..
         /// </summary>
         internal static string ERR_REQUIRED_CONIGURATION_PARAMETER_NOT_SPECIFIED {

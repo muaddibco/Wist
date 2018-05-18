@@ -2,22 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
-using Wist.Node.Core.Interfaces;
-using Wist.Node.Core.Model;
 
-namespace Wist.Node.Core.Synchronization
+namespace Wist.Core.Synchronization
 {
     [RegisterDefaultImplementation(typeof(ISynchronizationContext), Lifetime = LifetimeManagement.Singleton)]
-    public class SynchronizationContext : ISynchronizationContext
+    public class SynchronizationContext
     {
-        public SynchronizationConfirmedBlock LastSyncBlock { get; set; }
-        public DateTime LastSyncBlockReceivingTime { get; set; }
-        public List<ConsensusGroupParticipant> Participants { get; set; }
+        public SynchronizationDescriptor LastBlockDescriptor { get; set; }
 
+        public SynchronizationDescriptor PrevBlockDescriptor { get; set; }
 
+        /// <summary>
+        /// Utility function that returns median value from provided array
+        /// </summary>
+        /// <param name="dateTimes"></param>
+        /// <returns></returns>
         public DateTime GetMedianValue(IEnumerable<DateTime> dateTimes)
         {
             IOrderedEnumerable<DateTime> orderedRetransmittedBlocks = dateTimes.OrderBy(v => v);

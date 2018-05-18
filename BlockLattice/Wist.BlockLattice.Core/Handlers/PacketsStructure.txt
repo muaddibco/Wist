@@ -1,4 +1,11 @@
-﻿<DLE><STX><LENGTH OF PACKET BODY + CHAIN TYPE = 2 BYTES><CHAIN TYPE = 2 BYTE><PACKET BODY>
+﻿<DLE><STX>
+<LENGTH OF PACKET BODY + CHAIN TYPE> : 4 BYTES 
+<CHAIN TYPE> : 2 BYTES
+<POWType> : 2 BYTE
+<SYNC BLOCK HEIGHT> : 4 BYTES
+<NONCE> : 8 BYTES
+<HASH> : 16 - 64 BYTES (16, 32, 48, 64)
+<PACKET BODY>
 ===================================================================================================================================================================
 PACKET BODY:
 	Message Type		: 2 bytes

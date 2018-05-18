@@ -8,17 +8,20 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Models;
+using Wist.Core.ProofOfWork;
+using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterExtension(typeof(IChainTypeHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterExtension(typeof(IPacketTypeHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class SignaturedPacketTypeHandler : PacketTypeHandlerBase
     {
         public const int MESSAGE_TYPE_SIZE = 2;
         public const int MESSAGE_SIGNATURE_SIZE = 64;
         public const int MESSAGE_PUBLICKEY_SIZE = 32;
 
-        public SignaturedPacketTypeHandler(IBlockParsersFactory[] blockParsersFactories) : base(blockParsersFactories)
+        public SignaturedPacketTypeHandler(ISynchronizationContext synchronizationContext, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IBlockParsersFactory[] blockParsersFactories) 
+            : base(synchronizationContext, proofOfWorkCalculationFactory, blockParsersFactories)
         {
         }
 

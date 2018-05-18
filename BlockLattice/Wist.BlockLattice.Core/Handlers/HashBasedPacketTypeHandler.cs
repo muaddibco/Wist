@@ -8,17 +8,20 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
+using Wist.Core.ProofOfWork;
+using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterExtension(typeof(IChainTypeHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterExtension(typeof(IPacketTypeHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class HashBasedPacketTypeHandler : PacketTypeHandlerBase
     {
         public const int MESSAGE_TYPE_SIZE = 2;
         public const int MESSAGE_HASH_SIZE = 64;
         public const int MAX_HASH_NBACK = 1000000;
 
-        public HashBasedPacketTypeHandler(IBlockParsersFactory[] blockParsersFactories) : base(blockParsersFactories)
+        public HashBasedPacketTypeHandler(ISynchronizationContext synchronizationContext, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IBlockParsersFactory[] blockParsersFactories) 
+            : base(synchronizationContext, proofOfWorkCalculationFactory, blockParsersFactories)
         {
         }
 

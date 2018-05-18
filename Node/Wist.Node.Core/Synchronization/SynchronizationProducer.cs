@@ -9,6 +9,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Synchronization
@@ -16,16 +17,14 @@ namespace Wist.Node.Core.Synchronization
     [RegisterDefaultImplementation(typeof(ISynchronizationProducer), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationProducer : ISynchronizationProducer
     {
-        private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
         private ICommunicationHub _communicationHub;
         private uint _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
-        public SynchronizationProducer(ISynchronizationContext synchronizationContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext)
+        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext)
         {
-            _synchronizationContext = synchronizationContext;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodeContext = nodeContext;
         }
@@ -37,31 +36,31 @@ namespace Wist.Node.Core.Synchronization
 
         public void DeferredBroadcast()
         {
-            if (_synchronizationContext == null)
+            if (_nodeContext.SynchronizationContext  == null)
             {
                 return;
             }
 
-            if(_synchronizationContext.LastSyncBlock.BlockOrder > _lastLaunchedSyncBlockOrder)
+            if(_nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight > _lastLaunchedSyncBlockOrder)
             {
-                if(_synchronizationContext.LastSyncBlock.BlockOrder - 1 > _lastLaunchedSyncBlockOrder)
+                if(_nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight - 1 > _lastLaunchedSyncBlockOrder)
                 {
                     _syncProducingCancellation?.Cancel();
                 }
 
-                int delay = (int)(60000 - (DateTime.Now - _synchronizationContext.LastSyncBlockReceivingTime).TotalMilliseconds);
+                int delay = (int)(60000 - (DateTime.Now - _nodeContext.SynchronizationContext.LastBlockDescriptor.ReceivingTime).TotalMilliseconds);
 
                 if (delay > 0)
                 {
                     Task.Delay(delay, _syncProducingCancellation.Token)
                         .ContinueWith((t, o) =>
                         {
-                            SynchronizationConfirmedBlock confirmedBlock = o as SynchronizationConfirmedBlock;
+                            SynchronizationDescriptor synchronizationDescriptor = o as SynchronizationDescriptor;
 
                             SynchronizationBlockV1 synchronizationBlock = new SynchronizationBlockV1
                             {
-                                BlockOrder = confirmedBlock.BlockOrder + 1,
-                                ReportedTime = _synchronizationContext.GetMedianValue(confirmedBlock.ReportedTimes).AddMinutes(1)
+                                BlockOrder = synchronizationDescriptor.BlockHeight + 1,
+                                ReportedTime = synchronizationDescriptor.MedianTime.AddMinutes(1)
                             };
 
                             ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(ChainType.Synchronization, BlockTypes.Synchronization_TimeSyncBlock);
@@ -72,7 +71,7 @@ namespace Wist.Node.Core.Synchronization
 
                             _communicationHub.BroadcastMessage(synchronizationBlock);
                             _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockOrder;
-                        }, _synchronizationContext.LastSyncBlock, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
+                        }, _nodeContext.SynchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }
             }
         }

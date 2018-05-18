@@ -5,11 +5,12 @@ using System.Threading.Tasks;
 using Wist.Core.Architecture;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Handlers;
+using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Interfaces
 {
     [ServiceContract]
-    public interface IChainTypeHandler
+    public interface IPacketTypeHandler
     {
         ChainType ChainType { get; }
 

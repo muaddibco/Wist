@@ -23,7 +23,7 @@ namespace Wist.BlockLattice.Core.Handlers
     public class PacketsHandler : IPacketsHandler, ISupportInitialization
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(PacketsHandler));
-        private readonly IChainTypeHandlersFactory _chainTypeValidationHandlersFactory;
+        private readonly IPacketTypeHandlersFactory _chainTypeValidationHandlersFactory;
         private readonly IBlockParsersFactory _blockParsersFactory;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
         private readonly ManualResetEventSlim _messageTrigger;
@@ -35,7 +35,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
         public bool IsInitialized { get; private set; }
 
-        public PacketsHandler(IChainTypeHandlersFactory packetTypeHandlersFactory, IBlockParsersFactory blockParsersFactory)
+        public PacketsHandler(IPacketTypeHandlersFactory packetTypeHandlersFactory, IBlockParsersFactory blockParsersFactory)
         {
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
             _blockParsersFactory = blockParsersFactory;
@@ -129,7 +129,7 @@ namespace Wist.BlockLattice.Core.Handlers
                 return;
             }
 
-            IChainTypeHandler chainTypeHandler = null;
+            IPacketTypeHandler chainTypeHandler = null;
 
             ChainType chainType = (ChainType)BitConverter.ToUInt16(messagePacket, 0);
             chainTypeHandler = _chainTypeValidationHandlersFactory.Create(chainType);

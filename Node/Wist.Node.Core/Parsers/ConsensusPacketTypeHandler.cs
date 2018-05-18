@@ -9,11 +9,13 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
+using Wist.Core.ProofOfWork;
+using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Parsers
 {
-    [RegisterExtension(typeof(IChainTypeHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterExtension(typeof(IPacketTypeHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class ConsensusPacketTypeHandler : PacketTypeHandlerBase
     {
         public const int MESSAGE_TYPE_SIZE = 2;
@@ -23,7 +25,8 @@ namespace Wist.Node.Core.Parsers
 
         private readonly IConsensusHub _consensusHub;
 
-        public ConsensusPacketTypeHandler(IConsensusHub consensusHub, IBlockParsersFactory[] blockParsersFactories) : base(blockParsersFactories)
+        public ConsensusPacketTypeHandler(IConsensusHub consensusHub, ISynchronizationContext synchronizationContext, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IBlockParsersFactory[] blockParsersFactories)
+            : base(synchronizationContext, proofOfWorkCalculationFactory, blockParsersFactories)
         {
             _consensusHub = consensusHub;
         }

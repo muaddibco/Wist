@@ -53,7 +53,7 @@ namespace Wist.Core.ExtensionMethods
         /// <param name="b"></param>
         /// <returns></returns>
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
-        public static unsafe bool EqualsX16(byte[] a, byte[] b)
+        public static unsafe bool EqualsX16(this byte[] a, byte[] b)
         {
             if (a == null)
                 throw new ArgumentNullException(nameof(a));

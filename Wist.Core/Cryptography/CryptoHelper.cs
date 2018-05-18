@@ -8,6 +8,11 @@ namespace Wist.Core.Cryptography
 {
     public static class CryptoHelper
     {
+        /// <summary>
+        /// Calculates SHA512 HASH
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static byte[] ComputeHash(byte[] input)
         {
             using (SHA512 sha512 = SHA512CryptoServiceProvider.Create())

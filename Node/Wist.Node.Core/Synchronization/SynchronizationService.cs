@@ -29,7 +29,6 @@ namespace Wist.Node.Core.Synchronization
         private readonly ILog _log = LogManager.GetLogger(typeof(SynchronizationService));
         private ICommunicationHub _communicationHubSync;
         private readonly IConfigurationService _configurationService;
-        private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
         private readonly ISynchronizationProducer _synchronizationProducer;
@@ -38,11 +37,10 @@ namespace Wist.Node.Core.Synchronization
 
         private bool _joinedToSyncGroup;
 
-        public SynchronizationService(ICommunicationHubFactory communicationHubFactory, IConfigurationService configurationService, ISynchronizationContext synchronizationContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, ISynchronizationProducer synchronizationProducer)
+        public SynchronizationService(ICommunicationHubFactory communicationHubFactory, IConfigurationService configurationService, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, ISynchronizationProducer synchronizationProducer)
         {
             _communicationHubSync = communicationHubFactory.Create();
             _configurationService = configurationService;
-            _synchronizationContext = synchronizationContext;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodeContext = nodeContext;
             _synchronizationProducer = synchronizationProducer;
@@ -185,7 +183,7 @@ namespace Wist.Node.Core.Synchronization
 
             Task.Run(() =>
             {
-                while (_synchronizationContext.LastSyncBlock == null)
+                while (_nodeContext.SynchronizationContext.LastBlockDescriptor == null)
                 {
                     Thread.Sleep(60000);
                 }
@@ -199,7 +197,7 @@ namespace Wist.Node.Core.Synchronization
         private void DistributeReadyForParticipationMessage()
         {
             ISignatureSupportSerializer serializer = _signatureSupportSerializersFactory.Create(ChainType.Synchronization, BlockTypes.Synchronization_ReadyToParticipateBlock);
-            ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockOrder = _synchronizationContext.LastSyncBlock.BlockOrder };
+            ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockOrder = _nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight };
             byte[] body = serializer.GetBody(block);
             byte[] signature = _nodeContext.Sign(body);
             block.PublicKey = _nodeContext.PublicKey;
