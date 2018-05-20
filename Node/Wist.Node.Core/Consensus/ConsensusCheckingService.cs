@@ -112,7 +112,7 @@ namespace Wist.Node.Core.Consensus
 
         private bool ConsensusReached(BlockConsensusState blockConsensusState, out bool approved)
         {
-            // TODO: refactor for better performance
+            //TODO: refactor for better performance
             int approveWeight = (int)blockConsensusState.ParticipantDecisionsMap.Where(p => p.Value == BlockLattice.Core.Enums.ValidationState.Approved).Select(p => _consensusHub.GroupParticipants[p.Key].Weight).Sum();
             int rejectWeight = (int)blockConsensusState.ParticipantDecisionsMap.Where(p => p.Value == BlockLattice.Core.Enums.ValidationState.Rejected).Select(p => _consensusHub.GroupParticipants[p.Key].Weight).Sum();
 

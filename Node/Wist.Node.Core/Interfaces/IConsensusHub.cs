@@ -7,7 +7,7 @@ namespace Wist.Node.Core.Interfaces
 {
     public interface IConsensusHub
     {
-        // TODO: weigh necessity to make map PublicKey -> ConsensusGroupParticipant
+        //TODO: weigh necessity to make map PublicKey -> ConsensusGroupParticipant
         Dictionary<string, ConsensusGroupParticipant> GroupParticipants { get; }
 
         int TotalWeight { get; }

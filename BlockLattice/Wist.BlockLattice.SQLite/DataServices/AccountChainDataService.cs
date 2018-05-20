@@ -35,6 +35,11 @@ namespace Wist.BlockLattice.SQLite.DataServices
             throw new NotImplementedException();
         }
 
+        public List<BlockBase> GetAllLastBlocksByType(ushort blockType)
+        {
+            throw new NotImplementedException();
+        }
+
         public BlockBase GetBlockByOrder(byte[] key, uint order)
         {
             throw new NotImplementedException();

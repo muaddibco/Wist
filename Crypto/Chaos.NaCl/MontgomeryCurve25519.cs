@@ -45,7 +45,7 @@ namespace Chaos.NaCl
                 throw new ArgumentException("privateKey.Count must be 32");
 
             // hack: abusing publicKey as temporary storage
-            // todo: remove hack
+            //TODO: remove hack
             for (int i = 0; i < 32; i++)
             {
                 publicKey.Array[publicKey.Offset + i] = privateKey.Array[privateKey.Offset + i];

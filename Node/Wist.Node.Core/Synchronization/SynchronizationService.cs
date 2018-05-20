@@ -1,6 +1,7 @@
 ﻿using log4net;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -15,6 +16,7 @@ using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;
+using Wist.Core.ExtensionMethods;
 using Wist.Node.Core.Configuration;
 using Wist.Node.Core.Interfaces;
 
@@ -32,18 +34,22 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
         private readonly ISynchronizationProducer _synchronizationProducer;
+        private readonly IDposService _dposService;
         private CancellationToken _cancellationToken;
         private CancellationTokenSource _groupParticipationCheckingCancellationToken;
 
         private bool _joinedToSyncGroup;
 
-        public SynchronizationService(ICommunicationHubFactory communicationHubFactory, IConfigurationService configurationService, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, ISynchronizationProducer synchronizationProducer)
+        public SynchronizationService(ICommunicationHubFactory communicationHubFactory, IConfigurationService configurationService, 
+            ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, 
+            ISynchronizationProducer synchronizationProducer, IDposService dposService)
         {
             _communicationHubSync = communicationHubFactory.Create();
             _configurationService = configurationService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodeContext = nodeContext;
             _synchronizationProducer = synchronizationProducer;
+            _dposService = dposService;
         }
 
         /// <summary>
@@ -57,7 +63,7 @@ namespace Wist.Node.Core.Synchronization
                SynchronizationCommunicationConfiguration syncCommunicationConfiguration = (SynchronizationCommunicationConfiguration)_configurationService[SynchronizationCommunicationConfiguration.SECTION_NAME];
             _communicationHubSync.Init(
                 new SocketListenerSettings(
-                    syncCommunicationConfiguration.MaxConnections, // TODO: this value must be taken from the corresponding chain from block-lattice
+                    syncCommunicationConfiguration.MaxConnections, //TODO: this value must be taken from the corresponding chain from block-lattice
                     syncCommunicationConfiguration.MaxPendingConnections,
                     syncCommunicationConfiguration.MaxSimultaneousAcceptOps,
                     syncCommunicationConfiguration.ReceiveBufferSize, 2,
@@ -108,18 +114,22 @@ namespace Wist.Node.Core.Synchronization
             }, GROUP_PARTICIPATION_CHECK_PERIOD, cancelToken: _cancellationToken);
         }
 
-        
-
         private bool CheckShouldJoinSyncGroup()
         {
-            // TODO: replace with actual check
-            return true;
+            SortedDictionary<ushort, byte[]> topParticipants = _dposService.GetTopNodesPublicKeys(_nodeContext.SyncGroupParticipantsCount);
+
+            bool result = topParticipants.Any(t => t.Value.Equals32(_nodeContext.PublicKey));
+
+            return result;
         }
 
         private bool CheckShouldLeaveSyncGroup()
         {
-            // TODO: replace with actual check
-            return false;
+            SortedDictionary<ushort, byte[]> topParticipants = _dposService.GetTopNodesPublicKeys(_nodeContext.SyncGroupParticipantsCount);
+
+            bool result = topParticipants.Any(t => t.Value.Equals32(_nodeContext.PublicKey));
+
+            return !result;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -135,7 +145,7 @@ namespace Wist.Node.Core.Synchronization
 
                 try
                 {
-                    // TODO: replace with actual logic
+                    //TODO: replace with actual logic
 
                     _joinedToSyncGroup = true;
 
@@ -162,7 +172,7 @@ namespace Wist.Node.Core.Synchronization
 
                 try
                 {
-                    // TODO: replace with actual logic
+                    //TODO: replace with actual logic
 
                     _joinedToSyncGroup = false;
 

@@ -7,6 +7,7 @@ using Wist.Core.Configuration;
 using Wist.BlockLattice.Core.Interfaces;
 using System.Threading;
 using Wist.Node.Core.Configuration;
+using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core
 {
@@ -20,9 +21,9 @@ namespace Wist.Node.Core
     /// </summary>
     internal class NodeMain
     {
-        private static NodeMain _instance;
         private static readonly object _sync = new object();
         private readonly IConfigurationService _configurationService;
+        private readonly ISynchronizationService _synchronizationService;
         private readonly ICommunicationHub _communicationHubNodes;
         private readonly ICommunicationHub _communicationHubAccounts;
         private readonly CancellationTokenSource _cancellationTokenSource;
@@ -31,9 +32,10 @@ namespace Wist.Node.Core
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        internal NodeMain(IConfigurationService configurationService, ICommunicationHubFactory communicationHubFactory, IBlocksProcessorFactory blocksProcessorFactory)
+        internal NodeMain(IConfigurationService configurationService, ICommunicationHubFactory communicationHubFactory, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService)
         {
             _configurationService = configurationService;
+            _synchronizationService = synchronizationService;
             _communicationHubNodes = communicationHubFactory.Create();
             _communicationHubAccounts = communicationHubFactory.Create();
             _consensusBlocksProcessor = blocksProcessorFactory.Create(ConsensusBlocksProcessor.BLOCKS_PROCESSOR_NAME);
@@ -44,7 +46,7 @@ namespace Wist.Node.Core
 
         internal void Initialize()
         {
-            // TODO: add accounts listener
+            //TODO: add accounts listener
             NodesCommunicationConfiguration nodesCommunicationConfiguration = (NodesCommunicationConfiguration)_configurationService[NodesCommunicationConfiguration.SECTION_NAME];
             AccountsCommunicationConfiguration accountsCommunicationConfiguration = (AccountsCommunicationConfiguration)_configurationService[AccountsCommunicationConfiguration.SECTION_NAME];
 
@@ -56,7 +58,7 @@ namespace Wist.Node.Core
                     nodesCommunicationConfiguration.ReceiveBufferSize, 2, 
                     new IPEndPoint(IPAddress.Loopback, nodesCommunicationConfiguration.ListeningPort), false), _consensusBlocksProcessor);
 
-            // TODO: need to understand what blocks processor need to provide here
+            //TODO: need to understand what blocks processor need to provide here
             _communicationHubAccounts.Init(new SocketListenerSettings(
                 accountsCommunicationConfiguration.MaxConnections,
                 accountsCommunicationConfiguration.MaxPendingConnections,
@@ -66,6 +68,9 @@ namespace Wist.Node.Core
 
             _communicationHubNodes.StartListen();
             _communicationHubAccounts.StartListen();
+
+
+            _synchronizationService.Initialize(_synchronizationBlocksProcessor, _cancellationTokenSource.Token);
         }
 
         internal void UpdateKnownNodes()
@@ -81,6 +86,7 @@ namespace Wist.Node.Core
         internal void Start()
         {
             _consensusBlocksProcessor.Initialize(_cancellationTokenSource.Token);
+            _synchronizationService.Start();
         }
     }
 }

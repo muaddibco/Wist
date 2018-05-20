@@ -10,6 +10,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
 using Wist.BlockLattice.Core.DataModel;
+using System.Linq;
 
 namespace Wist.BlockLattice.SQLite.DataServices
 {
@@ -119,6 +120,18 @@ namespace Wist.BlockLattice.SQLite.DataServices
             }
 
             return transactionalBlockBase;
+        }
+
+        public List<BlockBase> GetAllLastBlocksByType(ushort blockType)
+        {
+            List<BlockBase> blocks = new List<BlockBase>();
+
+            LatticeDataService.Instance.GetAllGenesisBlocks().ForEach(g => 
+            {
+                TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastBlockModification(g.OriginalHash, blockType);
+            });
+
+            return blocks;
         }
     }
 }

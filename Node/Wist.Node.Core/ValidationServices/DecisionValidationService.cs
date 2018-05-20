@@ -31,7 +31,7 @@ namespace Wist.Node.Core.ValidationServices
 
         public void EnrollForConsensus(BlockBase block)
         {
-            // TODO: Make processing in separate long running task
+            //TODO: Make processing in separate long running task
 
             GenericConsensusBlock consensusBlock = block as GenericConsensusBlock;
 

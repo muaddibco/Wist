@@ -6,19 +6,19 @@ using System.Text;
 
 namespace Wist.BlockLattice.DataModel
 {
-    /// <summary>
-    /// TransactionalGenesis table intended for storing lastly modified edition of Transactional Genesis Block
-    /// </summary>
-    [Table("transactional_chain_genesis")]
-    public class TransactionalGenesis
+    [Table("transactional_chain_genesis_modifications")]
+    public class TransactionalGenesisModification
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long TransactionalGenesisId { get; set; }
+        public long TransactionalGenesisModificationId { get; set; }
+
+        public uint BlockOrder { get; set; }
 
         public ushort Version { get; set; }
 
         [StringLength(128)]
+        
         /// <summary>
         /// HEX string representation of 64-byte original HASH value associated with current Transactional Chain
         /// </summary>
@@ -26,6 +26,6 @@ namespace Wist.BlockLattice.DataModel
 
         public byte[] BlockContent { get; set; }
 
-        public virtual ICollection<TransactionalBlock> TransactionBlocks { get; set; }
+        public TransactionalGenesis TransactionalGenesis { get; set; }
     }
 }

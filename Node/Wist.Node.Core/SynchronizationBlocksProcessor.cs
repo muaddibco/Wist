@@ -16,7 +16,7 @@ using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core
 {
-    // TODO: features
+    //TODO: features
     // need to implement logic with time limit for confirmation of retransmitted blocks, etc
     // what happens when consensus was not achieved
     public class SynchronizationBlocksProcessor : IBlocksProcessor, IRequiresCommunicationHub
@@ -114,7 +114,7 @@ namespace Wist.Node.Core
                     }
                     else
                     {
-                        // TODO: need to understand what to do in case when confirmed synchronization block was not updated yet but next generation synchronization blocks already started to arrive
+                        //TODO: need to understand what to do in case when confirmed synchronization block was not updated yet but next generation synchronization blocks already started to arrive
                     }
                 }
 
@@ -129,7 +129,7 @@ namespace Wist.Node.Core
                     }
                     else
                     {
-                        // TODO: need to understand what to do in case when confirmed synchronization block was not updated yet but next generation synchronization retransmission blocks already started to arrive
+                        //TODO: need to understand what to do in case when confirmed synchronization block was not updated yet but next generation synchronization retransmission blocks already started to arrive
                     }
                 }
             }

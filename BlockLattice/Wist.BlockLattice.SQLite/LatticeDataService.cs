@@ -154,7 +154,7 @@ namespace Wist.BlockLattice.SQLite
                 throw new ArgumentNullException(nameof(originalHash));
             }
 
-            // TODO: need to examine performance
+            //TODO: need to examine performance
             if(!IsGenesisBlockExists(originalHash))
             {
                 throw new GenesisBlockNotFoundException(originalHash);
@@ -184,7 +184,7 @@ namespace Wist.BlockLattice.SQLite
 
             TransactionalGenesis transactionalGenesisBlock = GetTransactionalGenesisBlock(originalHashValue);
 
-            if(transactionalGenesisBlock== null)
+            if(transactionalGenesisBlock == null)
             {
                 throw new GenesisBlockNotFoundException(originalHashValue);
             }
@@ -200,6 +200,63 @@ namespace Wist.BlockLattice.SQLite
                 BlockOrder = transactionalBlockLast.BlockOrder + 1,
                 BlockType = blockType
             };
+        }
+
+        /// <summary>
+        /// Returns last block of certain type of chain identified by hashValue
+        /// </summary>
+        /// <param name="originalHash">HASH value identifying chain</param>
+        /// <param name="blockType"></param>
+        /// <returns></returns>
+        public TransactionalBlock GetLastBlockModification(byte[] originalHash, ushort blockType)
+        {
+            if (originalHash == null)
+            {
+                throw new ArgumentNullException(nameof(originalHash));
+            }
+
+            string originalHashValue = originalHash.ToHexString();
+
+            TransactionalGenesis transactionalGenesisBlock = GetTransactionalGenesisBlock(originalHashValue);
+
+            if (transactionalGenesisBlock == null)
+            {
+                throw new GenesisBlockNotFoundException(originalHashValue);
+            }
+
+            TransactionalBlock transactionalBlock = _dataContext.TransactionalBlocks.Where(b => b.TransactionalGenesis.OriginalHash == originalHashValue && b.BlockType == blockType).OrderBy(b => b.BlockOrder).LastOrDefault();
+
+            return transactionalBlock;
+        }
+
+        /// <summary>
+        /// Returns last block of certain type of chain identified by hashValue
+        /// </summary>
+        /// <param name="originalHash">HASH value identifying chain</param>
+        /// <param name="blockType"></param>
+        /// <returns></returns>
+        public TransactionalBlock GetLastBlockModification(string originalHash, ushort blockType)
+        {
+            if (originalHash == null)
+            {
+                throw new ArgumentNullException(nameof(originalHash));
+            }
+
+            TransactionalGenesis transactionalGenesisBlock = GetTransactionalGenesisBlock(originalHash);
+
+            if (transactionalGenesisBlock == null)
+            {
+                throw new GenesisBlockNotFoundException(originalHash);
+            }
+
+            TransactionalBlock transactionalBlock = _dataContext.TransactionalBlocks.Where(b => b.TransactionalGenesis.OriginalHash == originalHash && b.BlockType == blockType).OrderBy(b => b.BlockOrder).LastOrDefault();
+
+            return transactionalBlock;
+        }
+
+        public IAsyncEnumerable<TransactionalGenesis> GetAllGenesisBlocks()
+        {
+            return _dataContext.TransactionalGenesises.ToAsyncEnumerable();
         }
 
         #endregion Transactional Chain

@@ -43,7 +43,7 @@ namespace Wist.Core.Logging
                         throw new FailedToFindLogConfigFileException("log4net", path);
                     }
                     
-                    // TODO: ascertain XmlConfigurator works as expected
+                    //TODO: ascertain XmlConfigurator works as expected
                     XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetExecutingAssembly()), new FileInfo(path));
 
                     return;

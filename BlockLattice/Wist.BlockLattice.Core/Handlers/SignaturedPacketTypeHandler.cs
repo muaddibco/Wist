@@ -48,7 +48,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
         private bool VerifySignature(byte[] messageBody, byte[] signature, byte[] publicKey)
         {
-            // TODO: Add signature verification
+            //TODO: Add signature verification
             return true;
         }
     }

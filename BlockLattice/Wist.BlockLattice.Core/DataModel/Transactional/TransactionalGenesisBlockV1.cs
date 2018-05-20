@@ -42,5 +42,10 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
         /// 64 byte of Hash value level L of _unencrypted_ recovery passphrase
         /// </summary>
         public byte[] RecoveryOriginalHash { get; set; }
+
+        /// <summary>
+        /// 32 byte of Public Key of Node that this account votes for
+        /// </summary>
+        public byte[] NodeDpos { get; set; }
     }
 }

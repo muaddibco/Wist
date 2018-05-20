@@ -12,6 +12,7 @@ namespace Wist.Node.Core.Interfaces
 
         ConsensusGroupParticipant ThisNode { get; }
 
+        ushort SyncGroupParticipantsCount { get; }
 
         /// <summary>
         /// Complete list of current participants involved into producing synchronization blocks

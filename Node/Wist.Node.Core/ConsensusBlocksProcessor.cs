@@ -33,7 +33,7 @@ namespace Wist.Node.Core
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _locallyApproved;
         private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _consensusAchievedBlocks;
         private readonly IConsensusCheckingService _consensusCheckingService;
-        private readonly BlockingCollection<GenericConsensusBlock> _consensusItems; // TODO: need to decide how to know, that decision must be retransmitted
+        private readonly BlockingCollection<GenericConsensusBlock> _consensusItems; //TODO: need to decide how to know, that decision must be retransmitted
 
         private ICommunicationHub _communicationHub;
         private bool _isInitialized;
@@ -65,7 +65,7 @@ namespace Wist.Node.Core
 
         public void Initialize(CancellationToken ct)
         {
-            // TODO: add exception AlreadyInitialized
+            //TODO: add exception AlreadyInitialized
             if (_isInitialized)
                 return;
 
@@ -97,7 +97,7 @@ namespace Wist.Node.Core
 
         public void ProcessBlock(BlockBase blockBase)
         {
-            // TODO: add exception NotInitialized
+            //TODO: add exception NotInitialized
             if (!_isInitialized)
                 return;
 
@@ -135,7 +135,7 @@ namespace Wist.Node.Core
 
                 if (blocks.TryDequeue(out blockBase))
                 {
-                    // TODO: need to understand whether consensus on blocks must be reached sequentially or it can be done in parallel
+                    //TODO: need to understand whether consensus on blocks must be reached sequentially or it can be done in parallel
                     IChainValidationService chainConsensysService = _chainConsensusServiceManager.GetChainValidationService(blockBase.ChainType);
 
                     chainConsensysService.EnrollForConsensus(blockBase);

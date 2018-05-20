@@ -18,7 +18,7 @@ namespace Wist.Node.Core
             SynchronizationContext = synchronizationContext;
             SyncGroupParticipants = new List<ConsensusGroupParticipant>();
 
-            // TODO: set PublicKey
+            //TODO: set PublicKey
             ThisNode = new ConsensusGroupParticipant() { };
         }
 
@@ -27,6 +27,8 @@ namespace Wist.Node.Core
         public ConsensusGroupParticipant ThisNode { get; }
         public List<ConsensusGroupParticipant> SyncGroupParticipants { get; }
         public ISynchronizationContext SynchronizationContext { get; }
+
+        public ushort SyncGroupParticipantsCount => 21;
 
         public void Initialize()
         {

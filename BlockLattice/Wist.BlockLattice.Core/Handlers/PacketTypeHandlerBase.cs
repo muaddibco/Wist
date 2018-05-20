@@ -93,7 +93,7 @@ namespace Wist.BlockLattice.Core.Handlers
                 return false;
             }
 
-            // TODO: Add difficulty check
+            //TODO: Add difficulty check
 
             packetsError = PacketsErrors.NO_ERROR;
             return true;
