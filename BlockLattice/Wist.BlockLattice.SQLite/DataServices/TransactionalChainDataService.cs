@@ -11,19 +11,21 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
 using Wist.BlockLattice.Core.DataModel;
 using System.Linq;
+using Wist.Core.Mappers;
 
 namespace Wist.BlockLattice.SQLite.DataServices
 {
     [RegisterExtension(typeof(IChainDataService), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionalChainDataService : IChainDataService
     {
+        private readonly IMapperFactory _mapperFactory;
+
         public ChainType ChainType => ChainType.TransactionalChain;
 
-        private readonly IBlockParsersFactory _blockParsersFactory;
 
-        public TransactionalChainDataService(IBlockParsersFactory blockParsersFactory)
+        public TransactionalChainDataService(IMapperFactory mapperFactory)
         {
-            _blockParsersFactory = blockParsersFactory;
+            _mapperFactory = mapperFactory;
         }
 
         public void AddBlock(BlockBase block)
@@ -77,49 +79,12 @@ namespace Wist.BlockLattice.SQLite.DataServices
         public BlockBase GetLastBlock(byte[] key)
         {
             TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(key);
-            TransactionalBlockBase transactionalBlockBase = null;
 
-            ushort blockType = transactionalBlock.BlockType;
+            IMapper<TransactionalBlock, BlockBase> mapper = _mapperFactory.GetMapper<TransactionalBlock, BlockBase>();
 
-            IBlockParser blockParser = null;
+            BlockBase block = mapper?.Convert(transactionalBlock);
 
-            try
-            {
-                blockParser = _blockParsersFactory.Create(blockType);
-
-                switch (blockType)
-                {
-                    case BlockTypes.Transaction_AcceptFunds:
-                        transactionalBlockBase = new AcceptFundsBlockV1
-                        {
-                            OriginalHash = transactionalBlock.TransactionalGenesis.OriginalHash.HexStringToByteArray(),
-                            BlockOrder = transactionalBlock.BlockOrder
-                        };
-                        blockParser.FillBlockBody(transactionalBlockBase, transactionalBlock.BlockContent);
-                        break;
-                    case BlockTypes.Transaction_TransferFunds:
-                        transactionalBlockBase = new TransferFundsBlockV1
-                        {
-                            OriginalHash = transactionalBlock.TransactionalGenesis.OriginalHash.HexStringToByteArray(),
-                            BlockOrder = transactionalBlock.BlockOrder
-                        };
-                        blockParser.FillBlockBody(transactionalBlockBase, transactionalBlock.BlockContent);
-                        break;
-                    case BlockTypes.Transaction_Confirm:
-                        break;
-                    default:
-                        break;
-                }
-            }
-            finally
-            {
-                if (blockParser != null)
-                {
-                    _blockParsersFactory.Utilize(blockParser);
-                }
-            }
-
-            return transactionalBlockBase;
+            return block;
         }
 
         public List<BlockBase> GetAllLastBlocksByType(ushort blockType)
