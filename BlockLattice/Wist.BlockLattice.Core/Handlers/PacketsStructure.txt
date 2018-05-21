@@ -7,20 +7,26 @@
 <HASH> : 16 - 64 BYTES (16, 32, 48, 64)
 <PACKET BODY>
 ===================================================================================================================================================================
-PACKET BODY:
+
+COMMON PACKET BODY:
 	Message Type		: 2 bytes
+	Version				: 2 bytes
+
+
+===================================================================================================================================================================
+BY CHAIN TYPES:
 
 SIGNATURED:
-	Body				: N bytes
-	Signature			: 64 bytes
 	PublicKey			: 32 bytes
+	Signature			: 64 bytes
+	Body				: N bytes
 
 HASH BASED:
-	Body				: N bytes
 	Hash Original		: 64 bytes
 	Hash N-backed		: 64 bytes
+	Body				: N bytes
 
 CONSENSUS:
-	Body				: N bytes
-	Signature			: 64 bytes
 	PublicKey			: 32 bytes
+	Signature			: 64 bytes
+	Body				: N bytes

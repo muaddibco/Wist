@@ -1,27 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Numerics;
 using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
-using Wist.BlockLattice.Core.Interfaces;
-using Wist.Core.Architecture;
-using Wist.Core.Architecture.Enums;
 using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Parsers.Transactional
 {
-    [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class TransferFundsBlockParser : TransactionalBlockParserBase
+    public class TransactionalDposVoteBlockParser : TransactionalBlockParserBase
     {
-        public TransferFundsBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base(proofOfWorkCalculationFactory)
+        public TransactionalDposVoteBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base(proofOfWorkCalculationFactory)
         {
         }
 
-        public override ushort BlockType => BlockTypes.Transaction_TransferFunds;
+        public override ushort BlockType => BlockTypes.Transaction_Dpos;
 
         public override void FillBlockBody(BlockBase block, byte[] blockBody)
         {
@@ -34,13 +29,11 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
             if (version == 1)
             {
-                byte[] target = br.ReadBytes(Globals.HASH_SIZE);
-                ulong funds = br.ReadUInt64();
+                byte[] nodeHash = br.ReadBytes(Globals.NODE_PUBLIC_KEY_SIZE);
 
-                block = new TransferFundsBlockV1()
+                block = new TransactionalDposVote
                 {
-                    TargetOriginalHash = target,
-                    UptodateFunds = funds,
+                    NodePublickKey = nodeHash
                 };
             }
             else

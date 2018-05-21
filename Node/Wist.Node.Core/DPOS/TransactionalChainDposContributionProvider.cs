@@ -29,7 +29,8 @@ namespace Wist.Node.Core.DPOS
 
         public void Initialize()
         {
-            
+            //TODO: need to take all last blocks where DPOS delegation is specified
+            List<BlockBase> blocks = _chainDataService.GetAllLastBlocksByType(BlockTypes.Transaction_Genesis);
         }
 
         public void UpdateContribution(BlockBase block)

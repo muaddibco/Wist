@@ -8,5 +8,6 @@ namespace Wist.BlockLattice.Core
     {
         public static byte HASH_SIZE = 64;
         public static byte NONCE_SIZE = 64;
+        public static byte NODE_PUBLIC_KEY_SIZE = 32;
     }
 }

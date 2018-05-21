@@ -5,11 +5,19 @@ using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Parsers
 {
     public abstract class BlockParserBase : IBlockParser
     {
+        private readonly IProofOfWorkCalculationFactory _proofOfWorkCalculationFactory;
+
+        public BlockParserBase(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory)
+        {
+            _proofOfWorkCalculationFactory = proofOfWorkCalculationFactory;
+        }
+
         public abstract ushort BlockType { get; }
 
         public abstract ChainType ChainType { get; }
@@ -23,14 +31,25 @@ namespace Wist.BlockLattice.Core.Parsers
             {
                 using (BinaryReader br = new BinaryReader(ms))
                 {
-                    br.ReadBytes(4); // skip Chain Type, Message Type
-                    block = Parse(br);
+                    SkipInitialBytes(br);
+                    ushort version = br.ReadUInt16();
+                    block = Parse(version, br);
                 }
             }
 
             return block;
         }
 
-        protected abstract BlockBase Parse(BinaryReader br);
+        void SkipInitialBytes(BinaryReader br)
+        {
+            br.ReadBytes(2);
+            POWType powType = (POWType)br.ReadUInt16();
+            br.ReadUInt32();
+            br.ReadUInt64();
+            br.ReadBytes(_proofOfWorkCalculationFactory.Create(powType).HashSize);
+            ushort blockType = br.ReadUInt16();
+        }
+
+        protected abstract BlockBase Parse(ushort version, BinaryReader br);
     }
 }

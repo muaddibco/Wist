@@ -8,24 +8,29 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Parsers.Transactional
 {
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class TransactionalGenesisBlockParser : TransactionalBlockParserBase
+    public class TransactionalGenesisBlockParser : BlockParserBase
     {
+        public TransactionalGenesisBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base(proofOfWorkCalculationFactory)
+        {
+        }
+
         public override ushort BlockType => BlockTypes.Transaction_Genesis;
+
+        public override ChainType ChainType => ChainType.TransactionalChain;
 
         public override void FillBlockBody(BlockBase block, byte[] blockBody)
         {
             throw new NotImplementedException();
         }
 
-        protected override BlockBase Parse(BinaryReader br)
+        protected override BlockBase Parse(ushort version, BinaryReader br)
         {
             BlockBase block = null;
-
-            ushort version = br.ReadUInt16();
 
             switch(version)
             {

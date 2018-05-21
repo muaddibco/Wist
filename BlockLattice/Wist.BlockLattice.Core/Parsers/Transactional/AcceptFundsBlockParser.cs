@@ -9,12 +9,17 @@ using Wist.BlockLattice.Core.Exceptions;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Parsers.Transactional
 {
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class AcceptFundsBlockParser : TransactionalBlockParserBase
     {
+        public AcceptFundsBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base(proofOfWorkCalculationFactory)
+        {
+        }
+
         public override ushort BlockType => BlockTypes.Transaction_AcceptFunds;
 
         public override void FillBlockBody(BlockBase block, byte[] blockBody)
@@ -22,24 +27,19 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
             throw new NotImplementedException();
         }
 
-        protected override BlockBase Parse(BinaryReader br)
+        protected override TransactionalBlockBase ParseTransactional(ushort version, BinaryReader br)
         {
-            BlockBase block = null;
-            ushort version = br.ReadUInt16();
+            TransactionalBlockBase block = null;
 
             if (version == 1)
             {
                 byte[] origin = br.ReadBytes(64);
                 ulong funds = br.ReadUInt64();
-                byte[] nbackHash = br.ReadBytes(64);
-                byte[] source = br.ReadBytes(64);
 
                 block = new AcceptFundsBlockV1()
                 {
                     SourceOriginalHash = origin,
-                    UptodateFunds = funds,
-                    NBackHash = nbackHash,
-                    OriginalHash = source
+                    UptodateFunds = funds
                 };
             }
             else

@@ -91,10 +91,16 @@ namespace Wist.BlockLattice.SQLite.DataServices
         {
             List<BlockBase> blocks = new List<BlockBase>();
 
-            LatticeDataService.Instance.GetAllGenesisBlocks().ForEach(g => 
+            foreach (TransactionalGenesis genesis in LatticeDataService.Instance.GetAllGenesisBlocks())
             {
-                TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastBlockModification(g.OriginalHash, blockType);
-            });
+                TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastBlockModification(genesis.OriginalHash, blockType);
+
+                IMapper<TransactionalBlock, BlockBase> mapper = _mapperFactory.GetMapper<TransactionalBlock, BlockBase>();
+
+                BlockBase block = mapper?.Convert(transactionalBlock);
+
+                blocks.Add(block);
+            }
 
             return blocks;
         }

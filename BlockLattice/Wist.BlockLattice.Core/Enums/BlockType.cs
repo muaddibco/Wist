@@ -9,6 +9,7 @@
         public const ushort Transaction_AcceptFunds = 3;
         public const ushort Transaction_TransferFunds = 4;
         public const ushort Transaction_Confirm = 5;
+        public const ushort Transaction_Dpos = 6;
 
         public const ushort Consensus_GenericConsensus = ushort.MaxValue;
         public const ushort Synchronization_TimeSyncBlock = 1;

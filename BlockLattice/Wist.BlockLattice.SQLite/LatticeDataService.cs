@@ -254,9 +254,9 @@ namespace Wist.BlockLattice.SQLite
             return transactionalBlock;
         }
 
-        public IAsyncEnumerable<TransactionalGenesis> GetAllGenesisBlocks()
+        public IEnumerable<TransactionalGenesis> GetAllGenesisBlocks()
         {
-            return _dataContext.TransactionalGenesises.ToAsyncEnumerable();
+            return _dataContext.TransactionalGenesises;
         }
 
         #endregion Transactional Chain
