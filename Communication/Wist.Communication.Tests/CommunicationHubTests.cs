@@ -22,7 +22,7 @@ namespace Wist.Communication.Tests
             ServiceLocator.Current.GetInstance<IUnityContainer>().RegisterInstance(clientHandler);
 
             IBufferManager bufferManager = Substitute.For<IBufferManager>();
-            CommunicationHub communicationHub = new CommunicationHub(bufferManager, null, null);
+            CommunicationServerBase communicationHub = new CommunicationServerBase(bufferManager, null, null);
 
             IPEndPoint communicationEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), listeningPort);
             SocketListenerSettings settings = new SocketListenerSettings(1, 1, 1, 100, 2, communicationEndPoint, false);

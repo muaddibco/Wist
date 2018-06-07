@@ -17,7 +17,7 @@ namespace Wist.Communication.Interfaces
 
         Queue<byte[]> MessagePackets { get; }
 
-        void PushBuffer(byte[] buf, int count);
+        void PushForParsing(byte[] buf, int count);
 
         IEnumerable<byte[]> GetMessagesToSend();
 

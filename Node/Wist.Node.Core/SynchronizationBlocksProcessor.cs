@@ -29,7 +29,7 @@ namespace Wist.Node.Core
         private readonly ISynchronizationProducer _synchronizationProducer;
         private readonly INodeContext _nodeContext;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
-        private ICommunicationHub _communicationHub;
+        private ICommunicationServer _communicationHub;
         private uint _currentSyncBlockOrder;
 
         private readonly Dictionary<uint, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>> _synchronizationBlocksByHeight;
@@ -86,7 +86,7 @@ namespace Wist.Node.Core
             ReadyForParticipationBlock readyForParticipationBlock = blockBase as ReadyForParticipationBlock;
         }
 
-        public void RegisterCommunicationHub(ICommunicationHub communicationHub)
+        public void RegisterCommunicationHub(ICommunicationServer communicationHub)
         {
             _communicationHub = communicationHub;
         }

@@ -29,7 +29,7 @@ namespace Wist.Node.Core.Synchronization
 
         private readonly object _joinSync = new object();
         private readonly ILog _log = LogManager.GetLogger(typeof(SynchronizationService));
-        private ICommunicationHub _communicationHubSync;
+        private ICommunicationServer _communicationHubSync;
         private readonly IConfigurationService _configurationService;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;

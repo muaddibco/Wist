@@ -80,7 +80,7 @@ namespace Wist.Communication
             throw new NotImplementedException();
         }
 
-        public void PushBuffer(byte[] buf, int count)
+        public void PushForParsing(byte[] buf, int count)
         {
             try
             {
@@ -397,7 +397,7 @@ namespace Wist.Communication
 
             _log.Info($"ProcessReceive {TokenId}. remainingBytesToProcess = {remainingBytesToProcess}");
 
-            PushBuffer(_socketReceiveAsyncEventArgs.Buffer, _socketReceiveAsyncEventArgs.BytesTransferred);
+            PushForParsing(_socketReceiveAsyncEventArgs.Buffer, _socketReceiveAsyncEventArgs.BytesTransferred);
 
             StartReceive();
         }

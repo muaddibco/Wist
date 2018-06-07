@@ -17,10 +17,10 @@ using System.Threading.Tasks;
 
 namespace Wist.Communication.Sockets
 {
-    [RegisterDefaultImplementation(typeof(ICommunicationHub), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class CommunicationHub : ICommunicationHub
+    [RegisterDefaultImplementation(typeof(ICommunicationServer), Lifetime = LifetimeManagement.TransientPerResolve)]
+    public class CommunicationServerBase : ICommunicationServer
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationHub));
+        private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationServerBase));
         private readonly IBufferManager _bufferManager;
         private readonly IPacketsHandler _packetsHandler;
         private readonly IPacketSerializersFactory _packetSerializersFactory;
@@ -40,7 +40,7 @@ namespace Wist.Communication.Sockets
         /// </summary>
         /// <param name="settings">instance of <see cref="SocketListenerSettings"/> with defined settings of listener</param>
         /// <param name="receiveBufferSize">buffer size to use for each socket I/O operation</param>
-        public CommunicationHub(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler)
+        public CommunicationServerBase(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler)
         {
             _bufferManager = bufferManager;
             _packetSerializersFactory = packetSerializersFactory;

@@ -19,7 +19,7 @@ namespace Wist.Node.Core.Synchronization
     {
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
-        private ICommunicationHub _communicationHub;
+        private ICommunicationServer _communicationHub;
         private uint _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
@@ -29,7 +29,7 @@ namespace Wist.Node.Core.Synchronization
             _nodeContext = nodeContext;
         }
 
-        public void Initialize(ICommunicationHub communicationHub)
+        public void Initialize(ICommunicationServer communicationHub)
         {
             _communicationHub = communicationHub;
         }

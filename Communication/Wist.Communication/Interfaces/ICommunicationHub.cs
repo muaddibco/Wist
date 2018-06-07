@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Wist.Communication.Interfaces
 {
     [ServiceContract]
-    public interface ICommunicationHub
+    public interface ICommunicationServer
     {
         void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null);
 
