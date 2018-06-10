@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.Core.Communication;
 
 namespace Wist.Communication.Interfaces
 {
@@ -13,7 +14,7 @@ namespace Wist.Communication.Interfaces
 
         int TokenId { get; }
 
-        IPEndPoint RemoteEndPoint { get; }
+        IPAddress RemoteIPAddress { get; }
 
         Queue<byte[]> MessagePackets { get; }
 
@@ -25,12 +26,10 @@ namespace Wist.Communication.Interfaces
 
         void Stop();
 
-        void Connect(EndPoint endPoint);
-
         void Close();
 
         void AcceptSocket(Socket acceptSocket);
 
-        void PostMessage(byte[] message);
+        void PostMessage(IMessage message);
     }
 }

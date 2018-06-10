@@ -4,13 +4,14 @@
 	Starts receive 
 	Process receive
 		every bulk of bytes gets send to parser
+	Post message for sending to destinations
 
 ICommunicationChannel
 	Public Key of remote node or account
 	SocketAsyncEventArgs for receiving
 	SocketAsyncEventArgs for sending
 
-IDnsService
+INodesResolutionService - responsible for resolving Public Key of nodes to IP:Port
 	Initialize
 	UpdateKnownNodes - should work every minute (?)
 	ResolveNode - receives public key and returns IP

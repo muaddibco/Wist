@@ -14,13 +14,16 @@ using Wist.Core.Architecture.Enums;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Interfaces;
 using System.Threading.Tasks;
+using Wist.Core.Models;
+using Wist.Core.Communication;
+using System.Collections.Concurrent;
 
 namespace Wist.Communication.Sockets
 {
     [RegisterDefaultImplementation(typeof(ICommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class CommunicationServerBase : ICommunicationService
+    public class CommunicationServiceBase : ICommunicationService
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationServerBase));
+        private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationServiceBase));
         private readonly IBufferManager _bufferManager;
         private readonly IPacketsHandler _packetsHandler;
         private readonly IPacketSerializersFactory _packetSerializersFactory;
@@ -32,6 +35,9 @@ namespace Wist.Communication.Sockets
         private Socket _listenSocket;
         private int _connectedSockets = 0;
         private ICommunicationProvisioning _communicationProvisioning = null;
+        private INodesResolutionService _nodesResolutionService;
+        private readonly BlockingCollection<KeyValuePair<IKey, IMessage>> _messagesQueue;
+        private CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>
         /// Create an uninitialized server instance.  
@@ -40,12 +46,14 @@ namespace Wist.Communication.Sockets
         /// </summary>
         /// <param name="settings">instance of <see cref="SocketListenerSettings"/> with defined settings of listener</param>
         /// <param name="receiveBufferSize">buffer size to use for each socket I/O operation</param>
-        public CommunicationServerBase(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler)
+        public CommunicationServiceBase(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
         {
             _bufferManager = bufferManager;
             _packetSerializersFactory = packetSerializersFactory;
             _packetsHandler = packetsHandler;
             _clientConnectedList = new List<ICommunicationChannel>();
+            _nodesResolutionService = nodesResolutionService;
+            _messagesQueue = new BlockingCollection<KeyValuePair<IKey, IMessage>>();
         }
 
         #region ICommunicationHub implementation
@@ -58,6 +66,10 @@ namespace Wist.Communication.Sockets
         /// </summary>
         public void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null)
         {
+            _cancellationTokenSource?.Cancel();
+
+            _cancellationTokenSource = new CancellationTokenSource();
+
             _settings = settings;
 
             if (_communicationProvisioning != null)
@@ -76,11 +88,11 @@ namespace Wist.Communication.Sockets
 
             // Allocates one large byte buffer which all I/O operations use a piece of.  This guards against memory fragmentation
             _bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * _settings.OpsToPreAllocate, _settings.ReceiveBufferSize);
-            _acceptEventArgsPool = new GenericPool<SocketAsyncEventArgs>(_settings.MaxSimultaneousAcceptOps);
+            _acceptEventArgsPool = new GenericPool<SocketAsyncEventArgs>(10);
             _communicationChannelsPool = new GenericPool<ICommunicationChannel>(_settings.MaxConnections);
             _maxConnectedClients = new Semaphore(_settings.MaxConnections, _settings.MaxConnections);
 
-            for (Int32 i = 0; i < _settings.MaxSimultaneousAcceptOps; i++)
+            for (Int32 i = 0; i < 10; i++)
             {
                 _acceptEventArgsPool.Push(CreateNewSocketAsyncEventArgs(_acceptEventArgsPool));
             }
@@ -96,13 +108,18 @@ namespace Wist.Communication.Sockets
                 communicationChannel.Init(tokenId, _settings.ReceiveBufferSize, _settings.KeepAlive, _packetsHandler);
                 _communicationChannelsPool.Push(communicationChannel);
             }
+
+            Task.Factory.StartNew(() =>
+            {
+                ProcessMessagesQueue(_cancellationTokenSource.Token);
+            }, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
         public void StartListen()
         {
             _listenSocket = new Socket(_settings.ListeningEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             _listenSocket.Bind(_settings.ListeningEndpoint);
-            _listenSocket.Listen(_settings.MaxPendingConnections);
+            _listenSocket.Listen(10);
             if (_settings.KeepAlive)
             {
                 _listenSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.KeepAlive, 5000);
@@ -111,22 +128,43 @@ namespace Wist.Communication.Sockets
             StartAccept();
         }
 
-        public Task PostMessage(BlockBase message)
+        public void PostMessage(IKey destination, IMessage message)
         {
-            return Task.Run(() => {
-                foreach (ICommunicationChannel clientHandler in _clientConnectedList)
-                {
-                    try
-                    {
-                        IPacketSerializer packetSerializer = _packetSerializersFactory.Create(message.ChainType, message.BlockType);
-                        clientHandler.PostMessage(packetSerializer.GetBodyBytes(message));
-                    }
-                    catch (Exception ex)
-                    {
-                        _log.Error($"Error during broadcasting message", ex);
-                    }
-                }
-            });
+            if (destination == null)
+            {
+                throw new ArgumentNullException(nameof(destination));
+            }
+
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            _messagesQueue.Add(new KeyValuePair<IKey, IMessage>(destination, message));
+        }
+
+        public void PostMessage(IEnumerable<IKey> destinations, IMessage message)
+        {
+            if (destinations == null)
+            {
+                throw new ArgumentNullException(nameof(destinations));
+            }
+
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            foreach (IKey key in destinations)
+            {
+                _messagesQueue.Add(new KeyValuePair<IKey, IMessage>(key, message));
+            }
+        }
+
+        public void Stop()
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource = null;
         }
 
         #endregion ICommunicationHub implementation
@@ -135,7 +173,7 @@ namespace Wist.Communication.Sockets
 
         private void CommunicationProvisioning_AllowedEndpointsChanged(object sender, EventArgs e)
         {
-            List<ICommunicationChannel> clientsToBeDisconnected = _clientConnectedList.Where(c => _communicationProvisioning.AllowedEndpoints.All(ep => !ep.Address.Equals(c.RemoteEndPoint.Address))).ToList();
+            List<ICommunicationChannel> clientsToBeDisconnected = _clientConnectedList.Where(c => _communicationProvisioning.AllowedEndpoints.All(ep => !ep.Address.Equals(c.RemoteIPAddress))).ToList();
 
             foreach (ICommunicationChannel clientHandler in clientsToBeDisconnected)
             {
@@ -147,22 +185,10 @@ namespace Wist.Communication.Sockets
                 Thread.Sleep(100);
             };
 
-            foreach (IPEndPoint endPoint in _communicationProvisioning.AllowedEndpoints.Where(ep => _clientConnectedList.All(cc => !cc.RemoteEndPoint.Address.Equals(ep.Address))))
+            foreach (IPEndPoint endPoint in _communicationProvisioning.AllowedEndpoints.Where(ep => _clientConnectedList.All(cc => !cc.RemoteIPAddress.Equals(ep.Address))))
             {
-                ICommunicationChannel communicationChannel = _communicationChannelsPool.Pop();
-
-                Interlocked.Increment(ref _connectedSockets);
-
-                _log.Info($"Socket with tokenId {communicationChannel.TokenId} disconnected. {_connectedSockets} client(s) connected.");
-
-                try
-                {
-                    communicationChannel.Connect(endPoint);
-                }
-                catch
-                {
-                    ReleaseClientHandler(communicationChannel);
-                }
+                ICommunicationChannel communicationChannel = CreateChannel(endPoint);
+                //TODO: what's next?
             }
         }
 
@@ -311,6 +337,89 @@ namespace Wist.Communication.Sockets
             _log.Debug($"Accept Socket with tokenId {acceptOpToken.TokenId} completed");
 
             ProcessAccept(e);
+        }
+
+        private void ProcessMessagesQueue(CancellationToken token)
+        {
+            foreach (var messageByKey in _messagesQueue.GetConsumingEnumerable(token))
+            {
+                IPAddress address = _nodesResolutionService.ResolveNodeAddress(messageByKey.Key);
+
+                ICommunicationChannel communicationChannel = _clientConnectedList.FirstOrDefault(c => c.RemoteIPAddress.Equals(address));
+
+                if (communicationChannel != null)
+                {
+                    communicationChannel.PostMessage(messageByKey.Value);
+                }
+                else
+                {
+                    communicationChannel = CreateChannel(new IPEndPoint(address, _settings.ListeningEndpoint.Port));
+
+                    communicationChannel?.PostMessage(messageByKey.Value);
+                }
+            }
+        }
+
+        private ICommunicationChannel CreateChannel(EndPoint endPoint)
+        {
+            ICommunicationChannel communicationChannel = null;
+            if (_communicationChannelsPool.Count > 0)
+            {
+                communicationChannel = _communicationChannelsPool.Pop();
+
+                Interlocked.Increment(ref _connectedSockets);
+
+                Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                SocketAsyncEventArgs socketConnectAsyncEventArgs = new SocketAsyncEventArgs();
+                socketConnectAsyncEventArgs.Completed += Connect_Completed;
+                socketConnectAsyncEventArgs.RemoteEndPoint = endPoint;
+                socketConnectAsyncEventArgs.UserToken = communicationChannel;
+
+                bool willRaiseEvent = socket.ConnectAsync(socketConnectAsyncEventArgs);
+                if (!willRaiseEvent)
+                {
+                    try
+                    {
+                        if (socketConnectAsyncEventArgs.SocketError == SocketError.Success)
+                        {
+                            communicationChannel.AcceptSocket(socket);
+                        }
+                        else
+                        {
+                            _communicationChannelsPool.Push(communicationChannel);
+                        }
+                    }
+                    finally
+                    {
+                        socketConnectAsyncEventArgs.Completed -= Connect_Completed;
+                    }
+                }
+            }
+
+            return communicationChannel;
+        }
+
+        private void Connect_Completed(object sender, SocketAsyncEventArgs e)
+        {
+            _log.Info($"Connection to remote endpoint {e.RemoteEndPoint} completed");
+
+            if (e.LastOperation == SocketAsyncOperation.Connect)
+            {
+                ICommunicationChannel communicationChannel = e.UserToken as ICommunicationChannel;
+
+                if (e.SocketError == SocketError.Success)
+                {
+                    communicationChannel?.AcceptSocket(e.ConnectSocket);
+                }
+                else
+                {
+                    _communicationChannelsPool.Push(communicationChannel);
+                }
+            }
+            else
+            {
+                throw new ArgumentException("The last operation completed on the socket was not a connect.");
+            }
         }
 
         #endregion Private functions

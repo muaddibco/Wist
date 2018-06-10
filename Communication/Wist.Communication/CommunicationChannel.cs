@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.Core.Communication;
 
 namespace Wist.Communication
 {
@@ -18,11 +19,11 @@ namespace Wist.Communication
         private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationChannel));
         private readonly Queue<byte[]> _packets;
         private readonly Queue<byte[]> _messagePackets;
-        private readonly ConcurrentQueue<byte[]> _postedMessages;
+        private readonly ConcurrentQueue<IMessage> _postedMessages;
         private readonly IBufferManager _bufferManager;
         private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
         private readonly SocketAsyncEventArgs _socketSendAsyncEventArgs;
-        private readonly SocketAsyncEventArgs _socketConnectAsyncEventArgs;
+        private readonly ManualResetEventSlim _socketAcceptedEvent;
 
         private IPacketsHandler _packetsHandler;
         private CancellationTokenSource _cancellationTokenSource;
@@ -60,20 +61,19 @@ namespace Wist.Communication
             _bufferManager = bufferManager;
             _packets = new Queue<byte[]>();
             _messagePackets = new Queue<byte[]>();
-            _postedMessages = new ConcurrentQueue<byte[]>();
+            _postedMessages = new ConcurrentQueue<IMessage>();
             _socketReceiveAsyncEventArgs = new SocketAsyncEventArgs();
             _socketReceiveAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Receive_Completed);
             _socketSendAsyncEventArgs = new SocketAsyncEventArgs();
             _socketSendAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Send_Completed);
-            _socketConnectAsyncEventArgs = new SocketAsyncEventArgs();
-            _socketConnectAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Connect_Completed);
+            _socketAcceptedEvent = new ManualResetEventSlim(false);
         }
 
         public Queue<byte[]> MessagePackets => _messagePackets;
 
         public int TokenId { get; private set; }
 
-        public IPEndPoint RemoteEndPoint { get; set; }
+        public IPAddress RemoteIPAddress { get; set; }
 
         public IEnumerable<byte[]> GetMessagesToSend()
         {
@@ -272,7 +272,9 @@ namespace Wist.Communication
         {
             _log.Info($"Socket accepted by ClientHandler with tokenId {TokenId}.  Remote endpoint = {IPAddress.Parse(((IPEndPoint)acceptSocket.RemoteEndPoint).Address.ToString())}:{((IPEndPoint)acceptSocket.RemoteEndPoint).Port.ToString()}");
 
-            RemoteEndPoint = (IPEndPoint)acceptSocket.RemoteEndPoint;
+            _socketAcceptedEvent.Set();
+
+            RemoteIPAddress = ((IPEndPoint)acceptSocket.RemoteEndPoint).Address;
 
             _socketReceiveAsyncEventArgs.AcceptSocket = acceptSocket;
             _socketSendAsyncEventArgs.AcceptSocket = acceptSocket;
@@ -280,8 +282,9 @@ namespace Wist.Communication
             StartReceive();
         }
 
-        public void PostMessage(byte[] message)
+        public void PostMessage(IMessage message)
         {
+            //TODO: weigh refactoring so BlockingCollection will be used
             lock (_postedMessages)
             {
                 _postedMessages.Enqueue(message);
@@ -292,19 +295,6 @@ namespace Wist.Communication
 
                     Task.Factory.StartNew(() => StartSend(), TaskCreationOptions.LongRunning);
                 }
-            }
-        }
-
-        private void Connect_Completed(object sender, SocketAsyncEventArgs e)
-        {
-            if (e.LastOperation == SocketAsyncOperation.Connect)
-            {
-                _log.Info($"Connect_Completed method in Connect, TokenId is {TokenId}");
-                AcceptSocket(e.ConnectSocket);
-            }
-            else
-            {
-                throw new ArgumentException("The last operation completed on the socket was not a connect.");
             }
         }
 
@@ -425,15 +415,27 @@ namespace Wist.Communication
 
         private void StartSend()
         {
+            _socketAcceptedEvent.Wait();
+
             try
             {
                 if (_postMessageRemainedBytes == 0)
                 {
                     lock (_postedMessages)
                     {
-                        if (_postedMessages.TryDequeue(out _currentPostMessage))
+                        IMessage msg;
+                        if (_postedMessages.TryDequeue(out msg))
                         {
-                            _postMessageRemainedBytes = _currentPostMessage.Length;
+                            try
+                            {
+                                _currentPostMessage = msg.GetBytes();
+
+                                _postMessageRemainedBytes = _currentPostMessage.Length;
+                            }
+                            catch (Exception)
+                            {
+                                StartSend();
+                            }
                         }
                         else
                         {
@@ -492,17 +494,6 @@ namespace Wist.Communication
             {
                 _log.Error($"Failure during ProcessSend at ClientHandler with TokenId {TokenId}", ex);
                 CloseClientSocket();
-            }
-        }
-
-        public void Connect(EndPoint endPoint)
-        {
-            Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            _socketConnectAsyncEventArgs.RemoteEndPoint = endPoint;
-            bool willRaiseEvent = socket.ConnectAsync(_socketConnectAsyncEventArgs);
-            if(!willRaiseEvent)
-            {
-                AcceptSocket(socket);
             }
         }
 
