@@ -35,7 +35,7 @@ namespace Wist.Node.Core
         private readonly IConsensusCheckingService _consensusCheckingService;
         private readonly BlockingCollection<GenericConsensusBlock> _consensusItems; //TODO: need to decide how to know, that decision must be retransmitted
 
-        private ICommunicationServer _communicationHub;
+        private ICommunicationService _communicationHub;
         private bool _isInitialized;
 
         public string Name => BLOCKS_PROCESSOR_NAME;
@@ -58,7 +58,7 @@ namespace Wist.Node.Core
             }
         }
 
-        public void RegisterCommunicationHub(ICommunicationServer communicationHub)
+        public void RegisterCommunicationHub(ICommunicationService communicationHub)
         {
             _communicationHub = communicationHub;
         }
@@ -151,7 +151,7 @@ namespace Wist.Node.Core
         {
             foreach (var item in _consensusItems.GetConsumingEnumerable(cancellationToken))
             {
-                _communicationHub.BroadcastMessage(item);
+                _communicationHub.PostMessage(item);
             }
         }
 

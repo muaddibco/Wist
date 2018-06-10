@@ -198,5 +198,46 @@ namespace Wist.Core.ExtensionMethods
                 }
             }
         }
+
+        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+        public static unsafe int GetHashCode32(this byte[] data)
+        {
+            if (data.Length != 32)
+                throw new ArgumentOutOfRangeException("GetHashCode32 can work with byte arrays of length of 32 bytes only");
+
+            fixed (byte* a = data)
+            {
+                unchecked
+                {
+                    const int p = 16777619;
+                    int hash = (int)2166136261;
+
+                    int* a1 = (int*)a;
+                    int* a2 = (int*)(a + 4);
+                    int* a3 = (int*)(a + 8);
+                    int* a4 = (int*)(a + 12);
+                    int* a5 = (int*)(a + 16);
+                    int* a6 = (int*)(a + 20);
+                    int* a7 = (int*)(a + 24);
+                    int* a8 = (int*)(a + 28);
+
+                    hash = (hash ^ *a1) * p;
+                    hash = (hash ^ *a2) * p;
+                    hash = (hash ^ *a3) * p;
+                    hash = (hash ^ *a4) * p;
+                    hash = (hash ^ *a5) * p;
+                    hash = (hash ^ *a6) * p;
+                    hash = (hash ^ *a7) * p;
+                    hash = (hash ^ *a8) * p;
+
+                    hash += hash << 13;
+                    hash ^= hash >> 7;
+                    hash += hash << 3;
+                    hash ^= hash >> 17;
+                    hash += hash << 5;
+                    return hash;
+                }
+            }
+        }
     }
 }

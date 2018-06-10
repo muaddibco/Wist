@@ -7,7 +7,7 @@ using Wist.Core.Architecture;
 namespace Wist.Communication.Interfaces
 {
     [ServiceContract]
-    public interface ICommunicationHubFactory : IFactory<ICommunicationServer>
+    public interface ICommunicationHubFactory : IFactory<ICommunicationService>
     {
     }
 }

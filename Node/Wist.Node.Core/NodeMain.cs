@@ -24,8 +24,8 @@ namespace Wist.Node.Core
         private static readonly object _sync = new object();
         private readonly IConfigurationService _configurationService;
         private readonly ISynchronizationService _synchronizationService;
-        private readonly ICommunicationServer _communicationHubNodes;
-        private readonly ICommunicationServer _communicationHubAccounts;
+        private readonly ICommunicationService _communicationHubNodes;
+        private readonly ICommunicationService _communicationHubAccounts;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private IBlocksProcessor _consensusBlocksProcessor;
         private IBlocksProcessor _synchronizationBlocksProcessor;

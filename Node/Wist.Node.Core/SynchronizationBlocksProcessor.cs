@@ -29,7 +29,7 @@ namespace Wist.Node.Core
         private readonly ISynchronizationProducer _synchronizationProducer;
         private readonly INodeContext _nodeContext;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
-        private ICommunicationServer _communicationHub;
+        private ICommunicationService _communicationHub;
         private uint _currentSyncBlockOrder;
 
         private readonly Dictionary<uint, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>> _synchronizationBlocksByHeight;
@@ -86,7 +86,7 @@ namespace Wist.Node.Core
             ReadyForParticipationBlock readyForParticipationBlock = blockBase as ReadyForParticipationBlock;
         }
 
-        public void RegisterCommunicationHub(ICommunicationServer communicationHub)
+        public void RegisterCommunicationHub(ICommunicationService communicationHub)
         {
             _communicationHub = communicationHub;
         }
@@ -174,7 +174,7 @@ namespace Wist.Node.Core
                 Signatures = retransmittedSyncBlocks.Select(b => b.ConfirmationSignature).ToArray()
             };
 
-            _communicationHub.BroadcastMessage(synchronizationConfirmedBlock);
+            _communicationHub.PostMessage(synchronizationConfirmedBlock);
         }
 
         private bool CheckSynchronizationCompleteConsensusAchieved(uint height)
@@ -216,7 +216,7 @@ namespace Wist.Node.Core
             byte[] body = _signatureSupportSerializersFactory.Create(ChainType.Synchronization, BlockTypes.Synchronization_RetransmissionBlock).GetBody(synchronizationBlockRetransmissionForSend);
             synchronizationBlockRetransmissionForSend.Signature = _nodeContext.Sign(body);
 
-            await _communicationHub.BroadcastMessage(synchronizationBlockRetransmissionForSend);
+            await _communicationHub.PostMessage(synchronizationBlockRetransmissionForSend);
 
             _retransmittedBlocks.TryAdd(synchronizationBlockRetransmissionForSend);
         }

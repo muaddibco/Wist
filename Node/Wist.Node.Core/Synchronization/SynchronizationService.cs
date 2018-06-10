@@ -29,7 +29,7 @@ namespace Wist.Node.Core.Synchronization
 
         private readonly object _joinSync = new object();
         private readonly ILog _log = LogManager.GetLogger(typeof(SynchronizationService));
-        private ICommunicationServer _communicationHubSync;
+        private ICommunicationService _communicationHubSync;
         private readonly IConfigurationService _configurationService;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
@@ -212,7 +212,7 @@ namespace Wist.Node.Core.Synchronization
             byte[] signature = _nodeContext.Sign(body);
             block.PublicKey = _nodeContext.PublicKey;
             block.Signature = signature;
-            _communicationHubSync.BroadcastMessage(block);
+            _communicationHubSync.PostMessage(block);
         }
     }
 }

@@ -8,23 +8,23 @@ namespace Wist.Communication.Sockets
 {
     public class CommunicationHubFactory : ICommunicationHubFactory
     {
-        private readonly Stack<ICommunicationServer> _communicationHubPool;
+        private readonly Stack<ICommunicationService> _communicationHubPool;
         public CommunicationHubFactory()
         {
-            _communicationHubPool = new Stack<ICommunicationServer>();
+            _communicationHubPool = new Stack<ICommunicationService>();
         }
 
-        public ICommunicationServer Create()
+        public ICommunicationService Create()
         {
             if(_communicationHubPool.Count > 0)
             {
                 return _communicationHubPool.Pop();
             }
 
-            return ServiceLocator.Current.GetInstance<ICommunicationServer>();
+            return ServiceLocator.Current.GetInstance<ICommunicationService>();
         }
 
-        public void Utilize(ICommunicationServer communicationHub)
+        public void Utilize(ICommunicationService communicationHub)
         {
             _communicationHubPool.Push(communicationHub);
         }

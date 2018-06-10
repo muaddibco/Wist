@@ -19,7 +19,7 @@ namespace Wist.Node.Core.Synchronization
     {
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
-        private ICommunicationServer _communicationHub;
+        private ICommunicationService _communicationHub;
         private uint _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
@@ -29,7 +29,7 @@ namespace Wist.Node.Core.Synchronization
             _nodeContext = nodeContext;
         }
 
-        public void Initialize(ICommunicationServer communicationHub)
+        public void Initialize(ICommunicationService communicationHub)
         {
             _communicationHub = communicationHub;
         }
@@ -69,7 +69,7 @@ namespace Wist.Node.Core.Synchronization
                             synchronizationBlock.PublicKey = _nodeContext.PublicKey;
                             synchronizationBlock.Signature = signature;
 
-                            _communicationHub.BroadcastMessage(synchronizationBlock);
+                            _communicationHub.PostMessage(synchronizationBlock);
                             _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockOrder;
                         }, _nodeContext.SynchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }

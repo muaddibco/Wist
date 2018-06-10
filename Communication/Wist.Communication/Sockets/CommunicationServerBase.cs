@@ -17,8 +17,8 @@ using System.Threading.Tasks;
 
 namespace Wist.Communication.Sockets
 {
-    [RegisterDefaultImplementation(typeof(ICommunicationServer), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class CommunicationServerBase : ICommunicationServer
+    [RegisterDefaultImplementation(typeof(ICommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
+    public class CommunicationServerBase : ICommunicationService
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationServerBase));
         private readonly IBufferManager _bufferManager;
@@ -111,7 +111,7 @@ namespace Wist.Communication.Sockets
             StartAccept();
         }
 
-        public Task BroadcastMessage(BlockBase message)
+        public Task PostMessage(BlockBase message)
         {
             return Task.Run(() => {
                 foreach (ICommunicationChannel clientHandler in _clientConnectedList)
