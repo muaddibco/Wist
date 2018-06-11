@@ -51,7 +51,7 @@ namespace Wist.Communication
         private bool _isSending;
         private bool _isBusy;
 
-        private Action<ICommunicationChannel, int> _onReceivedAction;
+        private Func<ICommunicationChannel, IPEndPoint, int, bool> _onReceivedExtendedValidation;
 
         public event EventHandler<EventArgs> SocketClosedEvent;
 
@@ -89,7 +89,7 @@ namespace Wist.Communication
             }
         }
 
-        public void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler, Action<ICommunicationChannel, int> onReceivedAction = null)
+        public void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler, Func<ICommunicationChannel, IPEndPoint, int, bool> onReceivedExtendedValidation = null)
         {
             _bufferManager = bufferManager;
             _packetsHandler = packetsHandler;
@@ -97,7 +97,7 @@ namespace Wist.Communication
             _bufferManager.SetBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
             _offsetReceive = _socketReceiveAsyncEventArgs.Offset;
             _offsetSend = _socketSendAsyncEventArgs.Offset;
-            _onReceivedAction = onReceivedAction;
+            _onReceivedExtendedValidation = onReceivedExtendedValidation;
         }
 
         public void AcceptSocket(Socket acceptSocket)
@@ -204,21 +204,20 @@ namespace Wist.Communication
 
                 return;
             }
-
+            
             Int32 remainingBytesToProcess = _socketReceiveAsyncEventArgs.BytesTransferred;
 
-            if(remainingBytesToProcess > 0)
+            if (_onReceivedExtendedValidation?.Invoke(this, _socketReceiveAsyncEventArgs.RemoteEndPoint as IPEndPoint, remainingBytesToProcess) ?? true)
             {
-                
+                if (remainingBytesToProcess > 0)
+                {
+                    _log.Info($"ProcessReceive from IP {RemoteIPAddress}. remainingBytesToProcess = {remainingBytesToProcess}");
+
+                    PushForParsing(_socketReceiveAsyncEventArgs.Buffer, _socketReceiveAsyncEventArgs.BytesTransferred);
+                }
+
+                StartReceive();
             }
-
-            _onReceivedAction?.Invoke(this, remainingBytesToProcess);
-
-            _log.Info($"ProcessReceive from IP {RemoteIPAddress}. remainingBytesToProcess = {remainingBytesToProcess}");
-
-            PushForParsing(_socketReceiveAsyncEventArgs.Buffer, _socketReceiveAsyncEventArgs.BytesTransferred);
-
-            StartReceive();
         }
 
         private void CloseClientSocket()

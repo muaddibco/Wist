@@ -15,7 +15,7 @@ using Wist.Core.Communication;
 namespace Wist.Communication.Sockets
 {
     [RegisterExtension(typeof(ICommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class TcpIntermittentCommunicationService : TcpPersistentCommunicationService
+    public class TcpIntermittentCommunicationService : TcpCommunicationService
     {
 
         public TcpIntermittentCommunicationService(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetSerializersFactory, packetsHandler, nodesResolutionService)
@@ -24,7 +24,14 @@ namespace Wist.Communication.Sockets
 
         public override string Name => nameof(TcpIntermittentCommunicationService);
 
-        protected override void OnCommunicationChannelReceived(ICommunicationChannel communicationChannel, int receivedBytes)
+        public override void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null)
+        {
+            RegisterOnReceivedExtendedValidation(OnCommunicationChannelReceived);
+
+            base.Init(settings, blocksProcessor, communicationProvisioning);
+        }
+
+        private bool OnCommunicationChannelReceived(ICommunicationChannel communicationChannel, IPEndPoint remoteEndPoint, int receivedBytes)
         {
             // If no data was received, close the connection. This is a NORMAL
             // situation that shows when the client has finished sending data.
@@ -34,8 +41,10 @@ namespace Wist.Communication.Sockets
 
                 communicationChannel.Close();
 
-                return;
+                return false;
             }
+
+            return true;
         }
     }
 }

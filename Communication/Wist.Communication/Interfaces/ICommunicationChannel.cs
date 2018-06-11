@@ -18,7 +18,7 @@ namespace Wist.Communication.Interfaces
 
         void PushForParsing(byte[] buf, int count);
 
-        void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler, Action<ICommunicationChannel, int> onReceivedAction = null);
+        void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler, Func<ICommunicationChannel, IPEndPoint, int, bool> onReceivedExtendedValidation = null);
 
         void Stop();
 

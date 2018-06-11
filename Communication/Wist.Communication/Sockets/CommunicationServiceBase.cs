@@ -35,6 +35,7 @@ namespace Wist.Communication.Sockets
         private INodesResolutionService _nodesResolutionService;
         private readonly BlockingCollection<KeyValuePair<IKey, IMessage>> _messagesQueue;
         private CancellationTokenSource _cancellationTokenSource;
+        private Func<ICommunicationChannel, IPEndPoint, int, bool> _onReceiveExtendedValidation;
 
         /// <summary>
         /// Create an uninitialized server instance.  
@@ -93,7 +94,7 @@ namespace Wist.Communication.Sockets
             {
                 ICommunicationChannel communicationChannel = ServiceLocator.Current.GetInstance<ICommunicationChannel>();
                 communicationChannel.SocketClosedEvent += ClientHandler_SocketClosedEvent;
-                communicationChannel.Init(_bufferManager, _packetsHandler, OnCommunicationChannelReceived);
+                communicationChannel.Init(_bufferManager, _packetsHandler, _onReceiveExtendedValidation);
                 _communicationChannelsPool.Push(communicationChannel);
             }
 
@@ -151,6 +152,11 @@ namespace Wist.Communication.Sockets
         {
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource = null;
+        }
+
+        public void RegisterOnReceivedExtendedValidation(Func<ICommunicationChannel, IPEndPoint, int, bool> onReceiveExtendedValidation)
+        {
+            _onReceiveExtendedValidation = onReceiveExtendedValidation;
         }
 
         #endregion ICommunicationService implementation
@@ -218,11 +224,6 @@ namespace Wist.Communication.Sockets
                 ReleaseClientHandler(communicationChannel);
             }
             
-        }
-
-        protected virtual void OnCommunicationChannelReceived(ICommunicationChannel communicationChannel, int receivedBytes)
-        {
-
         }
 
         private void ProcessMessagesQueue(CancellationToken token)

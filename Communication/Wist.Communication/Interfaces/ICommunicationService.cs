@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Wist.Core.Models;
 using Wist.Core.Communication;
 using System.Threading;
+using System.Net;
 
 namespace Wist.Communication.Interfaces
 {
@@ -25,5 +26,7 @@ namespace Wist.Communication.Interfaces
 
         void PostMessage(IKey destination, IMessage message);
         void PostMessage(IEnumerable<IKey> destinations, IMessage message);
+
+        void RegisterOnReceivedExtendedValidation(Func<ICommunicationChannel, IPEndPoint, int, bool> onReceiveExtendedValidation);
     }
 }

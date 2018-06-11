@@ -15,14 +15,14 @@ using Wist.Core.Communication;
 namespace Wist.Communication.Sockets
 {
     [RegisterExtension(typeof(ICommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class TcpPersistentCommunicationService : CommunicationServiceBase
+    public class TcpCommunicationService : CommunicationServiceBase
     {
         protected Semaphore _maxConnectedClients;
         protected readonly GenericPool<SocketAsyncEventArgs> _acceptEventArgsPool;
 
-        public override string Name => nameof(TcpPersistentCommunicationService);
+        public override string Name => nameof(TcpCommunicationService);
 
-        public TcpPersistentCommunicationService(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetSerializersFactory, packetsHandler, nodesResolutionService)
+        public TcpCommunicationService(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetSerializersFactory, packetsHandler, nodesResolutionService)
         {
             _acceptEventArgsPool = new GenericPool<SocketAsyncEventArgs>(10);
 
