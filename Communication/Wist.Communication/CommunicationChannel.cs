@@ -48,7 +48,6 @@ namespace Wist.Communication
         private ushort _packetLengthExpected;
         private ushort _packetLengthRemained;
 
-        private bool _isReceiving;
         private bool _isSending;
         private bool _isBusy;
 
@@ -81,6 +80,7 @@ namespace Wist.Communication
                 byte[] packet = new byte[count];
                 Buffer.BlockCopy(buf, 0, packet, 0, count);
                 _packets.Enqueue(packet);
+
                 ParseReceivedData();
             }
             catch (Exception ex)
@@ -174,8 +174,6 @@ namespace Wist.Communication
 
         private void StartReceive()
         {
-            _isReceiving = true;
-
             _log.Info($"Start receive from IP {RemoteIPAddress}");
 
             try
@@ -194,17 +192,12 @@ namespace Wist.Communication
                 _log.Error($"Failure during StartReceive from IP {RemoteIPAddress}", ex);
                 throw;
             }
-            finally
-            {
-                _isReceiving = false;
-            }
         }
 
         private void ProcessReceive()
         {
             if (_socketReceiveAsyncEventArgs.SocketError != SocketError.Success)
             {
-                _isReceiving = false;
                 _log.Error($"ProcessReceive ended with SocketError={_socketReceiveAsyncEventArgs.SocketError} from IP {RemoteIPAddress}");
 
                 CloseClientSocket();
@@ -338,12 +331,12 @@ namespace Wist.Communication
         #region Parsing functionality
 
 
-        private async Task ParseReceivedData()
+        private void ParseReceivedData()
         {
             if (_isBusy)
                 return;
 
-            await Task.Run(() =>
+            Task.Run(() =>
             {
                 lock (_sync)
                 {
@@ -428,12 +421,14 @@ namespace Wist.Communication
                     _isBusy = false;
                     _log.Error("Failed to parse packet", ex);
                 }
+                finally
+                {
+                    if (_packets.Count > 0)
+                    {
+                        ParseReceivedData();
+                    }
+                }
             });
-
-            if (_packets.Count > 0)
-            {
-                await ParseReceivedData();
-            }
         }
 
         private void Reset()

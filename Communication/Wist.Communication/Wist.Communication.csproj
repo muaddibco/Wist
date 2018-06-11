@@ -8,6 +8,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>bin\Debug\</OutputPath>
+    <SkipPostSharp>True</SkipPostSharp>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Text;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
@@ -21,6 +22,11 @@ namespace Wist.Communication.Sockets
         protected override void StartAccept()
         {
             InitializeCommunicationChannel(_listenSocket);
+        }
+
+        protected override Socket CreateSocket()
+        {
+            return new Socket(_settings.ListeningEndpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
         }
     }
 }

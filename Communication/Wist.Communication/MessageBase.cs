@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using Wist.Communication.Exceptions;
 using Wist.Communication.Interfaces;
+using Wist.Core.Communication;
 
 namespace Wist.Communication
 {

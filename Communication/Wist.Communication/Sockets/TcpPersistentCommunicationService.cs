@@ -32,6 +32,11 @@ namespace Wist.Communication.Sockets
             }
         }
 
+        protected override Socket CreateSocket()
+        {
+            return new Socket(_settings.ListeningEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        }
+
 
         public override void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null)
         {

@@ -28,7 +28,7 @@ namespace Wist.Communication.Sockets
         private readonly IPacketSerializersFactory _packetSerializersFactory;
         private GenericPool<ICommunicationChannel> _communicationChannelsPool;
         private readonly List<ICommunicationChannel> _clientConnectedList;
-        private SocketListenerSettings _settings;
+        protected SocketListenerSettings _settings;
         protected Socket _listenSocket;
         private int _connectedSockets = 0;
         protected ICommunicationProvisioning _communicationProvisioning = null;
@@ -105,7 +105,8 @@ namespace Wist.Communication.Sockets
 
         public void StartListen()
         {
-            _listenSocket = new Socket(_settings.ListeningEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            _listenSocket = CreateSocket();
+
             _listenSocket.Bind(_settings.ListeningEndpoint);
 
             StartAccept();
@@ -154,6 +155,8 @@ namespace Wist.Communication.Sockets
 
         #endregion ICommunicationService implementation
 
+        protected abstract Socket CreateSocket();
+
         #region Private functions
 
         private void CommunicationProvisioning_AllowedEndpointsChanged(object sender, EventArgs e)
@@ -186,7 +189,13 @@ namespace Wist.Communication.Sockets
 
         protected virtual void ReleaseClientHandler(ICommunicationChannel communicationChannel)
         {
+            if(_clientConnectedList.Contains(communicationChannel))
+            {
+                _clientConnectedList.Remove(communicationChannel);
+            }
+
             _communicationChannelsPool.Push(communicationChannel);
+
             Interlocked.Decrement(ref _connectedSockets);
             _log.Info($"Socket with IP {communicationChannel.RemoteIPAddress} disconnected. {_connectedSockets} client(s) connected.");
         }
@@ -201,12 +210,14 @@ namespace Wist.Communication.Sockets
             try
             {
                 communicationChannel.AcceptSocket(socket);
+               _clientConnectedList.Add(communicationChannel);
             }
             catch (Exception ex)
             {
+                _log.Error($"Failed to accept connection by communication channel", ex);
+                ReleaseClientHandler(communicationChannel);
             }
             
-            _clientConnectedList.Add(communicationChannel);
         }
 
         protected virtual void OnCommunicationChannelReceived(ICommunicationChannel communicationChannel, int receivedBytes)
