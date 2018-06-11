@@ -32,7 +32,7 @@ namespace Wist.Node.Core
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        internal NodeMain(IConfigurationService configurationService, ICommunicationHubFactory communicationHubFactory, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService)
+        internal NodeMain(IConfigurationService configurationService, ICommunicationServicesFactory communicationHubFactory, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService)
         {
             _configurationService = configurationService;
             _synchronizationService = synchronizationService;

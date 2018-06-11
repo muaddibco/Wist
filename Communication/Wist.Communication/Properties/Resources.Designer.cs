@@ -61,6 +61,15 @@ namespace Wist.Communication.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Communication Service with name &apos;{0}&apos; not supported..
+        /// </summary>
+        internal static string ERR_COMMUNICATION_SERVICE_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_COMMUNICATION_SERVICE_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Packet exceeded max message size limit..
         /// </summary>
         internal static string ERR_MAX_MESSAGE_SIZE_EXCEEDED {

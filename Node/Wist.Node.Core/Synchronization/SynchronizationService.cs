@@ -40,7 +40,7 @@ namespace Wist.Node.Core.Synchronization
 
         private bool _joinedToSyncGroup;
 
-        public SynchronizationService(ICommunicationHubFactory communicationHubFactory, IConfigurationService configurationService, 
+        public SynchronizationService(ICommunicationServicesFactory communicationHubFactory, IConfigurationService configurationService, 
             ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, 
             ISynchronizationProducer synchronizationProducer, IDposService dposService)
         {

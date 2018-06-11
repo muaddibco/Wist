@@ -285,7 +285,7 @@ namespace Wist.Core.Architecture.Registration
                     return null;
                 //return RunMode.Simulator.ToString();
                 case RegistrationRole.Extension:
-                    return $"{EncodeDoubleAsSortableString(registerAttribute.ExtensionOrderPriority)}.{type.FullName}";
+                    return $"{type.FullName}";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
