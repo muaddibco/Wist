@@ -12,17 +12,13 @@ namespace Wist.Communication.Interfaces
     {
         event EventHandler<EventArgs> SocketClosedEvent;
 
-        int TokenId { get; }
-
         IPAddress RemoteIPAddress { get; }
 
         Queue<byte[]> MessagePackets { get; }
 
         void PushForParsing(byte[] buf, int count);
 
-        IEnumerable<byte[]> GetMessagesToSend();
-
-        void Init(int tokenId, int sendReceiveBufferSize, bool keepAlive, IPacketsHandler packetsHandler);
+        void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler, Action<ICommunicationChannel, int> onReceivedAction = null);
 
         void Stop();
 

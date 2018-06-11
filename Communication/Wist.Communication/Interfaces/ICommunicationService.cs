@@ -12,9 +12,11 @@ using System.Threading;
 
 namespace Wist.Communication.Interfaces
 {
-    [ServiceContract]
+    [ExtensionPoint]
     public interface ICommunicationService
     {
+        string Name {get;}
+        
         void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null);
 
         void Stop();

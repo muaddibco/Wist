@@ -20,21 +20,18 @@ using System.Collections.Concurrent;
 
 namespace Wist.Communication.Sockets
 {
-    [RegisterDefaultImplementation(typeof(ICommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class CommunicationServiceBase : ICommunicationService
+    public abstract class CommunicationServiceBase : ICommunicationService
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationServiceBase));
+        protected readonly ILog _log = LogManager.GetLogger(typeof(CommunicationServiceBase));
         private readonly IBufferManager _bufferManager;
         private readonly IPacketsHandler _packetsHandler;
         private readonly IPacketSerializersFactory _packetSerializersFactory;
-        private Semaphore _maxConnectedClients;
-        private GenericPool<SocketAsyncEventArgs> _acceptEventArgsPool;
         private GenericPool<ICommunicationChannel> _communicationChannelsPool;
         private readonly List<ICommunicationChannel> _clientConnectedList;
         private SocketListenerSettings _settings;
-        private Socket _listenSocket;
+        protected Socket _listenSocket;
         private int _connectedSockets = 0;
-        private ICommunicationProvisioning _communicationProvisioning = null;
+        protected ICommunicationProvisioning _communicationProvisioning = null;
         private INodesResolutionService _nodesResolutionService;
         private readonly BlockingCollection<KeyValuePair<IKey, IMessage>> _messagesQueue;
         private CancellationTokenSource _cancellationTokenSource;
@@ -56,7 +53,9 @@ namespace Wist.Communication.Sockets
             _messagesQueue = new BlockingCollection<KeyValuePair<IKey, IMessage>>();
         }
 
-        #region ICommunicationHub implementation
+        #region ICommunicationService implementation
+
+        public abstract string Name { get; }
 
         /// <summary>
         /// Initializes the server by preallocating reusable buffers and 
@@ -64,7 +63,7 @@ namespace Wist.Communication.Sockets
         /// or reused, but it is done this way to illustrate how the API can 
         /// easily be used to create reusable objects to increase server performance.
         /// </summary>
-        public void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null)
+        public virtual void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null)
         {
             _cancellationTokenSource?.Cancel();
 
@@ -87,25 +86,14 @@ namespace Wist.Communication.Sockets
             _packetsHandler?.Initialize(blocksProcessor);
 
             // Allocates one large byte buffer which all I/O operations use a piece of.  This guards against memory fragmentation
-            _bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * _settings.OpsToPreAllocate, _settings.ReceiveBufferSize);
-            _acceptEventArgsPool = new GenericPool<SocketAsyncEventArgs>(10);
+            _bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * 2, _settings.ReceiveBufferSize);
             _communicationChannelsPool = new GenericPool<ICommunicationChannel>(_settings.MaxConnections);
-            _maxConnectedClients = new Semaphore(_settings.MaxConnections, _settings.MaxConnections);
-
-            for (Int32 i = 0; i < 10; i++)
-            {
-                _acceptEventArgsPool.Push(CreateNewSocketAsyncEventArgs(_acceptEventArgsPool));
-            }
-
-            Int32 tokenId;
 
             for (int i = 0; i < _settings.MaxConnections; i++)
             {
-                tokenId = _communicationChannelsPool.AssignTokenId() + 1000000;
-
                 ICommunicationChannel communicationChannel = ServiceLocator.Current.GetInstance<ICommunicationChannel>();
                 communicationChannel.SocketClosedEvent += ClientHandler_SocketClosedEvent;
-                communicationChannel.Init(tokenId, _settings.ReceiveBufferSize, _settings.KeepAlive, _packetsHandler);
+                communicationChannel.Init(_bufferManager, _packetsHandler, OnCommunicationChannelReceived);
                 _communicationChannelsPool.Push(communicationChannel);
             }
 
@@ -119,14 +107,11 @@ namespace Wist.Communication.Sockets
         {
             _listenSocket = new Socket(_settings.ListeningEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             _listenSocket.Bind(_settings.ListeningEndpoint);
-            _listenSocket.Listen(10);
-            if (_settings.KeepAlive)
-            {
-                _listenSocket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.KeepAlive, 5000);
-            }
 
             StartAccept();
         }
+
+        protected abstract void StartAccept();
 
         public void PostMessage(IKey destination, IMessage message)
         {
@@ -167,7 +152,7 @@ namespace Wist.Communication.Sockets
             _cancellationTokenSource = null;
         }
 
-        #endregion ICommunicationHub implementation
+        #endregion ICommunicationService implementation
 
         #region Private functions
 
@@ -199,144 +184,34 @@ namespace Wist.Communication.Sockets
             ReleaseClientHandler(clientHandler);
         }
 
-        private void ReleaseClientHandler(ICommunicationChannel clientHandler)
+        protected virtual void ReleaseClientHandler(ICommunicationChannel communicationChannel)
         {
-            _communicationChannelsPool.Push(clientHandler);
-
+            _communicationChannelsPool.Push(communicationChannel);
             Interlocked.Decrement(ref _connectedSockets);
-
-            _log.Info($"Socket with tokenId {clientHandler.TokenId} disconnected. {_connectedSockets} client(s) connected.");
-
-            _maxConnectedClients.Release();
+            _log.Info($"Socket with IP {communicationChannel.RemoteIPAddress} disconnected. {_connectedSockets} client(s) connected.");
         }
 
-        private SocketAsyncEventArgs CreateNewSocketAsyncEventArgs(GenericPool<SocketAsyncEventArgs> pool)
+        protected void InitializeCommunicationChannel(Socket socket)
         {
-            SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs();
-            acceptEventArg.Completed += new EventHandler<SocketAsyncEventArgs>(AcceptEventArg_Completed);
-
-            AcceptOpUserToken theAcceptOpToken = new AcceptOpUserToken(pool.AssignTokenId() + 10000);
-            acceptEventArg.UserToken = theAcceptOpToken;
-
-            return acceptEventArg;
-        }
-
-        internal void StartAccept()
-        {
-            SocketAsyncEventArgs acceptEventArg;
-
-            if (_acceptEventArgsPool.Count > 1)
-            {
-                try
-                {
-                    acceptEventArg = _acceptEventArgsPool.Pop();
-                }
-                catch
-                {
-                    acceptEventArg = CreateNewSocketAsyncEventArgs(_acceptEventArgsPool);
-                }
-            }
-            else
-            {
-                acceptEventArg = CreateNewSocketAsyncEventArgs(_acceptEventArgsPool);
-            }
-
-            AcceptOpUserToken acceptOpToken = (AcceptOpUserToken)acceptEventArg.UserToken;
-            _log.Info($"Started accepting socket with tokenId {acceptOpToken.TokenId}");
-
-            _maxConnectedClients.WaitOne();
-
-            bool willRaiseEvent = _listenSocket.AcceptAsync(acceptEventArg);
-            if (!willRaiseEvent)
-            {
-                acceptOpToken = (AcceptOpUserToken)acceptEventArg.UserToken;
-                _log.Info($"StartAccept in if (!willRaiseEvent), accept token id {acceptOpToken.TokenId}");
-
-                ProcessAccept(acceptEventArg);
-            }
-        }
-
-        private void ProcessAccept(SocketAsyncEventArgs acceptEventArgs)
-        {
-            if (_communicationProvisioning != null)
-            {
-                if (!_communicationProvisioning.AllowedEndpoints.Any(ep => ep.Address.Equals(((IPEndPoint)acceptEventArgs.RemoteEndPoint).Address)))
-                {
-                    HandleBadAccept(acceptEventArgs);
-                    return;
-                }
-            }
-
-            AcceptOpUserToken acceptOpToken;
-            if (acceptEventArgs.SocketError != SocketError.Success)
-            {
-                StartAccept();
-
-                acceptOpToken = (AcceptOpUserToken)acceptEventArgs.UserToken;
-                _log.Error($"Error during accepting socket with tokenId {acceptOpToken.TokenId}");
-
-                HandleBadAccept(acceptEventArgs);
-            }
-            else
-            {
-                StartAccept();
-
-                InitializeCommunicationChannel(acceptEventArgs);
-            }
-        }
-
-        private void InitializeCommunicationChannel(SocketAsyncEventArgs acceptEventArgs)
-        {
-            AcceptOpUserToken acceptOpToken;
             ICommunicationChannel communicationChannel = _communicationChannelsPool.Pop();
 
             Int32 numberOfConnectedSockets = Interlocked.Increment(ref _connectedSockets);
-            acceptOpToken = (AcceptOpUserToken)acceptEventArgs.UserToken;
-            _log.Info($"Processing accepting socket with tokenId {acceptOpToken.TokenId}, total concurrent accepted sockets is {numberOfConnectedSockets}");
-
-            acceptOpToken = (AcceptOpUserToken)acceptEventArgs.UserToken;
-
-            _log.Info("Accept id " + acceptOpToken.TokenId + ". client(s) connected = " + _connectedSockets);
+            _log.Info($"Initializing communication channel for IP {socket.RemoteEndPoint}, total concurrent accepted sockets is {numberOfConnectedSockets}");
 
             try
             {
-                communicationChannel.AcceptSocket(acceptEventArgs.AcceptSocket);
-                _clientConnectedList.Add(communicationChannel);
+                communicationChannel.AcceptSocket(socket);
             }
-            catch
+            catch (Exception ex)
             {
-                ReleaseClientHandler(communicationChannel);
             }
-            finally
-            {
-                acceptEventArgs.AcceptSocket = null;
-                _acceptEventArgsPool.Push(acceptEventArgs);
-
-                acceptOpToken = (AcceptOpUserToken)acceptEventArgs.UserToken;
-                _log.Info($"Back to {nameof(_acceptEventArgsPool)} goes accept id {acceptOpToken.TokenId}");
-            }
+            
+            _clientConnectedList.Add(communicationChannel);
         }
 
-        private void HandleBadAccept(SocketAsyncEventArgs acceptEventArgs)
+        protected virtual void OnCommunicationChannelReceived(ICommunicationChannel communicationChannel, int receivedBytes)
         {
-            var acceptOpToken = (acceptEventArgs.UserToken as AcceptOpUserToken);
-            if (acceptOpToken != null)
-            {
-                _log.Info($"Closing socket with tokenId {acceptOpToken.TokenId}");
-            }
 
-            acceptEventArgs.AcceptSocket.Close();
-
-            _acceptEventArgsPool.Push(acceptEventArgs);
-        }
-
-        private void AcceptEventArg_Completed(object sender, SocketAsyncEventArgs e)
-        {
-            AcceptOpUserToken acceptOpToken = (AcceptOpUserToken)e.UserToken;
-
-            _log.Debug($"Accept Socket with tokenId {acceptOpToken.TokenId} completed");
-
-            ProcessAccept(e);
         }
 
         private void ProcessMessagesQueue(CancellationToken token)

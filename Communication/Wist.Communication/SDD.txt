@@ -6,6 +6,11 @@
 		every bulk of bytes gets send to parser
 	Post message for sending to destinations
 
+Implementations of ICommunicationService
+	UdpCommunicationService
+	TcpSustainedCommunicationService
+	TcpSpontaneousCommunicationService
+
 ICommunicationChannel
 	Public Key of remote node or account
 	SocketAsyncEventArgs for receiving

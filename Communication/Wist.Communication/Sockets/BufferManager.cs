@@ -17,12 +17,12 @@ namespace Wist.Communication.Sockets
     /// 
     /// The operations exposed on the BufferManager class are not thread safe.
     /// </summary>
-    [RegisterDefaultImplementation(typeof(IBufferManager), Lifetime = LifetimeManagement.Singleton)]
+    [RegisterDefaultImplementation(typeof(IBufferManager), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class BufferManager : IBufferManager
     {
         private readonly Stack<int> _freeIndexPool;     
         private int _numBytes;                 // the total number of bytes controlled by the buffer pool
-        private byte[] m_buffer;                // the underlying byte array maintained by the Buffer Manager
+        private byte[] _buffer;                // the underlying byte array maintained by the Buffer Manager
         private int _currentIndex;
         private int _bufferSize;
 
@@ -31,6 +31,8 @@ namespace Wist.Communication.Sockets
             _currentIndex = 0;
             _freeIndexPool = new Stack<int>();
         }
+
+        public int BufferSize => _bufferSize;
 
         /// <summary>
         /// Allocates buffer space used by the buffer pool 
@@ -41,7 +43,7 @@ namespace Wist.Communication.Sockets
             _bufferSize = bufferSize;
             // create one big large buffer and divide that 
             // out to each SocketAsyncEventArg object
-            m_buffer = new byte[_numBytes];
+            _buffer = new byte[_numBytes];
         }
 
         /// <summary>
@@ -51,12 +53,21 @@ namespace Wist.Communication.Sockets
         /// <returns>true if the buffer was successfully set, else false</returns>
         public bool SetBuffer(SocketAsyncEventArgs receiveArgs, SocketAsyncEventArgs sendArgs)
         {
+            if (receiveArgs == null)
+            {
+                throw new ArgumentNullException(nameof(receiveArgs));
+            }
+
+            if (sendArgs == null)
+            {
+                throw new ArgumentNullException(nameof(sendArgs));
+            }
 
             if (_freeIndexPool.Count > 0)
             {
                 int offset = _freeIndexPool.Pop();
-                receiveArgs.SetBuffer(m_buffer, offset, _bufferSize);
-                receiveArgs.SetBuffer(m_buffer, offset + _bufferSize, _bufferSize);
+                receiveArgs.SetBuffer(_buffer, offset, _bufferSize);
+                sendArgs.SetBuffer(_buffer, offset + _bufferSize, _bufferSize);
             }
             else
             {
@@ -64,8 +75,8 @@ namespace Wist.Communication.Sockets
                 {
                     return false;
                 }
-                receiveArgs.SetBuffer(m_buffer, _currentIndex, _bufferSize);
-                receiveArgs.SetBuffer(m_buffer, _currentIndex + _bufferSize, _bufferSize);
+                receiveArgs.SetBuffer(_buffer, _currentIndex, _bufferSize);
+                sendArgs.SetBuffer(_buffer, _currentIndex + _bufferSize, _bufferSize);
                 _currentIndex += 2 * _bufferSize;
             }
             return true;

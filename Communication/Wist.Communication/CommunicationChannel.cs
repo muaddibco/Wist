@@ -20,7 +20,7 @@ namespace Wist.Communication
         private readonly Queue<byte[]> _packets;
         private readonly Queue<byte[]> _messagePackets;
         private readonly ConcurrentQueue<IMessage> _postedMessages;
-        private readonly IBufferManager _bufferManager;
+        private IBufferManager _bufferManager;
         private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
         private readonly SocketAsyncEventArgs _socketSendAsyncEventArgs;
         private readonly ManualResetEventSlim _socketAcceptedEvent;
@@ -33,8 +33,6 @@ namespace Wist.Communication
 
         private int _offsetReceive;
         private int _offsetSend;
-        private int _sendReceiveBufferSize;
-        private bool _keepAlive;
 
         private byte[] _currentBuf;
         private byte[] _currentPacket;
@@ -54,11 +52,12 @@ namespace Wist.Communication
         private bool _isSending;
         private bool _isBusy;
 
+        private Action<ICommunicationChannel, int> _onReceivedAction;
+
         public event EventHandler<EventArgs> SocketClosedEvent;
 
-        public CommunicationChannel(IBufferManager bufferManager)
+        public CommunicationChannel()
         {
-            _bufferManager = bufferManager;
             _packets = new Queue<byte[]>();
             _messagePackets = new Queue<byte[]>();
             _postedMessages = new ConcurrentQueue<IMessage>();
@@ -69,16 +68,11 @@ namespace Wist.Communication
             _socketAcceptedEvent = new ManualResetEventSlim(false);
         }
 
+        #region ICommunicationChannel implementation
+
         public Queue<byte[]> MessagePackets => _messagePackets;
 
-        public int TokenId { get; private set; }
-
         public IPAddress RemoteIPAddress { get; set; }
-
-        public IEnumerable<byte[]> GetMessagesToSend()
-        {
-            throw new NotImplementedException();
-        }
 
         public void PushForParsing(byte[] buf, int count)
         {
@@ -91,16 +85,265 @@ namespace Wist.Communication
             }
             catch (Exception ex)
             {
-                _log.Error($"Failure during pushing to buffer of ClientHandler with TokenId {TokenId}", ex);
+                _log.Error($"Failure during pushing to buffer of Communication Channel with IP {RemoteIPAddress}", ex);
             }
         }
+
+        public void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler, Action<ICommunicationChannel, int> onReceivedAction = null)
+        {
+            _bufferManager = bufferManager;
+            _packetsHandler = packetsHandler;
+
+            _bufferManager.SetBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
+            _offsetReceive = _socketReceiveAsyncEventArgs.Offset;
+            _offsetSend = _socketSendAsyncEventArgs.Offset;
+            _onReceivedAction = onReceivedAction;
+        }
+
+        public void AcceptSocket(Socket acceptSocket)
+        {
+            _log.Info($"Socket accepted by Communication channel.  Remote endpoint = {IPAddress.Parse(((IPEndPoint)acceptSocket.RemoteEndPoint).Address.ToString())}:{((IPEndPoint)acceptSocket.RemoteEndPoint).Port.ToString()}");
+
+            _socketAcceptedEvent.Set();
+
+            RemoteIPAddress = ((IPEndPoint)acceptSocket.RemoteEndPoint).Address;
+
+            _socketReceiveAsyncEventArgs.AcceptSocket = acceptSocket;
+            _socketSendAsyncEventArgs.AcceptSocket = acceptSocket;
+
+            StartReceive();
+        }
+
+        public void PostMessage(IMessage message)
+        {
+            //TODO: weigh refactoring so BlockingCollection will be used
+            lock (_postedMessages)
+            {
+                _postedMessages.Enqueue(message);
+
+                if (!_isSending)
+                {
+                    _isSending = true;
+
+                    Task.Factory.StartNew(() => StartSend(), TaskCreationOptions.LongRunning);
+                }
+            }
+        }
+
+        public void Close()
+        {
+            CloseClientSocket();
+        }
+
+        public void Stop()
+        {
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource = null;
+        }
+
+        #endregion ICommunicationChannel implementation
+
+        #region Private functions
+
+        private void Receive_Completed(object sender, SocketAsyncEventArgs e)
+        {
+            if (e.LastOperation == SocketAsyncOperation.Receive)
+            {
+                _log.Info($"Receive_Completed from IP {RemoteIPAddress}");
+                ProcessReceive();
+            }
+            else
+            {
+                throw new ArgumentException("The last operation completed on the socket was not a receive.");
+            }
+        }
+
+        private void Send_Completed(object sender, SocketAsyncEventArgs e)
+        {
+            if (e.LastOperation == SocketAsyncOperation.Send)
+            {
+                _log.Info($"Send_Completed to IP {RemoteIPAddress}");
+
+                ProcessSend();
+            }
+            else
+            {
+                throw new ArgumentException("The last operation completed on the socket was not a send");
+            }
+        }
+
+        private void StartReceive()
+        {
+            _isReceiving = true;
+
+            _log.Info($"Start receive from IP {RemoteIPAddress}");
+
+            try
+            {
+                bool willRaiseEvent = _socketReceiveAsyncEventArgs.AcceptSocket.ReceiveAsync(_socketReceiveAsyncEventArgs);
+
+                if (!willRaiseEvent)
+                {
+                    _log.Info($"Going to ProcessReceive from IP {RemoteIPAddress}");
+
+                    ProcessReceive();
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failure during StartReceive from IP {RemoteIPAddress}", ex);
+                throw;
+            }
+            finally
+            {
+                _isReceiving = false;
+            }
+        }
+
+        private void ProcessReceive()
+        {
+            if (_socketReceiveAsyncEventArgs.SocketError != SocketError.Success)
+            {
+                _isReceiving = false;
+                _log.Error($"ProcessReceive ended with SocketError={_socketReceiveAsyncEventArgs.SocketError} from IP {RemoteIPAddress}");
+
+                CloseClientSocket();
+
+                return;
+            }
+
+            Int32 remainingBytesToProcess = _socketReceiveAsyncEventArgs.BytesTransferred;
+
+            if(remainingBytesToProcess > 0)
+            {
+                
+            }
+
+            _onReceivedAction?.Invoke(this, remainingBytesToProcess);
+
+            _log.Info($"ProcessReceive from IP {RemoteIPAddress}. remainingBytesToProcess = {remainingBytesToProcess}");
+
+            PushForParsing(_socketReceiveAsyncEventArgs.Buffer, _socketReceiveAsyncEventArgs.BytesTransferred);
+
+            StartReceive();
+        }
+
+        private void CloseClientSocket()
+        {
+            _log.Info($"Closing client socket with IP {RemoteIPAddress}");
+
+            try
+            {
+                _log.Info($"Trying shutdown Socket with IP {RemoteIPAddress}");
+                _socketReceiveAsyncEventArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
+            }
+            catch (Exception ex)
+            {
+                _log.Warn($"Socket shutdown failed for IP {RemoteIPAddress}", ex);
+            }
+
+            _socketReceiveAsyncEventArgs.AcceptSocket.Close();
+            
+            _bufferManager.FreeBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
+
+            SocketClosedEvent?.Invoke(this, null);
+        }
+
+        private void StartSend()
+        {
+            _socketAcceptedEvent.Wait();
+
+            try
+            {
+                if (_postMessageRemainedBytes == 0)
+                {
+                    lock (_postedMessages)
+                    {
+                        IMessage msg;
+                        if (_postedMessages.TryDequeue(out msg))
+                        {
+                            try
+                            {
+                                _currentPostMessage = msg.GetBytes();
+
+                                _postMessageRemainedBytes = _currentPostMessage.Length;
+                            }
+                            catch (Exception)
+                            {
+                                StartSend();
+                            }
+                        }
+                        else
+                        {
+                            _isSending = false;
+                            return;
+                        }
+                    }
+                }
+
+                if (_postMessageRemainedBytes <= _bufferManager.BufferSize)
+                {
+                    _socketSendAsyncEventArgs.SetBuffer(_offsetSend, _postMessageRemainedBytes);
+                    Buffer.BlockCopy(_currentPostMessage, _currentPostMessage.Length - _postMessageRemainedBytes, _socketSendAsyncEventArgs.Buffer, _offsetSend, _postMessageRemainedBytes);
+                }
+                else
+                {
+                    _socketSendAsyncEventArgs.SetBuffer(_offsetSend, _bufferManager.BufferSize);
+                    Buffer.BlockCopy(_currentPostMessage, _currentPostMessage.Length - _postMessageRemainedBytes, _socketSendAsyncEventArgs.Buffer, _offsetSend, _bufferManager.BufferSize);
+                }
+
+                bool willRaiseEvent = _socketSendAsyncEventArgs.AcceptSocket.SendAsync(_socketSendAsyncEventArgs);
+
+                if (!willRaiseEvent)
+                {
+                    ProcessSend();
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failure during StartSend to IP {RemoteIPAddress}", ex);
+                CloseClientSocket();
+            }
+            finally
+            {
+                _isSending = false;
+            }
+        }
+
+        private void ProcessSend()
+        {
+            try
+            {
+                _postMessageRemainedBytes -= _socketSendAsyncEventArgs.BytesTransferred;
+
+                if (_socketSendAsyncEventArgs.SocketError == SocketError.Success)
+                {
+                    StartSend();
+                }
+                else
+                {
+                    _isSending = false;
+                    CloseClientSocket();
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Error($"Failure during ProcessSend to IP {RemoteIPAddress}", ex);
+                CloseClientSocket();
+            }
+        }
+
+        #endregion Private functions
+
+        #region Parsing functionality
+
 
         private async Task ParseReceivedData()
         {
             if (_isBusy)
                 return;
 
-            await Task.Run(() => 
+            await Task.Run(() =>
             {
                 lock (_sync)
                 {
@@ -250,256 +493,6 @@ namespace Wist.Communication
             return offset;
         }
 
-        public void Stop()
-        {
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource = null;
-        }
-
-        public void Init(int tokenId, int sendReceiveBufferSize, bool keepAlive, IPacketsHandler packetsHandler)
-        {
-            TokenId = tokenId;
-            _sendReceiveBufferSize = sendReceiveBufferSize;
-            _keepAlive = keepAlive;
-            _packetsHandler = packetsHandler;
-
-            _bufferManager.SetBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
-            _offsetReceive = _socketReceiveAsyncEventArgs.Offset;
-            _offsetSend = _socketSendAsyncEventArgs.Offset;
-        }
-
-        public void AcceptSocket(Socket acceptSocket)
-        {
-            _log.Info($"Socket accepted by ClientHandler with tokenId {TokenId}.  Remote endpoint = {IPAddress.Parse(((IPEndPoint)acceptSocket.RemoteEndPoint).Address.ToString())}:{((IPEndPoint)acceptSocket.RemoteEndPoint).Port.ToString()}");
-
-            _socketAcceptedEvent.Set();
-
-            RemoteIPAddress = ((IPEndPoint)acceptSocket.RemoteEndPoint).Address;
-
-            _socketReceiveAsyncEventArgs.AcceptSocket = acceptSocket;
-            _socketSendAsyncEventArgs.AcceptSocket = acceptSocket;
-
-            StartReceive();
-        }
-
-        public void PostMessage(IMessage message)
-        {
-            //TODO: weigh refactoring so BlockingCollection will be used
-            lock (_postedMessages)
-            {
-                _postedMessages.Enqueue(message);
-
-                if (!_isSending)
-                {
-                    _isSending = true;
-
-                    Task.Factory.StartNew(() => StartSend(), TaskCreationOptions.LongRunning);
-                }
-            }
-        }
-
-        private void Receive_Completed(object sender, SocketAsyncEventArgs e)
-        {
-            if (e.LastOperation == SocketAsyncOperation.Receive)
-            {
-                _log.Info($"IO_Completed method in Receive, TokenId is {TokenId}");
-                ProcessReceive();
-            }
-            else
-            {
-                throw new ArgumentException("The last operation completed on the socket was not a receive.");
-            }
-        }
-
-        private void Send_Completed(object sender, SocketAsyncEventArgs e)
-        {
-            if (e.LastOperation == SocketAsyncOperation.Send)
-            {
-                _log.Info($"Send_Completed method in Send, TokenId is {TokenId}");
-
-                ProcessSend();
-            }
-            else
-            {
-                throw new ArgumentException("The last operation completed on the socket was not a send");
-            }
-        }
-
-        private void StartReceive()
-        {
-            _isReceiving = true;
-
-            _log.Info($"Start receive for tokenId {TokenId}");
-
-            try
-            {
-                _socketReceiveAsyncEventArgs.SetBuffer(_offsetReceive, _sendReceiveBufferSize);
-
-                bool willRaiseEvent = _socketReceiveAsyncEventArgs.AcceptSocket.ReceiveAsync(_socketReceiveAsyncEventArgs);
-
-                if (!willRaiseEvent)
-                {
-                    _log.Info($"StartReceive in if (!willRaiseEvent), tokenId {TokenId}");
-
-                    ProcessReceive();
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.Error($"Failure during StartReceive in ClientHandler with tokenId {TokenId}", ex);
-                throw;
-            }
-            finally
-            {
-                _isReceiving = false;
-            }
-        }
-
-        private void ProcessReceive()
-        {
-            if (_socketReceiveAsyncEventArgs.SocketError != SocketError.Success)
-            {
-                _isReceiving = false;
-                _log.Error($"ProcessReceive ERROR, tokenId {TokenId}");
-
-                CloseClientSocket();
-
-                return;
-            }
-
-            Int32 remainingBytesToProcess = _socketReceiveAsyncEventArgs.BytesTransferred;
-
-            // If no data was received, close the connection. This is a NORMAL
-            // situation that shows when the client has finished sending data.
-            if (remainingBytesToProcess == 0)
-            {
-                _isReceiving = false;
-
-                _log.Info($"ProcessReceive NO DATA, TokenId is {TokenId}");
-
-                if (!_keepAlive)
-                {
-                    CloseClientSocket();
-                }
-
-                return;
-            }
-
-            _log.Info($"ProcessReceive {TokenId}. remainingBytesToProcess = {remainingBytesToProcess}");
-
-            PushForParsing(_socketReceiveAsyncEventArgs.Buffer, _socketReceiveAsyncEventArgs.BytesTransferred);
-
-            StartReceive();
-        }
-
-        private void CloseClientSocket()
-        {
-            _log.Info($"Closing client socket with tokenId {TokenId}");
-
-            try
-            {
-                _log.Info($"Trying shutdown for tokenId {TokenId}");
-                _socketReceiveAsyncEventArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
-            }
-            catch (Exception ex)
-            {
-                _log.Warn($"Socket shutdown failed, tokenId {TokenId}", ex);
-            }
-
-            _socketReceiveAsyncEventArgs.AcceptSocket.Close();
-
-            _bufferManager.FreeBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
-
-            SocketClosedEvent?.Invoke(this, null);
-        }
-
-        private void StartSend()
-        {
-            _socketAcceptedEvent.Wait();
-
-            try
-            {
-                if (_postMessageRemainedBytes == 0)
-                {
-                    lock (_postedMessages)
-                    {
-                        IMessage msg;
-                        if (_postedMessages.TryDequeue(out msg))
-                        {
-                            try
-                            {
-                                _currentPostMessage = msg.GetBytes();
-
-                                _postMessageRemainedBytes = _currentPostMessage.Length;
-                            }
-                            catch (Exception)
-                            {
-                                StartSend();
-                            }
-                        }
-                        else
-                        {
-                            _isSending = false;
-                            return;
-                        }
-                    }
-                }
-
-                if (_postMessageRemainedBytes <= _sendReceiveBufferSize)
-                {
-                    _socketReceiveAsyncEventArgs.SetBuffer(_offsetSend, _postMessageRemainedBytes);
-                    Buffer.BlockCopy(_currentPostMessage, _currentPostMessage.Length - _postMessageRemainedBytes, _socketReceiveAsyncEventArgs.Buffer, _offsetSend, _postMessageRemainedBytes);
-                }
-                else
-                {
-                    _socketReceiveAsyncEventArgs.SetBuffer(_offsetSend, _sendReceiveBufferSize);
-                    Buffer.BlockCopy(_currentPostMessage, _currentPostMessage.Length - _postMessageRemainedBytes, _socketReceiveAsyncEventArgs.Buffer, _offsetSend, _sendReceiveBufferSize);
-                }
-
-                bool willRaiseEvent = _socketReceiveAsyncEventArgs.AcceptSocket.SendAsync(_socketReceiveAsyncEventArgs);
-
-                if (!willRaiseEvent)
-                {
-                    ProcessSend();
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.Error($"Failure during StartSend at ClientHandler with TokenId {TokenId}", ex);
-                CloseClientSocket();
-            }
-            finally
-            {
-                _isSending = false;
-            }
-        }
-
-        private void ProcessSend()
-        {
-            try
-            {
-                _postMessageRemainedBytes -= _socketReceiveAsyncEventArgs.BytesTransferred;
-
-                if (_socketReceiveAsyncEventArgs.SocketError == SocketError.Success)
-                {
-                    StartSend();
-                }
-                else
-                {
-                    _isSending = false;
-                    CloseClientSocket();
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.Error($"Failure during ProcessSend at ClientHandler with TokenId {TokenId}", ex);
-                CloseClientSocket();
-            }
-        }
-
-        public void Close()
-        {
-            CloseClientSocket();
-        }
+        #endregion Parsing functionality
     }
 }

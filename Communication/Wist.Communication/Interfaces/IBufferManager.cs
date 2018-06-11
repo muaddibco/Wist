@@ -9,6 +9,8 @@ namespace Wist.Communication.Interfaces
     [ServiceContract]
     public interface IBufferManager
     {
+        int BufferSize { get; }
+
         void InitBuffer(int totalBytes, int bufferSize);
         bool SetBuffer(SocketAsyncEventArgs receiveArgs, SocketAsyncEventArgs sendArgs);
         void FreeBuffer(SocketAsyncEventArgs receiveArgs, SocketAsyncEventArgs sendArgs);
