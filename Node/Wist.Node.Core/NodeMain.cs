@@ -10,6 +10,7 @@ using Wist.Node.Core.Configuration;
 using Wist.Node.Core.Interfaces;
 using System.Collections;
 using System.Collections.Generic;
+using log4net;
 
 namespace Wist.Node.Core
 {
@@ -24,12 +25,13 @@ namespace Wist.Node.Core
     internal class NodeMain
     {
         private static readonly object _sync = new object();
+        private readonly ILog _log = LogManager.GetLogger(typeof(NodeMain));
         private readonly IConfigurationService _configurationService;
         private readonly ISynchronizationService _synchronizationService;
         private readonly IRolesRepository _rolesRepository;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private IBlocksProcessor _consensusBlocksProcessor;
-        private IBlocksProcessor _synchronizationBlocksProcessor;
+        private readonly IBlocksProcessor _synchronizationBlocksProcessor;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
@@ -46,15 +48,46 @@ namespace Wist.Node.Core
 
         internal void Initialize()
         {
+            ObtainConfiguredRoles();
+
+            InitializeRoles();
+
+            _synchronizationService.Initialize(_synchronizationBlocksProcessor, _cancellationTokenSource.Token);
+        }
+
+        private void InitializeRoles()
+        {
             IEnumerable<IRole> roles = _rolesRepository.GetBulkInstances();
 
             foreach (IRole role in roles)
             {
-                role.Initialize();
+                try
+                {
+                    role.Initialize();
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Failed to initialize Role '{role.Name}'", ex);
+                }
             }
+        }
 
+        private void ObtainConfiguredRoles()
+        {
+            NodeConfiguration nodeConfiguration = (NodeConfiguration)_configurationService[NodeConfiguration.SECTION_NAME];
 
-            _synchronizationService.Initialize(_synchronizationBlocksProcessor, _cancellationTokenSource.Token);
+            foreach (string roleName in nodeConfiguration.Roles)
+            {
+                try
+                {
+                    IRole role = _rolesRepository.GetInstance(roleName);
+                    _rolesRepository.RegisterInstance(role);
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Failed to register Role with name '{roleName}'.", ex);
+                }
+            }
         }
 
         internal void UpdateKnownNodes()
@@ -76,7 +109,10 @@ namespace Wist.Node.Core
 
             foreach (IRole role in roles)
             {
-                role.Play();
+                if (role.IsInitialized)
+                {
+                    role.Play();
+                }
             }
         }
     }

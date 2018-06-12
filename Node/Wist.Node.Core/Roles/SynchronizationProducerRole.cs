@@ -13,7 +13,7 @@ using Wist.Node.Core.Interfaces;
 namespace Wist.Node.Core.Roles
 {
     [RegisterExtension(typeof(IRole), Lifetime = LifetimeManagement.Singleton)]
-    public class SynchronizationProducerRole : IRole
+    public class SynchronizationProducerRole : RoleBase
     {
         private readonly ICommunicationServicesFactory _communicationServicesFactory;
         private readonly ICommunicationService _syncGroupCommunicationService;
@@ -24,15 +24,15 @@ namespace Wist.Node.Core.Roles
             _communicationServicesFactory = communicationServicesFactory;
             _syncGroupCommunicationService = communicationServicesFactory.Create("TcpCommunicationService");
         }
-        public string Name => nameof(SynchronizationProducerRole);
+        public override string Name => nameof(SynchronizationProducerRole);
 
-        public void Initialize()
+        protected override void InitializeInner()
         {
             SocketListenerSettings settings = new SocketListenerSettings(21, 1024, new IPEndPoint(IPAddress.Any, 5021));
             _syncGroupCommunicationService.Init(settings, _blocksProcessor);
         }
 
-        public Task Play()
+        public override Task Play()
         {
             return Task.Run(() => { _syncGroupCommunicationService.Start(); });
         }

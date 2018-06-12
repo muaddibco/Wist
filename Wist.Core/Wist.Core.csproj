@@ -10,13 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommonServiceLocator" Version="2.0.3" />
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="PostSharp" Version="5.1.9-preview" />
-    <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0-preview2-26406-04" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.1" />
+    <PackageReference Include="PostSharp" Version="6.0.12-rc" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
     <PackageReference Include="Unity" Version="5.8.6" />
-    <PackageReference Include="Unity.ServiceLocation" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>

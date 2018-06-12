@@ -12,9 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommonServiceLocator" Version="2.0.3" />
     <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="PostSharp" Version="5.1.9-preview" />
+    <PackageReference Include="PostSharp" Version="6.0.12-rc" />
     <PackageReference Include="Unity" Version="5.8.6" />
   </ItemGroup>
 

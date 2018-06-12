@@ -59,8 +59,7 @@ namespace Wist.Node
 
             AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
             {
-                Exception ex = args.ExceptionObject as Exception;
-                if (ex != null)
+                if (args.ExceptionObject is Exception ex)
                 {
                     _log.Error("Unhandled exception caught", ex);
                 }

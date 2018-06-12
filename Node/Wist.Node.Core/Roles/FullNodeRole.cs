@@ -5,11 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Wist.Communication.Interfaces;
 using Wist.Communication.Sockets;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Roles
 {
-    public class FullNodeRole : IRole
+    [RegisterExtension(typeof(IRole), Lifetime = LifetimeManagement.Singleton)]
+    public class FullNodeRole : RoleBase
     {
         private readonly ICommunicationService _transactionsCommunicationService;
 
@@ -18,16 +21,16 @@ namespace Wist.Node.Core.Roles
             _transactionsCommunicationService = communicationServicesFactory.Create("TcpIntermittentCommunicationService");
         }
 
-        public string Name => nameof(FullNodeRole);
+        public override string Name => nameof(FullNodeRole);
 
-        public void Initialize()
+        protected override void InitializeInner()
         {
             SocketListenerSettings tcpSettings = new SocketListenerSettings(100, 65535, new IPEndPoint(IPAddress.Any, 5024));
 
             _transactionsCommunicationService.Init(tcpSettings, null);
         }
 
-        public Task Play()
+        public override Task Play()
         {
             return Task.Run(() => { _transactionsCommunicationService.Start(); });
         }

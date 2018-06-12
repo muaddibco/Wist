@@ -46,5 +46,57 @@ namespace Wist.Core.Tests
             Assert.Equal(10, maxValueA);
             Assert.Equal(20, maxValueB);
         }
+
+        [Fact]
+        public void ConfigurationSectionArrayValueTest()
+        {
+            IUnityContainer unityContainer = ServiceLocator.Current.GetInstance<IUnityContainer>();
+            IAppConfig appConfig = Substitute.For<IAppConfig>();
+            appConfig.GetString(null).ReturnsForAnyArgs(ci =>
+            {
+                switch (ci.Arg<string>().ToLower())
+                {
+                    case "configroles:roles":
+                        return "roleA, roleB";
+                }
+
+                return null;
+            });
+            unityContainer.RegisterInstance(appConfig);
+
+            ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[1] { new ConfigRoles() });
+
+            ConfigRoles configRoles = (ConfigRoles)configurationService["configroles"];
+
+            Assert.Equal(2, configRoles.Roles.Length);
+            Assert.Contains("roleA", configRoles.Roles);
+            Assert.Contains("roleB", configRoles.Roles);
+        }
+
+        [Fact]
+        public void ConfigurationSectionIntArrayValueTest()
+        {
+            IUnityContainer unityContainer = ServiceLocator.Current.GetInstance<IUnityContainer>();
+            IAppConfig appConfig = Substitute.For<IAppConfig>();
+            appConfig.GetString(null).ReturnsForAnyArgs(ci =>
+            {
+                switch (ci.Arg<string>().ToLower())
+                {
+                    case "configints:ints":
+                        return "5, 10";
+                }
+
+                return null;
+            });
+            unityContainer.RegisterInstance(appConfig);
+
+            ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[1] { new ConfigInts() });
+
+            ConfigInts configInts = (ConfigInts)configurationService["configints"];
+
+            Assert.Equal(2, configInts.Ints.Length);
+            Assert.Contains(5, configInts.Ints);
+            Assert.Contains(10, configInts.Ints);
+        }
     }
 }

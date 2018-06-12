@@ -43,23 +43,61 @@ namespace Wist.Core.Aspects
             string sValue = appConfig.GetString(key.ToLower());
             object value = null;
 
-            TypeConverter tcFrom = TypeDescriptor.GetConverter(args.Location.LocationType);
+            if (args.Location.LocationType.IsArray)
+            {
+                string[] arrValues = sValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                Array values = Array.CreateInstance(args.Location.LocationType.GetElementType(), arrValues.Length);
+                object arrValue;
+                int index = 0;
+
+                foreach (string arrSValue in arrValues)
+                {
+                    if (TryConvertSingleValue(args.Location.LocationType.GetElementType(), arrSValue.Trim(), out arrValue))
+                    {
+                        values.SetValue(arrValue, index++);
+                    }
+                    else
+                    {
+                        throw new ConfigurationParameterValueConversionFailedException(sValue, key, args.Location.LocationType, _propertyName, args.Location.DeclaringType);
+                    }
+                }
+
+                value = values;
+            }
+            else
+            {
+                if (!TryConvertSingleValue(args.Location.LocationType, sValue, out value))
+                {
+                    throw new ConfigurationParameterValueConversionFailedException(sValue, key, args.Location.LocationType, _propertyName, args.Location.DeclaringType);
+                }
+            }
+
+            args.SetNewValue(value);
+
+            args.ProceedGetValue();
+        }
+
+        private bool TryConvertSingleValue(Type targetType, string sValue, out object value)
+        {
+            value = null;
+            TypeConverter tcFrom = TypeDescriptor.GetConverter(targetType);
             if (!tcFrom.CanConvertFrom(typeof(string)))
             {
                 TypeConverter tcTo = TypeDescriptor.GetConverter(typeof(string));
 
-                if (!tcTo.CanConvertTo(args.Location.LocationType))
+                if (!tcTo.CanConvertTo(targetType))
                 {
-                    throw new ConfigurationParameterValueConversionFailedException(sValue, key, args.Location.LocationType, _propertyName, args.Location.DeclaringType);
+                    return false;
                 }
 
                 try
                 {
-                    value = tcTo.ConvertTo(sValue, args.Location.LocationType);
+                    value = tcTo.ConvertTo(sValue, targetType);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    throw new ConfigurationParameterValueConversionFailedException(sValue, key, args.Location.LocationType, _propertyName, args.Location.DeclaringType, ex);
+                    return false;
                 }
             }
             else
@@ -68,15 +106,13 @@ namespace Wist.Core.Aspects
                 {
                     value = tcFrom.ConvertFromString(sValue);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    throw new ConfigurationParameterValueConversionFailedException(sValue, key, args.Location.LocationType, _propertyName, args.Location.DeclaringType, ex);
+                    return false;
                 }
             }
 
-            args.SetNewValue(value);
-
-            args.ProceedGetValue();
+            return true;
         }
     }
 }

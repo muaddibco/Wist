@@ -5,11 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Wist.Communication.Interfaces;
 using Wist.Communication.Sockets;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Roles
 {
-    public class MasterNodeRole : IRole
+    [RegisterExtension(typeof(IRole), Lifetime = LifetimeManagement.Singleton)]
+    public class MasterNodeRole : RoleBase
     {
         private readonly ICommunicationService _transactionsCommunicationService;
         private readonly ICommunicationService _consensusCommunicationService;
@@ -20,9 +23,9 @@ namespace Wist.Node.Core.Roles
             _consensusCommunicationService = communicationServicesFactory.Create("TcpIntermittentCommunicationService");
         }
 
-        public string Name => nameof(MasterNodeRole);
+        public override string Name => nameof(MasterNodeRole);
 
-        public void Initialize()
+        protected override void InitializeInner()
         {
             SocketListenerSettings udpSettings = new SocketListenerSettings(1, 1024, new IPEndPoint(IPAddress.Any, 5023));
             SocketListenerSettings tcpSettings = new SocketListenerSettings(600, 65535, new IPEndPoint(IPAddress.Any, 5022));
@@ -31,7 +34,7 @@ namespace Wist.Node.Core.Roles
             _consensusCommunicationService.Init(tcpSettings, null);
         }
 
-        public Task Play()
+        public override Task Play()
         {
             return Task.Run(() => 
             {

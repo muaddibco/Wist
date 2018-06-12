@@ -16,7 +16,7 @@ namespace Wist.Core.Architecture.UnityExtensions
 
         public ExtendedUnityContainer()
         {
-            _registeredNames = GetNamesDictionaryByReflection();
+            _registeredNames = new Dictionary<Type, List<string>>(); // GetNamesDictionaryByReflection();
             this.RegisterInstance(typeof(IUnityContainer), this);
 
             CurrentResolutionMode = Enums.RunMode.Default;

@@ -12,6 +12,7 @@ using Unity;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Architecture.Registration;
 using Wist.Core.Architecture.UnityExtensions;
+using Wist.Core.Configuration;
 
 namespace Wist.Node.Core
 {
