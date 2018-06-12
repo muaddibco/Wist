@@ -1,10 +1,12 @@
 ﻿<DLE><STX>
-<LENGTH OF PACKET BODY + CHAIN TYPE> : 4 BYTES 
-<CHAIN TYPE> : 2 BYTES
-<POWType> : 2 BYTE
+<LENGTH OF PACKET BODY + PACKET TYPE> : 4 BYTES 
+<PACKET TYPE> : 2 BYTES
 <SYNC BLOCK HEIGHT> : 4 BYTES
+
+<POWType> : 2 BYTE
 <NONCE> : 8 BYTES
 <HASH> : 16 - 64 BYTES (16, 32, 48, 64)
+
 <PACKET BODY>
 ===================================================================================================================================================================
 
@@ -14,7 +16,7 @@ COMMON PACKET BODY:
 
 
 ===================================================================================================================================================================
-BY CHAIN TYPES:
+BY PACKET TYPES:
 
 SIGNATURED:
 	PublicKey			: 32 bytes

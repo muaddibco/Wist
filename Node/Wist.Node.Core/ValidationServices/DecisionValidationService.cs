@@ -19,7 +19,7 @@ namespace Wist.Node.Core.ValidationServices
     [RegisterExtension(typeof(IChainValidationService), Lifetime = LifetimeManagement.Singleton)]
     public class DecisionValidationService : IChainValidationService
     {
-        public ChainType ChainType => ChainType.Consensus;
+        public PacketType ChainType => PacketType.Consensus;
         private IConsumeValidationReport _reportConsensus;
         private IChainValidationServiceManager _chainConsensusServiceManager;
         private readonly IConsensusHub _consensusHub;

@@ -20,7 +20,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
     {
         private readonly IMapperFactory _mapperFactory;
 
-        public ChainType ChainType => ChainType.TransactionalChain;
+        public PacketType ChainType => PacketType.TransactionalChain;
 
 
         public TransactionalChainDataService(IMapperFactory mapperFactory)

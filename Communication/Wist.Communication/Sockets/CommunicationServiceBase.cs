@@ -104,7 +104,7 @@ namespace Wist.Communication.Sockets
             }, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
-        public void StartListen()
+        public void Start()
         {
             _listenSocket = CreateSocket();
 

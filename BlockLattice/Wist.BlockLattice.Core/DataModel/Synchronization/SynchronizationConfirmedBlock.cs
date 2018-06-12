@@ -7,7 +7,7 @@ namespace Wist.BlockLattice.Core.DataModel.Synchronization
 {
     public class SynchronizationConfirmedBlock : BlockBase
     {
-        public override ChainType ChainType => ChainType.Synchronization;
+        public override PacketType ChainType => PacketType.Synchronization;
 
         public override ushort BlockType => BlockTypes.Synchronization_ConfirmedBlock;
 

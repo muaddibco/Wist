@@ -8,7 +8,7 @@ using Wist.Core.Architecture;
 namespace Wist.Node.Core.Interfaces
 {
     [ServiceContract]
-    public interface INodeDposProvidersFactory : IFactory<INodeDposProvider, ChainType>
+    public interface INodeDposProvidersFactory : IFactory<INodeDposProvider, PacketType>
     {
     }
 }

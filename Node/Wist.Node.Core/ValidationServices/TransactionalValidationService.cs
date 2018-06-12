@@ -20,7 +20,7 @@ namespace Wist.Node.Core.ValidationServices
     [RegisterExtension(typeof(IChainValidationService), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionalValidationService : IChainValidationService
     {
-        public ChainType ChainType => ChainType.TransactionalChain;
+        public PacketType ChainType => PacketType.TransactionalChain;
 
         private readonly ManualResetEventSlim _messageTrigger;
         private readonly ConcurrentQueue<TransactionalBlockBase> _blocksAwaiting;

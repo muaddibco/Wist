@@ -70,6 +70,15 @@ namespace Wist.Node.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Role &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string ERR_ROLE_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_ROLE_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument passed to function must be of type &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_UNEXPECTED_ARGUMENT_TYPE {

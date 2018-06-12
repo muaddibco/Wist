@@ -131,7 +131,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
             IPacketTypeHandler chainTypeHandler = null;
 
-            ChainType chainType = (ChainType)BitConverter.ToUInt16(messagePacket, 0);
+            PacketType chainType = (PacketType)BitConverter.ToUInt16(messagePacket, 0);
             chainTypeHandler = _chainTypeValidationHandlersFactory.Create(chainType);
 
             try

@@ -11,8 +11,8 @@ namespace Wist.BlockLattice.Core.Exceptions
     public class ChainTypeNotSupportedBySignatureSupportingSerializersException : Exception
     {
         public ChainTypeNotSupportedBySignatureSupportingSerializersException() { }
-        public ChainTypeNotSupportedBySignatureSupportingSerializersException(ChainType chainType) : base(string.Format(Resources.ERR_SIGNATURE_SUPPORTING_SERIALIZERS_CHAIN_TYPE_NOT_SUPPORTED, chainType)) { }
-        public ChainTypeNotSupportedBySignatureSupportingSerializersException(ChainType chainType, Exception inner) : base(string.Format(Resources.ERR_SIGNATURE_SUPPORTING_SERIALIZERS_CHAIN_TYPE_NOT_SUPPORTED, chainType), inner) { }
+        public ChainTypeNotSupportedBySignatureSupportingSerializersException(PacketType chainType) : base(string.Format(Resources.ERR_SIGNATURE_SUPPORTING_SERIALIZERS_CHAIN_TYPE_NOT_SUPPORTED, chainType)) { }
+        public ChainTypeNotSupportedBySignatureSupportingSerializersException(PacketType chainType, Exception inner) : base(string.Format(Resources.ERR_SIGNATURE_SUPPORTING_SERIALIZERS_CHAIN_TYPE_NOT_SUPPORTED, chainType), inner) { }
         protected ChainTypeNotSupportedBySignatureSupportingSerializersException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }

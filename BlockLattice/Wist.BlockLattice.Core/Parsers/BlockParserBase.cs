@@ -20,7 +20,7 @@ namespace Wist.BlockLattice.Core.Parsers
 
         public abstract ushort BlockType { get; }
 
-        public abstract ChainType ChainType { get; }
+        public abstract PacketType ChainType { get; }
 
         public abstract void FillBlockBody(BlockBase block, byte[] blockBody);
 

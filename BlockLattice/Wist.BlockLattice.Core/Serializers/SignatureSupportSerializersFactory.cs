@@ -13,12 +13,12 @@ namespace Wist.BlockLattice.Core.Serializers
     [RegisterDefaultImplementation(typeof(ISignatureSupportSerializersFactory), Lifetime = LifetimeManagement.Singleton)]
     public class SignatureSupportSerializersFactory : ISignatureSupportSerializersFactory
     {
-        private readonly Dictionary<ChainType, Dictionary<ushort, Stack<ISignatureSupportSerializer>>> _serializersCache;
+        private readonly Dictionary<PacketType, Dictionary<ushort, Stack<ISignatureSupportSerializer>>> _serializersCache;
         private readonly object _sync = new object();
 
         public SignatureSupportSerializersFactory(ISignatureSupportSerializer[] signatureSupportSerializers)
         {
-            _serializersCache = new Dictionary<ChainType, Dictionary<ushort, Stack<ISignatureSupportSerializer>>>();
+            _serializersCache = new Dictionary<PacketType, Dictionary<ushort, Stack<ISignatureSupportSerializer>>>();
 
             foreach (var signatureSupportSerializer in signatureSupportSerializers)
             {
@@ -36,7 +36,7 @@ namespace Wist.BlockLattice.Core.Serializers
             }
         }
 
-        public ISignatureSupportSerializer Create(ChainType chainType, ushort blockType)
+        public ISignatureSupportSerializer Create(PacketType chainType, ushort blockType)
         {
             if(!_serializersCache.ContainsKey(chainType))
             {

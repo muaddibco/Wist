@@ -14,12 +14,12 @@ namespace Wist.BlockLattice.Core.Handlers
     [RegisterDefaultImplementation(typeof(IPacketTypeHandlersFactory), Lifetime = LifetimeManagement.Singleton)]
     public class PacketTypeHandlersFactory : IPacketTypeHandlersFactory
     {
-        private readonly Dictionary<ChainType, Stack<IPacketTypeHandler>> _packetTypeHandlersCache;
+        private readonly Dictionary<PacketType, Stack<IPacketTypeHandler>> _packetTypeHandlersCache;
         private readonly object _sync = new object();
 
         public PacketTypeHandlersFactory(IPacketTypeHandler[] packetTypeHandlers)
         {
-            _packetTypeHandlersCache = new Dictionary<ChainType, Stack<IPacketTypeHandler>>();
+            _packetTypeHandlersCache = new Dictionary<PacketType, Stack<IPacketTypeHandler>>();
 
             foreach (var packetTypeHandler in packetTypeHandlers)
             {
@@ -31,7 +31,7 @@ namespace Wist.BlockLattice.Core.Handlers
             }
         }
 
-        public IPacketTypeHandler Create(ChainType packetType)
+        public IPacketTypeHandler Create(PacketType packetType)
         {
             if (!_packetTypeHandlersCache.ContainsKey(packetType))
             {

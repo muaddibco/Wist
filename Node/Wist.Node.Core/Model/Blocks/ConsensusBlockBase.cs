@@ -8,6 +8,6 @@ namespace Wist.Node.Core.Model.Blocks
 {
     public abstract class ConsensusBlockBase : BlockBase
     {
-        public override ChainType ChainType => ChainType.Consensus;
+        public override PacketType ChainType => PacketType.Consensus;
     }
 }

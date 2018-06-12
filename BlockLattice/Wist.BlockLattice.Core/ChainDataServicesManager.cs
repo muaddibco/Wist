@@ -18,7 +18,7 @@ namespace Wist.BlockLattice.Core
             _chainDataServices = chainDataServices;
         }
 
-        public IChainDataService GetChainDataService(ChainType chainType)
+        public IChainDataService GetChainDataService(PacketType chainType)
         {
             return _chainDataServices.FirstOrDefault(c => c.ChainType == chainType);
         }

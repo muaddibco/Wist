@@ -10,7 +10,7 @@ namespace Wist.Communication.Interfaces
     [ExtensionPoint]
     public interface IPacketSerializer
     {
-        ChainType ChainType { get; }
+        PacketType ChainType { get; }
 
         ushort BlockType { get; }
 

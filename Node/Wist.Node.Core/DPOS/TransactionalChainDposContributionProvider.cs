@@ -15,11 +15,11 @@ namespace Wist.Node.Core.DPOS
     {
         private readonly IChainDataService _chainDataService;
 
-        public ChainType ChainType => ChainType.TransactionalChain;
+        public PacketType ChainType => PacketType.TransactionalChain;
 
         public TransactionalChainDposContributionProvider(IChainDataServicesManager chainDataServicesManager)
         {
-            _chainDataService = chainDataServicesManager.GetChainDataService(ChainType.TransactionalChain);
+            _chainDataService = chainDataServicesManager.GetChainDataService(PacketType.TransactionalChain);
         }
 
         public double GetAllContributions(byte[] nodePublicKey)

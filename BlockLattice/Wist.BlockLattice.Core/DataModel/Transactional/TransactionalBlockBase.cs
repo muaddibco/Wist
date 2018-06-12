@@ -7,7 +7,7 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
     public abstract class TransactionalBlockBase : BlockSyncedBase
     {
-        public override ChainType ChainType => ChainType.TransactionalChain;
+        public override PacketType ChainType => PacketType.TransactionalChain;
         /// <summary>
         /// 64 byte of Hash value 
         /// </summary>

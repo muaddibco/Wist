@@ -6,6 +6,6 @@ namespace Wist.Node.Core.Interfaces
     [ServiceContract]
     public interface IChainValidationServiceManager
     {
-        IChainValidationService GetChainValidationService(ChainType chainType);
+        IChainValidationService GetChainValidationService(PacketType chainType);
     }
 }

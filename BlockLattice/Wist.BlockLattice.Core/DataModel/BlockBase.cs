@@ -10,7 +10,7 @@ namespace Wist.BlockLattice.Core.DataModel
     /// </summary>
     public abstract class BlockBase
     {
-        public abstract ChainType ChainType { get; }
+        public abstract PacketType ChainType { get; }
 
         public abstract ushort BlockType { get; }
 

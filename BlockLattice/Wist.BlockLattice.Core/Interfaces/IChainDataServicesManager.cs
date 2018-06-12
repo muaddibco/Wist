@@ -9,6 +9,6 @@ namespace Wist.BlockLattice.Core.Interfaces
     [ServiceContract]
     public interface IChainDataServicesManager
     {
-        IChainDataService GetChainDataService(ChainType chainType);
+        IChainDataService GetChainDataService(PacketType chainType);
     }
 }

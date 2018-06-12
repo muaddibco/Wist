@@ -13,11 +13,11 @@ namespace Wist.Node.Core.ValidationOperations
     [RegisterDefaultImplementation(typeof(IValidationOperationFactory), Lifetime = LifetimeManagement.Singleton)]
     public class ValidationOperationFactory : IValidationOperationFactory
     {
-        private readonly Dictionary<ChainType, SortedList<ushort, Stack<IValidationOperation>>> _consensusOperations;
+        private readonly Dictionary<PacketType, SortedList<ushort, Stack<IValidationOperation>>> _consensusOperations;
 
         public ValidationOperationFactory(IValidationOperation[] consensusOperations)
         {
-            _consensusOperations = new Dictionary<ChainType, SortedList<ushort, Stack<IValidationOperation>>>();
+            _consensusOperations = new Dictionary<PacketType, SortedList<ushort, Stack<IValidationOperation>>>();
             
             foreach (IValidationOperation consensusOperation in consensusOperations)
             {
@@ -38,7 +38,7 @@ namespace Wist.Node.Core.ValidationOperations
             }
         }
 
-        public IValidationOperation GetNextOperation(ChainType chainType, IValidationOperation prevOperation = null)
+        public IValidationOperation GetNextOperation(PacketType chainType, IValidationOperation prevOperation = null)
         {
             if(!_consensusOperations.ContainsKey(chainType))
             {

@@ -63,13 +63,14 @@ namespace Wist.Node.Core.Synchronization
                                 ReportedTime = synchronizationDescriptor.MedianTime.AddMinutes(1)
                             };
 
-                            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(ChainType.Synchronization, BlockTypes.Synchronization_TimeSyncBlock);
+                            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncBlock);
                             byte[] body = signatureSupportSerializer.GetBody(synchronizationBlock);
                             byte[] signature = _nodeContext.Sign(body);
                             synchronizationBlock.PublicKey = _nodeContext.PublicKey;
                             synchronizationBlock.Signature = signature;
 
-                            _communicationHub.PostMessage(synchronizationBlock);
+                            //TODO: accomplish logic for messages delivering
+                            //_communicationHub.PostMessage(synchronizationBlock);
                             _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockOrder;
                         }, _nodeContext.SynchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }

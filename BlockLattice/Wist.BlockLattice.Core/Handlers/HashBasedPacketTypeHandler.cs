@@ -25,7 +25,7 @@ namespace Wist.BlockLattice.Core.Handlers
         {
         }
 
-        public override ChainType ChainType => ChainType.TransactionalChain;
+        public override PacketType ChainType => PacketType.TransactionalChain;
 
         protected override PacketsErrors ValidatePacket(BinaryReader br)
         {

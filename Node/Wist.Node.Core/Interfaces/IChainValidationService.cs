@@ -11,7 +11,7 @@ namespace Wist.Node.Core.Interfaces
     [ExtensionPoint]
     public interface IChainValidationService
     {
-        ChainType ChainType { get; }
+        PacketType ChainType { get; }
 
         void Initialize(IConsumeValidationReport reportConsensus, CancellationToken cancellationToken);
 

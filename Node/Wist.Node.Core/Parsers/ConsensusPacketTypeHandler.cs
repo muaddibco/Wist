@@ -31,7 +31,7 @@ namespace Wist.Node.Core.Parsers
             _consensusHub = consensusHub;
         }
 
-        public override ChainType ChainType => ChainType.Consensus;
+        public override PacketType ChainType => PacketType.Consensus;
 
         protected override PacketsErrors ValidatePacket(BinaryReader br)
         {

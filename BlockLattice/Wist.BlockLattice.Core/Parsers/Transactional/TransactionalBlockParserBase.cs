@@ -15,7 +15,7 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
         {
         }
 
-        public override ChainType ChainType => ChainType.TransactionalChain;
+        public override PacketType ChainType => PacketType.TransactionalChain;
 
         protected override BlockBase Parse(ushort version, BinaryReader br)
         {

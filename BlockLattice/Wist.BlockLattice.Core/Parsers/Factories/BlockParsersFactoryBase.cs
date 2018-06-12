@@ -30,7 +30,7 @@ namespace Wist.BlockLattice.Core.Parsers.Factories
             }
         }
 
-        public abstract ChainType ChainType { get; }
+        public abstract PacketType ChainType { get; }
 
         public IBlockParser Create(ushort blockType)
         {

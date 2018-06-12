@@ -13,6 +13,6 @@ namespace Wist.Node.Core.Parsers
         {
         }
 
-        public override ChainType ChainType => ChainType.Consensus;
+        public override PacketType ChainType => PacketType.Consensus;
     }
 }

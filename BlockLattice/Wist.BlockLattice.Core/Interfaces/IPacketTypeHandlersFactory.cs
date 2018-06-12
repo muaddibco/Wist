@@ -8,7 +8,7 @@ using Wist.Core.Architecture;
 namespace Wist.BlockLattice.Core.Interfaces
 {
     [ServiceContract]
-    public interface IPacketTypeHandlersFactory : IFactory<IPacketTypeHandler, ChainType>
+    public interface IPacketTypeHandlersFactory : IFactory<IPacketTypeHandler, PacketType>
     {
     }
 }

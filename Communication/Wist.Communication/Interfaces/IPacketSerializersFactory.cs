@@ -8,7 +8,7 @@ using Wist.Core.Architecture;
 namespace Wist.Communication.Interfaces
 {
     [ServiceContract]
-    public interface IPacketSerializersFactory : IFactory<IPacketSerializer, ChainType, ushort>
+    public interface IPacketSerializersFactory : IFactory<IPacketSerializer, PacketType, ushort>
     {
     }
 }

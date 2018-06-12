@@ -30,7 +30,7 @@ namespace Wist.BlockLattice.Core.Handlers
             _proofOfWorkCalculationFactory = proofOfWorkCalculationFactory;
         }
 
-        public abstract ChainType ChainType { get; }
+        public abstract PacketType ChainType { get; }
 
         public IBlockParsersFactory BlockParsersFactory { get; }
 

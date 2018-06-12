@@ -7,7 +7,7 @@ namespace Wist.BlockLattice.Core.DataModel.Synchronization
 {
     public abstract class SynchronizationBlockBase : SignedBlockBase
     {
-        public override ChainType ChainType => ChainType.Synchronization;
+        public override PacketType ChainType => PacketType.Synchronization;
 
         public DateTime ReportedTime { get; set; }
     }

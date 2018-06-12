@@ -44,7 +44,7 @@ namespace Wist.Node.Core.Synchronization
             ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, 
             ISynchronizationProducer synchronizationProducer, IDposService dposService)
         {
-            _communicationHubSync = communicationHubFactory.Create();
+            //_communicationHubSync = communicationHubFactory.Create();
             _configurationService = configurationService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodeContext = nodeContext;
@@ -64,12 +64,10 @@ namespace Wist.Node.Core.Synchronization
             _communicationHubSync.Init(
                 new SocketListenerSettings(
                     syncCommunicationConfiguration.MaxConnections, //TODO: this value must be taken from the corresponding chain from block-lattice
-                    syncCommunicationConfiguration.MaxPendingConnections,
-                    syncCommunicationConfiguration.MaxSimultaneousAcceptOps,
-                    syncCommunicationConfiguration.ReceiveBufferSize, 2,
-                    new IPEndPoint(IPAddress.Loopback, syncCommunicationConfiguration.ListeningPort), false), blocksProcessor);
+                    syncCommunicationConfiguration.ReceiveBufferSize,
+                    new IPEndPoint(IPAddress.Loopback, syncCommunicationConfiguration.ListeningPort)), blocksProcessor);
 
-            _communicationHubSync.StartListen();
+            _communicationHubSync.Start();
 
             _synchronizationProducer.Initialize(_communicationHubSync);
 
@@ -206,13 +204,15 @@ namespace Wist.Node.Core.Synchronization
 
         private void DistributeReadyForParticipationMessage()
         {
-            ISignatureSupportSerializer serializer = _signatureSupportSerializersFactory.Create(ChainType.Synchronization, BlockTypes.Synchronization_ReadyToParticipateBlock);
+            ISignatureSupportSerializer serializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_ReadyToParticipateBlock);
             ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockOrder = _nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight };
             byte[] body = serializer.GetBody(block);
             byte[] signature = _nodeContext.Sign(body);
             block.PublicKey = _nodeContext.PublicKey;
             block.Signature = signature;
-            _communicationHubSync.PostMessage(block);
+
+            //TODO: accomplish logic for messages distribution
+            //_communicationHubSync.PostMessage(block);
         }
     }
 }

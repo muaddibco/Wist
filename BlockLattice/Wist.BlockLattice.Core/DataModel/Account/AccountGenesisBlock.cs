@@ -7,7 +7,7 @@ namespace Wist.BlockLattice.Core.DataModel.Account
 {
     public class AccountGenesisBlock : GenesisBlockBase
     {
-        public override ChainType ChainType => ChainType.AccountChain;
+        public override PacketType ChainType => PacketType.AccountChain;
 
         public override ushort Version => 1;
 

@@ -10,7 +10,7 @@ namespace Wist.Node.Core.Interfaces
     [ExtensionPoint]
     public interface INodeDposProvider
     {
-        ChainType ChainType { get; }
+        PacketType ChainType { get; }
 
         double GetAllContributions(byte[] nodePublicKey);
 

@@ -174,7 +174,8 @@ namespace Wist.Node.Core
                 Signatures = retransmittedSyncBlocks.Select(b => b.ConfirmationSignature).ToArray()
             };
 
-            _communicationHub.PostMessage(synchronizationConfirmedBlock);
+            //TODO: complete logic of sync block propagation
+            //_communicationHub.PostMessage(synchronizationConfirmedBlock);
         }
 
         private bool CheckSynchronizationCompleteConsensusAchieved(uint height)
@@ -213,10 +214,11 @@ namespace Wist.Node.Core
                 PublicKey = _nodeContext.PublicKey
             };
 
-            byte[] body = _signatureSupportSerializersFactory.Create(ChainType.Synchronization, BlockTypes.Synchronization_RetransmissionBlock).GetBody(synchronizationBlockRetransmissionForSend);
+            byte[] body = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_RetransmissionBlock).GetBody(synchronizationBlockRetransmissionForSend);
             synchronizationBlockRetransmissionForSend.Signature = _nodeContext.Sign(body);
 
-            await _communicationHub.PostMessage(synchronizationBlockRetransmissionForSend);
+            //TODO: complete logic of sync block propagation
+            //await _communicationHub.PostMessage(synchronizationBlockRetransmissionForSend);
 
             _retransmittedBlocks.TryAdd(synchronizationBlockRetransmissionForSend);
         }

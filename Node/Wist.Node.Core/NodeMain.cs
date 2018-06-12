@@ -8,6 +8,8 @@ using Wist.BlockLattice.Core.Interfaces;
 using System.Threading;
 using Wist.Node.Core.Configuration;
 using Wist.Node.Core.Interfaces;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Wist.Node.Core
 {
@@ -24,20 +26,18 @@ namespace Wist.Node.Core
         private static readonly object _sync = new object();
         private readonly IConfigurationService _configurationService;
         private readonly ISynchronizationService _synchronizationService;
-        private readonly ICommunicationService _communicationHubNodes;
-        private readonly ICommunicationService _communicationHubAccounts;
+        private readonly IRolesRepository _rolesRepository;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private IBlocksProcessor _consensusBlocksProcessor;
         private IBlocksProcessor _synchronizationBlocksProcessor;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        internal NodeMain(IConfigurationService configurationService, ICommunicationServicesFactory communicationHubFactory, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService)
+        internal NodeMain(IConfigurationService configurationService, IRolesRepository rolesRepository, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService)
         {
             _configurationService = configurationService;
             _synchronizationService = synchronizationService;
-            _communicationHubNodes = communicationHubFactory.Create();
-            _communicationHubAccounts = communicationHubFactory.Create();
+            _rolesRepository = rolesRepository;
             _consensusBlocksProcessor = blocksProcessorFactory.Create(ConsensusBlocksProcessor.BLOCKS_PROCESSOR_NAME);
             _synchronizationBlocksProcessor = blocksProcessorFactory.Create(SynchronizationBlocksProcessor.BLOCKS_PROCESSOR_NAME);
 
@@ -46,28 +46,12 @@ namespace Wist.Node.Core
 
         internal void Initialize()
         {
-            //TODO: add accounts listener
-            NodesCommunicationConfiguration nodesCommunicationConfiguration = (NodesCommunicationConfiguration)_configurationService[NodesCommunicationConfiguration.SECTION_NAME];
-            AccountsCommunicationConfiguration accountsCommunicationConfiguration = (AccountsCommunicationConfiguration)_configurationService[AccountsCommunicationConfiguration.SECTION_NAME];
+            IEnumerable<IRole> roles = _rolesRepository.GetBulkInstances();
 
-            _communicationHubNodes.Init(
-                new SocketListenerSettings(
-                    nodesCommunicationConfiguration.MaxConnections,
-                    nodesCommunicationConfiguration.MaxPendingConnections,
-                    nodesCommunicationConfiguration.MaxSimultaneousAcceptOps,
-                    nodesCommunicationConfiguration.ReceiveBufferSize, 2, 
-                    new IPEndPoint(IPAddress.Loopback, nodesCommunicationConfiguration.ListeningPort), false), _consensusBlocksProcessor);
-
-            //TODO: need to understand what blocks processor need to provide here
-            _communicationHubAccounts.Init(new SocketListenerSettings(
-                accountsCommunicationConfiguration.MaxConnections,
-                accountsCommunicationConfiguration.MaxPendingConnections,
-                accountsCommunicationConfiguration.MaxSimultaneousAcceptOps,
-                accountsCommunicationConfiguration.ReceiveBufferSize, 2,
-                new IPEndPoint(IPAddress.Loopback, accountsCommunicationConfiguration.ListeningPort), false), null);
-
-            _communicationHubNodes.StartListen();
-            _communicationHubAccounts.StartListen();
+            foreach (IRole role in roles)
+            {
+                role.Initialize();
+            }
 
 
             _synchronizationService.Initialize(_synchronizationBlocksProcessor, _cancellationTokenSource.Token);
@@ -87,6 +71,13 @@ namespace Wist.Node.Core
         {
             _consensusBlocksProcessor.Initialize(_cancellationTokenSource.Token);
             _synchronizationService.Start();
+
+            IEnumerable<IRole> roles = _rolesRepository.GetBulkInstances();
+
+            foreach (IRole role in roles)
+            {
+                role.Play();
+            }
         }
     }
 }

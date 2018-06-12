@@ -13,7 +13,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
     [RegisterExtension(typeof(IChainDataService), Lifetime = LifetimeManagement.Singleton)]
     public class AccountChainDataService : IChainDataService
     {
-        public ChainType ChainType => ChainType.AccountChain;
+        public PacketType ChainType => PacketType.AccountChain;
 
         public void AddBlock(BlockBase block)
         {

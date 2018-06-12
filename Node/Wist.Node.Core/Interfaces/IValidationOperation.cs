@@ -8,7 +8,7 @@ namespace Wist.Node.Core.Interfaces
     [ExtensionPoint]
     public interface IValidationOperation
     {
-        ChainType ChainType { get; }
+        PacketType ChainType { get; }
 
         ushort Priority { get; }
 

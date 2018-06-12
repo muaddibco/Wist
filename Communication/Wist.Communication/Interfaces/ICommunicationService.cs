@@ -22,7 +22,7 @@ namespace Wist.Communication.Interfaces
 
         void Stop();
 
-        void StartListen();
+        void Start();
 
         void PostMessage(IKey destination, IMessage message);
         void PostMessage(IEnumerable<IKey> destinations, IMessage message);

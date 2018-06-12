@@ -29,9 +29,9 @@ namespace Wist.Node.Core
         private readonly INodeContext _nodeContext;
         private readonly IChainValidationServiceManager _chainConsensusServiceManager;
 
-        private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _blocks;
-        private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _locallyApproved;
-        private readonly Dictionary<ChainType, ConcurrentQueue<BlockBase>> _consensusAchievedBlocks;
+        private readonly Dictionary<PacketType, ConcurrentQueue<BlockBase>> _blocks;
+        private readonly Dictionary<PacketType, ConcurrentQueue<BlockBase>> _locallyApproved;
+        private readonly Dictionary<PacketType, ConcurrentQueue<BlockBase>> _consensusAchievedBlocks;
         private readonly IConsensusCheckingService _consensusCheckingService;
         private readonly BlockingCollection<GenericConsensusBlock> _consensusItems; //TODO: need to decide how to know, that decision must be retransmitted
 
@@ -45,16 +45,16 @@ namespace Wist.Node.Core
             _nodeContext = nodeContext;
             _chainConsensusServiceManager = chainConsensusServiceManager;
             _consensusCheckingService = consensusCheckingService;
-            _blocks = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
-            _locallyApproved = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
-            _consensusAchievedBlocks = new Dictionary<ChainType, ConcurrentQueue<BlockBase>>();
+            _blocks = new Dictionary<PacketType, ConcurrentQueue<BlockBase>>();
+            _locallyApproved = new Dictionary<PacketType, ConcurrentQueue<BlockBase>>();
+            _consensusAchievedBlocks = new Dictionary<PacketType, ConcurrentQueue<BlockBase>>();
             _consensusItems = new BlockingCollection<GenericConsensusBlock>();
 
-            foreach (var chainType in Enum.GetValues(typeof(ChainType)))
+            foreach (var chainType in Enum.GetValues(typeof(PacketType)))
             {
-                _blocks.Add((ChainType)chainType, new ConcurrentQueue<BlockBase>());
-                _locallyApproved.Add((ChainType)chainType, new ConcurrentQueue<BlockBase>());
-                _consensusAchievedBlocks.Add((ChainType)chainType, new ConcurrentQueue<BlockBase>());
+                _blocks.Add((PacketType)chainType, new ConcurrentQueue<BlockBase>());
+                _locallyApproved.Add((PacketType)chainType, new ConcurrentQueue<BlockBase>());
+                _consensusAchievedBlocks.Add((PacketType)chainType, new ConcurrentQueue<BlockBase>());
             }
         }
 
@@ -76,17 +76,17 @@ namespace Wist.Node.Core
 
                 _cancellationToken = ct;
 
-                foreach (ChainType chainType in Enum.GetValues(typeof(ChainType)))
+                foreach (PacketType chainType in Enum.GetValues(typeof(PacketType)))
                 {
                     IChainValidationService chainConsensysService = _chainConsensusServiceManager.GetChainValidationService(chainType);
                     chainConsensysService.Initialize(this, ct);
 
                     Task.Factory.StartNew(o =>
                     {
-                        Tuple<ChainType, CancellationToken> inputArgs = (Tuple<ChainType, CancellationToken>)o;
+                        Tuple<PacketType, CancellationToken> inputArgs = (Tuple<PacketType, CancellationToken>)o;
 
                         ProcessBlocks(_blocks[inputArgs.Item1], inputArgs.Item2);
-                    }, new Tuple<ChainType, CancellationToken>( chainType, ct), TaskCreationOptions.LongRunning);
+                    }, new Tuple<PacketType, CancellationToken>( chainType, ct), TaskCreationOptions.LongRunning);
                 }
 
                 _consensusCheckingService.Initialize(ct);
@@ -151,7 +151,8 @@ namespace Wist.Node.Core
         {
             foreach (var item in _consensusItems.GetConsumingEnumerable(cancellationToken))
             {
-                _communicationHub.PostMessage(item);
+                //TODO: accomplish logic for messages delivering
+                //_communicationHub.PostMessage(item);
             }
         }
 

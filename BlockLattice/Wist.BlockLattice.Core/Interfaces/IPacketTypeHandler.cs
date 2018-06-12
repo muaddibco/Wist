@@ -12,7 +12,7 @@ namespace Wist.BlockLattice.Core.Interfaces
     [ServiceContract]
     public interface IPacketTypeHandler
     {
-        ChainType ChainType { get; }
+        PacketType ChainType { get; }
 
         PacketErrorMessage ValidatePacket(byte[] packet);
 

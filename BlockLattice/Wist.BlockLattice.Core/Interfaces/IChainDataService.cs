@@ -10,7 +10,7 @@ namespace Wist.BlockLattice.Core.Interfaces
     [ExtensionPoint]
     public interface IChainDataService
     {
-        ChainType ChainType { get; }
+        PacketType ChainType { get; }
         bool DoesChainExist(byte[] key);
 
         GenesisBlockBase GetGenesisBlock(byte[] key);

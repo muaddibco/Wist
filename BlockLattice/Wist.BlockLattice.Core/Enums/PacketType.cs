@@ -1,6 +1,6 @@
 ﻿namespace Wist.BlockLattice.Core.Enums
 {
-    public enum ChainType : ushort
+    public enum PacketType : ushort
     {
         Unknown = 0,
         AccountChain = 1,
