@@ -10,7 +10,6 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.BlockLattice.Core.Parsers.Factories
 {
-    [RegisterExtension(typeof(IBlockParsersFactory), Lifetime = LifetimeManagement.Singleton)]
     public abstract class BlockParsersFactoryBase : IBlockParsersFactory
     {
         protected Dictionary<ushort, Stack<IBlockParser>> _blockParsersStack;

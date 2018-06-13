@@ -8,7 +8,7 @@ using Wist.Core.Architecture.Enums;
 namespace Wist.Core.Synchronization
 {
     [RegisterDefaultImplementation(typeof(ISynchronizationContext), Lifetime = LifetimeManagement.Singleton)]
-    public class SynchronizationContext
+    public class SynchronizationContext : ISynchronizationContext
     {
         public SynchronizationDescriptor LastBlockDescriptor { get; set; }
 

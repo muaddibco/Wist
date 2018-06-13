@@ -25,7 +25,6 @@ namespace Wist.Communication.Sockets
         protected readonly ILog _log = LogManager.GetLogger(typeof(CommunicationServiceBase));
         private readonly IBufferManager _bufferManager;
         private readonly IPacketsHandler _packetsHandler;
-        private readonly IPacketSerializersFactory _packetSerializersFactory;
         private GenericPool<ICommunicationChannel> _communicationChannelsPool;
         private readonly List<ICommunicationChannel> _clientConnectedList;
         protected SocketListenerSettings _settings;
@@ -44,10 +43,9 @@ namespace Wist.Communication.Sockets
         /// </summary>
         /// <param name="settings">instance of <see cref="SocketListenerSettings"/> with defined settings of listener</param>
         /// <param name="receiveBufferSize">buffer size to use for each socket I/O operation</param>
-        public CommunicationServiceBase(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
+        public CommunicationServiceBase(IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
         {
             _bufferManager = bufferManager;
-            _packetSerializersFactory = packetSerializersFactory;
             _packetsHandler = packetsHandler;
             _clientConnectedList = new List<ICommunicationChannel>();
             _nodesResolutionService = nodesResolutionService;

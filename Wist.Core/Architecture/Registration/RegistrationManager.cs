@@ -282,8 +282,7 @@ namespace Wist.Core.Architecture.Registration
                 case RegistrationRole.DefaultImplementation:
                     return null;
                 case RegistrationRole.SimulatorImplementation:
-                    return null;
-                //return RunMode.Simulator.ToString();
+                    return RunMode.Simulator.ToString();
                 case RegistrationRole.Extension:
                     return $"{type.FullName}";
                 default:

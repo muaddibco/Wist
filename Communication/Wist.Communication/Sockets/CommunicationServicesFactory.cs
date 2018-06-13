@@ -1,12 +1,14 @@
 ﻿using CommonServiceLocator;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Wist.Communication.Exceptions;
 using Wist.Communication.Interfaces;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 
 namespace Wist.Communication.Sockets
 {
+    [RegisterDefaultImplementation(typeof(ICommunicationServicesFactory), Lifetime = LifetimeManagement.Singleton)]
     public class CommunicationServicesFactory : ICommunicationServicesFactory
     {
         private readonly Dictionary<string, Stack<ICommunicationService>> _communicationServicesPool;

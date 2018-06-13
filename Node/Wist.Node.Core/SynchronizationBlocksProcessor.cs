@@ -10,6 +10,7 @@ using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
+using Wist.Core.Architecture;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
@@ -19,13 +20,14 @@ namespace Wist.Node.Core
     //TODO: features
     // need to implement logic with time limit for confirmation of retransmitted blocks, etc
     // what happens when consensus was not achieved
+    [RegisterExtension(typeof(IBlocksProcessor), Lifetime = Wist.Core.Architecture.Enums.LifetimeManagement.Singleton)]
     public class SynchronizationBlocksProcessor : IBlocksProcessor, IRequiresCommunicationHub
     {
         public const string BLOCKS_PROCESSOR_NAME = "SynchronizationBlocksProcessor";
         public const ushort TARGET_CONSENSUS_SIZE = 21;
         public const ushort TARGET_CONSENSUS_LOW_LIMIT = 14;
 
-        private readonly Wist.Core.Synchronization.SynchronizationContext _synchronizationContext;
+        private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISynchronizationProducer _synchronizationProducer;
         private readonly INodeContext _nodeContext;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
@@ -38,7 +40,7 @@ namespace Wist.Node.Core
         private readonly BlockingCollection<SynchronizationBlockRetransmissionV1> _retransmittedBlocks;
         
 
-        public SynchronizationBlocksProcessor(Wist.Core.Synchronization.SynchronizationContext synchronizationContext, ISynchronizationProducer synchronizationProducer, INodeContext nodeContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
+        public SynchronizationBlocksProcessor(ISynchronizationContext synchronizationContext, ISynchronizationProducer synchronizationProducer, INodeContext nodeContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
         {
             _synchronizationContext = synchronizationContext;
             _synchronizationProducer = synchronizationProducer;

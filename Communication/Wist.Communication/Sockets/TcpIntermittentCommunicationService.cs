@@ -18,7 +18,7 @@ namespace Wist.Communication.Sockets
     public class TcpIntermittentCommunicationService : TcpCommunicationService
     {
 
-        public TcpIntermittentCommunicationService(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetSerializersFactory, packetsHandler, nodesResolutionService)
+        public TcpIntermittentCommunicationService(IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetsHandler, nodesResolutionService)
         {
         }
 

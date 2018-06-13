@@ -22,7 +22,7 @@ namespace Wist.Node.Core
     ///  2. EnterGroup - before Node can start to function it must to connect to some consensus group of Nodes for consensus decisions accepting
     ///  3. Start - after Node entered to any consensus group it starts to work
     /// </summary>
-    internal class NodeMain
+    public class NodeMain
     {
         private static readonly object _sync = new object();
         private readonly ILog _log = LogManager.GetLogger(typeof(NodeMain));
@@ -35,7 +35,7 @@ namespace Wist.Node.Core
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        internal NodeMain(IConfigurationService configurationService, IRolesRepository rolesRepository, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService)
+        public NodeMain(IConfigurationService configurationService, IRolesRepository rolesRepository, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService)
         {
             _configurationService = configurationService;
             _synchronizationService = synchronizationService;
@@ -46,7 +46,7 @@ namespace Wist.Node.Core
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
-        internal void Initialize()
+        public void Initialize()
         {
             ObtainConfiguredRoles();
 
@@ -76,16 +76,20 @@ namespace Wist.Node.Core
         {
             NodeConfiguration nodeConfiguration = (NodeConfiguration)_configurationService[NodeConfiguration.SECTION_NAME];
 
-            foreach (string roleName in nodeConfiguration.Roles)
+            string[] roles = nodeConfiguration.Roles;
+            if (roles != null)
             {
-                try
+                foreach (string roleName in roles)
                 {
-                    IRole role = _rolesRepository.GetInstance(roleName);
-                    _rolesRepository.RegisterInstance(role);
-                }
-                catch (Exception ex)
-                {
-                    _log.Error($"Failed to register Role with name '{roleName}'.", ex);
+                    try
+                    {
+                        IRole role = _rolesRepository.GetInstance(roleName);
+                        _rolesRepository.RegisterInstance(role);
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error($"Failed to register Role with name '{roleName}'.", ex);
+                    }
                 }
             }
         }

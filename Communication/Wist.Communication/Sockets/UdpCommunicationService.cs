@@ -13,7 +13,7 @@ namespace Wist.Communication.Sockets
     [RegisterExtension(typeof(ICommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class UdpCommunicationService : CommunicationServiceBase
     {
-        public UdpCommunicationService(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetSerializersFactory, packetsHandler, nodesResolutionService)
+        public UdpCommunicationService(IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetsHandler, nodesResolutionService)
         {
         }
 

@@ -17,10 +17,6 @@ namespace Wist.Node.Core.Configuration
 
         public ushort MaxConnections { get; set; }
 
-        public ushort MaxPendingConnections { get; set; }
-
-        public ushort MaxSimultaneousAcceptOps { get; set; }
-
         public ushort ReceiveBufferSize { get; set; }
 
         public ushort ListeningPort { get; set; }

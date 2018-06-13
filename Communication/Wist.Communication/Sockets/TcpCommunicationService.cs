@@ -22,7 +22,7 @@ namespace Wist.Communication.Sockets
 
         public override string Name => nameof(TcpCommunicationService);
 
-        public TcpCommunicationService(IBufferManager bufferManager, IPacketSerializersFactory packetSerializersFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetSerializersFactory, packetsHandler, nodesResolutionService)
+        public TcpCommunicationService(IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetsHandler, nodesResolutionService)
         {
             _acceptEventArgsPool = new GenericPool<SocketAsyncEventArgs>(10);
 

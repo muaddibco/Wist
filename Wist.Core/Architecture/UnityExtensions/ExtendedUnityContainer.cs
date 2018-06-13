@@ -21,7 +21,7 @@ namespace Wist.Core.Architecture.UnityExtensions
 
             CurrentResolutionMode = Enums.RunMode.Default;
 
-            this.AddNewExtension<FactoryUnityExtension>();
+            //this.AddNewExtension<FactoryUnityExtension>();
             //this.AddNewExtension<ResolutionModeUnityExtension>();
         }
 

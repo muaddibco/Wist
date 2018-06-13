@@ -7,7 +7,7 @@ using Wist.Core.Architecture;
 
 namespace Wist.BlockLattice.Core.Interfaces
 {
-    [ServiceContract]
+    [ExtensionPoint]
     public interface IBlockParsersFactory : IFactory<IBlockParser, ushort>
     {
         PacketType ChainType { get; }

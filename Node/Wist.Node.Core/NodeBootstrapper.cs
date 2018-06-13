@@ -154,7 +154,7 @@ namespace Wist.Node.Core
             _log.Info("Container Configuration started");
             try
             {
-                Container.RegisterInstance(typeof(IUnityContainer), Container);
+                //Container.RegisterInstance(typeof(IUnityContainer), Container);
 
                 RegistrationSettings settings = GetRegistrationSettings();
 

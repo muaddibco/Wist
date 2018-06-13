@@ -24,7 +24,6 @@ namespace Wist.BlockLattice.Core.Handlers
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(PacketsHandler));
         private readonly IPacketTypeHandlersFactory _chainTypeValidationHandlersFactory;
-        private readonly IBlockParsersFactory _blockParsersFactory;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
         private readonly ManualResetEventSlim _messageTrigger;
         private readonly ConcurrentQueue<PacketErrorMessage> _messageErrorPackets;
@@ -35,10 +34,9 @@ namespace Wist.BlockLattice.Core.Handlers
 
         public bool IsInitialized { get; private set; }
 
-        public PacketsHandler(IPacketTypeHandlersFactory packetTypeHandlersFactory, IBlockParsersFactory blockParsersFactory)
+        public PacketsHandler(IPacketTypeHandlersFactory packetTypeHandlersFactory)
         {
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
-            _blockParsersFactory = blockParsersFactory;
             _messagePackets = new ConcurrentQueue<byte[]>();
             _messageTrigger = new ManualResetEventSlim();
             _messageErrorPackets = new ConcurrentQueue<PacketErrorMessage>();

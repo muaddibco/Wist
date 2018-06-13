@@ -1,12 +1,13 @@
 ﻿using CommonServiceLocator;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Wist.BlockLattice.Core.Exceptions;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 
 namespace Wist.BlockLattice.Core
 {
+    [RegisterDefaultImplementation(typeof(IBlocksProcessorFactory), Lifetime = LifetimeManagement.Singleton)]
     public class BlocksProcessorFactory : IBlocksProcessorFactory
     {
         private readonly Dictionary<string, Stack<IBlocksProcessor>> _blocksProcessorStack;
