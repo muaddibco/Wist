@@ -10,7 +10,7 @@ namespace Wist.BlockLattice.Core.DataModel.Synchronization
     /// </summary>
     public class ReadyForParticipationBlock : SignedBlockBase
     {
-        public override PacketType ChainType => PacketType.Synchronization;
+        public override PacketType PacketType => PacketType.Synchronization;
 
         public override ushort BlockType => BlockTypes.Synchronization_ReadyToParticipateBlock;
 

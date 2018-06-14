@@ -25,11 +25,11 @@ namespace Wist.Communication.Sockets
 
         public override string Name => nameof(TcpIntermittentCommunicationService);
 
-        public override void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null)
+        public override void Init(SocketListenerSettings settings, ICommunicationProvisioning communicationProvisioning = null)
         {
             RegisterOnReceivedExtendedValidation(OnCommunicationChannelReceived);
 
-            base.Init(settings, blocksProcessor, communicationProvisioning);
+            base.Init(settings, communicationProvisioning);
         }
 
         private bool OnCommunicationChannelReceived(ICommunicationChannel communicationChannel, IPEndPoint remoteEndPoint, int receivedBytes)

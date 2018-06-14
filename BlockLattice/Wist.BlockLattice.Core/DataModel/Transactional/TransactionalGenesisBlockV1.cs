@@ -24,7 +24,7 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
             VerifierOriginalHashList = new List<byte[]>();
         }
 
-        public override PacketType ChainType => PacketType.TransactionalChain;
+        public override PacketType PacketType => PacketType.TransactionalChain;
 
         public override ushort Version => 1;
 

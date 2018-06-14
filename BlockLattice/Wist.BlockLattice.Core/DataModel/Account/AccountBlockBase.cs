@@ -7,6 +7,6 @@ namespace Wist.BlockLattice.Core.DataModel.Account
 {
     public abstract class AccountBlockBase : BlockSyncedBase
     {
-        public override PacketType ChainType => PacketType.AccountChain;
+        public override PacketType PacketType => PacketType.AccountChain;
     }
 }

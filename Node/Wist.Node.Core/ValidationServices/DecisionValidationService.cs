@@ -40,7 +40,7 @@ namespace Wist.Node.Core.ValidationServices
                 throw new ArgumentOutOfRangeException(nameof(block), string.Format(Resources.ERR_UNEXPECTED_ARGUMENT_TYPE, typeof(GenericConsensusBlock)));
             }
 
-            IChainValidationService consensusService = _chainConsensusServiceManager.GetChainValidationService(consensusBlock.Block.ChainType);
+            IChainValidationService consensusService = _chainConsensusServiceManager.GetChainValidationService(consensusBlock.Block.PacketType);
 
             if(!consensusService.IsBlockEnrolled(consensusBlock.Block))
             {

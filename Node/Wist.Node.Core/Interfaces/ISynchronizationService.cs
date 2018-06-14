@@ -11,7 +11,7 @@ namespace Wist.Node.Core.Interfaces
     [ServiceContract]
     public interface ISynchronizationService
     {
-        void Initialize(IBlocksProcessor blocksProcessor, CancellationToken cancellationToken);
+        void Initialize(CancellationToken cancellationToken);
 
         void Start();
     }

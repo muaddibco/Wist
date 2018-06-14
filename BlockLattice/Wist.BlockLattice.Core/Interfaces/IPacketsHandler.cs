@@ -12,7 +12,7 @@ namespace Wist.BlockLattice.Core.Interfaces
     [ServiceContract]
     public interface IPacketsHandler
     {
-        void Initialize(IBlocksProcessor blocksProcessor);
+        void Initialize();
 
         /// <summary>
         /// Bytes being pushed to <see cref="IPacketsHandler"/> must form complete packet for following validation and processing

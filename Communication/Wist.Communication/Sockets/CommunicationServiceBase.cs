@@ -64,7 +64,7 @@ namespace Wist.Communication.Sockets
         /// or reused, but it is done this way to illustrate how the API can 
         /// easily be used to create reusable objects to increase server performance.
         /// </summary>
-        public virtual void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null)
+        public virtual void Init(SocketListenerSettings settings, ICommunicationProvisioning communicationProvisioning = null)
         {
             _cancellationTokenSource?.Cancel();
 
@@ -84,7 +84,7 @@ namespace Wist.Communication.Sockets
                 _communicationProvisioning.AllowedEndpointsChanged += CommunicationProvisioning_AllowedEndpointsChanged;
             }
 
-            _packetsHandler?.Initialize(blocksProcessor);
+            _packetsHandler?.Initialize();
 
             // Allocates one large byte buffer which all I/O operations use a piece of.  This guards against memory fragmentation
             _bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * 2, _settings.ReceiveBufferSize);

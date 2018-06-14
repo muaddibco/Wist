@@ -39,11 +39,11 @@ namespace Wist.Communication.Sockets
         }
 
 
-        public override void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null)
+        public override void Init(SocketListenerSettings settings, ICommunicationProvisioning communicationProvisioning = null)
         {
             _maxConnectedClients = new Semaphore(settings.MaxConnections, settings.MaxConnections);
 
-            base.Init(settings, blocksProcessor, communicationProvisioning);
+            base.Init(settings, communicationProvisioning);
         }
 
         protected override void StartAccept()

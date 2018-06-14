@@ -14,7 +14,7 @@ namespace Wist.Communication.Interfaces
     {
         string Name {get;}
         
-        void Init(SocketListenerSettings settings, IBlocksProcessor blocksProcessor, ICommunicationProvisioning communicationProvisioning = null);
+        void Init(SocketListenerSettings settings, ICommunicationProvisioning communicationProvisioning = null);
 
         void Stop();
 

@@ -18,7 +18,6 @@ namespace Wist.Node.Core.Roles
     {
         private readonly ICommunicationServicesFactory _communicationServicesFactory;
         private readonly ICommunicationService _syncGroupCommunicationService;
-        private readonly IBlocksProcessor _blocksProcessor;
 
         public SynchronizationProducerRole(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService) : base(loggerService)
         {
@@ -31,7 +30,7 @@ namespace Wist.Node.Core.Roles
         protected override void InitializeInner()
         {
             SocketListenerSettings settings = new SocketListenerSettings(21, 1024, new IPEndPoint(IPAddress.Any, 5021));
-            _syncGroupCommunicationService.Init(settings, _blocksProcessor);
+            _syncGroupCommunicationService.Init(settings);
         }
 
         public override Task Play()

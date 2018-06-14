@@ -40,6 +40,8 @@ namespace Wist.Node.Core
 
         public string Name => BLOCKS_PROCESSOR_NAME;
 
+        public PacketType PacketType => PacketType.Consensus;
+
         public ConsensusBlocksProcessor(INodeContext nodeContext, IChainValidationServiceManager chainConsensusServiceManager, IConsensusCheckingService consensusCheckingService)
         {
             _nodeContext = nodeContext;
@@ -108,9 +110,9 @@ namespace Wist.Node.Core
                 blockToProcess = ((GenericConsensusBlock)blockBase).Block;
             }
 
-            if (_blocks.ContainsKey(blockBase.ChainType))
+            if (_blocks.ContainsKey(blockBase.PacketType))
             {
-                _blocks[blockBase.ChainType].Enqueue(blockBase);
+                _blocks[blockBase.PacketType].Enqueue(blockBase);
             }
         }
 
@@ -136,7 +138,7 @@ namespace Wist.Node.Core
                 if (blocks.TryDequeue(out blockBase))
                 {
                     //TODO: need to understand whether consensus on blocks must be reached sequentially or it can be done in parallel
-                    IChainValidationService chainConsensysService = _chainConsensusServiceManager.GetChainValidationService(blockBase.ChainType);
+                    IChainValidationService chainConsensysService = _chainConsensusServiceManager.GetChainValidationService(blockBase.PacketType);
 
                     chainConsensysService.EnrollForConsensus(blockBase);
                 }

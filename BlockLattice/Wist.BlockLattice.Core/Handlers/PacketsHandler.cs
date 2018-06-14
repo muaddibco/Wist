@@ -26,28 +26,28 @@ namespace Wist.BlockLattice.Core.Handlers
         private readonly ILogger _log;
         private readonly IPacketVerifiersRepository _chainTypeValidationHandlersFactory;
         private readonly IBlockParsersFactoriesRepository _blockParsersFactoriesRepository;
+        private readonly IBlocksProcessorFactory _blocksProcessorFactory;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
         private readonly ManualResetEventSlim _messageTrigger;
 
-        private IBlocksProcessor _blocksProcessor;
         private CancellationTokenSource _cancellationTokenSource;
 
         public bool IsInitialized { get; private set; }
 
-        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersFactoriesRepository blockParsersFactoriesRepository, ILoggerService loggerService)
+        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersFactoriesRepository blockParsersFactoriesRepository, IBlocksProcessorFactory blocksProcessorFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
             _blockParsersFactoriesRepository = blockParsersFactoriesRepository;
+            _blocksProcessorFactory = blocksProcessorFactory;
             _messagePackets = new ConcurrentQueue<byte[]>();
             _messageTrigger = new ManualResetEventSlim();
         }
 
-        public void Initialize(IBlocksProcessor blocksProcessor)
+        public void Initialize()
         {
             if(!IsInitialized)
             {
-                _blocksProcessor = blocksProcessor;
                 IsInitialized = true;
             }
         }
@@ -177,7 +177,12 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             if (block != null)
             {
-                _blocksProcessor.ProcessBlock(block);
+                IEnumerable<IBlocksProcessor> blocksProcessors = _blocksProcessorFactory.GetBulkInstances(block.PacketType);
+
+                foreach (IBlocksProcessor blocksProcessor in blocksProcessors)
+                {
+                    blocksProcessor.ProcessBlock(block);
+                }
             }
         }
     }

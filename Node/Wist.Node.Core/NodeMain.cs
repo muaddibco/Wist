@@ -31,8 +31,6 @@ namespace Wist.Node.Core
         private readonly ISynchronizationService _synchronizationService;
         private readonly IRolesRepository _rolesRepository;
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private IBlocksProcessor _consensusBlocksProcessor;
-        private readonly IBlocksProcessor _synchronizationBlocksProcessor;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
@@ -42,8 +40,6 @@ namespace Wist.Node.Core
             _configurationService = configurationService;
             _synchronizationService = synchronizationService;
             _rolesRepository = rolesRepository;
-            _consensusBlocksProcessor = blocksProcessorFactory.Create(ConsensusBlocksProcessor.BLOCKS_PROCESSOR_NAME);
-            _synchronizationBlocksProcessor = blocksProcessorFactory.Create(SynchronizationBlocksProcessor.BLOCKS_PROCESSOR_NAME);
 
             _cancellationTokenSource = new CancellationTokenSource();
         }
@@ -54,7 +50,7 @@ namespace Wist.Node.Core
 
             InitializeRoles();
 
-            _synchronizationService.Initialize(_synchronizationBlocksProcessor, _cancellationTokenSource.Token);
+            _synchronizationService.Initialize(_cancellationTokenSource.Token);
         }
 
         private void InitializeRoles()
@@ -108,7 +104,6 @@ namespace Wist.Node.Core
 
         internal void Start()
         {
-            _consensusBlocksProcessor.Initialize(_cancellationTokenSource.Token);
             _synchronizationService.Start();
 
             IEnumerable<IRole> roles = _rolesRepository.GetBulkInstances();

@@ -53,6 +53,8 @@ namespace Wist.Node.Core
 
         public string Name => BLOCKS_PROCESSOR_NAME;
 
+        public PacketType PacketType => PacketType.Synchronization;
+
         public void Initialize(CancellationToken ct)
         {
             _currentSyncBlockOrder = _synchronizationContext.LastBlockDescriptor.BlockHeight;

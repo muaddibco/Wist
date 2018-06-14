@@ -1,5 +1,6 @@
 ﻿using CommonServiceLocator;
 using System.Collections.Generic;
+using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
@@ -10,51 +11,46 @@ namespace Wist.BlockLattice.Core
     [RegisterDefaultImplementation(typeof(IBlocksProcessorFactory), Lifetime = LifetimeManagement.Singleton)]
     public class BlocksProcessorFactory : IBlocksProcessorFactory
     {
-        private readonly Dictionary<string, Stack<IBlocksProcessor>> _blocksProcessorStack;
+        private readonly Dictionary<string, IBlocksProcessor> _blocksProcessors;
+        private readonly Dictionary<PacketType, HashSet<IBlocksProcessor>> _blocksProcessorsRegistered;
+
         public BlocksProcessorFactory(IBlocksProcessor[] blocksProcessors)
         {
-            _blocksProcessorStack = new Dictionary<string, Stack<IBlocksProcessor>>();
+            _blocksProcessorsRegistered = new Dictionary<PacketType, HashSet<IBlocksProcessor>>();
+            _blocksProcessors = new Dictionary<string, IBlocksProcessor>();
 
             foreach (IBlocksProcessor blocksProcessor in blocksProcessors)
             {
-                if(!_blocksProcessorStack.ContainsKey(blocksProcessor.Name))
+                if(!_blocksProcessors.ContainsKey(blocksProcessor.Name))
                 {
-                    _blocksProcessorStack.Add(blocksProcessor.Name, new Stack<IBlocksProcessor>());
+                    _blocksProcessors.Add(blocksProcessor.Name, blocksProcessor);
                 }
-
-                _blocksProcessorStack[blocksProcessor.Name].Push(blocksProcessor);
             }
         }
-        public IBlocksProcessor Create(string blocksProcessorName)
+        public IBlocksProcessor GetInstance(string blocksProcessorName)
         {
-            IBlocksProcessor blocksProcessor = null;
-            if (!_blocksProcessorStack.ContainsKey(blocksProcessorName))
+            if (!_blocksProcessors.ContainsKey(blocksProcessorName))
             {
                 throw new BlocksProcessorNotRegisteredException(blocksProcessorName);
             }
 
-            if(_blocksProcessorStack[blocksProcessorName].Count > 1)
-            {
-                blocksProcessor = _blocksProcessorStack[blocksProcessorName].Pop();
-            }
-            else
-            {
-                IBlocksProcessor blocksProcessorTemplate = _blocksProcessorStack[blocksProcessorName].Pop();
-                blocksProcessor = (IBlocksProcessor)ServiceLocator.Current.GetInstance(blocksProcessorTemplate.GetType());
-                _blocksProcessorStack[blocksProcessorName].Push(blocksProcessorTemplate);
-            }
-
-            return blocksProcessor;
+            return _blocksProcessors[blocksProcessorName];
         }
 
-        public void Utilize(IBlocksProcessor blocksProcessor)
+        public IEnumerable<IBlocksProcessor> GetBulkInstances(PacketType key)
         {
-            if (!_blocksProcessorStack.ContainsKey(blocksProcessor.Name))
+            //TODO: add key check
+            return _blocksProcessorsRegistered[key];
+        }
+
+        public void RegisterInstance(IBlocksProcessor obj)
+        {
+            if(!_blocksProcessorsRegistered.ContainsKey(obj.PacketType))
             {
-                throw new BlocksProcessorNotRegisteredException(blocksProcessor.Name);
+                _blocksProcessorsRegistered.Add(obj.PacketType, new HashSet<IBlocksProcessor>());
             }
 
-            _blocksProcessorStack[blocksProcessor.Name].Push(blocksProcessor);
+            _blocksProcessorsRegistered[obj.PacketType].Add(obj);
         }
     }
 }

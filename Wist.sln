@@ -46,6 +46,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".Snippets", ".Snippets", "{12533244-EA2E-4DC9-8EA3-D46E5D95DEB6}"
 	ProjectSection(SolutionItems) = preProject
 		Snippets\RegisterDefaultImplementation.snippet = Snippets\RegisterDefaultImplementation.snippet
+		Snippets\RegisterExtensionSingleton.snippet = Snippets\RegisterExtensionSingleton.snippet
+		Snippets\RegisterExtensionTransient.snippet = Snippets\RegisterExtensionTransient.snippet
 	EndProjectSection
 EndProject
 Global

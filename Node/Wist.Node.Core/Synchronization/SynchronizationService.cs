@@ -60,14 +60,14 @@ namespace Wist.Node.Core.Synchronization
         ///   2. Starts process of checking whether current node must participate in Synchronization Group
         /// </summary>
         /// <param name="cancellationToken"></param>
-        public void Initialize(IBlocksProcessor blocksProcessor, CancellationToken cancellationToken)
+        public void Initialize(CancellationToken cancellationToken)
         {
                SynchronizationCommunicationConfiguration syncCommunicationConfiguration = (SynchronizationCommunicationConfiguration)_configurationService[SynchronizationCommunicationConfiguration.SECTION_NAME];
             _communicationHubSync.Init(
                 new SocketListenerSettings(
                     syncCommunicationConfiguration.MaxConnections, //TODO: this value must be taken from the corresponding chain from block-lattice
                     syncCommunicationConfiguration.ReceiveBufferSize,
-                    new IPEndPoint(IPAddress.Loopback, syncCommunicationConfiguration.ListeningPort)), blocksProcessor);
+                    new IPEndPoint(IPAddress.Loopback, syncCommunicationConfiguration.ListeningPort)));
 
             _communicationHubSync.Start();
 
