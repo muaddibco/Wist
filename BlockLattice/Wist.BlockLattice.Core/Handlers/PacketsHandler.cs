@@ -15,6 +15,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.Core.Aspects;
+using Wist.Core.Logging;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
@@ -22,25 +23,24 @@ namespace Wist.BlockLattice.Core.Handlers
     [RegisterDefaultImplementation(typeof(IPacketsHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class PacketsHandler : IPacketsHandler, ISupportInitialization
     {
-        private readonly ILog _log = LogManager.GetLogger(typeof(PacketsHandler));
-        private readonly IPacketTypeHandlersFactory _chainTypeValidationHandlersFactory;
+        private readonly ILogger _log;
+        private readonly IPacketVerifiersRepository _chainTypeValidationHandlersFactory;
+        private readonly IBlockParsersFactoriesRepository _blockParsersFactoriesRepository;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
         private readonly ManualResetEventSlim _messageTrigger;
-        private readonly ConcurrentQueue<PacketErrorMessage> _messageErrorPackets;
-        private readonly ManualResetEventSlim _messageErrorTrigger;
 
         private IBlocksProcessor _blocksProcessor;
         private CancellationTokenSource _cancellationTokenSource;
 
         public bool IsInitialized { get; private set; }
 
-        public PacketsHandler(IPacketTypeHandlersFactory packetTypeHandlersFactory)
+        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersFactoriesRepository blockParsersFactoriesRepository, ILoggerService loggerService)
         {
+            _log = loggerService.GetLogger(GetType().Name);
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
+            _blockParsersFactoriesRepository = blockParsersFactoriesRepository;
             _messagePackets = new ConcurrentQueue<byte[]>();
             _messageTrigger = new ManualResetEventSlim();
-            _messageErrorPackets = new ConcurrentQueue<PacketErrorMessage>();
-            _messageErrorTrigger = new ManualResetEventSlim();
         }
 
         public void Initialize(IBlocksProcessor blocksProcessor)
@@ -62,7 +62,7 @@ namespace Wist.BlockLattice.Core.Handlers
             _messageTrigger.Set();
         }
 
-        public void Start(bool withErrorsProcessing = true)
+        public void Start()
         {
             Stop();
 
@@ -85,11 +85,6 @@ namespace Wist.BlockLattice.Core.Handlers
                     Task.Factory.StartNew(() => Parse(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
                 }
             }, 1000, cancelToken: _cancellationTokenSource.Token, delayInMilliseconds: 3000);
-
-            if(withErrorsProcessing)
-            {
-                Task.Factory.StartNew(() => ProcessPacketErrorPackets(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
-            }
         }
 
         public void Stop()
@@ -123,25 +118,23 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             if (messagePacket == null)
             {
-                _log.Warn("An EMPTY packet obtained at ProcessMessagePacket");
+                _log.Warning("An EMPTY packet obtained at ProcessMessagePacket");
                 return;
             }
 
-            IPacketTypeHandler chainTypeHandler = null;
+            IPacketVerifier chainTypeHandler = null;
 
-            PacketType chainType = (PacketType)BitConverter.ToUInt16(messagePacket, 0);
-            chainTypeHandler = _chainTypeValidationHandlersFactory.Create(chainType);
+            PacketType packetType = (PacketType)BitConverter.ToUInt16(messagePacket, 0);
+            chainTypeHandler = _chainTypeValidationHandlersFactory.GetInstance(packetType);
 
             try
             {
-                PacketErrorMessage packetErrorMessage = chainTypeHandler.ValidatePacket(messagePacket);
-                if (packetErrorMessage.ErrorCode != PacketsErrors.NO_ERROR)
+                bool res = chainTypeHandler.ValidatePacket(messagePacket);
+
+                if(res)
                 {
-                    PushPacketErrorPacket(packetErrorMessage);
-                }
-                else
-                {
-                    BlockBase blockBase = ParseMessagePacket(chainTypeHandler.BlockParsersFactory, messagePacket);
+                    IBlockParsersFactory blockParsersFactory = _blockParsersFactoriesRepository.GetBlockParsersFactory(packetType);
+                    BlockBase blockBase = ParseMessagePacket(blockParsersFactory, messagePacket);
 
                     DispatchBlock(blockBase);
                 }
@@ -149,13 +142,6 @@ namespace Wist.BlockLattice.Core.Handlers
             catch (Exception ex)
             {
                 _log.Error($"Failed to process packet {messagePacket.ToHexString()}", ex);
-            }
-            finally
-            {
-                if (chainTypeHandler != null)
-                {
-                    _chainTypeValidationHandlersFactory.Utilize(chainTypeHandler);
-                }
             }
         }
 
@@ -194,46 +180,5 @@ namespace Wist.BlockLattice.Core.Handlers
                 _blocksProcessor.ProcessBlock(block);
             }
         }
-
-        #region Packets errors processing
-
-        private void PushPacketErrorPacket(PacketErrorMessage messageErrorPacket)
-        {
-            _messageErrorPackets.Enqueue(messageErrorPacket);
-            _messageErrorTrigger.Set();
-        }
-
-        private void ProcessPacketErrorPackets(CancellationToken ct)
-        {
-            while (!ct.IsCancellationRequested)
-            {
-                PacketErrorMessage messageErrorPacket;
-                if (_messageErrorPackets.TryDequeue(out messageErrorPacket))
-                {
-                    _messageErrorTrigger.Reset();
-                    switch (messageErrorPacket.ErrorCode)
-                    {
-                        case PacketsErrors.LENGTH_IS_INVALID:
-                            _log.Error($"Invalid message length 0: {messageErrorPacket.MessagePacket.ToHexString()}");
-                            break;
-                        case PacketsErrors.LENGTH_DOES_NOT_MATCH:
-                            _log.Error($"Actual message body length is differs from declared: {messageErrorPacket.MessagePacket.ToHexString()}");
-                            break;
-                        case PacketsErrors.SIGNATURE_IS_INVALID:
-                            _log.Error($"Message signature is invalid: {messageErrorPacket.MessagePacket.ToHexString()}");
-                            break;
-                        case PacketsErrors.HASHBACK_IS_INVALID:
-                            _log.Error($"Message hash N back value is invalid: {messageErrorPacket.MessagePacket.ToHexString()}");
-                            break;
-                    }
-                }
-                else
-                {
-                    _messageErrorTrigger.Wait();
-                }
-            }
-        }
-
-        #endregion Packets errors processing
     }
 }

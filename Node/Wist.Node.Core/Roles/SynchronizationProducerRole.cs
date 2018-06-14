@@ -8,6 +8,7 @@ using Wist.Communication.Interfaces;
 using Wist.Communication.Sockets;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Logging;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Roles
@@ -19,11 +20,12 @@ namespace Wist.Node.Core.Roles
         private readonly ICommunicationService _syncGroupCommunicationService;
         private readonly IBlocksProcessor _blocksProcessor;
 
-        public SynchronizationProducerRole(ICommunicationServicesFactory communicationServicesFactory)
+        public SynchronizationProducerRole(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService) : base(loggerService)
         {
             _communicationServicesFactory = communicationServicesFactory;
             _syncGroupCommunicationService = communicationServicesFactory.Create("TcpCommunicationService");
         }
+
         public override string Name => nameof(SynchronizationProducerRole);
 
         protected override void InitializeInner()

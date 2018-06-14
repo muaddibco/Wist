@@ -20,7 +20,7 @@ namespace Wist.BlockLattice.Core.Interfaces
         /// <param name="messagePacket">Bytes of complete message for following processing</param>
         void Push(byte[] messagePacket);
 
-        void Start(bool withErrorsProcessing = true);
+        void Start();
 
         void Stop();
     }

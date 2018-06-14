@@ -5,6 +5,7 @@ using System.Text;
 using Unity;
 using Unity.Lifetime;
 using Unity.ServiceLocation;
+using Wist.Core.Logging;
 
 namespace Wist.Tests.Core.Fixtures
 {

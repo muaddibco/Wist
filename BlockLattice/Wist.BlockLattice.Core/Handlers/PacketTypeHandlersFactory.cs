@@ -11,63 +11,33 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterDefaultImplementation(typeof(IPacketTypeHandlersFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class PacketTypeHandlersFactory : IPacketTypeHandlersFactory
+    [RegisterDefaultImplementation(typeof(IPacketVerifiersRepository), Lifetime = LifetimeManagement.Singleton)]
+    public class PacketVerifiersRepository : IPacketVerifiersRepository
     {
-        private readonly Dictionary<PacketType, Stack<IPacketTypeHandler>> _packetTypeHandlersCache;
+        private readonly Dictionary<PacketType, IPacketVerifier> _packetVerifiers;
         private readonly object _sync = new object();
 
-        public PacketTypeHandlersFactory(IPacketTypeHandler[] packetTypeHandlers)
+        public PacketVerifiersRepository(IPacketVerifier[] packetVerifiers)
         {
-            _packetTypeHandlersCache = new Dictionary<PacketType, Stack<IPacketTypeHandler>>();
+            _packetVerifiers = new Dictionary<PacketType, IPacketVerifier>();
 
-            foreach (var packetTypeHandler in packetTypeHandlers)
+            foreach (var packetVerifier in packetVerifiers)
             {
-                if(!_packetTypeHandlersCache.ContainsKey(packetTypeHandler.ChainType))
+                if(!_packetVerifiers.ContainsKey(packetVerifier.PacketType))
                 {
-                    _packetTypeHandlersCache.Add(packetTypeHandler.ChainType, new Stack<IPacketTypeHandler>());
-                    _packetTypeHandlersCache[packetTypeHandler.ChainType].Push(packetTypeHandler);
+                    _packetVerifiers.Add(packetVerifier.PacketType, packetVerifier);
                 }
             }
         }
 
-        public IPacketTypeHandler Create(PacketType packetType)
+        public IPacketVerifier GetInstance(PacketType packetType)
         {
-            if (!_packetTypeHandlersCache.ContainsKey(packetType))
+            if (!_packetVerifiers.ContainsKey(packetType))
             {
                 throw new NotSupportedPacketTypeHandlerException(packetType);
             }
 
-            lock (_sync)
-            {
-                IPacketTypeHandler packetTypeHandler = null;
-
-                if (_packetTypeHandlersCache[packetType].Count > 1)
-                {
-                    packetTypeHandler = _packetTypeHandlersCache[packetType].Pop();
-                }
-                else
-                {
-                    IPacketTypeHandler packetTypeHandlerTemplate = _packetTypeHandlersCache[packetType].Pop();
-                    packetTypeHandler = (IPacketTypeHandler)Activator.CreateInstance(packetTypeHandlerTemplate.GetType());
-                    _packetTypeHandlersCache[packetType].Push(packetTypeHandlerTemplate);
-                }
-
-                return packetTypeHandler;
-            }
-        }
-
-        public void Utilize(IPacketTypeHandler packetTypeHandler)
-        {
-            if (packetTypeHandler == null)
-                throw new ArgumentNullException(nameof(packetTypeHandler));
-
-            if (!_packetTypeHandlersCache.ContainsKey(packetTypeHandler.ChainType))
-            {
-                throw new NotSupportedPacketTypeHandlerException(packetTypeHandler.ChainType);
-            }
-
-            _packetTypeHandlersCache[packetTypeHandler.ChainType].Push(packetTypeHandler);
+            return _packetVerifiers[packetType];
         }
     }
 }

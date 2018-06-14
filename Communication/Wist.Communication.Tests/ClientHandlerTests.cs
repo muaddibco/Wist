@@ -10,6 +10,7 @@ using System.Threading;
 using Wist.Communication.Tests.Fixtures;
 using Xunit;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.Core.Logging;
 
 namespace Wist.Communication.Tests
 {
@@ -26,9 +27,10 @@ namespace Wist.Communication.Tests
         public void ParseSingleShortPacket()
         {
             List<byte[]> packets = new List<byte[]>();
-            IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();  
+            IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();
+            ILoggerService loggerService = Substitute.For<ILoggerService>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
-            ICommunicationChannel handler = new CommunicationChannel();
+            ICommunicationChannel handler = new CommunicationChannel(loggerService);
             handler.Init(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44};
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc};
@@ -48,8 +50,9 @@ namespace Wist.Communication.Tests
         {
             List<byte[]> packets = new List<byte[]>();
             IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();
+            ILoggerService loggerService = Substitute.For<ILoggerService>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
-            ICommunicationChannel handler = new CommunicationChannel();
+            ICommunicationChannel handler = new CommunicationChannel(loggerService);
             handler.Init(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc};
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc };
@@ -69,8 +72,9 @@ namespace Wist.Communication.Tests
         {
             List<byte[]> packets = new List<byte[]>();
             IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();
+            ILoggerService loggerService = Substitute.For<ILoggerService>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
-            ICommunicationChannel handler = new CommunicationChannel();
+            ICommunicationChannel handler = new CommunicationChannel(loggerService);
             handler.Init(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, CommunicationChannel.DLE, CommunicationChannel.DLE + 0x02, 0x00, 0xaa, 0xbb, 0xdd, 0x44 };
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb };
@@ -90,8 +94,9 @@ namespace Wist.Communication.Tests
         {
             List<byte[]> packets = new List<byte[]>();
             IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();
+            ILoggerService loggerService = Substitute.For<ILoggerService>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
-            ICommunicationChannel handler = new CommunicationChannel();
+            ICommunicationChannel handler = new CommunicationChannel(loggerService);
             handler.Init(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet1 = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, 0x09, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
             byte[] packet2 = new byte[] { 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
@@ -113,8 +118,9 @@ namespace Wist.Communication.Tests
         {
             List<byte[]> packets = new List<byte[]>();
             IPacketsHandler messagesHandler = Substitute.For<IPacketsHandler>();
+            ILoggerService loggerService = Substitute.For<ILoggerService>();
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
-            ICommunicationChannel handler = new CommunicationChannel();
+            ICommunicationChannel handler = new CommunicationChannel(loggerService);
             handler.Init(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet1 = new byte[] { 0x45, 0x65, CommunicationChannel.DLE };
             byte[] packet2 = new byte[] { CommunicationChannel.STX, 0x09, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };

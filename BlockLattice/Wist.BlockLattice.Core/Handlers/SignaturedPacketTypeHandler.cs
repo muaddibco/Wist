@@ -7,27 +7,28 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Logging;
 using Wist.Core.Models;
 using Wist.Core.ProofOfWork;
 using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterExtension(typeof(IPacketTypeHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class SignaturedPacketTypeHandler : PacketTypeHandlerBase
+    [RegisterExtension(typeof(IPacketVerifier), Lifetime = LifetimeManagement.TransientPerResolve)]
+    public class SignaturedPacketTypeHandler : PowBasedPacketVerifierBase
     {
         public const int MESSAGE_TYPE_SIZE = 2;
         public const int MESSAGE_SIGNATURE_SIZE = 64;
         public const int MESSAGE_PUBLICKEY_SIZE = 32;
 
-        public SignaturedPacketTypeHandler(ISynchronizationContext synchronizationContext, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IBlockParsersFactory[] blockParsersFactories) 
-            : base(synchronizationContext, proofOfWorkCalculationFactory, blockParsersFactories)
+        public SignaturedPacketTypeHandler(ISynchronizationContext synchronizationContext, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, ILoggerService loggerService) 
+            : base(synchronizationContext, loggerService, proofOfWorkCalculationFactory)
         {
         }
 
-        public override PacketType ChainType => PacketType.AccountChain;
+        public override PacketType PacketType => PacketType.AccountChain;
 
-        protected override PacketsErrors ValidatePacket(BinaryReader br)
+        protected override bool ValidatePacket(BinaryReader br, uint syncBlockHeight)
         {
             ushort messageType = br.ReadUInt16();
 
@@ -39,11 +40,11 @@ namespace Wist.BlockLattice.Core.Handlers
 
             if (!VerifySignature(messageBody, signature, publickKey))
             {
-                return PacketsErrors.SIGNATURE_IS_INVALID;
+                _log.Error("Signature is invalid");
+                return false;
             }
 
-
-            return PacketsErrors.NO_ERROR;
+            return true;
         }
 
         private bool VerifySignature(byte[] messageBody, byte[] signature, byte[] publicKey)

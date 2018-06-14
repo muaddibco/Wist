@@ -17,6 +17,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;
 using Wist.Core.ExtensionMethods;
+using Wist.Core.Logging;
 using Wist.Node.Core.Configuration;
 using Wist.Node.Core.Interfaces;
 
@@ -28,7 +29,7 @@ namespace Wist.Node.Core.Synchronization
         public const int GROUP_PARTICIPATION_CHECK_PERIOD = 60;
 
         private readonly object _joinSync = new object();
-        private readonly ILog _log = LogManager.GetLogger(typeof(SynchronizationService));
+        private readonly ILogger _log;
         private ICommunicationService _communicationHubSync;
         private readonly IConfigurationService _configurationService;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
@@ -42,8 +43,9 @@ namespace Wist.Node.Core.Synchronization
 
         public SynchronizationService(ICommunicationServicesFactory communicationHubFactory, IConfigurationService configurationService, 
             ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, 
-            ISynchronizationProducer synchronizationProducer, IDposService dposService)
+            ISynchronizationProducer synchronizationProducer, IDposService dposService, ILoggerService loggerService)
         {
+            _log = loggerService.GetLogger(GetType().Name);
             //_communicationHubSync = communicationHubFactory.Create();
             _configurationService = configurationService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;

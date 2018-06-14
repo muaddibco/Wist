@@ -8,13 +8,12 @@ namespace Wist.Core.Logging
     [ServiceContract]
     public interface ILogger
     {
-        LogSettings Settings { get; }
+        void Initialize(string scopeName);
 
-        void ExceptionError(Enum category, Exception ex, string msg, params object[] messageArgs);
-        void Error(Enum category, string msg, params object[] messageArgs);
-
-        void Warning(Enum category, string msg, params object[] messageArgs);
-        void Info(Enum category, string msg, params object[] messageArgs);
-        void Debug(Enum category, string msg, params object[] messageArgs);
+        void ExceptionError(Exception ex, string msg, params object[] messageArgs);
+        void Error(string msg, params object[] messageArgs);
+        void Warning(string msg, params object[] messageArgs);
+        void Info(string msg, params object[] messageArgs);
+        void Debug(string msg, params object[] messageArgs);
     }
 }

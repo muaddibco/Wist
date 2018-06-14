@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Wist.Core.Logging;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Roles
@@ -10,11 +11,11 @@ namespace Wist.Node.Core.Roles
     public abstract class RoleBase : IRole
     {
         private readonly object _sync = new object();
-        protected readonly ILog _log;
+        protected readonly ILogger _log;
 
-        public RoleBase()
+        public RoleBase(ILoggerService loggerService)
         {
-            _log = LogManager.GetLogger(GetType());
+            _log = loggerService.GetLogger(GetType().Name);
         }
 
         public abstract string Name { get; }

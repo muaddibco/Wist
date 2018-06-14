@@ -43,6 +43,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Node.Console", "Node\W
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreHashLib", "Crypto\HashLib\CoreHashLib\CoreHashLib.csproj", "{9D352643-DCF0-408F-9A11-65DC1D110E83}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".Snippets", ".Snippets", "{12533244-EA2E-4DC9-8EA3-D46E5D95DEB6}"
+	ProjectSection(SolutionItems) = preProject
+		Snippets\RegisterDefaultImplementation.snippet = Snippets\RegisterDefaultImplementation.snippet
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

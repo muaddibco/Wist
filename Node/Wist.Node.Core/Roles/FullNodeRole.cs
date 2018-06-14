@@ -7,6 +7,7 @@ using Wist.Communication.Interfaces;
 using Wist.Communication.Sockets;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Logging;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Roles
@@ -16,7 +17,7 @@ namespace Wist.Node.Core.Roles
     {
         private readonly ICommunicationService _transactionsCommunicationService;
 
-        public FullNodeRole(ICommunicationServicesFactory communicationServicesFactory)
+        public FullNodeRole(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService) : base(loggerService)
         {
             _transactionsCommunicationService = communicationServicesFactory.Create("TcpIntermittentCommunicationService");
         }

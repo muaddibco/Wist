@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using Wist.Core.Configuration;
 using Wist.Core.Logging;
 
 namespace Wist.Core.Aspects
@@ -31,27 +32,24 @@ namespace Wist.Core.Aspects
         private bool _printExceptions;
         private bool _printTrace;
         private bool _methodRelevantForTimeMeasure;
+        private bool _measureTime;
 
 
         private bool MeasureTime
         {
             get
             {
-                if (Logger == null)
-                {
-                    return false;
-                }
-
-                return _methodRelevantForTimeMeasure && Logger.Settings.MeasureTime;
+                return _methodRelevantForTimeMeasure && _measureTime;
             }
         }
 
         private Stopwatch StopWatch => _stopWatch ?? (_stopWatch = new Stopwatch());
 
-        private Enum DefaultCategory => LogCategories.Default;
-
         [NonSerialized]
         private ILogger _logger;
+
+        [NonSerialized]
+        private readonly IConfigurationService _configurationService;
 
         private ILogger Logger
         {
@@ -75,8 +73,14 @@ namespace Wist.Core.Aspects
         public AutoLog()
         {
             AspectPriority = (int)AspectsPriority.AutoLog;
+            _configurationService = ServiceLocator.Current.GetInstance<IConfigurationService>();
+            _measureTime = _configurationService.Get<LogConfiguration>(LogConfiguration.SECTION_NAME)?.MeasureTime ?? false;
         }
 
+        public override void RuntimeInitialize(MethodBase method)
+        {
+            base.RuntimeInitialize(method);
+        }
 
         public override void CompileTimeInitialize(MethodBase method, AspectInfo aspectInfo)
         {
@@ -104,7 +108,7 @@ namespace Wist.Core.Aspects
 
             string message = $"Entering Method: {GenerateMethodString()}";
 
-            Logger?.Info(LogCategories.Default, message);
+            Logger?.Info(message);
         }
 
 
@@ -119,7 +123,7 @@ namespace Wist.Core.Aspects
                 {
                     string message = $"Heavy Method: {GenerateMethodString()}, {timeStamp}";
 
-                    Logger?.Info(DefaultCategory, message);
+                    Logger?.Info(message);
                 }
             }
         }
@@ -135,7 +139,7 @@ namespace Wist.Core.Aspects
 
                 message =
                     $" Exception: {GenerateShortExceptionString(args.Exception)},\r\n Method: {GenerateMethodString()},\r\n Args: {GenerateArgsString(args.Arguments.ToArray())},\r\n Object: {GenerateObjectString(args.Instance)},\r\n Full Exception: {GenerateLongExceptionString(args.Exception)}";
-            Logger?.Error(LogCategories.Default, message);
+            Logger?.Error(message);
         }
 
         private string StopTimer()

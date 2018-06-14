@@ -11,6 +11,7 @@ using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Communication;
+using Wist.Core.Logging;
 
 namespace Wist.Communication.Sockets
 {
@@ -22,7 +23,7 @@ namespace Wist.Communication.Sockets
 
         public override string Name => nameof(TcpCommunicationService);
 
-        public TcpCommunicationService(IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetsHandler, nodesResolutionService)
+        public TcpCommunicationService(ILoggerService loggerService, IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(loggerService, bufferManager, packetsHandler, nodesResolutionService)
         {
             _acceptEventArgsPool = new GenericPool<SocketAsyncEventArgs>(10);
 

@@ -7,13 +7,14 @@ using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Communication;
+using Wist.Core.Logging;
 
 namespace Wist.Communication.Sockets
 {
     [RegisterExtension(typeof(ICommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class UdpCommunicationService : CommunicationServiceBase
     {
-        public UdpCommunicationService(IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(bufferManager, packetsHandler, nodesResolutionService)
+        public UdpCommunicationService(ILoggerService loggerService, IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(loggerService, bufferManager, packetsHandler, nodesResolutionService)
         {
         }
 

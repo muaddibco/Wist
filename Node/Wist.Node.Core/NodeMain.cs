@@ -11,6 +11,7 @@ using Wist.Node.Core.Interfaces;
 using System.Collections;
 using System.Collections.Generic;
 using log4net;
+using Wist.Core.Logging;
 
 namespace Wist.Node.Core
 {
@@ -25,7 +26,7 @@ namespace Wist.Node.Core
     public class NodeMain
     {
         private static readonly object _sync = new object();
-        private readonly ILog _log = LogManager.GetLogger(typeof(NodeMain));
+        private readonly ILogger _log;
         private readonly IConfigurationService _configurationService;
         private readonly ISynchronizationService _synchronizationService;
         private readonly IRolesRepository _rolesRepository;
@@ -35,8 +36,9 @@ namespace Wist.Node.Core
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(IConfigurationService configurationService, IRolesRepository rolesRepository, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService)
+        public NodeMain(IConfigurationService configurationService, IRolesRepository rolesRepository, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService, ILoggerService loggerService)
         {
+            _log = loggerService.GetLogger(GetType().Name);
             _configurationService = configurationService;
             _synchronizationService = synchronizationService;
             _rolesRepository = rolesRepository;

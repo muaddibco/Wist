@@ -22,10 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="log4net" Version="2.0.8" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
   </ItemGroup>
 
@@ -47,6 +43,12 @@
   <ItemGroup>
     <Folder Include="Serializers\Signed\" />
     <Folder Include="Serializers\Transactional\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Threading.Tasks.Dataflow">
+      <HintPath>..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.1.0\ref\netcoreapp2.1\System.Threading.Tasks.Dataflow.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

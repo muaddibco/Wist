@@ -9,14 +9,15 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
+using Wist.Core.Logging;
 using Wist.Core.ProofOfWork;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Parsers
 {
-    [RegisterExtension(typeof(IPacketTypeHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class ConsensusPacketTypeHandler : PacketTypeHandlerBase
+    [RegisterExtension(typeof(IPacketVerifier), Lifetime = LifetimeManagement.TransientPerResolve)]
+    public class ConsensusPacketTypeHandler : PacketVerifierBase
     {
         public const int MESSAGE_TYPE_SIZE = 2;
         public const int MESSAGE_LENGTH_SIZE = 2;
@@ -25,28 +26,30 @@ namespace Wist.Node.Core.Parsers
 
         private readonly IConsensusHub _consensusHub;
 
-        public ConsensusPacketTypeHandler(IConsensusHub consensusHub, ISynchronizationContext synchronizationContext, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IBlockParsersFactory[] blockParsersFactories)
-            : base(synchronizationContext, proofOfWorkCalculationFactory, blockParsersFactories)
+        public ConsensusPacketTypeHandler(IConsensusHub consensusHub, ISynchronizationContext synchronizationContext, ILoggerService loggerService)
+            : base(synchronizationContext, loggerService)
         {
             _consensusHub = consensusHub;
         }
 
-        public override PacketType ChainType => PacketType.Consensus;
+        public override PacketType PacketType => PacketType.Consensus;
 
-        protected override PacketsErrors ValidatePacket(BinaryReader br)
+        protected override bool ValidatePacket(BinaryReader br, uint syncBlockHeight)
         {
             ushort messageType = br.ReadUInt16();
             ushort length = br.ReadUInt16();
 
             if (length == 0)
             {
-                return PacketsErrors.LENGTH_IS_INVALID;
+                _log.Error("Length is invalid");
+                return false;
             }
 
             int actualMessageBodyLength = (int)(br.BaseStream.Length - (MESSAGE_TYPE_SIZE + MESSAGE_LENGTH_SIZE + MESSAGE_SIGNATURE_SIZE + MESSAGE_PUBLICKEY_SIZE));
             if (actualMessageBodyLength != length)
             {
-                return PacketsErrors.LENGTH_DOES_NOT_MATCH;
+                _log.Error("Reported length of packet differs from actual one.");
+                return false;
             }
 
             byte[] messageBody = br.ReadBytes(length);
@@ -55,16 +58,18 @@ namespace Wist.Node.Core.Parsers
 
             if(!VerifyConsensusParticipant(publickKey))
             {
-                return PacketsErrors.INVALID_CONSENSUS_GROUP_PARTICIPANT;
+                _log.Error("Invalid consensus group participant");
+                return false;
             }
 
             if (!VerifySignature(messageBody, signature, publickKey))
             {
-                return PacketsErrors.SIGNATURE_IS_INVALID;
+                _log.Error("Signature is invalid");
+                return false;
             }
 
 
-            return PacketsErrors.NO_ERROR;
+            return true;
         }
 
         private bool VerifyConsensusParticipant(byte[] publicKey)

@@ -13,6 +13,7 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Architecture.Registration;
 using Wist.Core.Architecture.UnityExtensions;
 using Wist.Core.Configuration;
+using Wist.Core.Logging;
 
 namespace Wist.Node.Core
 {
@@ -20,11 +21,12 @@ namespace Wist.Node.Core
     {
         private IRegistrationManager _registrationManager;
 
-        private readonly ILog _log = LogManager.GetLogger(typeof(NodeBootstrapper));
+        private readonly ILog _log;
         private readonly CancellationToken _cancellationToken;
 
         public NodeBootstrapper(CancellationToken ct)
         {
+            _log = LogManager.GetLogger(GetType());
             _cancellationToken = ct;
         }
 

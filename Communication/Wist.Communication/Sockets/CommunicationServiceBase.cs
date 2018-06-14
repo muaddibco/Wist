@@ -17,12 +17,13 @@ using System.Threading.Tasks;
 using Wist.Core.Models;
 using Wist.Core.Communication;
 using System.Collections.Concurrent;
+using Wist.Core.Logging;
 
 namespace Wist.Communication.Sockets
 {
     public abstract class CommunicationServiceBase : ICommunicationService
     {
-        protected readonly ILog _log = LogManager.GetLogger(typeof(CommunicationServiceBase));
+        protected readonly ILogger _log;
         private readonly IBufferManager _bufferManager;
         private readonly IPacketsHandler _packetsHandler;
         private GenericPool<ICommunicationChannel> _communicationChannelsPool;
@@ -43,8 +44,9 @@ namespace Wist.Communication.Sockets
         /// </summary>
         /// <param name="settings">instance of <see cref="SocketListenerSettings"/> with defined settings of listener</param>
         /// <param name="receiveBufferSize">buffer size to use for each socket I/O operation</param>
-        public CommunicationServiceBase(IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
+        public CommunicationServiceBase(ILoggerService loggerService, IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
         {
+            _log = loggerService.GetLogger(GetType().Name);
             _bufferManager = bufferManager;
             _packetsHandler = packetsHandler;
             _clientConnectedList = new List<ICommunicationChannel>();

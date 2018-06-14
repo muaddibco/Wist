@@ -4,8 +4,7 @@ using System.Text;
 
 namespace Wist.Core.Logging
 {
-    public enum LogCategories
+    public interface ILoggerAsync
     {
-        Default = 1
     }
 }

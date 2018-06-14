@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using CommonServiceLocator;
+using log4net;
 using log4net.Config;
 using System;
 using System.Collections.Generic;
@@ -12,32 +13,70 @@ using Wist.Core.Exceptions;
 
 namespace Wist.Core.Logging
 {
-    [RegisterDefaultImplementation(typeof(ILogger), Lifetime = LifetimeManagement.Singleton)]
+    [RegisterDefaultImplementation(typeof(ILogger), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class Log4NetLogger : ILogger
     {
-        private readonly Dictionary<Enum, ILog> _loggers = new Dictionary<Enum, ILog>();
+        private ILog _log;
 
-        public LogSettings Settings { get; }
-
-        public Log4NetLogger(IAppConfig appConfig)
+        public Log4NetLogger(IConfigurationService configurationService)
         {
-            Settings = new LogSettings
-            {
-                Log4NetConfigurationFile = appConfig.GetString("Log4NetConfigurationFile", false),
-                MeasureTime = appConfig.GetBool("LogMeasureTime", false)
-            };
-
-            ConfigureLog4Net();
+            ConfigureLog4Net(configurationService.Get<LogConfiguration>(LogConfiguration.SECTION_NAME)?.LogConfigurationFile);
         }
 
-        private void ConfigureLog4Net()
+        public void Initialize(string scopeName)
         {
-            if (!string.IsNullOrEmpty(Settings.Log4NetConfigurationFile))
+            _log = LogManager.GetLogger("Default", scopeName);
+        }
+
+        public void Debug(string msg, params object[] messageArgs)
+        {
+            string formattedMessage = FormatMessage(msg, messageArgs);
+
+            _log.Debug(formattedMessage);
+        }
+
+        public void Info(string msg, params object[] messageArgs)
+        {
+            string formattedMessage = FormatMessage(msg, messageArgs);
+            _log.Info(formattedMessage);
+        }
+
+        public void Warning(string msg, params object[] messageArgs)
+        {
+            string formattedMessage = FormatMessage(msg, messageArgs);
+            _log.Warn(formattedMessage);
+        }
+
+        public void Error(string msg, params object[] messageArgs)
+        {
+            string formattedMessage = FormatMessage(msg, messageArgs);
+
+            _log.Error(formattedMessage);
+        }
+
+        public void ExceptionError(Exception ex, string msg, params object[] messageArgs)
+        {
+            if (ex == null)
+            {
+                Error(msg, messageArgs);
+                return;
+            }
+
+            string formattedMessage = FormatMessage(msg, messageArgs);
+            string messageWithException = $"{formattedMessage} - Exception: {ex.GetType()}, {ex.Message} - {ex}";
+
+
+            _log.Error(messageWithException);
+        }
+
+        private void ConfigureLog4Net(string logConfigFilePath)
+        {
+            if (!string.IsNullOrEmpty(logConfigFilePath))
             {
                 FileInfo executinAssemblyInfo = new FileInfo(Assembly.GetExecutingAssembly().Location);
                 if (executinAssemblyInfo.DirectoryName != null)
                 {
-                    string path = Path.Combine(executinAssemblyInfo.DirectoryName, Settings.Log4NetConfigurationFile);
+                    string path = Path.Combine(executinAssemblyInfo.DirectoryName, logConfigFilePath);
                     if (File.Exists(path) == false)
                     {
                         throw new FailedToFindLogConfigFileException("log4net", path);
@@ -53,21 +92,6 @@ namespace Wist.Core.Logging
             XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetExecutingAssembly()));
         }
 
-        private ILog GetLog4NetLogger(Enum loggerCategory)
-        {
-            if (loggerCategory == null)
-            {
-                loggerCategory = NullEnum.Null;
-            }
-
-            if (!_loggers.ContainsKey(loggerCategory))
-            {
-                _loggers[loggerCategory] = LogManager.GetLogger(Assembly.GetExecutingAssembly(), loggerCategory.ToString());
-            }
-
-            return _loggers[loggerCategory];
-        }
-
         private static string FormatMessage(string msg, object[] messageArgs)
         {
             if (messageArgs == null || messageArgs.Length == 0)
@@ -77,51 +101,5 @@ namespace Wist.Core.Logging
 
             return string.Format(msg ?? string.Empty, messageArgs);
         }
-
-        public void Debug(Enum category, string msg, params object[] messageArgs)
-        {
-            string formattedMessage = FormatMessage(msg, messageArgs);
-
-            GetLog4NetLogger(category).Debug(formattedMessage);
-        }
-
-        public void Info(Enum category, string msg, params object[] messageArgs)
-        {
-            string formattedMessage = FormatMessage(msg, messageArgs);
-            GetLog4NetLogger(category).Info(formattedMessage);
-        }
-
-        public void Warning(Enum category, string msg, params object[] messageArgs)
-        {
-            string formattedMessage = FormatMessage(msg, messageArgs);
-            GetLog4NetLogger(category).Warn(formattedMessage);
-        }
-
-        public void Error(Enum category, string msg, params object[] messageArgs)
-        {
-            string formattedMessage = FormatMessage(msg, messageArgs);
-
-            GetLog4NetLogger(category).Error(formattedMessage);
-        }
-
-        public void ExceptionError(Enum category, Exception ex, string msg, params object[] messageArgs)
-        {
-            if (ex == null)
-            {
-                Error(category, msg, messageArgs);
-                return;
-            }
-
-            string formattedMessage = FormatMessage(msg, messageArgs);
-            string messageWithException = $"{formattedMessage} - Exception: {ex.GetType()}, {ex.Message} - {ex}";
-
-
-            GetLog4NetLogger(category).Error(messageWithException);
-        }
-
-        private enum NullEnum
-        {
-            Null
-        };
     }
 }

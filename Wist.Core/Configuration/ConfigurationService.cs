@@ -18,5 +18,10 @@ namespace Wist.Core.Configuration
         }
 
         public IConfigurationSection this[string sectionName] => _configurationSections.FirstOrDefault(s => s.SectionName.Equals(sectionName, StringComparison.InvariantCultureIgnoreCase));
+
+        public T Get<T>(string sectionName) where T : class, IConfigurationSection
+        {
+            return this[sectionName] as T;
+        }
     }
 }

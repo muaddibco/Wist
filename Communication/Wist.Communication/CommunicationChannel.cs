@@ -10,13 +10,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Communication;
+using Wist.Core.Logging;
 
 namespace Wist.Communication
 {
     public class CommunicationChannel : ICommunicationChannel
     {
         private readonly object _sync = new object();
-        private readonly ILog _log = LogManager.GetLogger(typeof(CommunicationChannel));
+        private readonly ILogger _log;
         private readonly Queue<byte[]> _packets;
         private readonly Queue<byte[]> _messagePackets;
         private readonly ConcurrentQueue<IMessage> _postedMessages;
@@ -55,8 +56,9 @@ namespace Wist.Communication
 
         public event EventHandler<EventArgs> SocketClosedEvent;
 
-        public CommunicationChannel()
+        public CommunicationChannel(ILoggerService loggerService)
         {
+            _log = loggerService.GetLogger(GetType().Name);
             _packets = new Queue<byte[]>();
             _messagePackets = new Queue<byte[]>();
             _postedMessages = new ConcurrentQueue<IMessage>();
@@ -231,7 +233,7 @@ namespace Wist.Communication
             }
             catch (Exception ex)
             {
-                _log.Warn($"Socket shutdown failed for IP {RemoteIPAddress}", ex);
+                _log.Warning($"Socket shutdown failed for IP {RemoteIPAddress}", ex);
             }
 
             _socketReceiveAsyncEventArgs.AcceptSocket.Close();

@@ -9,13 +9,11 @@ using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Interfaces
 {
-    [ServiceContract]
-    public interface IPacketTypeHandler
+    [ExtensionPoint]
+    public interface IPacketVerifier
     {
-        PacketType ChainType { get; }
+        PacketType PacketType { get; }
 
-        PacketErrorMessage ValidatePacket(byte[] packet);
-
-        IBlockParsersFactory BlockParsersFactory { get; }
+        bool ValidatePacket(byte[] packet);
     }
 }

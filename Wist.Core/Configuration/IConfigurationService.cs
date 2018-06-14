@@ -9,5 +9,7 @@ namespace Wist.Core.Configuration
     public interface IConfigurationService
     {
         IConfigurationSection this[string sectionName] { get; }
+
+        T Get<T>(string sectionName) where T: class, IConfigurationSection;
     }
 }
