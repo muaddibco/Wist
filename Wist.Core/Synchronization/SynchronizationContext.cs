@@ -1,18 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Subjects;
 using System.Text;
+using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
 namespace Wist.Core.Synchronization
 {
-    [RegisterDefaultImplementation(typeof(ISynchronizationContext), Lifetime = LifetimeManagement.Singleton)]
+    [RegisterExtension(typeof(ISynchronizationContext), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationContext : ISynchronizationContext
     {
-        public SynchronizationDescriptor LastBlockDescriptor { get; set; }
+        public const string NAME = "SynchronizationState";
 
-        public SynchronizationDescriptor PrevBlockDescriptor { get; set; }
+        private readonly Subject<string> _synchronizationSublect;
+
+        public SynchronizationContext()
+        {
+            _synchronizationSublect = new Subject<string>();
+        }
+
+        public SynchronizationDescriptor LastBlockDescriptor { get; private set; }
+
+        public SynchronizationDescriptor PrevBlockDescriptor { get; private set; }
+
+        public string Name => NAME;
 
         /// <summary>
         /// Utility function that returns median value from provided array
@@ -39,6 +52,27 @@ namespace Wist.Core.Synchronization
                 int index = count / 2;
 
                 return orderedRetransmittedBlocks.ElementAt(index);
+            }
+        }
+
+        public void SubscribeOnStateChange(ITargetBlock<string> targetBlock)
+        {
+            _synchronizationSublect.Subscribe(targetBlock.AsObserver());
+        }
+
+        public void UpdateLastSyncBlockDescriptor(SynchronizationDescriptor synchronizationDescriptor)
+        {
+            if (synchronizationDescriptor == null)
+            {
+                throw new ArgumentNullException(nameof(synchronizationDescriptor));
+            }
+
+            if (LastBlockDescriptor == null || synchronizationDescriptor.BlockHeight > LastBlockDescriptor.BlockHeight)
+            {
+                PrevBlockDescriptor = LastBlockDescriptor;
+                LastBlockDescriptor = synchronizationDescriptor;
+
+                _synchronizationSublect.OnNext(nameof(LastBlockDescriptor));
             }
         }
     }

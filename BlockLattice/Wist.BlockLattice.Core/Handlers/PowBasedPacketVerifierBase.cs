@@ -6,6 +6,7 @@ using System.Text;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.Logging;
 using Wist.Core.ProofOfWork;
+using Wist.Core.States;
 using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Handlers
@@ -14,7 +15,7 @@ namespace Wist.BlockLattice.Core.Handlers
     {
         private readonly IProofOfWorkCalculationFactory _proofOfWorkCalculationFactory;
 
-        public PowBasedPacketVerifierBase(ISynchronizationContext synchronizationContext, ILoggerService loggerService, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base(synchronizationContext, loggerService)
+        public PowBasedPacketVerifierBase(IStatesRepository statesRepository, ILoggerService loggerService, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base(statesRepository, loggerService)
         {
             _proofOfWorkCalculationFactory = proofOfWorkCalculationFactory;
         }

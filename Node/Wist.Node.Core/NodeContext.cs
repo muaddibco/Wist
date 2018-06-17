@@ -1,21 +1,25 @@
-﻿using System;
+﻿using CommonServiceLocator;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
+using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Model;
 
 namespace Wist.Node.Core
 {
-    [RegisterDefaultImplementation(typeof(INodeContext), Lifetime = LifetimeManagement.Singleton)]
+    [RegisterExtension(typeof(INodeContext), Lifetime = LifetimeManagement.Singleton)]
     public class NodeContext : INodeContext
     {
-        public NodeContext(ISynchronizationContext synchronizationContext)
+        public const string NAME = "NodeState";
+
+        public NodeContext()
         {
-            SynchronizationContext = synchronizationContext;
+            SynchronizationContext = ServiceLocator.Current.GetInstance<IStatesRepository>().GetInstance<ISynchronizationContext>();
             SyncGroupParticipants = new List<ConsensusGroupParticipant>();
 
             //TODO: set PublicKey
@@ -29,6 +33,8 @@ namespace Wist.Node.Core
         public ISynchronizationContext SynchronizationContext { get; }
 
         public ushort SyncGroupParticipantsCount => 21;
+
+        public string Name => NAME;
 
         public void Initialize()
         {

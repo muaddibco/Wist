@@ -10,6 +10,7 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Logging;
 using Wist.Core.Models;
 using Wist.Core.ProofOfWork;
+using Wist.Core.States;
 using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Handlers
@@ -21,8 +22,8 @@ namespace Wist.BlockLattice.Core.Handlers
         public const int MESSAGE_SIGNATURE_SIZE = 64;
         public const int MESSAGE_PUBLICKEY_SIZE = 32;
 
-        public SignaturedPacketTypeHandler(ISynchronizationContext synchronizationContext, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, ILoggerService loggerService) 
-            : base(synchronizationContext, loggerService, proofOfWorkCalculationFactory)
+        public SignaturedPacketTypeHandler(IStatesRepository statesRepository, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, ILoggerService loggerService) 
+            : base(statesRepository, loggerService, proofOfWorkCalculationFactory)
         {
         }
 

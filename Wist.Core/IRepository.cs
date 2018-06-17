@@ -8,18 +8,4 @@ namespace Wist.Core
     {
         T GetInstance(TKey key);
     }
-
-    public interface IBulkRepository<T>
-    {
-        void RegisterInstance(T obj);
-
-        IEnumerable<T> GetBulkInstances();
-    }
-
-    public interface IBulkRepository<T, TKey>
-    {
-        void RegisterInstance(T obj);
-
-        IEnumerable<T> GetBulkInstances(TKey key);
-    }
 }

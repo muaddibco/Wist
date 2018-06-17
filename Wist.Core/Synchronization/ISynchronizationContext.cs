@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Text;
 using Wist.Core.Architecture;
+using Wist.Core.States;
 
 namespace Wist.Core.Synchronization
 {
-    [ServiceContract]
-    public interface ISynchronizationContext
+    public interface ISynchronizationContext : IState
     {
-        SynchronizationDescriptor LastBlockDescriptor { get; set; }
+        SynchronizationDescriptor LastBlockDescriptor { get; }
 
-        SynchronizationDescriptor PrevBlockDescriptor { get; set; }
+        SynchronizationDescriptor PrevBlockDescriptor { get; }
 
         /// <summary>
         /// Utility function that returns median value from provided array
@@ -18,5 +18,7 @@ namespace Wist.Core.Synchronization
         /// <param name="dateTimes"></param>
         /// <returns></returns>
         DateTime GetMedianValue(IEnumerable<DateTime> dateTimes);
+
+        void UpdateLastSyncBlockDescriptor(SynchronizationDescriptor synchronizationDescriptor);
     }
 }

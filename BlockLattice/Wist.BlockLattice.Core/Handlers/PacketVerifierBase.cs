@@ -13,6 +13,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.Logging;
 using Wist.Core.ProofOfWork;
+using Wist.Core.States;
 using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Handlers
@@ -22,10 +23,10 @@ namespace Wist.BlockLattice.Core.Handlers
         protected readonly ILogger _log;
         protected readonly ISynchronizationContext _synchronizationContext;
 
-        public PacketVerifierBase(ISynchronizationContext synchronizationContext, ILoggerService loggerService)
+        public PacketVerifierBase(IStatesRepository statesRepository, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
-            _synchronizationContext = synchronizationContext;
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
         }
 
         public abstract PacketType PacketType { get; }

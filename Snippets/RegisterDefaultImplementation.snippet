@@ -39,7 +39,11 @@
           </Type>
         </Object>
       </Declarations>
-      <Code Language="csharp" Delimiter="$" Kind="type decl"><![CDATA[[RegisterDefaultImplementation(typeof($InterfaceName$), Lifetime = LifetimeManagement.Singleton)]]]></Code>
+      <Code Language="csharp" Delimiter="$" Kind="type decl"><![CDATA[    [RegisterDefaultImplementation(typeof(I$InterfaceName$), Lifetime = LifetimeManagement.Singleton)]
+    public class $InterfaceName$ : I$InterfaceName$
+    {
+    }
+]]></Code>
     </Snippet>
   </CodeSnippet>
 </CodeSnippets>

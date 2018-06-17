@@ -71,7 +71,7 @@ namespace Wist.Node.Core.Synchronization
 
             _communicationHubSync.Start();
 
-            _synchronizationProducer.Initialize(_communicationHubSync);
+            _synchronizationProducer.Initialize();
 
             _cancellationToken = cancellationToken;
             _cancellationToken.Register(() => 

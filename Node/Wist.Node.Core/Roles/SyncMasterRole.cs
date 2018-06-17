@@ -1,54 +1,80 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
-using Wist.Core.Architecture;
-using Wist.Core.Architecture.Enums;
+using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
+using Wist.Node.Core.Synchronization;
 
-namespace Wist.Node.Core.Synchronization
+namespace Wist.Node.Core.Roles
 {
-    [RegisterDefaultImplementation(typeof(ISynchronizationProducer), Lifetime = LifetimeManagement.Singleton)]
-    public class SynchronizationProducer : ISynchronizationProducer
+    /// <summary>
+    /// <see cref="SyncMasterRole"/> is responsible for producing Synchronization Packets every 60 second (considering when last synchronization packet was obtained) and distribute created Synchronization Block to all network participants
+    /// </summary>
+    public class SyncMasterRole : RoleBase
     {
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
+        private readonly ISynchronizationGroupState _synchronizationGroupState;
+        private readonly ISynchronizationContext _synchronizationContext;
         private readonly INodeContext _nodeContext;
         private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
+        private readonly ITargetBlock<string> _syncContextUpdated;
         private ICommunicationService _communicationService;
         private uint _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
-        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, ICommunicationServicesRegistry communicationServicesRegistry)
+        public SyncMasterRole(IStatesRepository statesRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICommunicationServicesRegistry communicationServicesRegistry)
         {
-            _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
-            _nodeContext = nodeContext;
+            _synchronizationContext = statesRepository.GetInstance<Wist.Core.Synchronization.SynchronizationContext>();
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
+            _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
+            _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
+
+            _syncContextUpdated = new ActionBlock<string>(s =>
+             {
+                 DeferredBroadcast();
+             });
         }
 
-        public void Initialize()
+        protected override void InitializeInner()
         {
+            _synchronizationContext.SubscribeOnStateChange(_syncContextUpdated);
             _communicationService = _communicationServicesRegistry.GetInstance("GeneralTcp");
         }
 
-        public void DeferredBroadcast()
+        public override void Start()
         {
-            if (_nodeContext.SynchronizationContext  == null)
+            DeferredBroadcast();
+        }
+
+        public override void Stop()
+        {
+            _syncProducingCancellation?.Cancel();
+        }
+
+        private void DeferredBroadcast()
+        {
+            if (_synchronizationContext == null)
             {
                 return;
             }
 
-            if(_nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight > _lastLaunchedSyncBlockOrder)
+            if (_synchronizationContext.LastBlockDescriptor.BlockHeight > _lastLaunchedSyncBlockOrder)
             {
-                if(_nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight - 1 > _lastLaunchedSyncBlockOrder)
+                if (_synchronizationContext.LastBlockDescriptor.BlockHeight - 1 > _lastLaunchedSyncBlockOrder)
                 {
                     _syncProducingCancellation?.Cancel();
                 }
 
-                int delay = (int)(60000 - (DateTime.Now - _nodeContext.SynchronizationContext.LastBlockDescriptor.ReceivingTime).TotalMilliseconds);
+                int delay = (int)(60000 - (DateTime.Now - _synchronizationContext.LastBlockDescriptor.ReceivingTime).TotalMilliseconds);
 
                 if (delay > 0)
                 {
@@ -70,7 +96,7 @@ namespace Wist.Node.Core.Synchronization
                             synchronizationBlock.Signature = signature;
 
                             //TODO: accomplish logic for messages delivering
-                            //_communicationHub.PostMessage(synchronizationBlock);
+                            //_communicationService.PostMessage(_synchronizationGroupState.GetAllParticipants(), synchronizationBlock);
                             _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockOrder;
                         }, _nodeContext.SynchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }

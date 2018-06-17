@@ -11,6 +11,7 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.Logging;
 using Wist.Core.ProofOfWork;
+using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 
@@ -26,8 +27,8 @@ namespace Wist.Node.Core.Parsers
 
         private readonly IConsensusHub _consensusHub;
 
-        public ConsensusPacketTypeHandler(IConsensusHub consensusHub, ISynchronizationContext synchronizationContext, ILoggerService loggerService)
-            : base(synchronizationContext, loggerService)
+        public ConsensusPacketTypeHandler(IConsensusHub consensusHub, IStatesRepository statesRepository, ILoggerService loggerService)
+            : base(statesRepository, loggerService)
         {
             _consensusHub = consensusHub;
         }

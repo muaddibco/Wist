@@ -12,6 +12,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.ExtensionMethods;
+using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 
@@ -40,9 +41,9 @@ namespace Wist.Node.Core
         private readonly BlockingCollection<SynchronizationBlockRetransmissionV1> _retransmittedBlocks;
         
 
-        public SynchronizationBlocksProcessor(ISynchronizationContext synchronizationContext, ISynchronizationProducer synchronizationProducer, INodeContext nodeContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
+        public SynchronizationBlocksProcessor(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, INodeContext nodeContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
         {
-            _synchronizationContext = synchronizationContext;
+            _synchronizationContext = (ISynchronizationContext)statesRepository.GetInstance("SynchronizationState");
             _synchronizationProducer = synchronizationProducer;
             _nodeContext = nodeContext;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
@@ -79,10 +80,7 @@ namespace Wist.Node.Core
             }
             else if (synchronizationConfirmedBlock != null && _synchronizationContext.LastBlockDescriptor.BlockHeight < synchronizationConfirmedBlock.BlockOrder)
             {
-                _synchronizationContext.LastBlockDescriptor.BlockHeight = synchronizationConfirmedBlock.BlockOrder;
-                _synchronizationContext.LastBlockDescriptor.MedianTime = _synchronizationContext.GetMedianValue(synchronizationConfirmedBlock.ReportedTimes);
-                _synchronizationContext.LastBlockDescriptor.Hash = synchronizationConfirmedBlock.Hash;
-                _synchronizationContext.LastBlockDescriptor.ReceivingTime = DateTime.Now;
+                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockOrder, synchronizationConfirmedBlock.Hash, _synchronizationContext.GetMedianValue(synchronizationConfirmedBlock.ReportedTimes), DateTime.Now));
                 _synchronizationProducer.DeferredBroadcast();
             }
 
