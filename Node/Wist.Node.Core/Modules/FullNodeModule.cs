@@ -12,17 +12,17 @@ using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Roles
 {
-    [RegisterExtension(typeof(IRole), Lifetime = LifetimeManagement.Singleton)]
-    public class FullNodeRole : RoleBase
+    [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
+    public class FullNodeModule : ModuleBase
     {
         private readonly ICommunicationService _transactionsCommunicationService;
 
-        public FullNodeRole(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService) : base(loggerService)
+        public FullNodeModule(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService) : base(loggerService)
         {
             _transactionsCommunicationService = communicationServicesFactory.Create("TcpIntermittentCommunicationService");
         }
 
-        public override string Name => nameof(FullNodeRole);
+        public override string Name => nameof(FullNodeModule);
 
         protected override void InitializeInner()
         {

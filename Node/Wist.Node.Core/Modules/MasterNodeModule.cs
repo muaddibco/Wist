@@ -13,21 +13,21 @@ using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Roles
 {
-    [RegisterExtension(typeof(IRole), Lifetime = LifetimeManagement.Singleton)]
-    public class MasterNodeRole : RoleBase
+    [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
+    public class MasterNodeModule : ModuleBase
     {
         private readonly ICommunicationService _transactionsCommunicationService;
         private readonly ICommunicationService _consensusCommunicationService;
         private readonly IBlocksProcessorFactory _blocksProcessorFactory;
 
-        public MasterNodeRole(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService, IBlocksProcessorFactory blocksProcessorFactory) : base(loggerService)
+        public MasterNodeModule(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService, IBlocksProcessorFactory blocksProcessorFactory) : base(loggerService)
         {
             _transactionsCommunicationService = communicationServicesFactory.Create("UdpCommunicationService");
             _consensusCommunicationService = communicationServicesFactory.Create("TcpIntermittentCommunicationService");
             _blocksProcessorFactory = blocksProcessorFactory;
         }
 
-        public override string Name => nameof(MasterNodeRole);
+        public override string Name => nameof(MasterNodeModule);
 
         protected override void InitializeInner()
         {

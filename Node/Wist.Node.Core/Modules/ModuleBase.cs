@@ -8,12 +8,12 @@ using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Roles
 {
-    public abstract class RoleBase : IRole
+    public abstract class ModuleBase : IModule
     {
         private readonly object _sync = new object();
         protected readonly ILogger _log;
 
-        public RoleBase(ILoggerService loggerService)
+        public ModuleBase(ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
         }

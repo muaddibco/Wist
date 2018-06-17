@@ -29,17 +29,17 @@ namespace Wist.Node.Core
         private readonly ILogger _log;
         private readonly IConfigurationService _configurationService;
         private readonly ISynchronizationService _synchronizationService;
-        private readonly IRolesRepository _rolesRepository;
+        private readonly IModulesRepository _modulesRepository;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(IConfigurationService configurationService, IRolesRepository rolesRepository, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService, ILoggerService loggerService)
+        public NodeMain(IConfigurationService configurationService, IModulesRepository modulesRepository, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _configurationService = configurationService;
             _synchronizationService = synchronizationService;
-            _rolesRepository = rolesRepository;
+            _modulesRepository = modulesRepository;
 
             _cancellationTokenSource = new CancellationTokenSource();
         }
@@ -55,17 +55,17 @@ namespace Wist.Node.Core
 
         private void InitializeRoles()
         {
-            IEnumerable<IRole> roles = _rolesRepository.GetBulkInstances();
+            IEnumerable<IModule> modules = _modulesRepository.GetBulkInstances();
 
-            foreach (IRole role in roles)
+            foreach (IModule module in modules)
             {
                 try
                 {
-                    role.Initialize();
+                    module.Initialize();
                 }
                 catch (Exception ex)
                 {
-                    _log.Error($"Failed to initialize Role '{role.Name}'", ex);
+                    _log.Error($"Failed to initialize Module '{module.Name}'", ex);
                 }
             }
         }
@@ -81,8 +81,8 @@ namespace Wist.Node.Core
                 {
                     try
                     {
-                        IRole role = _rolesRepository.GetInstance(roleName);
-                        _rolesRepository.RegisterInstance(role);
+                        IModule role = _modulesRepository.GetInstance(roleName);
+                        _modulesRepository.RegisterInstance(role);
                     }
                     catch (Exception ex)
                     {
@@ -106,13 +106,13 @@ namespace Wist.Node.Core
         {
             _synchronizationService.Start();
 
-            IEnumerable<IRole> roles = _rolesRepository.GetBulkInstances();
+            IEnumerable<IModule> modules = _modulesRepository.GetBulkInstances();
 
-            foreach (IRole role in roles)
+            foreach (IModule module in modules)
             {
-                if (role.IsInitialized)
+                if (module.IsInitialized)
                 {
-                    role.Play();
+                    module.Play();
                 }
             }
         }

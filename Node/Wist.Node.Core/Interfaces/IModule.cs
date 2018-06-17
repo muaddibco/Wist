@@ -8,7 +8,7 @@ using Wist.Core.Aspects;
 namespace Wist.Node.Core.Interfaces
 {
     [ExtensionPoint]
-    public interface IRole : ISupportInitialization
+    public interface IModule : ISupportInitialization
     {
         string Name { get; }
 

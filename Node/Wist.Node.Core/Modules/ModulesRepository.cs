@@ -9,17 +9,17 @@ using System.Collections.ObjectModel;
 
 namespace Wist.Node.Core.Roles
 {
-    [RegisterDefaultImplementation(typeof(IRolesRepository), Lifetime = LifetimeManagement.Singleton)]
-    public class RolesRepository : IRolesRepository
+    [RegisterDefaultImplementation(typeof(IModulesRepository), Lifetime = LifetimeManagement.Singleton)]
+    public class ModulesRepository : IModulesRepository
     {
-        private readonly Dictionary<string, IRole> _roles;
-        private readonly List<IRole> _selectedRoles;
+        private readonly Dictionary<string, IModule> _roles;
+        private readonly List<IModule> _selectedRoles;
 
-        public RolesRepository(IRole[] roles)
+        public ModulesRepository(IModule[] roles)
         {
-            _roles = new Dictionary<string, IRole>();
+            _roles = new Dictionary<string, IModule>();
 
-            foreach (IRole role in roles)
+            foreach (IModule role in roles)
             {
                 if(!_roles.ContainsKey(role.Name))
                 {
@@ -27,15 +27,15 @@ namespace Wist.Node.Core.Roles
                 }
             }
 
-            _selectedRoles = new List<IRole>();
+            _selectedRoles = new List<IModule>();
         }
 
-        public IEnumerable<IRole> GetBulkInstances()
+        public IEnumerable<IModule> GetBulkInstances()
         {
-            return new ReadOnlyCollection<IRole>(_selectedRoles);
+            return new ReadOnlyCollection<IModule>(_selectedRoles);
         }
 
-        public IRole GetInstance(string key)
+        public IModule GetInstance(string key)
         {
             if(!_roles.ContainsKey(key))
             {
@@ -45,7 +45,7 @@ namespace Wist.Node.Core.Roles
             return _roles[key];
         }
 
-        public void RegisterInstance(IRole role)
+        public void RegisterInstance(IModule role)
         {
             if (role == null)
             {

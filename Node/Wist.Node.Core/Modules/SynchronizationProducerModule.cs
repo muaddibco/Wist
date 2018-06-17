@@ -13,19 +13,19 @@ using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Roles
 {
-    [RegisterExtension(typeof(IRole), Lifetime = LifetimeManagement.Singleton)]
-    public class SynchronizationProducerRole : RoleBase
+    [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
+    public class SynchronizationProducerModule : ModuleBase
     {
         private readonly ICommunicationServicesFactory _communicationServicesFactory;
         private readonly ICommunicationService _syncGroupCommunicationService;
 
-        public SynchronizationProducerRole(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService) : base(loggerService)
+        public SynchronizationProducerModule(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService) : base(loggerService)
         {
             _communicationServicesFactory = communicationServicesFactory;
             _syncGroupCommunicationService = communicationServicesFactory.Create("TcpCommunicationService");
         }
 
-        public override string Name => nameof(SynchronizationProducerRole);
+        public override string Name => nameof(SynchronizationProducerModule);
 
         protected override void InitializeInner()
         {
