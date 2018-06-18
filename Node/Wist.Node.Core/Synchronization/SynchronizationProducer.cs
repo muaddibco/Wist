@@ -19,6 +19,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
         private readonly ISynchronizationContext _synchronizationContext;
+        private readonly ISynchronizationGroupState _synchronizationGroupState;
         private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
         private ICommunicationService _communicationService;
         private uint _lastLaunchedSyncBlockOrder = 0;
@@ -29,6 +30,7 @@ namespace Wist.Node.Core.Synchronization
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodeContext = statesRepository.GetInstance<INodeContext>();
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
+            _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
         }
 
@@ -71,15 +73,21 @@ namespace Wist.Node.Core.Synchronization
                                 ReportedTime = synchronizationDescriptor?.MedianTime.AddMinutes(1) ?? DateTime.Now
                             };
 
-                            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock);
-                            byte[] body = signatureSupportSerializer.GetBody(synchronizationBlock);
-                            byte[] signature = _nodeContext.Sign(body);
-                            synchronizationBlock.PublicKey = _nodeContext.PublicKey;
-                            synchronizationBlock.Signature = signature;
+                            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock);
 
-                            //TODO: accomplish logic for messages delivering
-                            //_communicationHub.PostMessage(synchronizationBlock);
-                            _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
+                            try
+                            {
+                                _communicationService.PostMessage(_synchronizationGroupState.GetAllParticipants(), signatureSupportSerializer);
+                                _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
+                            }
+                            finally
+                            {
+                                if(signatureSupportSerializer != null)
+                                {
+                                    _signatureSupportSerializersFactory.Utilize(signatureSupportSerializer);
+                                }
+                            }
+
                         }, _synchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }
             }

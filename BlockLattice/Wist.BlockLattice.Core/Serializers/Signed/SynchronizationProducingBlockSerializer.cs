@@ -6,31 +6,34 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
+using Wist.Core.Cryptography;
+using Wist.Core.States;
 
 namespace Wist.BlockLattice.Core.Serializers.Signed
 {
-    public class SynchronizationProducingBlockSerializer : ISignatureSupportSerializer
+
+    [RegisterExtension(typeof(ISignatureSupportSerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
+    public class SynchronizationProducingBlockSerializer : SignatureSupportSerializerBase<SynchronizationProducingBlock>
     {
-        public PacketType PacketType => PacketType.Synchronization;
 
-        public ushort BlockType => BlockTypes.Synchronization_TimeSyncProducingBlock;
-
-        public byte[] GetBody(SignedBlockBase signedBlockBase)
+        public SynchronizationProducingBlockSerializer(ICryptoService cryptoService, IStatesRepository statesRepository) : base(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock, cryptoService, statesRepository)
         {
-            SynchronizationProducingBlock synchronizationProducingBlock = signedBlockBase as SynchronizationProducingBlock;
+        }
 
-            if(synchronizationProducingBlock == null)
-            {
-                return null;
-            }
+        protected override void WriteBody(BinaryWriter bw)
+        {
+            byte[] body = new byte[0];
+            byte[] signature;
+            byte[] publicKey = _accountState.PublicKey;
 
-            using (MemoryStream ms = new MemoryStream())
-            {
-                using (BinaryWriter bw = new BinaryWriter(ms))
-                {
-                    
-                }
-            }
+            signature = _cryptoService.Sign(body);
+        }
+
+        protected override void WritePowHeader(BinaryWriter bw)
+        {
+            
         }
     }
 }

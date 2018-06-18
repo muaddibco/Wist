@@ -13,12 +13,15 @@
     <Compile Remove="DataModel\Consensus\**" />
     <Compile Remove="Parsers\Accounting\**" />
     <Compile Remove="Parsers\Consensus\**" />
+    <Compile Remove="Serializers\Transactional\**" />
     <EmbeddedResource Remove="DataModel\Consensus\**" />
     <EmbeddedResource Remove="Parsers\Accounting\**" />
     <EmbeddedResource Remove="Parsers\Consensus\**" />
+    <EmbeddedResource Remove="Serializers\Transactional\**" />
     <None Remove="DataModel\Consensus\**" />
     <None Remove="Parsers\Accounting\**" />
     <None Remove="Parsers\Consensus\**" />
+    <None Remove="Serializers\Transactional\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,10 +41,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Serializers\Transactional\" />
   </ItemGroup>
 
   <ItemGroup>

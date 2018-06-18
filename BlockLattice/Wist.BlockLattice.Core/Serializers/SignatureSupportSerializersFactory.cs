@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
 using Wist.BlockLattice.Core.Interfaces;
@@ -65,6 +66,19 @@ namespace Wist.BlockLattice.Core.Serializers
 
                 return serializer;
             }
+        }
+
+        public ISignatureSupportSerializer Create(SignedBlockBase block)
+        {
+            if (block == null)
+            {
+                throw new ArgumentNullException(nameof(block));
+            }
+
+            ISignatureSupportSerializer serializer = Create(block.PacketType, block.BlockType);
+            serializer.Initialize(block);
+
+            return serializer;
         }
 
         public void Utilize(ISignatureSupportSerializer serializer)

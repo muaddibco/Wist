@@ -28,6 +28,6 @@ namespace Wist.Communication.Interfaces
 
         void AcceptSocket(Socket acceptSocket);
 
-        void PostMessage(IMessage message);
+        void PostMessage(IPacketProvider message);
     }
 }

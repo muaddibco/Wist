@@ -10,8 +10,6 @@ namespace Wist.Node.Core.Interfaces
 {
     public interface INodeContext : IState
     {
-        byte[] PublicKey { get; }
-
         ConsensusGroupParticipant ThisNode { get; }
 
         ushort SyncGroupParticipantsCount { get; }
@@ -20,7 +18,5 @@ namespace Wist.Node.Core.Interfaces
         /// Complete list of current participants involved into producing synchronization blocks
         /// </summary>
         List<ConsensusGroupParticipant> SyncGroupParticipants { get; }
-
-        void Initialize();
     }
 }

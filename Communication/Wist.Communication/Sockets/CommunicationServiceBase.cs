@@ -33,7 +33,7 @@ namespace Wist.Communication.Sockets
         private int _connectedSockets = 0;
         protected ICommunicationProvisioning _communicationProvisioning = null;
         private INodesResolutionService _nodesResolutionService;
-        private readonly BlockingCollection<KeyValuePair<IKey, IMessage>> _messagesQueue;
+        private readonly BlockingCollection<KeyValuePair<IKey, IPacketProvider>> _messagesQueue;
         private CancellationTokenSource _cancellationTokenSource;
         private Func<ICommunicationChannel, IPEndPoint, int, bool> _onReceiveExtendedValidation;
 
@@ -51,7 +51,7 @@ namespace Wist.Communication.Sockets
             _packetsHandler = packetsHandler;
             _clientConnectedList = new List<ICommunicationChannel>();
             _nodesResolutionService = nodesResolutionService;
-            _messagesQueue = new BlockingCollection<KeyValuePair<IKey, IMessage>>();
+            _messagesQueue = new BlockingCollection<KeyValuePair<IKey, IPacketProvider>>();
         }
 
         #region ICommunicationService implementation
@@ -116,7 +116,7 @@ namespace Wist.Communication.Sockets
 
         protected abstract void StartAccept();
 
-        public void PostMessage(IKey destination, IMessage message)
+        public void PostMessage(IKey destination, IPacketProvider message)
         {
             if (destination == null)
             {
@@ -128,10 +128,10 @@ namespace Wist.Communication.Sockets
                 throw new ArgumentNullException(nameof(message));
             }
 
-            _messagesQueue.Add(new KeyValuePair<IKey, IMessage>(destination, message));
+            _messagesQueue.Add(new KeyValuePair<IKey, IPacketProvider>(destination, message));
         }
 
-        public void PostMessage(IEnumerable<IKey> destinations, IMessage message)
+        public void PostMessage(IEnumerable<IKey> destinations, IPacketProvider message)
         {
             if (destinations == null)
             {
@@ -145,7 +145,7 @@ namespace Wist.Communication.Sockets
 
             foreach (IKey key in destinations)
             {
-                _messagesQueue.Add(new KeyValuePair<IKey, IMessage>(key, message));
+                _messagesQueue.Add(new KeyValuePair<IKey, IPacketProvider>(key, message));
             }
         }
 

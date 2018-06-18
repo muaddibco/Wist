@@ -8,7 +8,7 @@ using Wist.Core.Communication;
 
 namespace Wist.Communication
 {
-    public abstract class MessageBase : IMessage
+    public abstract class MessageBase : IPacketProvider
     {
         public const byte DLE = 0x10;
         public const byte STX = 0x02;

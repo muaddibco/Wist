@@ -20,8 +20,8 @@ namespace Wist.Communication.Interfaces
 
         void Start();
 
-        void PostMessage(IKey destination, IMessage message);
-        void PostMessage(IEnumerable<IKey> destinations, IMessage message);
+        void PostMessage(IKey destination, IPacketProvider message);
+        void PostMessage(IEnumerable<IKey> destinations, IPacketProvider message);
 
         void RegisterOnReceivedExtendedValidation(Func<ICommunicationChannel, IPEndPoint, int, bool> onReceiveExtendedValidation);
     }

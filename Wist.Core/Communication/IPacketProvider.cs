@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Wist.Core.Communication
 {
-    public interface IMessage
+    public interface IPacketProvider
     {
-        byte[] GetBytes();
+        void WriteBuffer(BinaryWriter bw, BinaryReader br);
     }
 }
