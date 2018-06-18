@@ -21,7 +21,7 @@ namespace Wist.Communication.Sockets
         protected Semaphore _maxConnectedClients;
         protected readonly GenericPool<SocketAsyncEventArgs> _acceptEventArgsPool;
 
-        public override string Name => nameof(TcpCommunicationService);
+        public override string Name => "GenericTcp";
 
         public TcpCommunicationService(ILoggerService loggerService, IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(loggerService, bufferManager, packetsHandler, nodesResolutionService)
         {

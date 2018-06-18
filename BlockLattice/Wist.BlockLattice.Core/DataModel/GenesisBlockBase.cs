@@ -9,7 +9,7 @@ namespace Wist.BlockLattice.Core.DataModel
     {
         public GenesisBlockBase()
         {
-            BlockOrder = 0;
+            BlockHeight = 0;
         }
 
         public override ushort BlockType => BlockTypes.Genesis;

@@ -16,14 +16,10 @@ namespace Wist.Node.Core.Roles
     [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
     public class MasterNodeModule : ModuleBase
     {
-        private readonly ICommunicationService _transactionsCommunicationService;
-        private readonly ICommunicationService _consensusCommunicationService;
-        private readonly IBlocksProcessorFactory _blocksProcessorFactory;
+        private readonly IBlocksHandlersFactory _blocksProcessorFactory;
 
-        public MasterNodeModule(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService, IBlocksProcessorFactory blocksProcessorFactory) : base(loggerService)
+        public MasterNodeModule(ILoggerService loggerService, IBlocksHandlersFactory blocksProcessorFactory) : base(loggerService)
         {
-            _transactionsCommunicationService = communicationServicesFactory.Create("UdpCommunicationService");
-            _consensusCommunicationService = communicationServicesFactory.Create("TcpIntermittentCommunicationService");
             _blocksProcessorFactory = blocksProcessorFactory;
         }
 
@@ -31,20 +27,12 @@ namespace Wist.Node.Core.Roles
 
         protected override void InitializeInner()
         {
-            
-            SocketListenerSettings udpSettings = new SocketListenerSettings(1, 1024, new IPEndPoint(IPAddress.Any, 5023));
-            SocketListenerSettings tcpSettings = new SocketListenerSettings(600, 65535, new IPEndPoint(IPAddress.Any, 5022));
-
-            _transactionsCommunicationService.Init(udpSettings, null);
-            _consensusCommunicationService.Init(tcpSettings, null);
         }
 
         public override Task Play()
         {
             return Task.Run(() => 
             {
-                _transactionsCommunicationService.Start();
-                _consensusCommunicationService.Start();
             });
         }
     }

@@ -8,7 +8,7 @@ using Wist.Core.Architecture;
 namespace Wist.BlockLattice.Core.Interfaces
 {
     [ServiceContract]
-    public interface IBlocksProcessorFactory : IRepository<IBlocksProcessor, string>, IBulkRegistry<IBlocksProcessor, PacketType>
+    public interface IBlocksHandlersFactory : IRepository<IBlocksHandler, string>, IBulkRegistry<IBlocksHandler, PacketType>
     {
     }
 }

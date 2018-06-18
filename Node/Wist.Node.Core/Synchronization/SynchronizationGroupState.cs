@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Reactive.Subjects;
 using System.Text;
+using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Models;
@@ -15,6 +17,7 @@ namespace Wist.Node.Core.Synchronization
         public const string NAME = "SynchronizationGroupState";
 
         private readonly ConcurrentDictionary<IKey, IKey> _participants;
+        private readonly Subject<string> _subject = new Subject<string>();
 
         public SynchronizationGroupState()
         {
@@ -48,6 +51,11 @@ namespace Wist.Node.Core.Synchronization
         {
             IKey temp;
             return _participants.TryRemove(key, out temp);
+        }
+
+        public IDisposable SubscribeOnStateChange(ITargetBlock<string> targetBlock)
+        {
+            return _subject.Subscribe(targetBlock.AsObserver());
         }
     }
 }

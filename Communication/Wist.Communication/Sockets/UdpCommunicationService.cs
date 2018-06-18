@@ -18,7 +18,7 @@ namespace Wist.Communication.Sockets
         {
         }
 
-        public override string Name => nameof(UdpCommunicationService);
+        public override string Name => "GenericUdp";
 
         protected override void StartAccept()
         {

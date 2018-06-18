@@ -16,7 +16,7 @@ namespace Wist.BlockLattice.Core.DataModel
 
         public abstract ushort Version { get; }
 
-        public uint BlockOrder { get; set; }
+        public uint BlockHeight { get; set; }
 
         /// <summary>
         /// 64 byte value

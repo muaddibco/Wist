@@ -9,7 +9,7 @@ using Wist.Core.Architecture;
 namespace Wist.BlockLattice.Core.Interfaces
 {
     [ExtensionPoint]
-    public interface IBlocksProcessor
+    public interface IBlocksHandler
     {
         string Name { get; }
 

@@ -55,9 +55,9 @@ namespace Wist.Core.Synchronization
             }
         }
 
-        public void SubscribeOnStateChange(ITargetBlock<string> targetBlock)
+        public IDisposable SubscribeOnStateChange(ITargetBlock<string> targetBlock)
         {
-            _synchronizationSublect.Subscribe(targetBlock.AsObserver());
+            return _synchronizationSublect.Subscribe(targetBlock.AsObserver());
         }
 
         public void UpdateLastSyncBlockDescriptor(SynchronizationDescriptor synchronizationDescriptor)

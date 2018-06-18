@@ -15,25 +15,19 @@ namespace Wist.Node.Core.Roles
     [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
     public class FullNodeModule : ModuleBase
     {
-        private readonly ICommunicationService _transactionsCommunicationService;
-
-        public FullNodeModule(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService) : base(loggerService)
+        public FullNodeModule(ILoggerService loggerService) : base(loggerService)
         {
-            _transactionsCommunicationService = communicationServicesFactory.Create("TcpIntermittentCommunicationService");
         }
 
         public override string Name => nameof(FullNodeModule);
 
         protected override void InitializeInner()
         {
-            SocketListenerSettings tcpSettings = new SocketListenerSettings(100, 65535, new IPEndPoint(IPAddress.Any, 5024));
-
-            _transactionsCommunicationService.Init(tcpSettings, null);
         }
 
         public override Task Play()
         {
-            return Task.Run(() => { _transactionsCommunicationService.Start(); });
+            return Task.Run(() => { });
         }
     }
 }

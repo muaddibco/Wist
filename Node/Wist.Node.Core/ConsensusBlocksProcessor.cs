@@ -18,8 +18,8 @@ using Wist.Node.Core.Model.Blocks;
 
 namespace Wist.Node.Core
 {
-    [RegisterExtension(typeof(IBlocksProcessor), Lifetime = LifetimeManagement.Singleton)]
-    public class ConsensusBlocksProcessor : IBlocksProcessor, IConsumeValidationReport, IRequiresCommunicationHub
+    [RegisterExtension(typeof(IBlocksHandler), Lifetime = LifetimeManagement.Singleton)]
+    public class ConsensusBlocksProcessor : IBlocksHandler, IConsumeValidationReport, IRequiresCommunicationHub
     {
         public const string BLOCKS_PROCESSOR_NAME = "ConsensusBlocksProcessor";
 

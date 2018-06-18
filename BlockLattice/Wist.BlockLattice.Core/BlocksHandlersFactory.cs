@@ -8,18 +8,18 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.BlockLattice.Core
 {
-    [RegisterDefaultImplementation(typeof(IBlocksProcessorFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class BlocksProcessorFactory : IBlocksProcessorFactory
+    [RegisterDefaultImplementation(typeof(IBlocksHandlersFactory), Lifetime = LifetimeManagement.Singleton)]
+    public class BlocksHandlersFactory : IBlocksHandlersFactory
     {
-        private readonly Dictionary<string, IBlocksProcessor> _blocksProcessors;
-        private readonly Dictionary<PacketType, HashSet<IBlocksProcessor>> _blocksProcessorsRegistered;
+        private readonly Dictionary<string, IBlocksHandler> _blocksProcessors;
+        private readonly Dictionary<PacketType, HashSet<IBlocksHandler>> _blocksProcessorsRegistered;
 
-        public BlocksProcessorFactory(IBlocksProcessor[] blocksProcessors)
+        public BlocksHandlersFactory(IBlocksHandler[] blocksProcessors)
         {
-            _blocksProcessorsRegistered = new Dictionary<PacketType, HashSet<IBlocksProcessor>>();
-            _blocksProcessors = new Dictionary<string, IBlocksProcessor>();
+            _blocksProcessorsRegistered = new Dictionary<PacketType, HashSet<IBlocksHandler>>();
+            _blocksProcessors = new Dictionary<string, IBlocksHandler>();
 
-            foreach (IBlocksProcessor blocksProcessor in blocksProcessors)
+            foreach (IBlocksHandler blocksProcessor in blocksProcessors)
             {
                 if(!_blocksProcessors.ContainsKey(blocksProcessor.Name))
                 {
@@ -27,7 +27,7 @@ namespace Wist.BlockLattice.Core
                 }
             }
         }
-        public IBlocksProcessor GetInstance(string blocksProcessorName)
+        public IBlocksHandler GetInstance(string blocksProcessorName)
         {
             if (!_blocksProcessors.ContainsKey(blocksProcessorName))
             {
@@ -37,17 +37,17 @@ namespace Wist.BlockLattice.Core
             return _blocksProcessors[blocksProcessorName];
         }
 
-        public IEnumerable<IBlocksProcessor> GetBulkInstances(PacketType key)
+        public IEnumerable<IBlocksHandler> GetBulkInstances(PacketType key)
         {
             //TODO: add key check
             return _blocksProcessorsRegistered[key];
         }
 
-        public void RegisterInstance(IBlocksProcessor obj)
+        public void RegisterInstance(IBlocksHandler obj)
         {
             if(!_blocksProcessorsRegistered.ContainsKey(obj.PacketType))
             {
-                _blocksProcessorsRegistered.Add(obj.PacketType, new HashSet<IBlocksProcessor>());
+                _blocksProcessorsRegistered.Add(obj.PacketType, new HashSet<IBlocksHandler>());
             }
 
             _blocksProcessorsRegistered[obj.PacketType].Add(obj);

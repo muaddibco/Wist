@@ -72,7 +72,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
             return new TransactionalGenesisBlockV1
             {
                 OriginalHash = transactionalGenesis.OriginalHash.HexStringToByteArray(),
-                BlockOrder = 0
+                BlockHeight = 0
             };
         }
 

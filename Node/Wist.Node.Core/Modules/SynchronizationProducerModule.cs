@@ -10,32 +10,33 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Logging;
 using Wist.Node.Core.Interfaces;
+using Wist.Node.Core.Synchronization;
 
 namespace Wist.Node.Core.Roles
 {
     [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationProducerModule : ModuleBase
     {
-        private readonly ICommunicationServicesFactory _communicationServicesFactory;
-        private readonly ICommunicationService _syncGroupCommunicationService;
+        private readonly ISynchronizationGroupParticipationService _synchronizationGroupParticipationService;
 
-        public SynchronizationProducerModule(ICommunicationServicesFactory communicationServicesFactory, ILoggerService loggerService) : base(loggerService)
+        public SynchronizationProducerModule(ILoggerService loggerService, ISynchronizationGroupParticipationService synchronizationGroupParticipationService) : base(loggerService)
         {
-            _communicationServicesFactory = communicationServicesFactory;
-            _syncGroupCommunicationService = communicationServicesFactory.Create("TcpCommunicationService");
+            _synchronizationGroupParticipationService = synchronizationGroupParticipationService;
         }
 
         public override string Name => nameof(SynchronizationProducerModule);
 
         protected override void InitializeInner()
         {
-            SocketListenerSettings settings = new SocketListenerSettings(21, 1024, new IPEndPoint(IPAddress.Any, 5021));
-            _syncGroupCommunicationService.Init(settings);
+            _synchronizationGroupParticipationService.Initialize();
         }
 
         public override Task Play()
         {
-            return Task.Run(() => { _syncGroupCommunicationService.Start(); });
+            return Task.Run(() => 
+            {
+                _synchronizationGroupParticipationService.Start();
+            });
         }
     }
 }

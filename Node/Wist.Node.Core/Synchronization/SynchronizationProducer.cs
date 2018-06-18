@@ -57,9 +57,9 @@ namespace Wist.Node.Core.Synchronization
                         {
                             SynchronizationDescriptor synchronizationDescriptor = o as SynchronizationDescriptor;
 
-                            SynchronizationBlockV1 synchronizationBlock = new SynchronizationBlockV1
+                            SynchronizationBlock synchronizationBlock = new SynchronizationBlock
                             {
-                                BlockOrder = synchronizationDescriptor.BlockHeight + 1,
+                                BlockHeight = synchronizationDescriptor.BlockHeight + 1,
                                 ReportedTime = synchronizationDescriptor.MedianTime.AddMinutes(1)
                             };
 
@@ -71,7 +71,7 @@ namespace Wist.Node.Core.Synchronization
 
                             //TODO: accomplish logic for messages delivering
                             //_communicationHub.PostMessage(synchronizationBlock);
-                            _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockOrder;
+                            _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
                         }, _nodeContext.SynchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }
             }

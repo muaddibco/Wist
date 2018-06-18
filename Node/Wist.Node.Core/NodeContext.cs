@@ -1,7 +1,9 @@
 ﻿using CommonServiceLocator;
 using System;
 using System.Collections.Generic;
+using System.Reactive.Subjects;
 using System.Text;
+using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
@@ -16,6 +18,8 @@ namespace Wist.Node.Core
     public class NodeContext : INodeContext
     {
         public const string NAME = "NodeState";
+
+        private readonly Subject<string> _subject = new Subject<string>();
 
         public NodeContext()
         {
@@ -44,6 +48,11 @@ namespace Wist.Node.Core
         public byte[] Sign(byte[] message)
         {
             return CryptoHelper.ComputeHash(message);
+        }
+
+        public IDisposable SubscribeOnStateChange(ITargetBlock<string> targetBlock)
+        {
+            return _subject.Subscribe(targetBlock.AsObserver());
         }
     }
 }

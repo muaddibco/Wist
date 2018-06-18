@@ -21,8 +21,8 @@ namespace Wist.Node.Core
     //TODO: features
     // need to implement logic with time limit for confirmation of retransmitted blocks, etc
     // what happens when consensus was not achieved
-    [RegisterExtension(typeof(IBlocksProcessor), Lifetime = Wist.Core.Architecture.Enums.LifetimeManagement.Singleton)]
-    public class SynchronizationBlocksProcessor : IBlocksProcessor, IRequiresCommunicationHub
+    [RegisterExtension(typeof(IBlocksHandler), Lifetime = Wist.Core.Architecture.Enums.LifetimeManagement.Singleton)]
+    public class SynchronizationBlocksProcessor : IBlocksHandler, IRequiresCommunicationHub
     {
         public const string BLOCKS_PROCESSOR_NAME = "SynchronizationBlocksProcessor";
         public const ushort TARGET_CONSENSUS_SIZE = 21;
@@ -43,7 +43,7 @@ namespace Wist.Node.Core
 
         public SynchronizationBlocksProcessor(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, INodeContext nodeContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
         {
-            _synchronizationContext = (ISynchronizationContext)statesRepository.GetInstance("SynchronizationState");
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationProducer = synchronizationProducer;
             _nodeContext = nodeContext;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
@@ -78,9 +78,9 @@ namespace Wist.Node.Core
             {
                 _synchronizationBlocks.TryAdd(synchronizationBlock);
             }
-            else if (synchronizationConfirmedBlock != null && _synchronizationContext.LastBlockDescriptor.BlockHeight < synchronizationConfirmedBlock.BlockOrder)
+            else if (synchronizationConfirmedBlock != null && _synchronizationContext.LastBlockDescriptor.BlockHeight < synchronizationConfirmedBlock.BlockHeight)
             {
-                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockOrder, synchronizationConfirmedBlock.Hash, _synchronizationContext.GetMedianValue(synchronizationConfirmedBlock.ReportedTimes), DateTime.Now));
+                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, synchronizationConfirmedBlock.Hash, _synchronizationContext.GetMedianValue(synchronizationConfirmedBlock.ReportedTimes), DateTime.Now));
                 _synchronizationProducer.DeferredBroadcast();
             }
 
@@ -101,16 +101,16 @@ namespace Wist.Node.Core
 
             foreach (SynchronizationBlockBase synchronizationBlock in _synchronizationBlocks.GetConsumingEnumerable(ct))
             {
-                if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 > synchronizationBlock.BlockOrder)
+                if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 > synchronizationBlock.BlockHeight)
                 {
                     continue;
                 }
 
-                SynchronizationBlockV1 synchronizationBlockV1 = synchronizationBlock as SynchronizationBlockV1;
+                SynchronizationBlock synchronizationBlockV1 = synchronizationBlock as SynchronizationBlock;
 
                 if (synchronizationBlockV1 != null)
                 {
-                    if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 == synchronizationBlockV1.BlockOrder)
+                    if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 == synchronizationBlockV1.BlockHeight)
                     {
                         RetransmitSynchronizationBlock(synchronizationBlockV1);
                     }
@@ -125,7 +125,7 @@ namespace Wist.Node.Core
                 {
                     _retransmittedBlocks.TryAdd(synchronizationBlockRetransmission);
 
-                    if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 == synchronizationBlockRetransmission.BlockOrder)
+                    if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 == synchronizationBlockRetransmission.BlockHeight)
                     {
 
                     }
@@ -141,25 +141,25 @@ namespace Wist.Node.Core
         {
             foreach (SynchronizationBlockRetransmissionV1 retransmittedBlock in _retransmittedBlocks.GetConsumingEnumerable(ct))
             {
-                if(!_synchronizationBlocksByHeight.ContainsKey(retransmittedBlock.BlockOrder))
+                if(!_synchronizationBlocksByHeight.ContainsKey(retransmittedBlock.BlockHeight))
                 {
-                    _synchronizationBlocksByHeight.Add(retransmittedBlock.BlockOrder, new Dictionary<string, List<SynchronizationBlockRetransmissionV1>>());
+                    _synchronizationBlocksByHeight.Add(retransmittedBlock.BlockHeight, new Dictionary<string, List<SynchronizationBlockRetransmissionV1>>());
                 }
 
                 string publicKey = retransmittedBlock.ConfirmationPublicKey.ToHexString();
-                if(!_synchronizationBlocksByHeight[retransmittedBlock.BlockOrder].ContainsKey(publicKey))
+                if(!_synchronizationBlocksByHeight[retransmittedBlock.BlockHeight].ContainsKey(publicKey))
                 {
-                    _synchronizationBlocksByHeight[retransmittedBlock.BlockOrder].Add(publicKey, new List<SynchronizationBlockRetransmissionV1>());
+                    _synchronizationBlocksByHeight[retransmittedBlock.BlockHeight].Add(publicKey, new List<SynchronizationBlockRetransmissionV1>());
                 }
 
-                if(!_synchronizationBlocksByHeight[retransmittedBlock.BlockOrder][publicKey].Any(s => s.PublicKey.Equals32(retransmittedBlock.PublicKey)))
+                if(!_synchronizationBlocksByHeight[retransmittedBlock.BlockHeight][publicKey].Any(s => s.PublicKey.Equals32(retransmittedBlock.PublicKey)))
                 {
-                    _synchronizationBlocksByHeight[retransmittedBlock.BlockOrder][publicKey].Add(retransmittedBlock);
+                    _synchronizationBlocksByHeight[retransmittedBlock.BlockHeight][publicKey].Add(retransmittedBlock);
                 }
 
-                if(CheckSynchronizationCompleteConsensusAchieved(retransmittedBlock.BlockOrder))
+                if(CheckSynchronizationCompleteConsensusAchieved(retransmittedBlock.BlockHeight))
                 {
-                    BroadcastConfirmation(retransmittedBlock.BlockOrder);
+                    BroadcastConfirmation(retransmittedBlock.BlockHeight);
                 }
             }
         }
@@ -170,7 +170,7 @@ namespace Wist.Node.Core
 
             SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock
             {
-                BlockOrder = height,
+                BlockHeight = height,
                 ReportedTimes = retransmittedSyncBlocks.Select(b => b.ReportedTime).ToArray(),
                 PublicKeys = retransmittedSyncBlocks.Select(b => b.ConfirmationPublicKey).ToArray(),
                 Signatures = retransmittedSyncBlocks.Select(b => b.ConfirmationSignature).ToArray()
@@ -204,11 +204,11 @@ namespace Wist.Node.Core
             return count == TARGET_CONSENSUS_SIZE;
         }
 
-        private async void RetransmitSynchronizationBlock(SynchronizationBlockV1 synchronizationBlockV1)
+        private async void RetransmitSynchronizationBlock(SynchronizationBlock synchronizationBlockV1)
         {
             SynchronizationBlockRetransmissionV1 synchronizationBlockRetransmissionForSend = new SynchronizationBlockRetransmissionV1()
             {
-                BlockOrder = synchronizationBlockV1.BlockOrder,
+                BlockHeight = synchronizationBlockV1.BlockHeight,
                 ReportedTime = synchronizationBlockV1.ReportedTime,
                 OffsetSinceLastMedian = (ushort)(DateTime.Now - _nodeContext.SynchronizationContext.LastBlockDescriptor.ReceivingTime).TotalSeconds,
                 ConfirmationPublicKey = synchronizationBlockV1.PublicKey,

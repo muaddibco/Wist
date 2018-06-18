@@ -27,18 +27,20 @@ namespace Wist.Node.Core
     {
         private static readonly object _sync = new object();
         private readonly ILogger _log;
+        private readonly ICommunicationServicesFactory _communicationServicesFactory;
+        private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IConfigurationService _configurationService;
-        private readonly ISynchronizationService _synchronizationService;
         private readonly IModulesRepository _modulesRepository;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(IConfigurationService configurationService, IModulesRepository modulesRepository, IBlocksProcessorFactory blocksProcessorFactory, ISynchronizationService synchronizationService, ILoggerService loggerService)
+        public NodeMain(ICommunicationServicesFactory communicationServicesFactory, ICommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
+            _communicationServicesFactory = communicationServicesFactory;
+            _communicationServicesRegistry = communicationServicesRegistry;
             _configurationService = configurationService;
-            _synchronizationService = synchronizationService;
             _modulesRepository = modulesRepository;
 
             _cancellationTokenSource = new CancellationTokenSource();
@@ -49,8 +51,15 @@ namespace Wist.Node.Core
             ObtainConfiguredRoles();
 
             InitializeRoles();
+        }
 
-            _synchronizationService.Initialize(_cancellationTokenSource.Token);
+        private void InitializeCommunicationLayer()
+        {
+            ICommunicationService communicationServiceTcp = _communicationServicesFactory.Create("GenericTcp");
+            ICommunicationService communicationServiceUdp = _communicationServicesFactory.Create("GenericUdp");
+
+            _communicationServicesRegistry.RegisterInstance(communicationServiceTcp, "GenericTcp");
+            _communicationServicesRegistry.RegisterInstance(communicationServiceUdp, "GenericUdp");
         }
 
         private void InitializeRoles()
@@ -104,8 +113,6 @@ namespace Wist.Node.Core
 
         internal void Start()
         {
-            _synchronizationService.Start();
-
             IEnumerable<IModule> modules = _modulesRepository.GetBulkInstances();
 
             foreach (IModule module in modules)

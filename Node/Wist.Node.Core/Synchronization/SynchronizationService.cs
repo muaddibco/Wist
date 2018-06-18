@@ -207,7 +207,7 @@ namespace Wist.Node.Core.Synchronization
         private void DistributeReadyForParticipationMessage()
         {
             ISignatureSupportSerializer serializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_ReadyToParticipateBlock);
-            ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockOrder = _nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight };
+            ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockHeight = _nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight };
             byte[] body = serializer.GetBody(block);
             byte[] signature = _nodeContext.Sign(body);
             block.PublicKey = _nodeContext.PublicKey;

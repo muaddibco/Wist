@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks.Dataflow;
+﻿using System;
+using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 
 namespace Wist.Core.States
@@ -8,6 +9,6 @@ namespace Wist.Core.States
     {
         string Name { get; }
 
-        void SubscribeOnStateChange(ITargetBlock<string> targetBlock);
+        IDisposable SubscribeOnStateChange(ITargetBlock<string> targetBlock);
     }
 }

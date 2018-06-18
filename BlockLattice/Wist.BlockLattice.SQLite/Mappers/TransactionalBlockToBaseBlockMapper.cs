@@ -38,14 +38,14 @@ namespace Wist.BlockLattice.SQLite.Mappers
                         transactionalBlockBase = new AcceptFundsBlockV1
                         {
                             OriginalHash = transactionalBlock.TransactionalGenesis.OriginalHash.HexStringToByteArray(),
-                            BlockOrder = transactionalBlock.BlockOrder
+                            BlockHeight = transactionalBlock.BlockOrder
                         };
                         break;
                     case BlockTypes.Transaction_TransferFunds:
                         transactionalBlockBase = new TransferFundsBlockV1
                         {
                             OriginalHash = transactionalBlock.TransactionalGenesis.OriginalHash.HexStringToByteArray(),
-                            BlockOrder = transactionalBlock.BlockOrder
+                            BlockHeight = transactionalBlock.BlockOrder
                         };
                         break;
                     case BlockTypes.Transaction_Confirm:
@@ -54,7 +54,7 @@ namespace Wist.BlockLattice.SQLite.Mappers
                         transactionalBlockBase = new TransactionalDposVote
                         {
                             OriginalHash = transactionalBlock.TransactionalGenesis.OriginalHash.HexStringToByteArray(),
-                            BlockOrder = transactionalBlock.BlockOrder
+                            BlockHeight = transactionalBlock.BlockOrder
                         };
                         break;
                     default:

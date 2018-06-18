@@ -26,7 +26,7 @@ namespace Wist.BlockLattice.Core.Handlers
         private readonly ILogger _log;
         private readonly IPacketVerifiersRepository _chainTypeValidationHandlersFactory;
         private readonly IBlockParsersFactoriesRepository _blockParsersFactoriesRepository;
-        private readonly IBlocksProcessorFactory _blocksProcessorFactory;
+        private readonly IBlocksHandlersFactory _blocksProcessorFactory;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
         private readonly ManualResetEventSlim _messageTrigger;
 
@@ -34,7 +34,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
         public bool IsInitialized { get; private set; }
 
-        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersFactoriesRepository blockParsersFactoriesRepository, IBlocksProcessorFactory blocksProcessorFactory, ILoggerService loggerService)
+        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersFactoriesRepository blockParsersFactoriesRepository, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
@@ -177,9 +177,10 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             if (block != null)
             {
-                IEnumerable<IBlocksProcessor> blocksProcessors = _blocksProcessorFactory.GetBulkInstances(block.PacketType);
+                IEnumerable<IBlocksHandler> blocksProcessors = _blocksProcessorFactory.GetBulkInstances(block.PacketType);
 
-                foreach (IBlocksProcessor blocksProcessor in blocksProcessors)
+                //TODO: weigh make it in parallel
+                foreach (IBlocksHandler blocksProcessor in blocksProcessors)
                 {
                     blocksProcessor.ProcessBlock(block);
                 }
