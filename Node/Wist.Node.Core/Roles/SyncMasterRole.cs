@@ -83,13 +83,13 @@ namespace Wist.Node.Core.Roles
                         {
                             SynchronizationDescriptor synchronizationDescriptor = o as SynchronizationDescriptor;
 
-                            SynchronizationBlock synchronizationBlock = new SynchronizationBlock
+                            SynchronizationProducingBlock synchronizationBlock = new SynchronizationProducingBlock
                             {
                                 BlockHeight = synchronizationDescriptor.BlockHeight + 1,
                                 ReportedTime = synchronizationDescriptor.MedianTime.AddMinutes(1)
                             };
 
-                            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncBlock);
+                            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock);
                             byte[] body = signatureSupportSerializer.GetBody(synchronizationBlock);
                             byte[] signature = _nodeContext.Sign(body);
                             synchronizationBlock.PublicKey = _nodeContext.PublicKey;
@@ -98,7 +98,7 @@ namespace Wist.Node.Core.Roles
                             //TODO: accomplish logic for messages delivering
                             //_communicationService.PostMessage(_synchronizationGroupState.GetAllParticipants(), synchronizationBlock);
                             _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
-                        }, _nodeContext.SynchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
+                        }, _synchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }
             }
         }

@@ -1,6 +1,7 @@
 ﻿using CommonServiceLocator;
 using log4net;
 using log4net.Config;
+using log4net.Repository;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,14 +19,30 @@ namespace Wist.Core.Logging
     {
         private ILog _log;
 
+        private static bool _isInitialized;
+        private static readonly object _sync = new object();
+        private readonly IConfigurationService _configurationService;
+        private static string _logRepositoryName;
+
         public Log4NetLogger(IConfigurationService configurationService)
         {
-            ConfigureLog4Net(configurationService.Get<LogConfiguration>(LogConfiguration.SECTION_NAME)?.LogConfigurationFile);
+            _configurationService = configurationService;
         }
 
         public void Initialize(string scopeName)
         {
-            _log = LogManager.GetLogger("Default", scopeName);
+            if(!_isInitialized)
+            {
+                lock(_sync)
+                {
+                    if(!_isInitialized)
+                    {
+                        ConfigureLog4Net(_configurationService.Get<LogConfiguration>()?.LogConfigurationFile);
+                    }
+                }
+            }
+
+            _log = LogManager.GetLogger(_logRepositoryName, scopeName);
         }
 
         public void Debug(string msg, params object[] messageArgs)
@@ -89,7 +106,10 @@ namespace Wist.Core.Logging
                 }
             }
 
-            XmlConfigurator.Configure(LogManager.GetRepository(Assembly.GetExecutingAssembly()));
+            ILoggerRepository loggerRepository = LogManager.GetRepository(Assembly.GetExecutingAssembly());
+            XmlConfigurator.Configure(loggerRepository);
+
+            _logRepositoryName = loggerRepository.Name;
         }
 
         private static string FormatMessage(string msg, object[] messageArgs)

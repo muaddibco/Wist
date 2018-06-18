@@ -6,10 +6,11 @@ using System.Text;
 using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.States;
 
 namespace Wist.Core.Synchronization
 {
-    [RegisterExtension(typeof(ISynchronizationContext), Lifetime = LifetimeManagement.Singleton)]
+    [RegisterExtension(typeof(IState), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationContext : ISynchronizationContext
     {
         public const string NAME = "SynchronizationState";

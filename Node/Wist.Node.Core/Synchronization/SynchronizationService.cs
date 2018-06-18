@@ -18,6 +18,8 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.Logging;
+using Wist.Core.States;
+using Wist.Core.Synchronization;
 using Wist.Node.Core.Configuration;
 using Wist.Node.Core.Interfaces;
 
@@ -34,6 +36,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly IConfigurationService _configurationService;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
+        private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISynchronizationProducer _synchronizationProducer;
         private readonly IDposService _dposService;
         private CancellationToken _cancellationToken;
@@ -41,15 +44,16 @@ namespace Wist.Node.Core.Synchronization
 
         private bool _joinedToSyncGroup;
 
-        public SynchronizationService(ICommunicationServicesFactory communicationHubFactory, IConfigurationService configurationService, 
-            ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, 
+        public SynchronizationService(ICommunicationServicesRepository communicationHubFactory, IConfigurationService configurationService, 
+            ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, 
             ISynchronizationProducer synchronizationProducer, IDposService dposService, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             //_communicationHubSync = communicationHubFactory.Create();
             _configurationService = configurationService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
-            _nodeContext = nodeContext;
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationProducer = synchronizationProducer;
             _dposService = dposService;
         }
@@ -62,15 +66,6 @@ namespace Wist.Node.Core.Synchronization
         /// <param name="cancellationToken"></param>
         public void Initialize(CancellationToken cancellationToken)
         {
-               SynchronizationCommunicationConfiguration syncCommunicationConfiguration = (SynchronizationCommunicationConfiguration)_configurationService[SynchronizationCommunicationConfiguration.SECTION_NAME];
-            _communicationHubSync.Init(
-                new SocketListenerSettings(
-                    syncCommunicationConfiguration.MaxConnections, //TODO: this value must be taken from the corresponding chain from block-lattice
-                    syncCommunicationConfiguration.ReceiveBufferSize,
-                    new IPEndPoint(IPAddress.Loopback, syncCommunicationConfiguration.ListeningPort)));
-
-            _communicationHubSync.Start();
-
             _synchronizationProducer.Initialize();
 
             _cancellationToken = cancellationToken;
@@ -193,7 +188,7 @@ namespace Wist.Node.Core.Synchronization
 
             Task.Run(() =>
             {
-                while (_nodeContext.SynchronizationContext.LastBlockDescriptor == null)
+                while (_synchronizationContext.LastBlockDescriptor == null)
                 {
                     Thread.Sleep(60000);
                 }
@@ -207,7 +202,7 @@ namespace Wist.Node.Core.Synchronization
         private void DistributeReadyForParticipationMessage()
         {
             ISignatureSupportSerializer serializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_ReadyToParticipateBlock);
-            ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockHeight = _nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight };
+            ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockHeight = _synchronizationContext.LastBlockDescriptor.BlockHeight };
             byte[] body = serializer.GetBody(block);
             byte[] signature = _nodeContext.Sign(body);
             block.PublicKey = _nodeContext.PublicKey;

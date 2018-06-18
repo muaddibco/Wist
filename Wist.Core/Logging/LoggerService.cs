@@ -16,7 +16,9 @@ namespace Wist.Core.Logging
         {
             if(!_loggers.ContainsKey(scopeName))
             {
-                _loggers.Add(scopeName, ServiceLocator.Current.GetInstance<ILogger>());
+                ILogger logger = ServiceLocator.Current.GetInstance<ILogger>();
+                logger.Initialize(scopeName);
+                _loggers.Add(scopeName, logger);
             }
 
             return _loggers[scopeName];

@@ -139,6 +139,6 @@
     <value>Block Type {0} of Chain Type {1} is not supported by Signature Supporting Serializers.</value>
   </data>
   <data name="ERR_SIGNATURE_SUPPORTING_SERIALIZERS_CHAIN_TYPE_NOT_SUPPORTED" xml:space="preserve">
-    <value>Chain Type {0} is not supported by Signature Supporting Serializers.</value>
+    <value>Packet Type {0} is not supported by Signature Supporting Serializers.</value>
   </data>
 </root>

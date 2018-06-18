@@ -74,7 +74,7 @@ namespace Wist.Core.Aspects
         {
             AspectPriority = (int)AspectsPriority.AutoLog;
             _configurationService = ServiceLocator.Current.GetInstance<IConfigurationService>();
-            _measureTime = _configurationService.Get<LogConfiguration>(LogConfiguration.SECTION_NAME)?.MeasureTime ?? false;
+            _measureTime = _configurationService.Get<LogConfiguration>()?.MeasureTime ?? false;
         }
 
         public override void RuntimeInitialize(MethodBase method)

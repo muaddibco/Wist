@@ -5,9 +5,9 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Synchronization
 {
-    public class SynchronizationBlock : SynchronizationBlockBase
+    public class SynchronizationProducingBlock : SynchronizationBlockBase
     {
-        public override ushort BlockType => BlockTypes.Synchronization_TimeSyncBlock;
+        public override ushort BlockType => BlockTypes.Synchronization_TimeSyncProducingBlock;
 
         public override ushort Version => 1;
     }

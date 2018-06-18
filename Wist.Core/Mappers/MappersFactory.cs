@@ -2,9 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 
 namespace Wist.Core.Mappers
 {
+    [RegisterDefaultImplementation(typeof(IMapperFactory), Lifetime = LifetimeManagement.Singleton)]
     public class MappersFactory : IMapperFactory
     {
         private readonly Dictionary<string, Dictionary<string, Stack<IMapper>>> _mappers;

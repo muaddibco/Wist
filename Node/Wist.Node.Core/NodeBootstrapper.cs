@@ -43,12 +43,20 @@ namespace Wist.Node.Core
 
                 ConfigureServiceLocator();
 
+                //ConfigureLogger();
+
                 StartNode();
             }
             finally
             {
                 _log.Info("NodeBootstrap Run completed");
             }
+        }
+
+        private void ConfigureLogger()
+        {
+            ILogger logger = ServiceLocator.Current.GetInstance<ILogger>();
+            logger.Initialize("Wist");
         }
 
         private void StartNode()

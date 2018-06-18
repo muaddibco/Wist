@@ -41,11 +41,11 @@ namespace Wist.Node.Core
         private readonly BlockingCollection<SynchronizationBlockRetransmissionV1> _retransmittedBlocks;
         
 
-        public SynchronizationBlocksProcessor(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, INodeContext nodeContext, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
+        public SynchronizationBlocksProcessor(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationProducer = synchronizationProducer;
-            _nodeContext = nodeContext;
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _synchronizationBlocks = new BlockingCollection<SynchronizationBlockBase>();
             _retransmittedBlocks = new BlockingCollection<SynchronizationBlockRetransmissionV1>();
@@ -106,7 +106,7 @@ namespace Wist.Node.Core
                     continue;
                 }
 
-                SynchronizationBlock synchronizationBlockV1 = synchronizationBlock as SynchronizationBlock;
+                SynchronizationProducingBlock synchronizationBlockV1 = synchronizationBlock as SynchronizationProducingBlock;
 
                 if (synchronizationBlockV1 != null)
                 {
@@ -204,13 +204,13 @@ namespace Wist.Node.Core
             return count == TARGET_CONSENSUS_SIZE;
         }
 
-        private async void RetransmitSynchronizationBlock(SynchronizationBlock synchronizationBlockV1)
+        private async void RetransmitSynchronizationBlock(SynchronizationProducingBlock synchronizationBlockV1)
         {
             SynchronizationBlockRetransmissionV1 synchronizationBlockRetransmissionForSend = new SynchronizationBlockRetransmissionV1()
             {
                 BlockHeight = synchronizationBlockV1.BlockHeight,
                 ReportedTime = synchronizationBlockV1.ReportedTime,
-                OffsetSinceLastMedian = (ushort)(DateTime.Now - _nodeContext.SynchronizationContext.LastBlockDescriptor.ReceivingTime).TotalSeconds,
+                OffsetSinceLastMedian = (ushort)(DateTime.Now - _synchronizationContext.LastBlockDescriptor.ReceivingTime).TotalSeconds,
                 ConfirmationPublicKey = synchronizationBlockV1.PublicKey,
                 ConfirmationSignature = synchronizationBlockV1.Signature,
                 PublicKey = _nodeContext.PublicKey

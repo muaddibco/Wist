@@ -22,45 +22,45 @@ namespace Wist.BlockLattice.Core.Serializers
 
             foreach (var signatureSupportSerializer in signatureSupportSerializers)
             {
-                if(!_serializersCache.ContainsKey(signatureSupportSerializer.ChainType))
+                if(!_serializersCache.ContainsKey(signatureSupportSerializer.PacketType))
                 {
-                    _serializersCache.Add(signatureSupportSerializer.ChainType, new Dictionary<ushort, Stack<ISignatureSupportSerializer>>());
+                    _serializersCache.Add(signatureSupportSerializer.PacketType, new Dictionary<ushort, Stack<ISignatureSupportSerializer>>());
                 }
 
-                if(!_serializersCache[signatureSupportSerializer.ChainType].ContainsKey(signatureSupportSerializer.BlockType))
+                if(!_serializersCache[signatureSupportSerializer.PacketType].ContainsKey(signatureSupportSerializer.BlockType))
                 {
-                    _serializersCache[signatureSupportSerializer.ChainType].Add(signatureSupportSerializer.BlockType, new Stack<ISignatureSupportSerializer>());
+                    _serializersCache[signatureSupportSerializer.PacketType].Add(signatureSupportSerializer.BlockType, new Stack<ISignatureSupportSerializer>());
                 }
 
-                _serializersCache[signatureSupportSerializer.ChainType][signatureSupportSerializer.BlockType].Push(signatureSupportSerializer);
+                _serializersCache[signatureSupportSerializer.PacketType][signatureSupportSerializer.BlockType].Push(signatureSupportSerializer);
             }
         }
 
-        public ISignatureSupportSerializer Create(PacketType chainType, ushort blockType)
+        public ISignatureSupportSerializer Create(PacketType packetType, ushort blockType)
         {
-            if(!_serializersCache.ContainsKey(chainType))
+            if(!_serializersCache.ContainsKey(packetType))
             {
-                throw new ChainTypeNotSupportedBySignatureSupportingSerializersException(chainType);
+                throw new PacketTypeNotSupportedBySignatureSupportingSerializersException(packetType);
             }
 
-            if(!_serializersCache[chainType].ContainsKey(blockType))
+            if(!_serializersCache[packetType].ContainsKey(blockType))
             {
-                throw new BlockTypeNotSupportedBySignatureSupportingSerializersException(chainType, blockType);
+                throw new BlockTypeNotSupportedBySignatureSupportingSerializersException(packetType, blockType);
             }
 
             lock(_sync)
             {
                 ISignatureSupportSerializer serializer = null;
 
-                if(_serializersCache[chainType][blockType].Count > 1)
+                if(_serializersCache[packetType][blockType].Count > 1)
                 {
-                    serializer = _serializersCache[chainType][blockType].Pop();
+                    serializer = _serializersCache[packetType][blockType].Pop();
                 }
                 else
                 {
-                    ISignatureSupportSerializer template = _serializersCache[chainType][blockType].Pop();
+                    ISignatureSupportSerializer template = _serializersCache[packetType][blockType].Pop();
                     serializer = (ISignatureSupportSerializer)ServiceLocator.Current.GetInstance(template.GetType());
-                    _serializersCache[chainType][blockType].Push(template);
+                    _serializersCache[packetType][blockType].Push(template);
                 }
 
                 return serializer;
@@ -74,17 +74,17 @@ namespace Wist.BlockLattice.Core.Serializers
                 throw new ArgumentNullException(nameof(serializer));
             }
 
-            if (!_serializersCache.ContainsKey(serializer.ChainType))
+            if (!_serializersCache.ContainsKey(serializer.PacketType))
             {
-                throw new ChainTypeNotSupportedBySignatureSupportingSerializersException(serializer.ChainType);
+                throw new PacketTypeNotSupportedBySignatureSupportingSerializersException(serializer.PacketType);
             }
 
-            if (!_serializersCache[serializer.ChainType].ContainsKey(serializer.BlockType))
+            if (!_serializersCache[serializer.PacketType].ContainsKey(serializer.BlockType))
             {
-                throw new BlockTypeNotSupportedBySignatureSupportingSerializersException(serializer.ChainType, serializer.BlockType);
+                throw new BlockTypeNotSupportedBySignatureSupportingSerializersException(serializer.PacketType, serializer.BlockType);
             }
 
-            _serializersCache[serializer.ChainType][serializer.BlockType].Push(serializer);
+            _serializersCache[serializer.PacketType][serializer.BlockType].Push(serializer);
         }
     }
 }

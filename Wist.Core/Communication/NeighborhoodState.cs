@@ -10,7 +10,7 @@ using Wist.Core.States;
 
 namespace Wist.Core.Communication
 {
-    [RegisterExtension(typeof(INeighborhoodState), Lifetime = LifetimeManagement.Singleton)]
+    [RegisterExtension(typeof(IState), Lifetime = LifetimeManagement.Singleton)]
     /// <summary>
     /// Class that contains general list of neighbor nodes
     /// </summary>

@@ -27,7 +27,7 @@ namespace Wist.Node.Core
     {
         private static readonly object _sync = new object();
         private readonly ILogger _log;
-        private readonly ICommunicationServicesFactory _communicationServicesFactory;
+        private readonly ICommunicationServicesRepository _communicationServicesFactory;
         private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IConfigurationService _configurationService;
         private readonly IModulesRepository _modulesRepository;
@@ -35,7 +35,7 @@ namespace Wist.Node.Core
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(ICommunicationServicesFactory communicationServicesFactory, ICommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
+        public NodeMain(ICommunicationServicesRepository communicationServicesFactory, ICommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _communicationServicesFactory = communicationServicesFactory;
@@ -48,6 +48,8 @@ namespace Wist.Node.Core
 
         public void Initialize()
         {
+            InitializeCommunicationLayer();
+
             ObtainConfiguredRoles();
 
             InitializeRoles();
@@ -55,8 +57,14 @@ namespace Wist.Node.Core
 
         private void InitializeCommunicationLayer()
         {
-            ICommunicationService communicationServiceTcp = _communicationServicesFactory.Create("GenericTcp");
-            ICommunicationService communicationServiceUdp = _communicationServicesFactory.Create("GenericUdp");
+            ICommunicationService communicationServiceTcp = _communicationServicesFactory.GetInstance("GenericTcp");
+            ICommunicationService communicationServiceUdp = _communicationServicesFactory.GetInstance("GenericUdp");
+
+            GeneralTcpCommunicationConfiguration generalTcpCommunicationConfiguration = _configurationService.Get<GeneralTcpCommunicationConfiguration>();
+            GeneralUdpCommunicationConfiguration generalUdpCommunicationConfiguration = _configurationService.Get<GeneralUdpCommunicationConfiguration>();
+
+            communicationServiceTcp.Init(new SocketListenerSettings(generalTcpCommunicationConfiguration.MaxConnections, generalTcpCommunicationConfiguration.ReceiveBufferSize, new IPEndPoint(IPAddress.Any, generalTcpCommunicationConfiguration.ListeningPort)));
+            communicationServiceUdp.Init(new SocketListenerSettings(1, generalUdpCommunicationConfiguration.ReceiveBufferSize, new IPEndPoint(IPAddress.Any, generalUdpCommunicationConfiguration.ListeningPort)));
 
             _communicationServicesRegistry.RegisterInstance(communicationServiceTcp, "GenericTcp");
             _communicationServicesRegistry.RegisterInstance(communicationServiceUdp, "GenericUdp");
@@ -113,6 +121,9 @@ namespace Wist.Node.Core
 
         internal void Start()
         {
+            _communicationServicesRegistry.GetInstance("GenericTcp").Start();
+            _communicationServicesRegistry.GetInstance("GenericUdp").Start();
+
             IEnumerable<IModule> modules = _modulesRepository.GetBulkInstances();
 
             foreach (IModule module in modules)

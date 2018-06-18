@@ -1,50 +1,39 @@
-﻿using System;
+﻿using CommonServiceLocator;
+using System;
 using System.Collections.Generic;
-using System.Text;
+using Wist.Communication.Exceptions;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
 namespace Wist.Communication
 {
-    [RegisterDefaultImplementation(typeof(ICommunicationServicesRegistry), Lifetime = LifetimeManagement.Singleton)]
-    public class CommunicationServicesRegistry : ICommunicationServicesRegistry
+    [RegisterDefaultImplementation(typeof(ICommunicationServicesRepository), Lifetime = LifetimeManagement.Singleton)]
+    public class CommunicationServicesRepository : ICommunicationServicesRepository
     {
-        private readonly Dictionary<string, ICommunicationService> _communicationServices;
+        private readonly Dictionary<string, ICommunicationService> _communicationServicesPool;
 
-        public CommunicationServicesRegistry()
+        public CommunicationServicesRepository(ICommunicationService[] communicationServices)
         {
-            _communicationServices = new Dictionary<string, ICommunicationService>();
+            _communicationServicesPool = new Dictionary<string, ICommunicationService>();
+
+            foreach (ICommunicationService communicationService in communicationServices)
+            {
+                if(!_communicationServicesPool.ContainsKey(communicationService.Name))
+                {
+                    _communicationServicesPool.Add(communicationService.Name, communicationService);
+                }
+            }
         }
 
         public ICommunicationService GetInstance(string key)
         {
-            if (key == null)
+            if(!_communicationServicesPool.ContainsKey(key))
             {
-                throw new ArgumentNullException(nameof(key));
+                throw new CommunicationServiceNotSupportedException(key);
             }
 
-            //TODO: add key check and dedicated exception
-            return _communicationServices[key];
-        }
-
-        public void RegisterInstance(ICommunicationService obj, string key)
-        {
-            if (obj == null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (!_communicationServices.ContainsKey(key))
-            {
-                _communicationServices.Add(key, obj);
-            }
+            return _communicationServicesPool[key];
         }
     }
-
 }

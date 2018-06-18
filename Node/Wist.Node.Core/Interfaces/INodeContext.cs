@@ -21,15 +21,6 @@ namespace Wist.Node.Core.Interfaces
         /// </summary>
         List<ConsensusGroupParticipant> SyncGroupParticipants { get; }
 
-        ISynchronizationContext SynchronizationContext { get; }
-
         void Initialize();
-
-        /// <summary>
-        /// Signs message using Private Key of current Node
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        byte[] Sign(byte[] message);
     }
 }

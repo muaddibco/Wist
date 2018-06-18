@@ -4,10 +4,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.Core.Architecture;
 using Wist.Core.Communication;
 
 namespace Wist.Communication.Interfaces
 {
+    [ServiceContract]
     public interface ICommunicationChannel
     {
         event EventHandler<EventArgs> SocketClosedEvent;

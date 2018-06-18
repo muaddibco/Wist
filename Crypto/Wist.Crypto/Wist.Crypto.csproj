@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
+    <ProjectReference Include="..\Chaos.NaCl\Chaos.NaCl.csproj" />
     <ProjectReference Include="..\HashLib\CoreHashLib\CoreHashLib.csproj" />
   </ItemGroup>
 

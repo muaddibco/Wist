@@ -7,11 +7,12 @@ using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Models;
+using Wist.Core.States;
 
 namespace Wist.Node.Core.Synchronization
 {
 
-    [RegisterExtension(typeof(SynchronizationGroupState), Lifetime = LifetimeManagement.Singleton)]
+    [RegisterExtension(typeof(IState), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationGroupState : ISynchronizationGroupState
     {
         public const string NAME = "SynchronizationGroupState";

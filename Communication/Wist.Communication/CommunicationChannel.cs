@@ -11,9 +11,12 @@ using System.Threading.Tasks;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Communication;
 using Wist.Core.Logging;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 
 namespace Wist.Communication
 {
+    [RegisterDefaultImplementation(typeof(ICommunicationChannel), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class CommunicationChannel : ICommunicationChannel
     {
         private readonly object _sync = new object();
@@ -73,7 +76,7 @@ namespace Wist.Communication
 
         public Queue<byte[]> MessagePackets => _messagePackets;
 
-        public IPAddress RemoteIPAddress { get; set; }
+        public IPAddress RemoteIPAddress { get; set; } = IPAddress.None;
 
         public void PushForParsing(byte[] buf, int count)
         {
@@ -104,11 +107,14 @@ namespace Wist.Communication
 
         public void AcceptSocket(Socket acceptSocket)
         {
-            _log.Info($"Socket accepted by Communication channel.  Remote endpoint = {IPAddress.Parse(((IPEndPoint)acceptSocket.RemoteEndPoint).Address.ToString())}:{((IPEndPoint)acceptSocket.RemoteEndPoint).Port.ToString()}");
+            _log.Info($"Socket accepted by Communication channel.  Remote endpoint = {IPAddress.Parse(((IPEndPoint)acceptSocket.LocalEndPoint).Address.ToString())}:{((IPEndPoint)acceptSocket.LocalEndPoint).Port.ToString()}");
 
             _socketAcceptedEvent.Set();
 
-            RemoteIPAddress = ((IPEndPoint)acceptSocket.RemoteEndPoint).Address;
+            if (acceptSocket.Connected)
+            {
+                RemoteIPAddress = ((IPEndPoint)acceptSocket.RemoteEndPoint).Address;
+            }
 
             _socketReceiveAsyncEventArgs.AcceptSocket = acceptSocket;
             _socketSendAsyncEventArgs.AcceptSocket = acceptSocket;

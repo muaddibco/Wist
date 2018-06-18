@@ -16,6 +16,8 @@ namespace Wist.Core.Logging
         public string SectionName => SECTION_NAME;
 
         public bool MeasureTime { get; set; }
+
+        [Optional]
         public string LogConfigurationFile { get; set; }
     }
 }

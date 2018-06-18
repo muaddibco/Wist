@@ -24,15 +24,13 @@ namespace Wist.Core.Cryptography
 
         public static byte[] ComputeHash(byte[] input, uint level)
         {
+            byte[] buffer = input;
+            for (int i = 0; i < level; i++)
             {
-                byte[] buffer = input;
-                for (int i = 0; i < level; i++)
-                {
-                    using (SHA512 sha512 = SHA512CryptoServiceProvider.Create())
-                        buffer = sha512.ComputeHash(buffer);
-                }
-                return buffer;
+                using (SHA512 sha512 = SHA512CryptoServiceProvider.Create())
+                    buffer = sha512.ComputeHash(buffer);
             }
+            return buffer;
         }
 
         /// <summary>

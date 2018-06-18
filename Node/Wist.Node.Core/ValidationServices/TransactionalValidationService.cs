@@ -12,6 +12,7 @@ using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
+using Wist.Core.States;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Model;
 
@@ -32,11 +33,11 @@ namespace Wist.Node.Core.ValidationServices
         private readonly INodeContext _nodeContext;
         private readonly Dictionary<string, Dictionary<string, Dictionary<string, ValidationState>>> _consensusMap;
 
-        public TransactionalValidationService(IValidationOperationFactory consensusOperationFactory, INodeContext nodeContext)
+        public TransactionalValidationService(IValidationOperationFactory consensusOperationFactory, IStatesRepository statesRepository)
         {
             _messageTrigger = new ManualResetEventSlim();
             _consensusOperationFactory = consensusOperationFactory;
-            _nodeContext = nodeContext;
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
             _consensusMap = new Dictionary<string, Dictionary<string, Dictionary<string, ValidationState>>>();
         }
 

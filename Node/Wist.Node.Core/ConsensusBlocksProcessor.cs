@@ -12,6 +12,7 @@ using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
+using Wist.Core.States;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Model;
 using Wist.Node.Core.Model.Blocks;
@@ -42,9 +43,9 @@ namespace Wist.Node.Core
 
         public PacketType PacketType => PacketType.Consensus;
 
-        public ConsensusBlocksProcessor(INodeContext nodeContext, IChainValidationServiceManager chainConsensusServiceManager, IConsensusCheckingService consensusCheckingService)
+        public ConsensusBlocksProcessor(IStatesRepository statesRepository, IChainValidationServiceManager chainConsensusServiceManager, IConsensusCheckingService consensusCheckingService)
         {
-            _nodeContext = nodeContext;
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
             _chainConsensusServiceManager = chainConsensusServiceManager;
             _consensusCheckingService = consensusCheckingService;
             _blocks = new Dictionary<PacketType, ConcurrentQueue<BlockBase>>();

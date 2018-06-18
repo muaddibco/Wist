@@ -41,8 +41,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Serializers\Signed\" />
     <Folder Include="Serializers\Transactional\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.9.0" />
   </ItemGroup>
 
   <ItemGroup>

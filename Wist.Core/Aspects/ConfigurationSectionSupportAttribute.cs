@@ -15,10 +15,14 @@ namespace Wist.Core.Aspects
     public class ConfigurationSectionSupportAttribute : LocationInterceptionAspect
     {
         private string _propertyName;
+        private bool _isOptional;
 
         public override void CompileTimeInitialize(LocationInfo targetLocation, AspectInfo aspectInfo)
         {
             base.CompileTimeInitialize(targetLocation, aspectInfo);
+            object[] attrs = targetLocation.PropertyInfo?.GetCustomAttributes(typeof(OptionalAttribute), true);
+
+            _isOptional = (attrs?.Length ?? 0) > 0;
 
             _propertyName = targetLocation.Name;
         }
@@ -40,7 +44,7 @@ namespace Wist.Core.Aspects
             string sectionName = sectionSupportInstance.SectionName;
             string key = string.IsNullOrWhiteSpace(sectionName) ? _propertyName : $"{sectionName}:{_propertyName}";
 
-            string sValue = appConfig.GetString(key.ToLower());
+            string sValue = appConfig.GetString(key.ToLower(), !_isOptional);
             object value = null;
 
             if (args.Location.LocationType.IsArray)

@@ -14,7 +14,7 @@ using Wist.Node.Core.Model;
 
 namespace Wist.Node.Core
 {
-    [RegisterExtension(typeof(INodeContext), Lifetime = LifetimeManagement.Singleton)]
+    [RegisterExtension(typeof(IState), Lifetime = LifetimeManagement.Singleton)]
     public class NodeContext : INodeContext
     {
         public const string NAME = "NodeState";
@@ -23,7 +23,6 @@ namespace Wist.Node.Core
 
         public NodeContext()
         {
-            SynchronizationContext = ServiceLocator.Current.GetInstance<IStatesRepository>().GetInstance<ISynchronizationContext>();
             SyncGroupParticipants = new List<ConsensusGroupParticipant>();
 
             //TODO: set PublicKey
@@ -34,7 +33,6 @@ namespace Wist.Node.Core
 
         public ConsensusGroupParticipant ThisNode { get; }
         public List<ConsensusGroupParticipant> SyncGroupParticipants { get; }
-        public ISynchronizationContext SynchronizationContext { get; }
 
         public ushort SyncGroupParticipantsCount => 21;
 
@@ -43,11 +41,6 @@ namespace Wist.Node.Core
         public void Initialize()
         {
             
-        }
-
-        public byte[] Sign(byte[] message)
-        {
-            return CryptoHelper.ComputeHash(message);
         }
 
         public IDisposable SubscribeOnStateChange(ITargetBlock<string> targetBlock)

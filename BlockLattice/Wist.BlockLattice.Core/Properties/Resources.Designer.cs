@@ -124,7 +124,7 @@ namespace Wist.BlockLattice.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Chain Type {0} is not supported by Signature Supporting Serializers..
+        ///   Looks up a localized string similar to Packet Type {0} is not supported by Signature Supporting Serializers..
         /// </summary>
         internal static string ERR_SIGNATURE_SUPPORTING_SERIALIZERS_CHAIN_TYPE_NOT_SUPPORTED {
             get {

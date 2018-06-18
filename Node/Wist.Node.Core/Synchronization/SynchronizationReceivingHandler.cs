@@ -21,18 +21,19 @@ namespace Wist.Node.Core.Synchronization
     public class SynchronizationReceivingHandler : IBlocksHandler
     {
         public const string NAME = "SynchronizationReceiving";
-        private readonly BlockingCollection<SynchronizationBlock> _synchronizationBlocks;
+        private readonly BlockingCollection<SynchronizationProducingBlock> _synchronizationBlocks;
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly INeighborhoodState _neighborhoodState;
-        private readonly ICommunicationService _communicationService;
+        private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
+        private ICommunicationService _communicationService;
         private uint _lastRetransmittedSyncBlockHeight;
 
-        public SynchronizationReceivingHandler(IStatesRepository statesRepository, ICommunicationServicesFactory communicationServicesFactory)
+        public SynchronizationReceivingHandler(IStatesRepository statesRepository, ICommunicationServicesRegistry communicationServicesRegistry)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _neighborhoodState = statesRepository.GetInstance<INeighborhoodState>();
-            _synchronizationBlocks = new BlockingCollection<SynchronizationBlock>();
-            _communicationService = communicationServicesFactory.Create("GenericUdp");
+            _synchronizationBlocks = new BlockingCollection<SynchronizationProducingBlock>();
+            _communicationServicesRegistry = communicationServicesRegistry;
         }
 
         public string Name => NAME;
@@ -41,6 +42,8 @@ namespace Wist.Node.Core.Synchronization
 
         public void Initialize(CancellationToken ct)
         {
+            _communicationService = _communicationServicesRegistry.GetInstance("GenericUdp");
+
             Task.Factory.StartNew(() => {
                 ProcessBlocks(ct);
             }, ct, TaskCreationOptions.LongRunning, TaskScheduler.Current);
@@ -48,7 +51,7 @@ namespace Wist.Node.Core.Synchronization
 
         public void ProcessBlock(BlockBase blockBase)
         {
-            SynchronizationBlock synchronizationBlock = blockBase as SynchronizationBlock;
+            SynchronizationProducingBlock synchronizationBlock = blockBase as SynchronizationProducingBlock;
 
             if(synchronizationBlock != null)
             {
@@ -62,7 +65,7 @@ namespace Wist.Node.Core.Synchronization
         {
             List<SynchronizationBlockBase> synchronizationBlocksPerLoop = new List<SynchronizationBlockBase>();
 
-            foreach (SynchronizationBlock synchronizationBlock in _synchronizationBlocks.GetConsumingEnumerable(ct))
+            foreach (SynchronizationProducingBlock synchronizationBlock in _synchronizationBlocks.GetConsumingEnumerable(ct))
             {
                 if (_synchronizationContext.LastBlockDescriptor.BlockHeight >= synchronizationBlock.BlockHeight)
                 {

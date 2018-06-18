@@ -8,7 +8,7 @@ namespace Wist.BlockLattice.Core.Interfaces
 {
     public interface ISignatureSupportSerializer
     {
-        PacketType ChainType { get; }
+        PacketType PacketType { get; }
 
         ushort BlockType { get; }
 

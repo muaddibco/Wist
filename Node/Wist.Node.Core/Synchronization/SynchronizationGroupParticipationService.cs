@@ -55,6 +55,10 @@ namespace Wist.Node.Core.Synchronization
                 }
 
                 _synchronizationContext.SubscribeOnStateChange(_synchronizationGroupParticipationCheckAction);
+
+                _isStarted = true;
+
+                _synchronizationGroupParticipationCheckAction.Post(null);
             }
         }
 

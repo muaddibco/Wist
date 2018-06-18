@@ -7,6 +7,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 
@@ -17,38 +18,45 @@ namespace Wist.Node.Core.Synchronization
     {
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
+        private readonly ISynchronizationContext _synchronizationContext;
         private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
         private ICommunicationService _communicationService;
         private uint _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
-        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodeContext nodeContext, ICommunicationServicesRegistry communicationServicesRegistry)
+        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, ICommunicationServicesRegistry communicationServicesRegistry)
         {
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
-            _nodeContext = nodeContext;
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _communicationServicesRegistry = communicationServicesRegistry;
         }
 
         public void Initialize()
         {
-            _communicationService = _communicationServicesRegistry.GetInstance("GeneralTcp");
+            _communicationService = _communicationServicesRegistry.GetInstance("GenericTcp");
         }
 
         public void DeferredBroadcast()
         {
-            if (_nodeContext.SynchronizationContext  == null)
+            if (_synchronizationContext == null)
             {
                 return;
             }
 
-            if(_nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight > _lastLaunchedSyncBlockOrder)
+            if(_synchronizationContext.LastBlockDescriptor == null || _synchronizationContext.LastBlockDescriptor.BlockHeight > _lastLaunchedSyncBlockOrder)
             {
-                if(_nodeContext.SynchronizationContext.LastBlockDescriptor.BlockHeight - 1 > _lastLaunchedSyncBlockOrder)
+                if(_synchronizationContext.LastBlockDescriptor != null &&_synchronizationContext.LastBlockDescriptor.BlockHeight - 1 > _lastLaunchedSyncBlockOrder)
                 {
                     _syncProducingCancellation?.Cancel();
+                    _syncProducingCancellation = null;
+                }
+                else
+                {
+                    _syncProducingCancellation = new CancellationTokenSource();
                 }
 
-                int delay = (int)(60000 - (DateTime.Now - _nodeContext.SynchronizationContext.LastBlockDescriptor.ReceivingTime).TotalMilliseconds);
+                int delay = (int)(60000 - (DateTime.Now - (_synchronizationContext.LastBlockDescriptor?.ReceivingTime ?? DateTime.Now)).TotalMilliseconds);
 
                 if (delay > 0)
                 {
@@ -57,13 +65,13 @@ namespace Wist.Node.Core.Synchronization
                         {
                             SynchronizationDescriptor synchronizationDescriptor = o as SynchronizationDescriptor;
 
-                            SynchronizationBlock synchronizationBlock = new SynchronizationBlock
+                            SynchronizationProducingBlock synchronizationBlock = new SynchronizationProducingBlock
                             {
-                                BlockHeight = synchronizationDescriptor.BlockHeight + 1,
-                                ReportedTime = synchronizationDescriptor.MedianTime.AddMinutes(1)
+                                BlockHeight = synchronizationDescriptor?.BlockHeight ?? 0 + 1,
+                                ReportedTime = synchronizationDescriptor?.MedianTime.AddMinutes(1) ?? DateTime.Now
                             };
 
-                            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncBlock);
+                            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock);
                             byte[] body = signatureSupportSerializer.GetBody(synchronizationBlock);
                             byte[] signature = _nodeContext.Sign(body);
                             synchronizationBlock.PublicKey = _nodeContext.PublicKey;
@@ -72,7 +80,7 @@ namespace Wist.Node.Core.Synchronization
                             //TODO: accomplish logic for messages delivering
                             //_communicationHub.PostMessage(synchronizationBlock);
                             _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
-                        }, _nodeContext.SynchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
+                        }, _synchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }
             }
         }

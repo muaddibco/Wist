@@ -7,7 +7,7 @@ using Wist.Core.Architecture;
 namespace Wist.Communication.Interfaces
 {
     [ServiceContract]
-    public interface ICommunicationServicesFactory : IFactory<ICommunicationService, string>
+    public interface IBufferManagerFactory : IFactory<IBufferManager>
     {
     }
 }

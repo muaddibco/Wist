@@ -24,8 +24,8 @@ namespace Wist.Communication.Tests
 
             ILoggerService loggerService = Substitute.For<ILoggerService>();
 
-            IBufferManager bufferManager = Substitute.For<IBufferManager>();
-            CommunicationServiceBase communicationHub = new TcpCommunicationService(loggerService, bufferManager, null, null);
+            IBufferManagerFactory bufferManagerFactory = Substitute.For<IBufferManagerFactory>();
+            CommunicationServiceBase communicationHub = new TcpCommunicationService(loggerService, bufferManagerFactory, null, null);
 
             IPEndPoint communicationEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), listeningPort);
             SocketListenerSettings settings = new SocketListenerSettings(1, 100, communicationEndPoint);

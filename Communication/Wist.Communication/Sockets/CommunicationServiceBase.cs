@@ -24,7 +24,7 @@ namespace Wist.Communication.Sockets
     public abstract class CommunicationServiceBase : ICommunicationService
     {
         protected readonly ILogger _log;
-        private readonly IBufferManager _bufferManager;
+        private readonly IBufferManagerFactory _bufferManagerFactory;
         private readonly IPacketsHandler _packetsHandler;
         private GenericPool<ICommunicationChannel> _communicationChannelsPool;
         private readonly List<ICommunicationChannel> _clientConnectedList;
@@ -44,10 +44,10 @@ namespace Wist.Communication.Sockets
         /// </summary>
         /// <param name="settings">instance of <see cref="SocketListenerSettings"/> with defined settings of listener</param>
         /// <param name="receiveBufferSize">buffer size to use for each socket I/O operation</param>
-        public CommunicationServiceBase(ILoggerService loggerService, IBufferManager bufferManager, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
+        public CommunicationServiceBase(ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
         {
             _log = loggerService.GetLogger(GetType().Name);
-            _bufferManager = bufferManager;
+            _bufferManagerFactory = bufferManagerFactory;
             _packetsHandler = packetsHandler;
             _clientConnectedList = new List<ICommunicationChannel>();
             _nodesResolutionService = nodesResolutionService;
@@ -87,14 +87,15 @@ namespace Wist.Communication.Sockets
             _packetsHandler?.Initialize();
 
             // Allocates one large byte buffer which all I/O operations use a piece of.  This guards against memory fragmentation
-            _bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * 2, _settings.ReceiveBufferSize);
+            IBufferManager bufferManager = _bufferManagerFactory.Create();
+            bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * 2, _settings.ReceiveBufferSize);
             _communicationChannelsPool = new GenericPool<ICommunicationChannel>(_settings.MaxConnections);
 
             for (int i = 0; i < _settings.MaxConnections; i++)
             {
                 ICommunicationChannel communicationChannel = ServiceLocator.Current.GetInstance<ICommunicationChannel>();
                 communicationChannel.SocketClosedEvent += ClientHandler_SocketClosedEvent;
-                communicationChannel.Init(_bufferManager, _packetsHandler, _onReceiveExtendedValidation);
+                communicationChannel.Init(bufferManager, _packetsHandler, _onReceiveExtendedValidation);
                 _communicationChannelsPool.Push(communicationChannel);
             }
 
@@ -211,7 +212,7 @@ namespace Wist.Communication.Sockets
             ICommunicationChannel communicationChannel = _communicationChannelsPool.Pop();
 
             Int32 numberOfConnectedSockets = Interlocked.Increment(ref _connectedSockets);
-            _log.Info($"Initializing communication channel for IP {socket.RemoteEndPoint}, total concurrent accepted sockets is {numberOfConnectedSockets}");
+            _log.Info($"Initializing communication channel for IP {socket.LocalEndPoint}, total concurrent accepted sockets is {numberOfConnectedSockets}");
 
             try
             {
