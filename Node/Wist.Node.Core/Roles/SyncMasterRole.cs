@@ -90,14 +90,19 @@ namespace Wist.Node.Core.Roles
                             };
 
                             ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock);
-                            byte[] body = signatureSupportSerializer.GetBody(synchronizationBlock);
-                            byte[] signature = _nodeContext.Sign(body);
-                            synchronizationBlock.PublicKey = _nodeContext.PublicKey;
-                            synchronizationBlock.Signature = signature;
 
-                            //TODO: accomplish logic for messages delivering
-                            //_communicationService.PostMessage(_synchronizationGroupState.GetAllParticipants(), synchronizationBlock);
-                            _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
+                            try
+                            {
+                                _communicationService.PostMessage(_synchronizationGroupState.GetAllParticipants(), signatureSupportSerializer);
+                                _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
+                            }
+                            finally
+                            {
+                                if(signatureSupportSerializer != null)
+                                {
+                                    _signatureSupportSerializersFactory.Utilize(signatureSupportSerializer);
+                                }
+                            }
                         }, _synchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }
             }

@@ -33,7 +33,7 @@ namespace Wist.Communication.Sockets
         private int _connectedSockets = 0;
         protected ICommunicationProvisioning _communicationProvisioning = null;
         private INodesResolutionService _nodesResolutionService;
-        private readonly BlockingCollection<KeyValuePair<IKey, IPacketProvider>> _messagesQueue;
+        private readonly BlockingCollection<KeyValuePair<IKey, byte[]>> _messagesQueue;
         private CancellationTokenSource _cancellationTokenSource;
         private Func<ICommunicationChannel, IPEndPoint, int, bool> _onReceiveExtendedValidation;
 
@@ -51,7 +51,7 @@ namespace Wist.Communication.Sockets
             _packetsHandler = packetsHandler;
             _clientConnectedList = new List<ICommunicationChannel>();
             _nodesResolutionService = nodesResolutionService;
-            _messagesQueue = new BlockingCollection<KeyValuePair<IKey, IPacketProvider>>();
+            _messagesQueue = new BlockingCollection<KeyValuePair<IKey, byte[]>>();
         }
 
         #region ICommunicationService implementation
@@ -128,7 +128,7 @@ namespace Wist.Communication.Sockets
                 throw new ArgumentNullException(nameof(message));
             }
 
-            _messagesQueue.Add(new KeyValuePair<IKey, IPacketProvider>(destination, message));
+            _messagesQueue.Add(new KeyValuePair<IKey, byte[]>(destination, message.GetBytes()));
         }
 
         public void PostMessage(IEnumerable<IKey> destinations, IPacketProvider message)
@@ -145,7 +145,7 @@ namespace Wist.Communication.Sockets
 
             foreach (IKey key in destinations)
             {
-                _messagesQueue.Add(new KeyValuePair<IKey, IPacketProvider>(key, message));
+                _messagesQueue.Add(new KeyValuePair<IKey, byte[]>(key, message.GetBytes()));
             }
         }
 

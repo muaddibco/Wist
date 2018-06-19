@@ -5,8 +5,8 @@ using System.Text;
 
 namespace Wist.Core.Communication
 {
-    public interface IPacketProvider
+    public interface IPacketProvider : IDisposable
     {
-        void WriteBuffer(BinaryWriter bw, BinaryReader br);
+        byte[] GetBytes();
     }
 }

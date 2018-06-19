@@ -28,6 +28,7 @@ namespace Wist.Node.Core
 
         private readonly object _sync = new object();
         private readonly INodeContext _nodeContext;
+        private readonly IAccountState _accountState;
         private readonly IChainValidationServiceManager _chainConsensusServiceManager;
 
         private readonly Dictionary<PacketType, ConcurrentQueue<BlockBase>> _blocks;
@@ -46,6 +47,7 @@ namespace Wist.Node.Core
         public ConsensusBlocksProcessor(IStatesRepository statesRepository, IChainValidationServiceManager chainConsensusServiceManager, IConsensusCheckingService consensusCheckingService)
         {
             _nodeContext = statesRepository.GetInstance<INodeContext>();
+            _accountState = statesRepository.GetInstance<IAccountState>();
             _chainConsensusServiceManager = chainConsensusServiceManager;
             _consensusCheckingService = consensusCheckingService;
             _blocks = new Dictionary<PacketType, ConcurrentQueue<BlockBase>>();
@@ -121,7 +123,7 @@ namespace Wist.Node.Core
         {
             _consensusCheckingService.EnrollConsensusDecisions(block, consensusDecisions);
 
-            if (consensusDecisions.Any(p => p.Participant.PublicKey.Equals32(_nodeContext.PublicKey)))
+            if (consensusDecisions.Any(p => p.Participant.PublicKey.Equals32(_accountState.PublicKey)))
             {
                 _consensusItems.Add(new GenericConsensusBlock() { Block = block, ConsensusDecisions = consensusDecisions.Select(d => new GenericConsensusBlock.ConsensusDecisionItem { PublickKey = d.Participant.PublicKeyString, ConsensusState = d.State }).ToArray() });
             }

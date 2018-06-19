@@ -11,6 +11,7 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
+using Wist.Core.Cryptography;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
@@ -31,7 +32,9 @@ namespace Wist.Node.Core
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISynchronizationProducer _synchronizationProducer;
         private readonly INodeContext _nodeContext;
+        private readonly IAccountState _accountState;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
+        private readonly ICryptoService _cryptoService;
         private ICommunicationService _communicationHub;
         private uint _currentSyncBlockOrder;
 
@@ -41,12 +44,14 @@ namespace Wist.Node.Core
         private readonly BlockingCollection<SynchronizationBlockRetransmissionV1> _retransmittedBlocks;
         
 
-        public SynchronizationBlocksProcessor(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
+        public SynchronizationBlocksProcessor(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICryptoService cryptoService)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationProducer = synchronizationProducer;
             _nodeContext = statesRepository.GetInstance<INodeContext>();
+            _accountState = statesRepository.GetInstance<IAccountState>();
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
+            _cryptoService = cryptoService;
             _synchronizationBlocks = new BlockingCollection<SynchronizationBlockBase>();
             _retransmittedBlocks = new BlockingCollection<SynchronizationBlockRetransmissionV1>();
             _synchronizationBlocksByHeight = new Dictionary<uint, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>>();
@@ -213,11 +218,12 @@ namespace Wist.Node.Core
                 OffsetSinceLastMedian = (ushort)(DateTime.Now - _synchronizationContext.LastBlockDescriptor.ReceivingTime).TotalSeconds,
                 ConfirmationPublicKey = synchronizationBlockV1.PublicKey,
                 ConfirmationSignature = synchronizationBlockV1.Signature,
-                PublicKey = _nodeContext.PublicKey
+                PublicKey = _accountState.PublicKey
             };
 
-            byte[] body = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_RetransmissionBlock).GetBody(synchronizationBlockRetransmissionForSend);
-            synchronizationBlockRetransmissionForSend.Signature = _nodeContext.Sign(body);
+            //TODO: refactor
+            //byte[] body = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_RetransmissionBlock).GetBytes(synchronizationBlockRetransmissionForSend);
+            //synchronizationBlockRetransmissionForSend.Signature = _cryptoService.Sign(body);
 
             //TODO: complete logic of sync block propagation
             //await _communicationHub.PostMessage(synchronizationBlockRetransmissionForSend);

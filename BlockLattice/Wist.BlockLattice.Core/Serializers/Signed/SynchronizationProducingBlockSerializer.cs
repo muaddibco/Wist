@@ -31,7 +31,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             signature = _cryptoService.Sign(body);
         }
 
-        protected override void WritePowHeader(BinaryWriter bw)
+        protected override void WritePowHeader(BinaryWriter bw, uint syncBlockHeader)
         {
             
         }

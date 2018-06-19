@@ -23,7 +23,7 @@ namespace Wist.Communication
         private readonly ILogger _log;
         private readonly Queue<byte[]> _packets;
         private readonly Queue<byte[]> _messagePackets;
-        private readonly ConcurrentQueue<IPacketProvider> _postedMessages;
+        private readonly ConcurrentQueue<byte[]> _postedMessages;
         private IBufferManager _bufferManager;
         private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
         private readonly SocketAsyncEventArgs _socketSendAsyncEventArgs;
@@ -64,7 +64,7 @@ namespace Wist.Communication
             _log = loggerService.GetLogger(GetType().Name);
             _packets = new Queue<byte[]>();
             _messagePackets = new Queue<byte[]>();
-            _postedMessages = new ConcurrentQueue<IPacketProvider>();
+            _postedMessages = new ConcurrentQueue<byte[]>();
             _socketReceiveAsyncEventArgs = new SocketAsyncEventArgs();
             _socketReceiveAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Receive_Completed);
             _socketSendAsyncEventArgs = new SocketAsyncEventArgs();
@@ -122,7 +122,7 @@ namespace Wist.Communication
             StartReceive();
         }
 
-        public void PostMessage(IPacketProvider message)
+        public void PostMessage(byte[] message)
         {
             //TODO: weigh refactoring so BlockingCollection will be used
             lock (_postedMessages)
@@ -259,12 +259,13 @@ namespace Wist.Communication
                 {
                     lock (_postedMessages)
                     {
-                        IPacketProvider msg;
+                        byte[] msg;
                         if (_postedMessages.TryDequeue(out msg))
                         {
+                            //TODO: !!! Need to implement escape bytes insertion
                             try
                             {
-                                _currentPostMessage = msg.GetBytes();
+                                _currentPostMessage = msg;
 
                                 _postMessageRemainedBytes = _currentPostMessage.Length;
                             }

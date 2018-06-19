@@ -36,6 +36,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly IConfigurationService _configurationService;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
+        private readonly IAccountState _accountState;
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISynchronizationProducer _synchronizationProducer;
         private readonly IDposService _dposService;
@@ -54,6 +55,7 @@ namespace Wist.Node.Core.Synchronization
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodeContext = statesRepository.GetInstance<INodeContext>();
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
+            _accountState = statesRepository.GetInstance<IAccountState>();
             _synchronizationProducer = synchronizationProducer;
             _dposService = dposService;
         }
@@ -113,7 +115,7 @@ namespace Wist.Node.Core.Synchronization
         {
             SortedDictionary<ushort, byte[]> topParticipants = _dposService.GetTopNodesPublicKeys(_nodeContext.SyncGroupParticipantsCount);
 
-            bool result = topParticipants.Any(t => t.Value.Equals32(_nodeContext.PublicKey));
+            bool result = topParticipants.Any(t => t.Value.Equals32(_accountState.PublicKey));
 
             return result;
         }
@@ -122,7 +124,7 @@ namespace Wist.Node.Core.Synchronization
         {
             SortedDictionary<ushort, byte[]> topParticipants = _dposService.GetTopNodesPublicKeys(_nodeContext.SyncGroupParticipantsCount);
 
-            bool result = topParticipants.Any(t => t.Value.Equals32(_nodeContext.PublicKey));
+            bool result = topParticipants.Any(t => t.Value.Equals32(_accountState.PublicKey));
 
             return !result;
         }
@@ -203,13 +205,16 @@ namespace Wist.Node.Core.Synchronization
         {
             ISignatureSupportSerializer serializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_ReadyToParticipateBlock);
             ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockHeight = _synchronizationContext.LastBlockDescriptor.BlockHeight };
-            byte[] body = serializer.GetBody(block);
-            byte[] signature = _nodeContext.Sign(body);
-            block.PublicKey = _nodeContext.PublicKey;
-            block.Signature = signature;
 
-            //TODO: accomplish logic for messages distribution
-            //_communicationHubSync.PostMessage(block);
+            try
+            {
+                //TODO: accomplish logic for messages distribution
+                //_communicationHubSync.PostMessage(block);
+            }
+            finally
+            {
+                _signatureSupportSerializersFactory.Utilize(serializer);
+            }
         }
     }
 }
