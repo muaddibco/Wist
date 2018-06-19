@@ -58,6 +58,9 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
             WritePowHeader(_binaryWriter, _synchronizationContext.LastBlockDescriptor.BlockHeight);
 
+            _binaryWriter.Write(_block.BlockType);
+            _binaryWriter.Write(_block.Version);
+
             long pos = _memoryStream.Position;
 
             WriteBody(_binaryWriter);

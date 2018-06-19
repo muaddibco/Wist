@@ -9,7 +9,7 @@ using Wist.Core.Architecture.Enums;
 namespace Wist.Core.States
 {
 
-    [RegisterExtension(typeof(IAccountState), Lifetime = LifetimeManagement.Singleton)]
+    [RegisterExtension(typeof(IState), Lifetime = LifetimeManagement.Singleton)]
     public class AccountState : IAccountState
     {
         private readonly Subject<string> _subject = new Subject<string>();

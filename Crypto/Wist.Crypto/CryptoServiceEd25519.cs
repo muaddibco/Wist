@@ -13,6 +13,11 @@ namespace Wist.Crypto
     {
         private byte[] _expandedPrivateKey;
 
+        public CryptoServiceEd25519()
+        {
+
+        }
+
         public void Initialize(byte[] privateKey)
         {
             if (privateKey == null)

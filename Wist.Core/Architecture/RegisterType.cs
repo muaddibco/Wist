@@ -101,5 +101,10 @@ namespace Wist.Core.Architecture
             Lifetime = LifetimeManagement.Transient;
             Role = RegistrationRole.DefaultImplementation;
         }
+
+        public override string ToString()
+        {
+            return $"{Role}: {TypeToRegister.FullName} => {Implements.FullName}; {Lifetime}";
+        }
     }
 }

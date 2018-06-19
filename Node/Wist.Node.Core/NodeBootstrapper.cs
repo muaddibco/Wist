@@ -95,6 +95,7 @@ namespace Wist.Node.Core
                 {
                     if (exeName != null) coreCatalog.Catalogs.Add(new DirectoryCatalog(exeFolder, exeName));
                     coreCatalog.Catalogs.Add(new DirectoryCatalog(exeFolder, "Wist.Core.dll"));
+                    coreCatalog.Catalogs.Add(new DirectoryCatalog(exeFolder, "Wist.Crypto.dll"));
                     coreCatalog.Catalogs.Add(new DirectoryCatalog(exeFolder, "Chaos.NaCl.dll"));
                     coreCatalog.Catalogs.Add(new DirectoryCatalog(exeFolder, "Wist.Communication.dll"));
                     coreCatalog.Catalogs.Add(new DirectoryCatalog(exeFolder, "Wist.Node.Core.dll"));

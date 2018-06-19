@@ -24,11 +24,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
         protected override void WriteBody(BinaryWriter bw)
         {
-            byte[] body = new byte[0];
-            byte[] signature;
-            byte[] publicKey = _accountState.PublicKey;
-
-            signature = _cryptoService.Sign(body);
+            bw.Write(_block.ReportedTime.ToBinary());
         }
 
         protected override void WritePowHeader(BinaryWriter bw, uint syncBlockHeader)
