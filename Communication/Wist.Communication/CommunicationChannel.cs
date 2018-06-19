@@ -13,6 +13,8 @@ using Wist.Core.Communication;
 using Wist.Core.Logging;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using System.IO;
+using Wist.Communication.Exceptions;
 
 namespace Wist.Communication
 {
@@ -28,7 +30,9 @@ namespace Wist.Communication
         private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
         private readonly SocketAsyncEventArgs _socketSendAsyncEventArgs;
         private readonly ManualResetEventSlim _socketAcceptedEvent;
-
+        private readonly MemoryStream _memoryStream;
+        private readonly BinaryWriter _binaryWriter;
+        
         private IPacketsHandler _packetsHandler;
         private CancellationTokenSource _cancellationTokenSource;
 
@@ -54,6 +58,7 @@ namespace Wist.Communication
 
         private bool _isSending;
         private bool _isBusy;
+        private bool _disposed = false; // To detect redundant calls
 
         private Func<ICommunicationChannel, IPEndPoint, int, bool> _onReceivedExtendedValidation;
 
@@ -70,6 +75,9 @@ namespace Wist.Communication
             _socketSendAsyncEventArgs = new SocketAsyncEventArgs();
             _socketSendAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Send_Completed);
             _socketAcceptedEvent = new ManualResetEventSlim(false);
+
+            _memoryStream = new MemoryStream();
+            _binaryWriter = new BinaryWriter(_memoryStream);
         }
 
         #region ICommunicationChannel implementation
@@ -249,6 +257,42 @@ namespace Wist.Communication
             SocketClosedEvent?.Invoke(this, null);
         }
 
+        private void WriteByteWithEncoding(BinaryWriter bw, byte b)
+        {
+            if (b == DLE || b == STX)
+            {
+                bw.Write(DLE);
+                b += DLE;
+            }
+
+            bw.Write(b);
+        }
+
+        private byte[] GetEscapedPacketBytes(byte[] packet)
+        {
+            _memoryStream.Seek(0, SeekOrigin.Begin);
+            _memoryStream.SetLength(0);
+
+            _binaryWriter.Write(DLE);
+            _binaryWriter.Write(STX);
+
+            uint packetLength = (uint)packet.Length;
+
+            byte[] lengthByte = BitConverter.GetBytes(packetLength);
+            WriteByteWithEncoding(_binaryWriter, lengthByte[0]);
+            WriteByteWithEncoding(_binaryWriter, lengthByte[1]);
+            WriteByteWithEncoding(_binaryWriter, lengthByte[2]);
+            WriteByteWithEncoding(_binaryWriter, lengthByte[3]);
+
+
+            for (int i = 0; i < packet.Length; i++)
+            {
+                WriteByteWithEncoding(_binaryWriter, packet[i]);
+            }
+
+            return _memoryStream.ToArray();
+        }
+
         private void StartSend()
         {
             _socketAcceptedEvent.Wait();
@@ -262,10 +306,9 @@ namespace Wist.Communication
                         byte[] msg;
                         if (_postedMessages.TryDequeue(out msg))
                         {
-                            //TODO: !!! Need to implement escape bytes insertion
                             try
                             {
-                                _currentPostMessage = msg;
+                                _currentPostMessage = GetEscapedPacketBytes(msg);
 
                                 _postMessageRemainedBytes = _currentPostMessage.Length;
                             }
@@ -497,5 +540,29 @@ namespace Wist.Communication
         }
 
         #endregion Parsing functionality
+
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _binaryWriter?.Dispose();
+                    _memoryStream?.Dispose();
+                }
+
+                _disposed = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        #endregion
     }
 }

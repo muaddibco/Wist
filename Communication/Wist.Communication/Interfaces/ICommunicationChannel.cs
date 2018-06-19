@@ -10,7 +10,7 @@ using Wist.Core.Communication;
 namespace Wist.Communication.Interfaces
 {
     [ServiceContract]
-    public interface ICommunicationChannel
+    public interface ICommunicationChannel : IDisposable
     {
         event EventHandler<EventArgs> SocketClosedEvent;
 
