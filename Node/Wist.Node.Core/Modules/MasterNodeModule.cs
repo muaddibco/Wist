@@ -28,12 +28,5 @@ namespace Wist.Node.Core.Roles
         protected override void InitializeInner()
         {
         }
-
-        public override Task Play()
-        {
-            return Task.Run(() => 
-            {
-            });
-        }
     }
 }

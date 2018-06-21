@@ -10,6 +10,8 @@ namespace Wist.Node.Core.Roles
         protected bool _isInitialized;
         private readonly object _sync = new object();
 
+        public string Name => GetType().Name;
+
         protected abstract void InitializeInner();
 
         public void Initialize()
@@ -32,5 +34,18 @@ namespace Wist.Node.Core.Roles
 
         public abstract void Start();
         public abstract void Stop();
+
+        public bool Equals(IRole other)
+        {
+            if (other == null)
+                return false;
+
+            return Name.Equals(other.Name);
+        }
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode();
+        }
     }
 }

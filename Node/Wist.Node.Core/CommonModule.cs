@@ -25,11 +25,6 @@ namespace Wist.Node.Core
 
         public override string Name => NAME;
 
-        public override Task Play()
-        {
-            return Task.Run(() => { });
-        }
-
         protected override void InitializeInner()
         {
             IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(SynchronizationReceivingHandler.NAME);

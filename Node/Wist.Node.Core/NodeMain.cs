@@ -31,18 +31,19 @@ namespace Wist.Node.Core
         private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IConfigurationService _configurationService;
         private readonly IModulesRepository _modulesRepository;
+        private readonly IRolesRegistry _rolesRegistry;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(ICommunicationServicesRepository communicationServicesFactory, ICommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
+        public NodeMain(ICommunicationServicesRepository communicationServicesFactory, ICommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _communicationServicesFactory = communicationServicesFactory;
             _communicationServicesRegistry = communicationServicesRegistry;
             _configurationService = configurationService;
             _modulesRepository = modulesRepository;
-
+            _rolesRegistry = rolesRegistry;
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -50,9 +51,9 @@ namespace Wist.Node.Core
         {
             InitializeCommunicationLayer();
 
-            ObtainConfiguredRoles();
+            ObtainConfiguredModules();
 
-            InitializeRoles();
+            InitializeModules();
         }
 
         private void InitializeCommunicationLayer()
@@ -70,7 +71,7 @@ namespace Wist.Node.Core
             _communicationServicesRegistry.RegisterInstance(communicationServiceUdp, "GenericUdp");
         }
 
-        private void InitializeRoles()
+        private void InitializeModules()
         {
             IEnumerable<IModule> modules = _modulesRepository.GetBulkInstances();
 
@@ -87,23 +88,23 @@ namespace Wist.Node.Core
             }
         }
 
-        private void ObtainConfiguredRoles()
+        private void ObtainConfiguredModules()
         {
             NodeConfiguration nodeConfiguration = (NodeConfiguration)_configurationService[NodeConfiguration.SECTION_NAME];
 
-            string[] roles = nodeConfiguration.Roles;
-            if (roles != null)
+            string[] moduleNames = nodeConfiguration.Modules;
+            if (moduleNames != null)
             {
-                foreach (string roleName in roles)
+                foreach (string moduleName in moduleNames)
                 {
                     try
                     {
-                        IModule role = _modulesRepository.GetInstance(roleName);
-                        _modulesRepository.RegisterInstance(role);
+                        IModule module = _modulesRepository.GetInstance(moduleName);
+                        _modulesRepository.RegisterInstance(module);
                     }
                     catch (Exception ex)
                     {
-                        _log.Error($"Failed to register Role with name '{roleName}'.", ex);
+                        _log.Error($"Failed to register Module with name '{moduleName}'.", ex);
                     }
                 }
             }
@@ -124,14 +125,11 @@ namespace Wist.Node.Core
             _communicationServicesRegistry.GetInstance("GenericTcp").Start();
             _communicationServicesRegistry.GetInstance("GenericUdp").Start();
 
-            IEnumerable<IModule> modules = _modulesRepository.GetBulkInstances();
+            IEnumerable<IRole> roles = _rolesRegistry.GetBulkInstances();
 
-            foreach (IModule module in modules)
+            foreach (IRole role in roles)
             {
-                if (module.IsInitialized)
-                {
-                    module.Play();
-                }
+                role.Start();
             }
         }
     }

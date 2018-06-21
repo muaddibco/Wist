@@ -6,8 +6,10 @@ using Wist.Core.Architecture;
 namespace Wist.Node.Core.Interfaces
 {
     [ExtensionPoint]
-    public interface IRole
+    public interface IRole : IEquatable<IRole>
     {
+        string Name { get; }
+
         void Initialize();
 
         void Start();

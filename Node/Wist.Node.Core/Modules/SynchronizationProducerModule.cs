@@ -17,26 +17,20 @@ namespace Wist.Node.Core.Roles
     [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationProducerModule : ModuleBase
     {
-        private readonly ISynchronizationGroupParticipationService _synchronizationGroupParticipationService;
+        private readonly IRole _syncMasterRole;
+        private readonly IRolesRegistry _rolesRegistry;
 
-        public SynchronizationProducerModule(ILoggerService loggerService, ISynchronizationGroupParticipationService synchronizationGroupParticipationService) : base(loggerService)
+        public SynchronizationProducerModule(ILoggerService loggerService, IRolesRepository rolesRepository, IRolesRegistry rolesRegistry) : base(loggerService)
         {
-            _synchronizationGroupParticipationService = synchronizationGroupParticipationService;
+            _syncMasterRole = rolesRepository.GetInstance(nameof(SyncMasterRole));
+            _rolesRegistry = rolesRegistry;
         }
 
         public override string Name => nameof(SynchronizationProducerModule);
 
         protected override void InitializeInner()
         {
-            _synchronizationGroupParticipationService.Initialize();
-        }
-
-        public override Task Play()
-        {
-            return Task.Run(() => 
-            {
-                _synchronizationGroupParticipationService.Start();
-            });
+            _rolesRegistry.RegisterInstance(_syncMasterRole);
         }
     }
 }

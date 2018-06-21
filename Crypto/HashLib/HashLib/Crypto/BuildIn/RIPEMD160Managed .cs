@@ -94,7 +94,7 @@ namespace System.Security.Cryptography
                 set
                 {
                     if (m_hashing)
-                        throw new CryptographicException(Environment.GetResourceString("Cryptography_HashKeySet"));
+                        throw new CryptographicException(HashLib.Properties.Resources.Cryptography_HashKeySet);
                     InitializeKey(value);
                 }
             }
@@ -105,20 +105,20 @@ namespace System.Security.Cryptography
 #if FEATURE_CRYPTO
             set { 
                 if (m_hashing)
-                    throw new CryptographicException(Environment.GetResourceString("Cryptography_HashNameSet"));
+                    throw new CryptographicException(HashLib.Properties.Resources.Cryptography_HashNameSet);
                 m_hashName = value; 
                 // create the hash algorithms
                 m_hash1 = HashAlgorithm.Create(m_hashName);
                 m_hash2 = HashAlgorithm.Create(m_hashName);
             }
 #endif // FEATURE_CRYPTO
-            }
+        }
 
-            //
-            // public methods
-            //
+        //
+        // public methods
+        //
 
-            new static public HMAC Create()
+        new static public HMAC Create()
             {
                 return Create("System.Security.Cryptography.HMAC");
             }
@@ -153,15 +153,15 @@ namespace System.Security.Cryptography
                     m_hashing = true;
                 }
                 // finalize the original hash
-                m_hash1.TransformFinalBlock(EmptyArray<Byte>.Value, 0, 0);
-                byte[] hashValue1 = m_hash1.HashValue;
+                m_hash1.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                byte[] hashValue1 = m_hash1.Hash;
                 // write the outer array
                 m_hash2.TransformBlock(m_outer, 0, m_outer.Length, m_outer, 0);
                 // write the inner hash and finalize the hash
                 m_hash2.TransformBlock(hashValue1, 0, hashValue1.Length, hashValue1, 0);
                 m_hashing = false;
-                m_hash2.TransformFinalBlock(EmptyArray<Byte>.Value, 0, 0);
-                return m_hash2.HashValue;
+                m_hash2.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                return m_hash2.Hash;
             }
 
             //
@@ -215,14 +215,23 @@ namespace System.Security.Cryptography
         }
 #endif // FEATURE_CRYPTO
         }
-    }
+    
     public class HMACRIPEMD160 : HMAC
     {
         //
         // public constructors
         //
 
-        public HMACRIPEMD160() : this(Utils.GenerateRandom(64)) { }
+        public HMACRIPEMD160()
+        {
+            byte[] key = new byte[64];
+            RandomNumberGenerator.Create().GetBytes(key);
+            m_hashName = "RIPEMD160";
+            m_hash1 = new RIPEMD160Managed();
+            m_hash2 = new RIPEMD160Managed();
+            HashSizeValue = 160;
+            base.InitializeKey(key);
+        }
 
         public HMACRIPEMD160(byte[] key)
         {

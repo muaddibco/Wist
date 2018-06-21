@@ -16,6 +16,6 @@ namespace Wist.Node.Core.Configuration
 
         public string SectionName => SECTION_NAME;
 
-        public string[] Roles { get; set; }
+        public string[] Modules { get; set; }
     }
 }

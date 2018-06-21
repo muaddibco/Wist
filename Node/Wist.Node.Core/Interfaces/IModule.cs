@@ -13,7 +13,5 @@ namespace Wist.Node.Core.Interfaces
         string Name { get; }
 
         void Initialize();
-
-        Task Play();
     }
 }
