@@ -12,6 +12,7 @@ using Wist.Core.ExtensionMethods;
 using Wist.BlockLattice.Core.DataModel;
 using System.Linq;
 using Wist.Core.Mappers;
+using Wist.Core.Models;
 
 namespace Wist.BlockLattice.SQLite.DataServices
 {
@@ -28,7 +29,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
             _mapperFactory = mapperFactory;
         }
 
-        public void AddBlock(BlockBase block)
+        public void Add(BlockBase block)
         {
             throw new NotImplementedException();
         }
@@ -50,24 +51,24 @@ namespace Wist.BlockLattice.SQLite.DataServices
             LatticeDataService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.OriginalHash);
         }
 
-        public bool DoesChainExist(byte[] key)
+        public bool DoesChainExist(IKey key)
         {
             return LatticeDataService.Instance.IsGenesisBlockExists(key);
         }
 
-        public BlockBase[] GetAllBlocks(byte[] key)
+        public BlockBase[] GetAllBlocks(IKey key)
         {
             throw new NotImplementedException();
         }
 
-        public BlockBase GetBlockByOrder(byte[] key, uint order)
+        public BlockBase GetBlockByOrder(IKey key, uint order)
         {
             throw new NotImplementedException();
         }
 
-        public GenesisBlockBase GetGenesisBlock(byte[] key)
+        public GenesisBlockBase GetGenesisBlock(IKey key)
         {
-            TransactionalGenesis transactionalGenesis = LatticeDataService.Instance.GetTransactionalGenesisBlock(key);
+            TransactionalGenesis transactionalGenesis = LatticeDataService.Instance.GetTransactionalGenesisBlock(key.Value);
 
             return new TransactionalGenesisBlockV1
             {
@@ -76,9 +77,9 @@ namespace Wist.BlockLattice.SQLite.DataServices
             };
         }
 
-        public BlockBase GetLastBlock(byte[] key)
+        public BlockBase GetLastBlock(IKey key)
         {
-            TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(key);
+            TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(key.Value);
 
             IMapper<TransactionalBlock, BlockBase> mapper = _mapperFactory.GetMapper<TransactionalBlock, BlockBase>();
 
@@ -103,6 +104,16 @@ namespace Wist.BlockLattice.SQLite.DataServices
             }
 
             return blocks;
+        }
+
+        public IEnumerable<BlockBase> GetAllByKey(IKey key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<BlockBase> GetAll()
+        {
+            throw new NotImplementedException();
         }
     }
 }

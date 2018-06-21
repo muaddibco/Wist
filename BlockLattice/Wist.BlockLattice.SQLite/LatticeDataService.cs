@@ -16,6 +16,7 @@ using Wist.Core.Cryptography;
 using Wist.Core.Configuration;
 using CommonServiceLocator;
 using Wist.BlockLattice.SQLite.Configuration;
+using Wist.Core.Models;
 
 namespace Wist.BlockLattice.SQLite
 {
@@ -113,14 +114,14 @@ namespace Wist.BlockLattice.SQLite
             _dataContext.TransactionalGenesises.AddAsync(account);
         }
 
-        public bool IsGenesisBlockExists(byte[] originalHash)
+        public bool IsGenesisBlockExists(IKey key)
         {
-            if (originalHash == null)
+            if (key == null)
             {
-                throw new ArgumentNullException(nameof(originalHash));
+                throw new ArgumentNullException(nameof(key));
             }
 
-            string originalHashValue = originalHash.ToHexString();
+            string originalHashValue = key.Value.ToHexString();
 
             return _dataContext.TransactionalGenesises.Any(g => g.OriginalHash.Equals(originalHashValue));
         }

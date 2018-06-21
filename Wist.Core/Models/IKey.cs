@@ -9,5 +9,6 @@ namespace Wist.Core.Models
     /// </summary>
     public interface IKey : IEqualityComparer<IKey>
     {
+        byte[] Value { get; set; }
     }
 }

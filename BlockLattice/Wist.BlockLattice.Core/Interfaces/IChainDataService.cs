@@ -4,26 +4,26 @@ using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
+using Wist.Core.Models;
 
 namespace Wist.BlockLattice.Core.Interfaces
 {
     [ExtensionPoint]
-    public interface IChainDataService
+    public interface IChainDataService : IDataService<BlockBase>
     {
         PacketType ChainType { get; }
-        bool DoesChainExist(byte[] key);
 
-        GenesisBlockBase GetGenesisBlock(byte[] key);
+        bool DoesChainExist(IKey key);
 
-        BlockBase GetLastBlock(byte[] key);
+        GenesisBlockBase GetGenesisBlock(IKey key);
 
-        BlockBase GetBlockByOrder(byte[] key, uint order);
+        BlockBase GetLastBlock(IKey key);
 
-        BlockBase[] GetAllBlocks(byte[] key);
+        IEnumerable<BlockBase> GetAllByKey(IKey key);
+
+        BlockBase GetBlockByOrder(IKey key, uint order);
 
         void CreateGenesisBlock(GenesisBlockBase genesisBlock);
-
-        void AddBlock(BlockBase block);
 
         List<BlockBase> GetAllLastBlocksByType(ushort blockType);
     }
