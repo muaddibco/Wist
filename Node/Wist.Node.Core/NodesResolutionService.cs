@@ -4,7 +4,7 @@ using System.Net;
 using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Communication;
-using Wist.Core.Models;
+using Wist.Core.Identity;
 
 namespace Wist.Node.Core
 {

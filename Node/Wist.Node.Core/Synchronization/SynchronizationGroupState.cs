@@ -2,11 +2,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reactive.Subjects;
-using System.Text;
 using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
-using Wist.Core.Models;
+using Wist.Core.Identity;
 using Wist.Core.States;
 
 namespace Wist.Node.Core.Synchronization

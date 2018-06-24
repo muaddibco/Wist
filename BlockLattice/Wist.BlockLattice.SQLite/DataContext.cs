@@ -16,6 +16,8 @@ namespace Wist.BlockLattice.SQLite
             _configuration = configuration;
         }
 
+        public DbSet<AccountIdentity> AccountIdentities { get; set; }
+
         public DbSet<AccountBlock> AccountBlocks { get; set; }
 
         public DbSet<AccountGenesis> AccountGenesises { get; set; }

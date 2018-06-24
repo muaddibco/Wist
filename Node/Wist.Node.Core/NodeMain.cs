@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using log4net;
 using Wist.Core.Logging;
+using Wist.Core;
 
 namespace Wist.Node.Core
 {
@@ -32,11 +33,12 @@ namespace Wist.Node.Core
         private readonly IConfigurationService _configurationService;
         private readonly IModulesRepository _modulesRepository;
         private readonly IRolesRegistry _rolesRegistry;
+        private readonly IInitializer[] _initializers;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(ICommunicationServicesRepository communicationServicesFactory, ICommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
+        public NodeMain(ICommunicationServicesRepository communicationServicesFactory, ICommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService, IInitializer[] initializers)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _communicationServicesFactory = communicationServicesFactory;
@@ -44,16 +46,34 @@ namespace Wist.Node.Core
             _configurationService = configurationService;
             _modulesRepository = modulesRepository;
             _rolesRegistry = rolesRegistry;
+            _initializers = initializers;
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public void Initialize()
         {
+            InitializeGlobals();
+
             InitializeCommunicationLayer();
 
             ObtainConfiguredModules();
 
             InitializeModules();
+        }
+
+        private void InitializeGlobals()
+        {
+            foreach (IInitializer item in _initializers)
+            {
+                try
+                {
+                    item.Initialize();
+                }
+                catch (Exception ex)
+                {
+                    _log.ExceptionError(ex, $"Failed to initialize {item.GetType().FullName}");
+                }
+            }
         }
 
         private void InitializeCommunicationLayer()

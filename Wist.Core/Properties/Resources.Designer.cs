@@ -88,6 +88,24 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Identity Provider {0} not supported..
+        /// </summary>
+        internal static string ERR_IDENTITY_PROVIDER_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_IDENTITY_PROVIDER_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Section of Identity Configuration is missing or corrupted..
+        /// </summary>
+        internal static string ERR_IDENTITY_PROVIDERS_CONFIGURATION_CORRUPTED {
+            get {
+                return ResourceManager.GetString("ERR_IDENTITY_PROVIDERS_CONFIGURATION_CORRUPTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Instance of class {0} is not initialized yet. Please invoke its initialization method prior to usage..
         /// </summary>
         internal static string ERR_INSTANCE_IS_NOT_INITIALIZED {

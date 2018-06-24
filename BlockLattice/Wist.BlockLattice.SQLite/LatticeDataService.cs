@@ -17,6 +17,8 @@ using Wist.Core.Configuration;
 using CommonServiceLocator;
 using Wist.BlockLattice.SQLite.Configuration;
 using Wist.Core.Models;
+using Wist.Core.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Wist.BlockLattice.SQLite
 {
@@ -26,17 +28,20 @@ namespace Wist.BlockLattice.SQLite
     {
         private static readonly object _sync = new object();
         private static LatticeDataService _instance = null;
+        private Dictionary<IKey, long> _keyIdentityMap;
+        private readonly IIdentityKeyProvider _identityKeyProvider;
 
         private readonly DataContext _dataContext;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly IConfigurationService _configurationService;
         private bool _isSaving;
 
-        private LatticeDataService(IConfigurationService configurationService)
+        private LatticeDataService(IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry)
         {
             _cancellationTokenSource = new CancellationTokenSource();
             _configurationService = configurationService;
             _dataContext = new DataContext((SQLiteConfiguration)_configurationService["sqlite"]);
+            _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }
 
         public static LatticeDataService Instance
@@ -49,7 +54,7 @@ namespace Wist.BlockLattice.SQLite
                     {
                         if(_instance == null)
                         {
-                            _instance = ServiceLocator.Current.GetInstance<LatticeDataService>();
+                            _instance = new LatticeDataService(ServiceLocator.Current.GetInstance<IConfigurationService>(), ServiceLocator.Current.GetInstance<IIdentityKeyProvidersRegistry>());
                             _instance.Initialize();
                         }
                     }
@@ -61,9 +66,18 @@ namespace Wist.BlockLattice.SQLite
 
         public bool IsInitialized { get; private set; }
 
+        #region Account Identities
+
+        public void LoadAllIdentities()
+        {
+            _keyIdentityMap = _dataContext.AccountIdentities.ToDictionary(i => _identityKeyProvider.GetKey(i.PublicKey), i => i.AccountIdentityId);
+        }
+
+        #endregion Account Identities
+
         #region Accounts Chain
 
-        
+
 
         #endregion Accounts Chain
 

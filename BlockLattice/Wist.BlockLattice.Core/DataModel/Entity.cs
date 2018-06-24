@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Wist.Core.Models;
+﻿using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel
 {
     public abstract class Entity
     {
-        IKey Key { get; set; }
+        public IKey Key { get; set; }
     }
 }

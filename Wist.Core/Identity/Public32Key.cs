@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Wist.Core.ExtensionMethods;
 
-namespace Wist.Core.Models
+namespace Wist.Core.Identity
 {
     /// <summary>
     /// Class represents Public Key with length of 32 bytes

@@ -2,10 +2,9 @@
 using System;
 using System.Collections.Generic;
 using Wist.Core.Architecture;
-using Wist.BlockLattice.Core.Interfaces;
-using Wist.Core.Models;
 using Wist.Core.Communication;
 using System.Net;
+using Wist.Core.Identity;
 
 namespace Wist.Communication.Interfaces
 {

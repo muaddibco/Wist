@@ -106,7 +106,7 @@ namespace Wist.Node.Core.Consensus
             if (approved)
             {
                 IChainDataService chainDataService = _chainDataServicesManager.GetChainDataService(blockConsensusState.Block.PacketType);
-                chainDataService.AddBlock(blockConsensusState.Block);
+                chainDataService.Add(blockConsensusState.Block);
             }
         }
 

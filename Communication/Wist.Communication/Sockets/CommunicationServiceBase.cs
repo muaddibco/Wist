@@ -1,23 +1,18 @@
 ﻿using CommonServiceLocator;
 using Wist.Communication.Interfaces;
-using log4net;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using Wist.Core;
-using Wist.Core.Architecture;
-using Wist.Core.Architecture.Enums;
-using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Interfaces;
 using System.Threading.Tasks;
-using Wist.Core.Models;
 using Wist.Core.Communication;
 using System.Collections.Concurrent;
 using Wist.Core.Logging;
+using Wist.Core.Identity;
 
 namespace Wist.Communication.Sockets
 {

@@ -4,6 +4,11 @@ using System.Text;
 
 namespace Wist.Core
 {
+    public interface IRegistry<T>
+    {
+        T GetInstance();
+    }
+
     public interface IRegistry<T, TKey>
     {
         void RegisterInstance(T obj, TKey key);

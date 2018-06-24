@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Wist.Core.Models
+namespace Wist.Core.Identity
 {
     /// <summary>
     /// Generic key

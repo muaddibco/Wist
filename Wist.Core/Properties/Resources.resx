@@ -126,6 +126,12 @@
   <data name="ERR_FAILED_TO_FIND_LOG_CONFIG_FILE" xml:space="preserve">
     <value>Unable to locate {0} configuration file at: {1}.</value>
   </data>
+  <data name="ERR_IDENTITY_PROVIDERS_CONFIGURATION_CORRUPTED" xml:space="preserve">
+    <value>Section of Identity Configuration is missing or corrupted.</value>
+  </data>
+  <data name="ERR_IDENTITY_PROVIDER_NOT_SUPPORTED" xml:space="preserve">
+    <value>Identity Provider {0} not supported.</value>
+  </data>
   <data name="ERR_INSTANCE_IS_NOT_INITIALIZED" xml:space="preserve">
     <value>Instance of class {0} is not initialized yet. Please invoke its initialization method prior to usage.</value>
   </data>

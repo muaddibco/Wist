@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.DataModel;
-using Wist.BlockLattice.SQLite;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
 using Wist.BlockLattice.Core.DataModel;
-using System.Linq;
 using Wist.Core.Mappers;
-using Wist.Core.Models;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.SQLite.DataServices
 {

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
+﻿using System.Net;
 using Wist.Core.Architecture;
-using Wist.Core.Models;
+using Wist.Core.Identity;
 
 namespace Wist.Core.Communication
 {

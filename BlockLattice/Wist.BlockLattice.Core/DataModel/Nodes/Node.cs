@@ -7,8 +7,8 @@ namespace Wist.BlockLattice.Core.DataModel.Nodes
 {
     public class Node : AccountBase
     {
-        IPAddress IPAddress { get; set; }
+        public IPAddress IPAddress { get; set; }
 
-        ulong Votes { get; set; }
+        public ulong Votes { get; set; }
     }
 }
