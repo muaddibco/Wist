@@ -146,7 +146,7 @@ namespace Wist.BlockLattice.SQLite
 
         #region Nodes
 
-        public bool AddNode(IKey key)
+        public bool AddNode(IKey key, string ipAddressExpression = null)
         {
             AccountIdentity accountIdentity = GetAccountIdentity(key);
 
@@ -158,8 +158,39 @@ namespace Wist.BlockLattice.SQLite
 
                     if(node == null)
                     {
-                        node = new Node {Identity = accountIdentity, IPAddress = IPAddress.Parse("127.0.0.1").GetAddressBytes() };
-                        _dataContext.Nodes.Add(node);
+                        IPAddress ipAddress;
+
+                        if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out ipAddress))
+                        {
+                            node = new Node { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes() };
+                            _dataContext.Nodes.Add(node);
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool UpdateNode(IKey key, string ipAddressExpression = null)
+        {
+            AccountIdentity accountIdentity = GetAccountIdentity(key);
+
+            if (accountIdentity != null)
+            {
+                lock (_sync)
+                {
+                    Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
+
+                    if (node != null)
+                    {
+                        IPAddress ipAddress;
+
+                        if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out ipAddress))
+                        {
+                            node.IPAddress = ipAddress.GetAddressBytes();
+                            _dataContext.Update<Node>(node);
+                        }
                     }
                 }
             }
@@ -403,7 +434,7 @@ namespace Wist.BlockLattice.SQLite
                         _isSaving = false;
                     }
                 }
-            }, 500, cancelToken: _cancellationTokenSource.Token);
+            }, 1000, cancelToken: _cancellationTokenSource.Token);
 
             IsInitialized = true;
         }

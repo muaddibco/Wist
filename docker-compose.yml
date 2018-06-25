@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  wist.node.console:
+    image: ${DOCKER_REGISTRY}wistnodeconsole
+    build:
+      context: .\Node\Wist.Node.Console
+      dockerfile: Dockerfile

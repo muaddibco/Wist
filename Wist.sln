@@ -60,6 +60,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NodeSetup", "NodeSetup", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Setup.Simulation", "NodeSetup\Wist.Setup.Simulation\Wist.Setup.Simulation.csproj", "{08445408-D672-4899-93A6-40AF6CFEC8EC}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -262,6 +264,18 @@ Global
 		{08445408-D672-4899-93A6-40AF6CFEC8EC}.Release|x64.Build.0 = Release|Any CPU
 		{08445408-D672-4899-93A6-40AF6CFEC8EC}.Release|x86.ActiveCfg = Release|Any CPU
 		{08445408-D672-4899-93A6-40AF6CFEC8EC}.Release|x86.Build.0 = Release|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Debug|x64.Build.0 = Debug|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Debug|x86.Build.0 = Debug|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Release|x64.ActiveCfg = Release|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Release|x64.Build.0 = Release|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Release|x86.ActiveCfg = Release|Any CPU
+		{36C5AF33-B5A4-4579-AB5B-C67C5AB88A17}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
