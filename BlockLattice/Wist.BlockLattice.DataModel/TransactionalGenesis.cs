@@ -16,16 +16,12 @@ namespace Wist.BlockLattice.DataModel
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long TransactionalGenesisId { get; set; }
 
-        public ushort Version { get; set; }
+        public AccountIdentity Identity { get; set; }
 
-        [StringLength(128)]
-        /// <summary>
-        /// HEX string representation of 64-byte original HASH value associated with current Transactional Chain
-        /// </summary>
-        public string OriginalHash { get; set; }
+        public ushort Version { get; set; }
 
         public byte[] BlockContent { get; set; }
 
-        public virtual ICollection<TransactionalBlock> TransactionBlocks { get; set; }
+        public virtual ICollection<TransactionalGenesisModification> GenesisModifications { get; set; }
     }
 }

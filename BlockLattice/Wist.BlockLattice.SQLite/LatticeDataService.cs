@@ -208,14 +208,24 @@ namespace Wist.BlockLattice.SQLite
 
         #region Transactional Chain
 
-        public TransactionalGenesis GetTransactionalGenesisBlock(string originalHash)
+        public TransactionalGenesisModification GetTransactionalGenesisModificationBlock(IKey key)
         {
-            if (originalHash == null)
+            if (key == null)
             {
-                throw new ArgumentNullException(nameof(originalHash));
+                throw new ArgumentNullException(nameof(key));
             }
 
-            return _dataContext.TransactionalGenesises.FirstOrDefault(g => g.OriginalHash.Equals(originalHash));
+            AccountIdentity accountIdentity = GetAccountIdentity(key);
+
+            if(accountIdentity != null)
+            {
+                lock (_sync)
+                {
+                    return _dataContext.TransactionalGenesisModifications.FirstOrDefault(g => g.Identity == accountIdentity);
+                }
+            }
+
+            return null;
         }
 
         public TransactionalGenesis GetTransactionalGenesisBlock(byte[] originalHash)
@@ -275,16 +285,34 @@ namespace Wist.BlockLattice.SQLite
             return _dataContext.TransactionalGenesises.Any(g => g.OriginalHash.Equals(originalHash));
         }
 
-        public TransactionalBlock GetLastTransactionalBlock(byte[] originalHash)
+        public TransactionalBlock GetLastTransactionalBlock(IKey key)
         {
-            if (originalHash == null)
+            if (key == null)
             {
-                throw new ArgumentNullException(nameof(originalHash));
+                throw new ArgumentNullException(nameof(key));
             }
 
-            string hashValue = originalHash.ToHexString();
+            TransactionalGenesisModification transactionalGenesisModification = GetTransactionalGenesisModificationBlock(key);
 
-            return _dataContext.TransactionalBlocks.Where(b => b.TransactionalGenesis.OriginalHash == hashValue).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
+            if(transactionalGenesisModification != null)
+            {
+                return GetLastTransactionalBlock(transactionalGenesisModification);
+            }
+
+            return null;
+        }
+
+        public TransactionalBlock GetLastTransactionalBlock(TransactionalGenesisModification transactionalGenesisModification)
+        {
+            if (transactionalGenesisModification == null)
+            {
+                throw new ArgumentNullException(nameof(transactionalGenesisModification));
+            }
+
+            lock (_sync)
+            {
+                return _dataContext.TransactionalBlocks.Where(b => b.Genesis == transactionalGenesisModification).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
+            }
         }
 
         public TransactionalBlock GetLastTransactionalBlock(string originalHash)
@@ -300,19 +328,14 @@ namespace Wist.BlockLattice.SQLite
                 throw new GenesisBlockNotFoundException(originalHash);
             }
 
-            return _dataContext.TransactionalBlocks.Where(b => b.TransactionalGenesis.OriginalHash == originalHash).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
+            return _dataContext.TransactionalBlocks.Where(b => b.Genesis.OriginalHash == originalHash).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
         }
 
-        public void AddTransactionalBlock(byte[] originalHash, byte[] nbackHash, ushort blockType, byte[] blockContent)
+        public void AddTransactionalBlock(IKey key, ushort version, ushort blockType, byte[] blockContent)
         {
-            if (originalHash == null)
+            if (key == null)
             {
-                throw new ArgumentNullException(nameof(originalHash));
-            }
-
-            if (nbackHash == null)
-            {
-                throw new ArgumentNullException(nameof(nbackHash));
+                throw new ArgumentNullException(nameof(key));
             }
 
             if (blockContent == null)
@@ -320,26 +343,28 @@ namespace Wist.BlockLattice.SQLite
                 throw new ArgumentNullException(nameof(blockContent));
             }
 
-            string originalHashValue = originalHash.ToHexString();
+            TransactionalGenesisModification transactionalGenesisModification = GetTransactionalGenesisModificationBlock(key);
 
-            TransactionalGenesis transactionalGenesisBlock = GetTransactionalGenesisBlock(originalHashValue);
-
-            if(transactionalGenesisBlock == null)
+            if(transactionalGenesisModification == null)
             {
-                throw new GenesisBlockNotFoundException(originalHashValue);
+                throw new GenesisBlockNotFoundException(key.Value.ToHexString());
             }
 
-            TransactionalBlock transactionalBlockLast = GetLastTransactionalBlock(originalHashValue);
+            TransactionalBlock transactionalBlockLast = GetLastTransactionalBlock(transactionalGenesisModification);
             byte[] contentHash = CryptoHelper.ComputeHash(blockContent);
 
             TransactionalBlock transactionalBlock = new TransactionalBlock()
             {
-                TransactionalGenesis = transactionalGenesisBlock,
-                NBackHash = nbackHash.ToHexString(),
+                Genesis = transactionalGenesisModification,
                 BlockContent = blockContent,
                 BlockOrder = transactionalBlockLast.BlockOrder + 1,
                 BlockType = blockType
             };
+
+            lock(_sync)
+            {
+                _dataContext.TransactionalBlocks.Add(transactionalBlock);
+            }
         }
 
         /// <summary>
@@ -364,7 +389,7 @@ namespace Wist.BlockLattice.SQLite
                 throw new GenesisBlockNotFoundException(originalHashValue);
             }
 
-            TransactionalBlock transactionalBlock = _dataContext.TransactionalBlocks.Where(b => b.TransactionalGenesis.OriginalHash == originalHashValue && b.BlockType == blockType).OrderBy(b => b.BlockOrder).LastOrDefault();
+            TransactionalBlock transactionalBlock = _dataContext.TransactionalBlocks.Where(b => b.Genesis.OriginalHash == originalHashValue && b.BlockType == blockType).OrderBy(b => b.BlockOrder).LastOrDefault();
 
             return transactionalBlock;
         }
@@ -389,7 +414,7 @@ namespace Wist.BlockLattice.SQLite
                 throw new GenesisBlockNotFoundException(originalHash);
             }
 
-            TransactionalBlock transactionalBlock = _dataContext.TransactionalBlocks.Where(b => b.TransactionalGenesis.OriginalHash == originalHash && b.BlockType == blockType).OrderBy(b => b.BlockOrder).LastOrDefault();
+            TransactionalBlock transactionalBlock = _dataContext.TransactionalBlocks.Where(b => b.Genesis.OriginalHash == originalHash && b.BlockType == blockType).OrderBy(b => b.BlockOrder).LastOrDefault();
 
             return transactionalBlock;
         }

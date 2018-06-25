@@ -13,14 +13,13 @@ namespace Wist.BlockLattice.DataModel
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long TransactionalBlockId { get; set; }
 
-        public TransactionalGenesis TransactionalGenesis { get; set; }
+        public TransactionalGenesisModification Genesis { get; set; }
 
         public uint BlockOrder { get; set; }
 
-        public ushort BlockType { get; set; }
+        public ushort Version { get; set; }
 
-        [StringLength(128)]
-        public string NBackHash { get; set; }
+        public ushort BlockType { get; set; }
 
         public byte[] BlockContent { get; set; }
     }

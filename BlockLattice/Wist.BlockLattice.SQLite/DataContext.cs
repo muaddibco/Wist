@@ -31,6 +31,8 @@ namespace Wist.BlockLattice.SQLite
 
         public DbSet<TransactionalBlock> TransactionalBlocks { get; set; }
 
+        public DbSet<TransactionalGenesisModification> TransactionalGenesisModifications { get; set; }
+
         public DbSet<TransactionalGenesis> TransactionalGenesises { get; set; }
 
         public void EnsureConfigurationCompleted()
