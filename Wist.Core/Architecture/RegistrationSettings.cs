@@ -4,7 +4,7 @@ using System.ComponentModel.Composition.Hosting;
 using System.Text;
 using Wist.Core.Architecture.Enums;
 
-namespace Wist.Node.Core
+namespace Wist.Core.Architecture
 {
     internal class RegistrationSettings
     {

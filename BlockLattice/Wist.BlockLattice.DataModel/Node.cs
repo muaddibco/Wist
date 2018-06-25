@@ -15,6 +15,6 @@ namespace Wist.BlockLattice.DataModel
 
         public AccountIdentity Identity { get; set; }
 
-        public long IPAddress { get; set; }
+        public byte[] IPAddress { get; set; }
     }
 }

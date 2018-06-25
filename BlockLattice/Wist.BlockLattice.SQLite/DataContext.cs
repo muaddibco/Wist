@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Wist.BlockLattice.DataModel;
@@ -18,7 +19,11 @@ namespace Wist.BlockLattice.SQLite
             _configuration = configuration;
         }
 
+        internal DbSet<AccountSeed> AccountSeeds { get; set; }
+
         public DbSet<AccountIdentity> AccountIdentities { get; set; }
+
+        public DbSet<Node> Nodes { get; set; }
 
         public DbSet<AccountBlock> AccountBlocks { get; set; }
 

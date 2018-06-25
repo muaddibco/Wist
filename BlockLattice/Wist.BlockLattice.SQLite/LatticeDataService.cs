@@ -19,6 +19,7 @@ using Wist.BlockLattice.SQLite.Configuration;
 using Wist.Core.Models;
 using Wist.Core.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace Wist.BlockLattice.SQLite
 {
@@ -26,8 +27,9 @@ namespace Wist.BlockLattice.SQLite
     public class LatticeDataService
     {
         private static readonly object _sync = new object();
+        
         private static LatticeDataService _instance = null;
-        private Dictionary<IKey, long> _keyIdentityMap;
+        private Dictionary<IKey, AccountIdentity> _keyIdentityMap;
         private readonly IIdentityKeyProvider _identityKeyProvider;
 
         private readonly DataContext _dataContext;
@@ -40,6 +42,10 @@ namespace Wist.BlockLattice.SQLite
             _cancellationTokenSource = new CancellationTokenSource();
             _configurationService = configurationService;
             _dataContext = new DataContext(_configurationService.Get<SQLiteConfiguration>());
+            _dataContext.ChangeTracker.StateChanged += (s, e) =>
+            {
+                AccountIdentity accountIdentity = e.Entry.Entity as AccountIdentity;
+            };
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }
 
@@ -65,14 +71,103 @@ namespace Wist.BlockLattice.SQLite
 
         public bool IsInitialized { get; private set; }
 
+        #region Account Seeds
+
+        internal bool AddSeed(IKey key, byte[] seed)
+        {
+            AccountIdentity identity = GetAccountIdentity(key);
+
+            if (identity != null)
+            {
+                lock (_sync)
+                {
+                    AccountSeed accountSeed = _dataContext.AccountSeeds.FirstOrDefault(s => s.Identity == identity);
+                    if(accountSeed == null)
+                    {
+                    accountSeed = new AccountSeed { Identity = identity, Seed = seed};
+                        _dataContext.AccountSeeds.Add(accountSeed);
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion Account Seeds
+
         #region Account Identities
 
         public void LoadAllIdentities()
         {
-            _keyIdentityMap = _dataContext.AccountIdentities.ToDictionary(i => _identityKeyProvider.GetKey(i.PublicKey), i => i.AccountIdentityId);
+            lock (_sync)
+            {
+                _keyIdentityMap = _dataContext.AccountIdentities.ToDictionary(i => _identityKeyProvider.GetKey(i.PublicKey), i => i);
+            }
+        }
+
+        public IEnumerable<IKey> GetAllAccountIdentities()
+        {
+            return _keyIdentityMap.Select(m => m.Key).ToList();
+        }
+
+        public AccountIdentity GetAccountIdentity(IKey key)
+        {
+            if (_keyIdentityMap.ContainsKey(key))
+            {
+                return _keyIdentityMap[key];
+            }
+
+            return null;
+        }
+
+        public bool AddIdentity(IKey key)
+        {
+            AccountIdentity identity = GetAccountIdentity(key);
+
+            if(identity == null)
+            {
+                identity = new AccountIdentity { PublicKey = key.Value };
+
+                lock (_sync)
+                {
+                    _dataContext.AccountIdentities.Add(identity);
+                    _keyIdentityMap.Add(key, identity);
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         #endregion Account Identities
+
+        #region Nodes
+
+        public bool AddNode(IKey key)
+        {
+            AccountIdentity accountIdentity = GetAccountIdentity(key);
+
+            if(accountIdentity != null)
+            {
+                lock(_sync)
+                {
+                    Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
+
+                    if(node == null)
+                    {
+                        node = new Node {Identity = accountIdentity, IPAddress = IPAddress.Parse("127.0.0.1").GetAddressBytes() };
+                        _dataContext.Nodes.Add(node);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        #endregion Nodes
 
         #region Accounts Chain
 
@@ -289,26 +384,49 @@ namespace Wist.BlockLattice.SQLite
                 if (_isSaving)
                     return;
 
-                _isSaving = true;
+                lock (_sync)
+                {
+                    if (_isSaving)
+                        return;
 
-                try
-                {
-                    if (_dataContext.ChangeTracker.HasChanges())
-                        _dataContext.SaveChanges();
-                }
-                finally
-                {
-                    _isSaving = false;
+                    _isSaving = true;
+
+                    try
+                    {
+                        if (_dataContext.ChangeTracker.HasChanges())
+                        {
+                            _dataContext.SaveChanges();
+                        }
+                    }
+                    finally
+                    {
+                        _isSaving = false;
+                    }
                 }
             }, 500, cancelToken: _cancellationTokenSource.Token);
 
             IsInitialized = true;
         }
 
+        public void EnsureChangesSaved()
+        {
+            while (_dataContext.ChangeTracker.HasChanges()) Thread.Sleep(500);
+        }
+
+        internal void WipeAll()
+        {
+            lock (_sync)
+            {
+                _dataContext.Database.EnsureDeleted();
+                _dataContext.Database.EnsureCreated();
+            }
+        }
+
         public void Dispose()
         {
             _cancellationTokenSource.Cancel();
         }
+
         #endregion Common section
     }
 }
