@@ -9,7 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.1" />
+    <PackageReference Include="PostSharp" Version="6.0.15-rc" />
     <PackageReference Include="Z.EntityFramework.Plus.EFCore" Version="1.7.20" />
   </ItemGroup>
 
@@ -20,7 +21,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(TargetDir)*.*&quot; &quot;$(SolutionDir)Bin\$(ConfigurationName)&quot; /E /Y" />
+    <Exec Command="xcopy &quot;$(TargetDir)*.*&quot; &quot;$(SolutionDir)Bin\$(ConfigurationName)&quot; /E /Y /I" />
   </Target>
 
 </Project>

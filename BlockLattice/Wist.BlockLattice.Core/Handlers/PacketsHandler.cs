@@ -19,9 +19,8 @@ using Wist.Core.Logging;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [InitializationMandatory]
     [RegisterDefaultImplementation(typeof(IPacketsHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class PacketsHandler : IPacketsHandler, ISupportInitialization
+    public class PacketsHandler : IPacketsHandler
     {
         private readonly ILogger _log;
         private readonly IPacketVerifiersRepository _chainTypeValidationHandlersFactory;

@@ -73,12 +73,16 @@ namespace Wist.Core.Aspects
         public AutoLog()
         {
             AspectPriority = (int)AspectsPriority.AutoLog;
-            _configurationService = ServiceLocator.Current.GetInstance<IConfigurationService>();
-            _measureTime = _configurationService.Get<LogConfiguration>()?.MeasureTime ?? false;
+            if (ServiceLocator.IsLocationProviderSet)
+            {
+                _configurationService = ServiceLocator.Current.GetInstance<IConfigurationService>();
+                _measureTime = _configurationService.Get<LogConfiguration>()?.MeasureTime ?? false;
+            }
         }
 
         public override void RuntimeInitialize(MethodBase method)
         {
+            Logger.Initialize(method.DeclaringType.FullName);
             base.RuntimeInitialize(method);
         }
 

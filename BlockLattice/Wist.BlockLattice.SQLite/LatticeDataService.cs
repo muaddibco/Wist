@@ -22,9 +22,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Wist.BlockLattice.SQLite
 {
-    [InitializationMandatory]
     [AutoLog]
-    public class LatticeDataService : ISupportInitialization
+    public class LatticeDataService
     {
         private static readonly object _sync = new object();
         private static LatticeDataService _instance = null;
@@ -40,7 +39,7 @@ namespace Wist.BlockLattice.SQLite
         {
             _cancellationTokenSource = new CancellationTokenSource();
             _configurationService = configurationService;
-            _dataContext = new DataContext((SQLiteConfiguration)_configurationService["sqlite"]);
+            _dataContext = new DataContext(_configurationService.Get<SQLiteConfiguration>());
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }
 
@@ -281,6 +280,9 @@ namespace Wist.BlockLattice.SQLite
         {
             if (IsInitialized)
                 return;
+
+            _dataContext.Database.EnsureCreated();
+            _dataContext.EnsureConfigurationCompleted();
 
             PeriodicTaskFactory.Start(() => 
             {

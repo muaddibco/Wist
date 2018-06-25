@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Wist.BlockLattice.DataModel;
 using Wist.BlockLattice.SQLite.Configuration;
 
@@ -10,6 +11,7 @@ namespace Wist.BlockLattice.SQLite
     public class DataContext : DbContext
     {
         private readonly SQLiteConfiguration _configuration;
+        private readonly ManualResetEventSlim _manualResetEventSlim = new ManualResetEventSlim(false);
 
         public DataContext(SQLiteConfiguration configuration)
         {
@@ -26,20 +28,24 @@ namespace Wist.BlockLattice.SQLite
 
         public DbSet<TransactionalGenesis> TransactionalGenesises { get; set; }
 
+        public void EnsureConfigurationCompleted()
+        {
+            _manualResetEventSlim.Wait();
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite(_configuration.ConnectionString); //("Filename=wallet.dat");
+            _manualResetEventSlim.Set();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<TransactionalGenesis>().HasIndex("OriginalHash");
+            //modelBuilder.Entity<TransactionalGenesis>().HasIndex("OriginalHash");
             
-            modelBuilder.Entity<TransactionalBlock>().HasIndex("BlockOrder");
-            modelBuilder.Entity<TransactionalBlock>().HasIndex("ContentHash");
-            modelBuilder.Entity<TransactionalBlock>().HasIndex("NBackHash");
+            //modelBuilder.Entity<TransactionalBlock>().HasIndex("BlockOrder");
         }
     }
 }
