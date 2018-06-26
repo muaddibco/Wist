@@ -8,7 +8,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
 using Wist.BlockLattice.Core.DataModel;
-using Wist.Core.Mappers;
+using Wist.Core.Translators;
 using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.SQLite.DataServices
@@ -16,12 +16,12 @@ namespace Wist.BlockLattice.SQLite.DataServices
     [RegisterExtension(typeof(IChainDataService), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionalChainDataService : IChainDataService
     {
-        private readonly IMapperFactory _mapperFactory;
+        private readonly ITranslatorsFactory _mapperFactory;
 
         public PacketType ChainType => PacketType.TransactionalChain;
 
 
-        public TransactionalChainDataService(IMapperFactory mapperFactory)
+        public TransactionalChainDataService(ITranslatorsFactory mapperFactory)
         {
             _mapperFactory = mapperFactory;
         }
@@ -38,7 +38,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
                 throw new ArgumentNullException(nameof(genesisBlock));
             }
 
-            TransactionalGenesisBlockV1 transactionalGenesisBlock = genesisBlock as TransactionalGenesisBlockV1;
+            TransactionalGenesisBlock transactionalGenesisBlock = genesisBlock as TransactionalGenesisBlock;
 
             if(transactionalGenesisBlock == null)
             {
@@ -67,7 +67,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
         {
             TransactionalGenesis transactionalGenesis = LatticeDataService.Instance.GetTransactionalGenesisBlock(key.Value);
 
-            return new TransactionalGenesisBlockV1
+            return new TransactionalGenesisBlock
             {
                 OriginalHash = transactionalGenesis.OriginalHash.HexStringToByteArray(),
                 BlockHeight = 0
@@ -76,28 +76,66 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public BlockBase GetLastBlock(IKey key)
         {
-            TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(key.Value);
+            TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(key);
 
-            IMapper<TransactionalBlock, BlockBase> mapper = _mapperFactory.GetMapper<TransactionalBlock, BlockBase>();
+            ITranslator<TransactionalBlock, BlockBase> mapper = _mapperFactory.GetTranslator<TransactionalBlock, BlockBase>();
 
-            BlockBase block = mapper?.Convert(transactionalBlock);
+            BlockBase block = mapper?.Translate(transactionalBlock);
 
             return block;
+        }
+
+        public IEnumerable<T> GetAllLastBlocksByType<T>() where T : BlockBase
+        {
+            List<T> blocks = new List<T>();
+
+            if (typeof(T) == typeof(TransactionalGenesisBlock))
+            {
+                foreach (TransactionalGenesis genesis in LatticeDataService.Instance.GetAllGenesisBlocks())
+                {
+                    TransactionalGenesisModification transactionalBlock = LatticeDataService.Instance.GetLastTransactionalGenesisModification(genesis);
+
+                    ITranslator<TransactionalGenesisModification, TransactionalGenesisBlock> translator = _mapperFactory.GetTranslator<TransactionalGenesisModification, TransactionalGenesisBlock>();
+
+                    TransactionalGenesisBlock block = translator?.Translate(transactionalBlock);
+
+                    blocks.Add(block as T);
+                }
+            }
+
+            if(typeof(T) == typeof(TransactionalBlockBaseV1))
+            {
+                foreach (TransactionalGenesis genesis in LatticeDataService.Instance.GetAllGenesisBlocks())
+                {
+                    TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(genesis.Identity, false);
+
+                    ITranslator<TransactionalBlock, TransactionalBlockBaseV1> translator = _mapperFactory.GetTranslator<TransactionalBlock, TransactionalBlockBaseV1>();
+
+                    TransactionalBlockBaseV1 block = translator?.Translate(transactionalBlock);
+
+                    blocks.Add(block as T);
+                }
+            }
+
+            return blocks;
         }
 
         public List<BlockBase> GetAllLastBlocksByType(ushort blockType)
         {
             List<BlockBase> blocks = new List<BlockBase>();
 
-            foreach (TransactionalGenesis genesis in LatticeDataService.Instance.GetAllGenesisBlocks())
+            if(blockType == BlockTypes.Transaction_Genesis)
             {
-                TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastBlockModification(genesis.OriginalHash, blockType);
+                foreach (TransactionalGenesis genesis in LatticeDataService.Instance.GetAllGenesisBlocks())
+                {
+                    TransactionalGenesisModification transactionalBlock = LatticeDataService.Instance.GetLastTransactionalGenesisModification(genesis);
 
-                IMapper<TransactionalBlock, BlockBase> mapper = _mapperFactory.GetMapper<TransactionalBlock, BlockBase>();
+                    ITranslator<TransactionalGenesisModification, BlockBase> translator = _mapperFactory.GetTranslator<TransactionalGenesisModification, BlockBase>();
 
-                BlockBase block = mapper?.Convert(transactionalBlock);
+                    BlockBase block = translator?.Translate(transactionalBlock);
 
-                blocks.Add(block);
+                    blocks.Add(block);
+                }
             }
 
             return blocks;

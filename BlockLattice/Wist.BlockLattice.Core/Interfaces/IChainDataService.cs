@@ -24,5 +24,7 @@ namespace Wist.BlockLattice.Core.Interfaces
         void CreateGenesisBlock(GenesisBlockBase genesisBlock);
 
         List<BlockBase> GetAllLastBlocksByType(ushort blockType);
+
+        IEnumerable<T> GetAllLastBlocksByType<T>() where T : BlockBase;
     }
 }

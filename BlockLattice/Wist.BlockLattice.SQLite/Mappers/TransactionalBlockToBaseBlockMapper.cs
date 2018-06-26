@@ -7,11 +7,11 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.DataModel;
 using Wist.Core.ExtensionMethods;
-using Wist.Core.Mappers;
+using Wist.Core.Translators;
 
 namespace Wist.BlockLattice.SQLite.Mappers
 {
-    public class TransactionalBlockToBaseBlockMapper : MapperBase<TransactionalBlock, BlockBase>
+    public class TransactionalBlockToBaseBlockMapper : TranslatorBase<TransactionalBlock, BlockBase>
     {
         private readonly IBlockParsersFactory _blockParsersFactory;
 
@@ -20,7 +20,7 @@ namespace Wist.BlockLattice.SQLite.Mappers
             _blockParsersFactory = blockParsersFactory;
         }
 
-        public override BlockBase Convert(TransactionalBlock transactionalBlock)
+        public override BlockBase Translate(TransactionalBlock transactionalBlock)
         {
             TransactionalBlockBase transactionalBlockBase = null;
 

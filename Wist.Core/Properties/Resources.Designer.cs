@@ -151,6 +151,15 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Translator from {0} to {1} not found..
+        /// </summary>
+        internal static string ERR_TRANSLATOR_NOT_FOUND {
+            get {
+                return ResourceManager.GetString("ERR_TRANSLATOR_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Configuration parameter &apos;{0}&apos; has value &apos;{1}&apos; with incorrect format. Expected &apos;{2}&apos;..
         /// </summary>
         internal static string ERR_WRONG_CONFIGURATION_VALUE_FORMAT {

@@ -9,7 +9,7 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
         /// <summary>
         /// The very first block that entire transactional blockchain starts from
         /// </summary>
-        public TransactionalGenesisBlockV1 GenesisBlock { get; }
+        public TransactionalGenesisBlock GenesisBlock { get; }
 
         /// <summary>
         /// Collection of all blocks of transactional blockchain ordered by their BlockOrder value. 

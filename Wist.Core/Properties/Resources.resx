@@ -147,6 +147,9 @@
   <data name="ERR_STRING_LEN_EVEN" xml:space="preserve">
     <value>String length must be even.</value>
   </data>
+  <data name="ERR_TRANSLATOR_NOT_FOUND" xml:space="preserve">
+    <value>Translator from {0} to {1} not found.</value>
+  </data>
   <data name="ERR_WRONG_CONFIGURATION_VALUE_FORMAT" xml:space="preserve">
     <value>Configuration parameter '{0}' has value '{1}' with incorrect format. Expected '{2}'.</value>
   </data>

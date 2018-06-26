@@ -1,10 +1,10 @@
 ﻿using Wist.Core.Identity;
-using Wist.Core.Mappers;
+using Wist.Core.Translators;
 using NodeModel = Wist.BlockLattice.Core.DataModel.Nodes.Node;
 
 namespace Wist.BlockLattice.SQLite.Mappers
 {
-    public class NodesMapper : MapperBase<DataModel.Node, NodeModel>
+    public class NodesMapper : TranslatorBase<DataModel.Node, NodeModel>
     {
         private readonly IIdentityKeyProvidersRegistry _identityKeyProvidersRegistry;
 
@@ -13,7 +13,7 @@ namespace Wist.BlockLattice.SQLite.Mappers
             _identityKeyProvidersRegistry = identityKeyProvidersRegistry;
         }
 
-        public override NodeModel Convert(DataModel.Node nodeDataModel)
+        public override NodeModel Translate(DataModel.Node nodeDataModel)
         {
             NodeModel node = new NodeModel
             {

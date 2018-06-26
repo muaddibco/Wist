@@ -35,8 +35,8 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
             switch(version)
             {
                 case 1:
-                    block = new TransactionalGenesisBlockV1();
-                    TransactionalGenesisBlockV1 genesisBlock = (TransactionalGenesisBlockV1)block;
+                    block = new TransactionalGenesisBlock();
+                    TransactionalGenesisBlock genesisBlock = (TransactionalGenesisBlock)block;
                     genesisBlock.OriginalHash = br.ReadBytes(Globals.HASH_SIZE);
                     byte verifiersCount = br.ReadByte();
                     for (int i = 0; i < verifiersCount; i++)

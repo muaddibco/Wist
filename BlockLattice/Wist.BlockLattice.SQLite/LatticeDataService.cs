@@ -217,15 +217,20 @@ namespace Wist.BlockLattice.SQLite
 
             AccountIdentity accountIdentity = GetAccountIdentity(key);
 
-            if(accountIdentity != null)
+            return GetTransactionalGenesisModificationBlock(accountIdentity);
+        }
+
+        public TransactionalGenesisModification GetTransactionalGenesisModificationBlock(AccountIdentity accountIdentity)
+        {
+            if (accountIdentity == null)
             {
-                lock (_sync)
-                {
-                    return _dataContext.TransactionalGenesisModifications.FirstOrDefault(g => g.Identity == accountIdentity);
-                }
+                throw new ArgumentNullException(nameof(accountIdentity));
             }
 
-            return null;
+            lock (_sync)
+            {
+                return _dataContext.TransactionalGenesisModifications.FirstOrDefault(g => g.Identity == accountIdentity);
+            }
         }
 
         public TransactionalGenesis GetTransactionalGenesisBlock(byte[] originalHash)
@@ -283,23 +288,6 @@ namespace Wist.BlockLattice.SQLite
             }
 
             return _dataContext.TransactionalGenesises.Any(g => g.OriginalHash.Equals(originalHash));
-        }
-
-        public TransactionalBlock GetLastTransactionalBlock(IKey key)
-        {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            TransactionalGenesisModification transactionalGenesisModification = GetTransactionalGenesisModificationBlock(key);
-
-            if(transactionalGenesisModification != null)
-            {
-                return GetLastTransactionalBlock(transactionalGenesisModification);
-            }
-
-            return null;
         }
 
         public TransactionalBlock GetLastTransactionalBlock(TransactionalGenesisModification transactionalGenesisModification)
@@ -367,29 +355,88 @@ namespace Wist.BlockLattice.SQLite
             }
         }
 
-        /// <summary>
-        /// Returns last block of certain type of chain identified by hashValue
-        /// </summary>
-        /// <param name="originalHash">HASH value identifying chain</param>
-        /// <param name="blockType"></param>
-        /// <returns></returns>
-        public TransactionalBlock GetLastBlockModification(byte[] originalHash, ushort blockType)
+        public TransactionalGenesisModification GetLastTransactionalGenesisModification(TransactionalGenesis genesis)
         {
-            if (originalHash == null)
+            lock(_sync)
             {
-                throw new ArgumentNullException(nameof(originalHash));
+                return _dataContext.TransactionalGenesisModifications.Where(g => g.TransactionalGenesis == genesis).OrderByDescending(g => g.BlockOrder).FirstOrDefault();
+            }
+        }
+
+        public TransactionalBlock GetLastTransactionalBlock(AccountIdentity accountIdentity, bool forSpecific = true)
+        {
+            TransactionalBlock transactionalBlock = null;
+
+            if (accountIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(accountIdentity));
             }
 
-            string originalHashValue = originalHash.ToHexString();
-
-            TransactionalGenesis transactionalGenesisBlock = GetTransactionalGenesisBlock(originalHashValue);
-
-            if (transactionalGenesisBlock == null)
+            if (forSpecific)
             {
-                throw new GenesisBlockNotFoundException(originalHashValue);
+                TransactionalGenesisModification transactionalGenesisModification = GetTransactionalGenesisModificationBlock(accountIdentity);
+
+                if (transactionalGenesisModification != null)
+                {
+                    transactionalBlock = GetLastTransactionalBlock(transactionalGenesisModification);
+                }
+            }
+            else
+            {
+                TransactionalGenesis transactionalGenesis = _dataContext.TransactionalGenesisModifications.FirstOrDefault(b => b.Identity == accountIdentity)?.TransactionalGenesis;
+
+                if (transactionalGenesis == null)
+                {
+                    throw new GenesisBlockNotFoundException(key.Value.ToHexString());
+                }
+
+                TransactionalGenesisModification lastTransactionalGenesisModificationWithTransactions = _dataContext.TransactionalGenesisModifications.Where(b => b.TransactionalGenesis == transactionalGenesis && b.TransactionBlocks.Any()).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
+
+                if (lastTransactionalGenesisModificationWithTransactions != null)
+                {
+                    transactionalBlock = _dataContext.TransactionalBlocks.Where(b => b.Genesis == lastTransactionalGenesisModificationWithTransactions).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
+                }
             }
 
-            TransactionalBlock transactionalBlock = _dataContext.TransactionalBlocks.Where(b => b.Genesis.OriginalHash == originalHashValue && b.BlockType == blockType).OrderBy(b => b.BlockOrder).LastOrDefault();
+            return transactionalBlock;
+        }
+
+        public TransactionalBlock GetLastTransactionalBlock(IKey key, bool forSpecific = true)
+        {
+            TransactionalBlock transactionalBlock = null;
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (forSpecific)
+            {
+                TransactionalGenesisModification transactionalGenesisModification = GetTransactionalGenesisModificationBlock(key);
+
+                if (transactionalGenesisModification != null)
+                {
+                    transactionalBlock = GetLastTransactionalBlock(transactionalGenesisModification);
+                }
+            }
+            else
+            {
+                AccountIdentity accountIdentity = GetAccountIdentity(key);
+
+                TransactionalGenesis transactionalGenesis = _dataContext.TransactionalGenesisModifications.FirstOrDefault(b => b.Identity == accountIdentity)?.TransactionalGenesis;
+
+                if (transactionalGenesis == null)
+                {
+                    throw new GenesisBlockNotFoundException(key.Value.ToHexString());
+                }
+
+                TransactionalGenesisModification lastTransactionalGenesisModificationWithTransactions = _dataContext.TransactionalGenesisModifications.Where(b => b.TransactionalGenesis == transactionalGenesis && b.TransactionBlocks.Any()).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
+
+                if (lastTransactionalGenesisModificationWithTransactions != null)
+                {
+                    transactionalBlock = _dataContext.TransactionalBlocks.Where(b => b.Genesis == lastTransactionalGenesisModificationWithTransactions).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
+                }
+            }
 
             return transactionalBlock;
         }
@@ -423,6 +470,8 @@ namespace Wist.BlockLattice.SQLite
         {
             return _dataContext.TransactionalGenesises;
         }
+
+        public IEnumerable<TransactionalBlock> GetAllLast
 
         #endregion Transactional Chain
 

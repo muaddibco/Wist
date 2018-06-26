@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Wist.BlockLattice.Core.Enums;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
@@ -16,10 +17,10 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
     ///   7. Verifier Original Hash (N)
     ///   8. Recovery Original Hash
     /// </summary>
-    public class TransactionalGenesisBlockV1 : GenesisBlockBase
+    public class TransactionalGenesisBlock : GenesisBlockBase
     {
         // Genesis block and any other block must contain value of POW HASH based on content of Synchronization Blocks
-        public TransactionalGenesisBlockV1()
+        public TransactionalGenesisBlock()
         {
             VerifierOriginalHashList = new List<byte[]>();
         }
@@ -27,11 +28,6 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
         public override PacketType PacketType => PacketType.TransactionalChain;
 
         public override ushort Version => 1;
-
-        /// <summary>
-        /// 64 byte of Hash value level N of account name encoded with Parent Account's Public Key
-        /// </summary>
-        public byte[] OriginalHash { get; set; }
 
         /// <summary>
         /// 64 byte of Hash value level N of account name encoded with Verifier Account's Public Key
@@ -46,6 +42,6 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
         /// <summary>
         /// 32 byte of Public Key of Node that this account votes for
         /// </summary>
-        public byte[] NodeDpos { get; set; }
+        public IKey NodeDpos { get; set; }
     }
 }
