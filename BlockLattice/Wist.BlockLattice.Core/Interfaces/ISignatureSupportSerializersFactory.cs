@@ -9,8 +9,7 @@ using Wist.Core.Architecture;
 namespace Wist.BlockLattice.Core.Interfaces
 {
     [ServiceContract]
-    public interface ISignatureSupportSerializersFactory : IFactory<ISignatureSupportSerializer, PacketType, ushort>
+    public interface ISignatureSupportSerializersFactory : IFactory<ISignatureSupportSerializer, SignedBlockBase>
     {
-        ISignatureSupportSerializer Create(SignedBlockBase block);
     }
 }

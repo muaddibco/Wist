@@ -17,13 +17,15 @@ namespace Wist.BlockLattice.SQLite.DataServices
     public class TransactionalChainDataService : IChainDataService
     {
         private readonly ITranslatorsFactory _mapperFactory;
+        private readonly ISignatureSupportSerializersFactory _serializersFactory;
 
         public PacketType ChainType => PacketType.TransactionalChain;
 
 
-        public TransactionalChainDataService(ITranslatorsFactory mapperFactory)
+        public TransactionalChainDataService(ITranslatorsFactory mapperFactory, ISignatureSupportSerializersFactory serializersFactory)
         {
             _mapperFactory = mapperFactory;
+            _serializersFactory = serializersFactory;
         }
 
         public void Add(BlockBase block)
@@ -45,7 +47,10 @@ namespace Wist.BlockLattice.SQLite.DataServices
                 throw new ArgumentOutOfRangeException(nameof(genesisBlock));
             }
 
-            LatticeDataService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.OriginalHash);
+            using (ISignatureSupportSerializer serializer = _serializersFactory.Create(transactionalGenesisBlock))
+            {
+                LatticeDataService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.Key, transactionalGenesisBlock.Version, serializer.GetBytes());
+            }
         }
 
         public bool DoesChainExist(IKey key)
@@ -65,13 +70,11 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public GenesisBlockBase GetGenesisBlock(IKey key)
         {
-            TransactionalGenesis transactionalGenesis = LatticeDataService.Instance.GetTransactionalGenesisBlock(key.Value);
+            TransactionalGenesisModification transactionalGenesis = LatticeDataService.Instance.GetLastTransactionalGenesisModification(key);
 
-            return new TransactionalGenesisBlock
-            {
-                OriginalHash = transactionalGenesis.OriginalHash.HexStringToByteArray(),
-                BlockHeight = 0
-            };
+            ITranslator<TransactionalGenesisModification, GenesisBlockBase> mapper = _mapperFactory.GetTranslator<TransactionalGenesisModification, GenesisBlockBase>();
+
+            return mapper?.Translate(transactionalGenesis);
         }
 
         public BlockBase GetLastBlock(IKey key)

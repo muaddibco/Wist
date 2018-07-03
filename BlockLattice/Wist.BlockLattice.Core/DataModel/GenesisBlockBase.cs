@@ -13,5 +13,7 @@ namespace Wist.BlockLattice.Core.DataModel
         }
 
         public override ushort BlockType => BlockTypes.Genesis;
+
+        public ulong ParkedFunds { get; set; }
     }
 }

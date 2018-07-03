@@ -203,8 +203,8 @@ namespace Wist.Node.Core.Synchronization
 
         private void DistributeReadyForParticipationMessage()
         {
-            ISignatureSupportSerializer serializer = _signatureSupportSerializersFactory.Create(PacketType.Synchronization, BlockTypes.Synchronization_ReadyToParticipateBlock);
             ReadyForParticipationBlock block = new ReadyForParticipationBlock() { BlockHeight = _synchronizationContext.LastBlockDescriptor.BlockHeight };
+            ISignatureSupportSerializer serializer = _signatureSupportSerializersFactory.Create(block);
 
             try
             {

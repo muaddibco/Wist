@@ -18,7 +18,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
     public class SynchronizationProducingBlockSerializer : SignatureSupportSerializerBase<SynchronizationProducingBlock>
     {
 
-        public SynchronizationProducingBlockSerializer(ICryptoService cryptoService, IStatesRepository statesRepository) : base(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock, cryptoService, statesRepository)
+        public SynchronizationProducingBlockSerializer(ICryptoService cryptoService, IStatesRepository statesRepository, ISignatureSupportSerializersFactory serializersFactory) : base(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock, cryptoService, statesRepository, serializersFactory)
         {
         }
 

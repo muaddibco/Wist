@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Wist.BlockLattice.Core.DataModel
 {
-    public abstract class BlockSyncedBase : BlockBase
+    public abstract class BlockSyncedBase : SignedBlockBase
     {
         public uint SyncBlockOrder { get; set; }
 

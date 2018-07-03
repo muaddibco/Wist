@@ -19,11 +19,7 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         protected override BlockBase Parse(ushort version, BinaryReader br)
         {
-            byte[] originalHash = br.ReadBytes(Globals.HASH_SIZE);
-            byte[] nbackedHash = br.ReadBytes(Globals.HASH_SIZE);
             TransactionalBlockBase transactionalBlockBase =  ParseTransactional(version, br);
-            transactionalBlockBase.OriginalHash = originalHash;
-            transactionalBlockBase.NBackHash = nbackedHash;
 
             return transactionalBlockBase;
         }

@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Wist.BlockLattice.DataModel
 {
     //TODO: make this table encrypted
+    /// <summary>
+    /// This table contains seeds (Private Keys) for accounts used in testing and simulations
+    /// </summary>
     [Table("account_seeds")]
     public class AccountSeed
     {

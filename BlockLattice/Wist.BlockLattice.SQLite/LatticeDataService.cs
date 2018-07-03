@@ -233,39 +233,25 @@ namespace Wist.BlockLattice.SQLite
             }
         }
 
-        public TransactionalGenesis GetTransactionalGenesisBlock(byte[] originalHash)
+        public void CreateTransactionalGenesisBlock(IKey key, ushort version, byte[] blockContent)
         {
-            if (originalHash == null)
+            if (key == null)
             {
-                throw new ArgumentNullException(nameof(originalHash));
+                throw new ArgumentNullException(nameof(key));
             }
 
-            string originalHashValue = originalHash.ToHexString();
-
-            return _dataContext.TransactionalGenesises.FirstOrDefault(g => g.OriginalHash.Equals(originalHashValue));
-        }
-
-        public void CreateTransactionalGenesisBlock(byte[] originalHash)
-        {
-            if (originalHash == null)
+            if (IsGenesisBlockExists(key))
             {
-                throw new ArgumentNullException(nameof(originalHash));
+                throw new GenesisBlockAlreadyExistException(key.ToString());
             }
 
-            if (originalHash.Length != 64)
-            {
-                throw new ArgumentException("Hash value must be 64 bytes length");
-            }
+            AddIdentity(key);
 
-            string originalHashValue = originalHash.ToHexString();
-            if (IsGenesisBlockExists(originalHashValue))
+            lock(_sync)
             {
-                throw new GenesisBlockAlreadyExistException(originalHashValue);
+                TransactionalGenesis account = new TransactionalGenesis() { Identity = _keyIdentityMap[key], Version = version, BlockContent = blockContent };
+                _dataContext.TransactionalGenesises.AddAsync(account);
             }
-
-            TransactionalGenesis account = new TransactionalGenesis() { OriginalHash = originalHashValue };
-            
-            _dataContext.TransactionalGenesises.AddAsync(account);
         }
 
         public bool IsGenesisBlockExists(IKey key)
@@ -275,19 +261,7 @@ namespace Wist.BlockLattice.SQLite
                 throw new ArgumentNullException(nameof(key));
             }
 
-            string originalHashValue = key.Value.ToHexString();
-
-            return _dataContext.TransactionalGenesises.Any(g => g.OriginalHash.Equals(originalHashValue));
-        }
-
-        public bool IsGenesisBlockExists(string originalHash)
-        {
-            if (originalHash == null)
-            {
-                throw new ArgumentNullException(nameof(originalHash));
-            }
-
-            return _dataContext.TransactionalGenesises.Any(g => g.OriginalHash.Equals(originalHash));
+            return _dataContext.TransactionalGenesises.Any(g => g.Identity == _keyIdentityMap[key]);
         }
 
         public TransactionalBlock GetLastTransactionalBlock(TransactionalGenesisModification transactionalGenesisModification)
@@ -301,22 +275,6 @@ namespace Wist.BlockLattice.SQLite
             {
                 return _dataContext.TransactionalBlocks.Where(b => b.Genesis == transactionalGenesisModification).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
             }
-        }
-
-        public TransactionalBlock GetLastTransactionalBlock(string originalHash)
-        {
-            if (originalHash == null)
-            {
-                throw new ArgumentNullException(nameof(originalHash));
-            }
-
-            //TODO: need to examine performance
-            if(!IsGenesisBlockExists(originalHash))
-            {
-                throw new GenesisBlockNotFoundException(originalHash);
-            }
-
-            return _dataContext.TransactionalBlocks.Where(b => b.Genesis.OriginalHash == originalHash).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
         }
 
         public void AddTransactionalBlock(IKey key, ushort version, ushort blockType, byte[] blockContent)
@@ -355,6 +313,21 @@ namespace Wist.BlockLattice.SQLite
             }
         }
 
+        public TransactionalGenesisModification GetLastTransactionalGenesisModification(IKey key)
+        {
+            AccountIdentity accountIdentity = GetAccountIdentity(key);
+
+            if(accountIdentity != null && _dataContext.TransactionalGenesisModifications.Any(g => g.Identity == accountIdentity))
+            {
+                lock(_sync)
+                {
+                    return _dataContext.TransactionalGenesisModifications.Where(g1 => g1.TransactionalGenesis == _dataContext.TransactionalGenesisModifications.FirstOrDefault(g => g.Identity == accountIdentity).TransactionalGenesis).OrderByDescending(g => g.BlockOrder).FirstOrDefault();
+                }
+            }
+
+            return null;
+        }
+
         public TransactionalGenesisModification GetLastTransactionalGenesisModification(TransactionalGenesis genesis)
         {
             lock(_sync)
@@ -387,7 +360,7 @@ namespace Wist.BlockLattice.SQLite
 
                 if (transactionalGenesis == null)
                 {
-                    throw new GenesisBlockNotFoundException(key.Value.ToHexString());
+                    throw new GenesisBlockNotFoundException(accountIdentity.PublicKey.ToHexString());
                 }
 
                 TransactionalGenesisModification lastTransactionalGenesisModificationWithTransactions = _dataContext.TransactionalGenesisModifications.Where(b => b.TransactionalGenesis == transactionalGenesis && b.TransactionBlocks.Any()).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
@@ -441,37 +414,10 @@ namespace Wist.BlockLattice.SQLite
             return transactionalBlock;
         }
 
-        /// <summary>
-        /// Returns last block of certain type of chain identified by hashValue
-        /// </summary>
-        /// <param name="originalHash">HASH value identifying chain</param>
-        /// <param name="blockType"></param>
-        /// <returns></returns>
-        public TransactionalBlock GetLastBlockModification(string originalHash, ushort blockType)
-        {
-            if (originalHash == null)
-            {
-                throw new ArgumentNullException(nameof(originalHash));
-            }
-
-            TransactionalGenesis transactionalGenesisBlock = GetTransactionalGenesisBlock(originalHash);
-
-            if (transactionalGenesisBlock == null)
-            {
-                throw new GenesisBlockNotFoundException(originalHash);
-            }
-
-            TransactionalBlock transactionalBlock = _dataContext.TransactionalBlocks.Where(b => b.Genesis.OriginalHash == originalHash && b.BlockType == blockType).OrderBy(b => b.BlockOrder).LastOrDefault();
-
-            return transactionalBlock;
-        }
-
         public IEnumerable<TransactionalGenesis> GetAllGenesisBlocks()
         {
             return _dataContext.TransactionalGenesises;
         }
-
-        public IEnumerable<TransactionalBlock> GetAllLast
 
         #endregion Transactional Chain
 

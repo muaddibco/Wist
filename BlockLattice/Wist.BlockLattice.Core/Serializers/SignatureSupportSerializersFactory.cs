@@ -37,7 +37,7 @@ namespace Wist.BlockLattice.Core.Serializers
             }
         }
 
-        public ISignatureSupportSerializer Create(PacketType packetType, ushort blockType)
+        private ISignatureSupportSerializer Create(PacketType packetType, ushort blockType)
         {
             if(!_serializersCache.ContainsKey(packetType))
             {

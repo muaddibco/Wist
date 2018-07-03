@@ -123,11 +123,14 @@
   <data name="ERR_BLOCK_VERSION_NOT_SUPPORTED" xml:space="preserve">
     <value>Version '{0}' is not supported for block type '{1}'.</value>
   </data>
+  <data name="ERR_FAILED_TO_FIND_BLOCK_BY_IDENTITY_KEY" xml:space="preserve">
+    <value>Failed to find block for identity key {0}.</value>
+  </data>
   <data name="ERR_GENESIS_BLOCK_ALREADY_EXISTS" xml:space="preserve">
-    <value>Genesis blockwith original hash value {0} already exist.</value>
+    <value>Genesis block with key value {0} already exist.</value>
   </data>
   <data name="ERR_GENESIS_BLOCK_NOT_FOUND" xml:space="preserve">
-    <value>Genesis block with original hash value {0} not found.</value>
+    <value>Genesis block with key value {0} not found.</value>
   </data>
   <data name="ERR_NOT_SUPPORTED_BLOCK_TYPE" xml:space="preserve">
     <value>Block type {0} is not supported for parsing on Chain Type {1}.</value>

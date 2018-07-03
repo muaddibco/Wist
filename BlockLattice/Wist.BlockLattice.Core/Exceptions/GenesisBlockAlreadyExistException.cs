@@ -10,8 +10,8 @@ namespace Wist.BlockLattice.Core.Exceptions
     public class GenesisBlockAlreadyExistException : Exception
     {
         public GenesisBlockAlreadyExistException() { }
-        public GenesisBlockAlreadyExistException(string hashValue) : base(string.Format(Resources.ERR_GENESIS_BLOCK_ALREADY_EXISTS, hashValue)) { }
-        public GenesisBlockAlreadyExistException(string hashValue, Exception inner) : base(string.Format(Resources.ERR_GENESIS_BLOCK_ALREADY_EXISTS, hashValue), inner) { }
+        public GenesisBlockAlreadyExistException(string keyValue) : base(string.Format(Resources.ERR_GENESIS_BLOCK_ALREADY_EXISTS, keyValue)) { }
+        public GenesisBlockAlreadyExistException(string keyValue, Exception inner) : base(string.Format(Resources.ERR_GENESIS_BLOCK_ALREADY_EXISTS, keyValue), inner) { }
         protected GenesisBlockAlreadyExistException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }

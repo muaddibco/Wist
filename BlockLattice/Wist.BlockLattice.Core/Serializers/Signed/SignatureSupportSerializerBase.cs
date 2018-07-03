@@ -16,6 +16,8 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
         public const byte DLE = 0x10;
         public const byte STX = 0x02;
 
+        private readonly ISignatureSupportSerializersFactory _serializersFactory;
+
         protected T _block;
         protected readonly ICryptoService _cryptoService;
         protected readonly IAccountState _accountState;
@@ -25,13 +27,16 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
         protected readonly BinaryWriter _binaryWriter;
         protected readonly BinaryReader _binaryReader;
 
+
         private bool _disposed = false; // To detect redundant calls
 
-        public SignatureSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService, IStatesRepository statesRepository)
+        public SignatureSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService, IStatesRepository statesRepository, ISignatureSupportSerializersFactory serializersFactory)
         {
             _cryptoService = cryptoService;
             _accountState = statesRepository.GetInstance<IAccountState>();
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
+            _serializersFactory = serializersFactory;
+
             PacketType = packetType;
             BlockType = blockType;
 
@@ -95,6 +100,10 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             {
                 if (disposing)
                 {
+                    _serializersFactory.Utilize(this);
+                }
+                else
+                {
                     _binaryReader.Dispose();
                     _binaryWriter.Dispose();
                     _memoryStream.Dispose();
@@ -107,6 +116,11 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
         public void Dispose()
         {
             Dispose(true);
+        }
+
+        ~SignatureSupportSerializerBase()
+        {
+            Dispose(false);
         }
         #endregion
     }

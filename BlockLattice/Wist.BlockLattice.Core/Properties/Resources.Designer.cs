@@ -79,7 +79,16 @@ namespace Wist.BlockLattice.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Genesis blockwith original hash value {0} already exist..
+        ///   Looks up a localized string similar to Failed to find block for identity key {0}..
+        /// </summary>
+        internal static string ERR_FAILED_TO_FIND_BLOCK_BY_IDENTITY_KEY {
+            get {
+                return ResourceManager.GetString("ERR_FAILED_TO_FIND_BLOCK_BY_IDENTITY_KEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Genesis block with key value {0} already exist..
         /// </summary>
         internal static string ERR_GENESIS_BLOCK_ALREADY_EXISTS {
             get {
@@ -88,7 +97,7 @@ namespace Wist.BlockLattice.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Genesis block with original hash value {0} not found..
+        ///   Looks up a localized string similar to Genesis block with key value {0} not found..
         /// </summary>
         internal static string ERR_GENESIS_BLOCK_NOT_FOUND {
             get {
