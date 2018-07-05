@@ -50,41 +50,41 @@ namespace Wist.Node.Core.ValidationServices
             // 4. Once local decision was made it will be retranslated to other nodes in group and their decisions will be accepted
             // 5. Block, that received majority of votes will be stored to local storage, that means it is correct block
 
-            TransactionalBlockBase transactionalBlock = (TransactionalBlockBase)block;
+            //TransactionalBlockBase transactionalBlock = (TransactionalBlockBase)block;
 
-            string originalHash = transactionalBlock.OriginalHash.ToHexString();
-            string nbackHash = transactionalBlock.NBackHash.ToHexString();
-            string hashOfBody = transactionalBlock.Hash.ToHexString();
+            //string originalHash = transactionalBlock.OriginalHash.ToHexString();
+            //string nbackHash = transactionalBlock.NBackHash.ToHexString();
+            //string hashOfBody = transactionalBlock.Hash.ToHexString();
 
-            Dictionary<string, Dictionary<string, ValidationState>> nbackHashToConsensusMap = null;
-            Dictionary<string, ValidationState> bodyHashToConsensusMap = null;
+            //Dictionary<string, Dictionary<string, ValidationState>> nbackHashToConsensusMap = null;
+            //Dictionary<string, ValidationState> bodyHashToConsensusMap = null;
 
-            if (!_consensusMap.ContainsKey(originalHash))
-            {
-                nbackHashToConsensusMap = new Dictionary<string, Dictionary<string, ValidationState>>();
-                _consensusMap.Add(originalHash, nbackHashToConsensusMap);
-            }
-            else
-            {
-                nbackHashToConsensusMap = _consensusMap[originalHash];
-            }
+            //if (!_consensusMap.ContainsKey(originalHash))
+            //{
+            //    nbackHashToConsensusMap = new Dictionary<string, Dictionary<string, ValidationState>>();
+            //    _consensusMap.Add(originalHash, nbackHashToConsensusMap);
+            //}
+            //else
+            //{
+            //    nbackHashToConsensusMap = _consensusMap[originalHash];
+            //}
 
-            if (!nbackHashToConsensusMap.ContainsKey(nbackHash))
-            {
-                bodyHashToConsensusMap = new Dictionary<string, ValidationState>();
-                nbackHashToConsensusMap.Add(nbackHash, bodyHashToConsensusMap);
-            }
-            else
-            {
-                bodyHashToConsensusMap = nbackHashToConsensusMap[nbackHash];
-            }
+            //if (!nbackHashToConsensusMap.ContainsKey(nbackHash))
+            //{
+            //    bodyHashToConsensusMap = new Dictionary<string, ValidationState>();
+            //    nbackHashToConsensusMap.Add(nbackHash, bodyHashToConsensusMap);
+            //}
+            //else
+            //{
+            //    bodyHashToConsensusMap = nbackHashToConsensusMap[nbackHash];
+            //}
 
-            if (!bodyHashToConsensusMap.ContainsKey(hashOfBody))
-            {
-                bodyHashToConsensusMap.Add(hashOfBody, ValidationState.Undefined);
+            //if (!bodyHashToConsensusMap.ContainsKey(hashOfBody))
+            //{
+            //    bodyHashToConsensusMap.Add(hashOfBody, ValidationState.Undefined);
 
-                _blocksAwaiting.Enqueue(transactionalBlock);
-            }
+            //    _blocksAwaiting.Enqueue(transactionalBlock);
+            //}
 
             _messageTrigger.Set();
         }
@@ -159,19 +159,19 @@ namespace Wist.Node.Core.ValidationServices
                     TransactionalBlockBase block;
                     if (_blocksAwaiting.TryDequeue(out block))
                     {
-                        string originalHash = block.OriginalHash.ToHexString();
+                        //string originalHash = block.OriginalHash.ToHexString();
 
-                        if (!_blocksBeingProcessed.Contains(originalHash))
-                        {
-                            _blocksBeingProcessed.Add(originalHash);
-                            return block;
-                        }
-                        else
-                        {
-                            _blocksAwaiting.Enqueue(block);
-                            if (_blocksAwaiting.Count == 1)
-                                return null;
-                        }
+                        //if (!_blocksBeingProcessed.Contains(originalHash))
+                        //{
+                        //    _blocksBeingProcessed.Add(originalHash);
+                        //    return block;
+                        //}
+                        //else
+                        //{
+                        //    _blocksAwaiting.Enqueue(block);
+                        //    if (_blocksAwaiting.Count == 1)
+                        //        return null;
+                        //}
                     }
 
                     return null;

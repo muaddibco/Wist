@@ -59,9 +59,9 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             _memoryStream.SetLength(0);
 
             _binaryWriter.Write((ushort)PacketType);
-            _binaryWriter.Write(_synchronizationContext.LastBlockDescriptor.BlockHeight);
+            _binaryWriter.Write(_synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0);
 
-            WritePowHeader(_binaryWriter, _synchronizationContext.LastBlockDescriptor.BlockHeight);
+            WriteSyncHeader(_binaryWriter, _synchronizationContext.LastBlockDescriptor);
 
             _binaryWriter.Write(_block.BlockType);
             _binaryWriter.Write(_block.Version);
@@ -88,7 +88,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             _block = signedBlockBase as T;
         }
 
-        protected abstract void WritePowHeader(BinaryWriter bw, uint syncBlockHeight);
+        protected abstract void WriteSyncHeader(BinaryWriter bw, SynchronizationDescriptor synchronizationDescriptor);
 
         protected abstract void WriteBody(BinaryWriter bw);
 

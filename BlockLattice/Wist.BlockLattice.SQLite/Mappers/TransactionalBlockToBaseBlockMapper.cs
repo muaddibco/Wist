@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Wist.BlockLattice.Core.DataModel;
-using Wist.BlockLattice.Core.DataModel.Transactional;
+﻿using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.DataModel;
-using Wist.Core.ExtensionMethods;
 using Wist.Core.Translators;
 
 namespace Wist.BlockLattice.SQLite.Mappers
@@ -15,14 +10,14 @@ namespace Wist.BlockLattice.SQLite.Mappers
     {
         private readonly IBlockParsersFactory _blockParsersFactory;
 
-        public TransactionalBlockToBaseBlockMapper(IBlockParsersFactory blockParsersFactory)
+        public TransactionalBlockToBaseBlockMapper(IBlockParsersFactoriesRepository blockParsersFactoriesRepository)
         {
-            _blockParsersFactory = blockParsersFactory;
+            _blockParsersFactory = blockParsersFactoriesRepository.GetBlockParsersFactory(PacketType.TransactionalChain);
         }
 
         public override BlockBase Translate(TransactionalBlock transactionalBlock)
         {
-            TransactionalBlockBase transactionalBlockBase = null;
+            BlockBase transactionalBlockBase = null;
 
             ushort blockType = transactionalBlock.BlockType;
 
@@ -32,32 +27,7 @@ namespace Wist.BlockLattice.SQLite.Mappers
             {
                 blockParser = _blockParsersFactory.Create(blockType);
 
-                switch (blockType)
-                {
-                    case BlockTypes.Transaction_AcceptFunds:
-                        transactionalBlockBase = new AcceptFundsBlockV1
-                        {
-                            BlockHeight = transactionalBlock.BlockOrder
-                        };
-                        break;
-                    case BlockTypes.Transaction_TransferFunds:
-                        transactionalBlockBase = new TransferFundsBlockV1
-                        {
-                            BlockHeight = transactionalBlock.BlockOrder
-                        };
-                        break;
-                    case BlockTypes.Transaction_Confirm:
-                        break;
-                    case BlockTypes.Transaction_Dpos:
-                        transactionalBlockBase = new TransactionalDposVote
-                        {
-                            BlockHeight = transactionalBlock.BlockOrder
-                        };
-                        break;
-                    default:
-                        break;
-                }
-                blockParser.FillBlockBody(transactionalBlockBase, transactionalBlock.BlockContent);
+                transactionalBlockBase = blockParser.ParseBody(transactionalBlock.BlockContent);
             }
             finally
             {

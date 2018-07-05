@@ -22,12 +22,7 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         public override ushort BlockType => BlockTypes.Transaction_AcceptFunds;
 
-        public override void FillBlockBody(BlockBase block, byte[] blockBody)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override TransactionalBlockBase ParseTransactional(ushort version, BinaryReader br)
+        protected override TransactionalBlockBase ParseTransactional(ushort version, ulong height, byte[] prevHash, BinaryReader br)
         {
             TransactionalBlockBase block = null;
 

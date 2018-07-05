@@ -23,9 +23,11 @@ All other nodes are storing only one's latest state, documented in the blockchai
 
 ## Network Architecture
 Network has a three-layer structure:
-1. Layer of nodes (_Synchronization Nodes_) responsible for creating Synchronization Blocks and combining blockchains of registration of transactions in private blockchains
-2. Layer of nodes (_Master Nodes_) responsible for creating blockchains of registration of transactions in private blockchains
-3. Layer of nodes (_Full Nodes_) responsible for storing private blockchains of transactions
+1. Layer of nodes (_Full Nodes_) responsible for storing private blockchains of transactions
+2. Layer of nodes (_Master Nodes_) responsible for creating blockchains of registration of transactions of private blockchains
+3. Layer of nodes (_Synchronization Nodes_) responsible for:
+   - creating Synchronization Blocks 
+   - combining blockchains of registration of transactions of private blockchains into unified blockchain in order to ascertain History Immutability
 
 ### Scheme of responsibilities of Network Layers
 
@@ -50,7 +52,9 @@ Network has a three-layer structure:
     - Account's Public Key 
     - Signature
 5. Sends description of Transaction Block to corresponding group of Master Nodes and Full Nodes with purpose to register Transaction in Blockchain of Transactions Registration
-6. Sends Transaction Block to corresponding group of Full Nodes
+6. Sends Transaction Block to corresponding group of Full Nodes that includes:
+    - Full Nodes that are responsible for storing private blockchain of sender
+    - Full Nodes that are responsible for storing private blockchain of receiver
 
 ### Accepting funds from another account
 

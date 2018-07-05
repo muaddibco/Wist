@@ -16,6 +16,6 @@ namespace Wist.BlockLattice.Core.Interfaces
 
         BlockBase Parse(byte[] source);
 
-        void FillBlockBody(BlockBase block, byte[] blockBody);
+        BlockBase ParseBody(byte[] blockBody);
     }
 }

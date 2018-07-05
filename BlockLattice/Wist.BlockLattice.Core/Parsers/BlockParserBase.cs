@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
@@ -22,22 +19,36 @@ namespace Wist.BlockLattice.Core.Parsers
 
         public abstract PacketType ChainType { get; }
 
-        public abstract void FillBlockBody(BlockBase block, byte[] blockBody);
+        public virtual BlockBase ParseBody(byte[] blockBody)
+        {
+            using (MemoryStream ms = new MemoryStream(blockBody))
+            {
+                using (BinaryReader br = new BinaryReader(ms))
+                {
+                    return ParseBody(br);
+                }
+            }
+        }
 
         public virtual BlockBase Parse(byte[] source)
         {
-            BlockBase block;
             using (MemoryStream ms = new MemoryStream(source))
             {
                 using (BinaryReader br = new BinaryReader(ms))
                 {
                     SkipInitialBytes(br);
-                    ushort version = br.ReadUInt16();
-                    block = Parse(version, br);
+
+                    return ParseBody(br);
                 }
             }
+        }
 
-            return block;
+        private BlockBase ParseBody(BinaryReader br)
+        {
+            ulong height = br.ReadUInt64();
+            byte[] prevHash = br.ReadBytes(Globals.HASH_SIZE);
+            ushort version = br.ReadUInt16();
+            return Parse(version, height, prevHash, br);
         }
 
         void SkipInitialBytes(BinaryReader br)
@@ -50,6 +61,6 @@ namespace Wist.BlockLattice.Core.Parsers
             ushort blockType = br.ReadUInt16();
         }
 
-        protected abstract BlockBase Parse(ushort version, BinaryReader br);
+        protected abstract BlockBase Parse(ushort version, ulong height, byte[] prevHash, BinaryReader br);
     }
 }

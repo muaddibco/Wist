@@ -19,7 +19,7 @@ namespace Wist.BlockLattice.Core.Parsers.Factories
         {
             _blockParsersStack = new Dictionary<ushort, Stack<IBlockParser>>();
 
-            foreach (IBlockParser blockParser in blockParsers.Where(bp => bp.ChainType == ChainType))
+            foreach (IBlockParser blockParser in blockParsers.Where(bp => bp.ChainType == PacketType))
             {
                 if (!_blockParsersStack.ContainsKey(blockParser.BlockType))
                 {
@@ -29,13 +29,13 @@ namespace Wist.BlockLattice.Core.Parsers.Factories
             }
         }
 
-        public abstract PacketType ChainType { get; }
+        public abstract PacketType PacketType { get; }
 
         public IBlockParser Create(ushort blockType)
         {
             if (!_blockParsersStack.ContainsKey(blockType))
             {
-                throw new BlockTypeNotSupportedException(blockType, ChainType);
+                throw new BlockTypeNotSupportedException(blockType, PacketType);
             }
 
             lock (_sync)
@@ -66,7 +66,7 @@ namespace Wist.BlockLattice.Core.Parsers.Factories
 
             if (!_blockParsersStack.ContainsKey(blockParser.BlockType))
             {
-                throw new BlockTypeNotSupportedException(blockParser.BlockType, ChainType);
+                throw new BlockTypeNotSupportedException(blockParser.BlockType, PacketType);
             }
 
             _blockParsersStack[blockParser.BlockType].Push(blockParser);

@@ -20,7 +20,7 @@ namespace Wist.BlockLattice.Core.Parsers.Factories
 
         public IBlockParsersFactory GetBlockParsersFactory(PacketType packetType)
         {
-            return _blockParsersFactories.FirstOrDefault(f => f.ChainType == packetType);
+            return _blockParsersFactories.FirstOrDefault(f => f.PacketType == packetType);
         }
     }
 }

@@ -52,6 +52,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".Snippets", ".Snippets", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{49503027-29D7-46D2-9C3B-3A2FFA89ECAB}"
 	ProjectSection(SolutionItems) = preProject
+		Bootstrap.md = Bootstrap.md
 		README.md = README.md
 		Startup.md = Startup.md
 	EndProjectSection

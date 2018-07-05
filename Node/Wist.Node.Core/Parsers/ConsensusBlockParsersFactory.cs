@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Wist.BlockLattice.Core.Enums;
+﻿using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Parsers.Factories;
 using Wist.Core.Architecture;
@@ -16,6 +13,6 @@ namespace Wist.Node.Core.Parsers
         {
         }
 
-        public override PacketType ChainType => PacketType.Consensus;
+        public override PacketType PacketType => PacketType.Consensus;
     }
 }

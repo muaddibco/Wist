@@ -8,6 +8,7 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Identity;
 using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Parsers.Transactional
@@ -15,20 +16,18 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class TransactionalGenesisBlockParser : BlockParserBase
     {
-        public TransactionalGenesisBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base(proofOfWorkCalculationFactory)
+        private readonly IIdentityKeyProvider _identityKeyProvider;
+
+        public TransactionalGenesisBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base(proofOfWorkCalculationFactory)
         {
+            _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }
 
         public override ushort BlockType => BlockTypes.Transaction_Genesis;
 
         public override PacketType ChainType => PacketType.TransactionalChain;
 
-        public override void FillBlockBody(BlockBase block, byte[] blockBody)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override BlockBase Parse(ushort version, BinaryReader br)
+        protected override BlockBase Parse(ushort version, ulong height, byte[] prevHash, BinaryReader br)
         {
             BlockBase block = null;
 
@@ -37,6 +36,9 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
                 case 1:
                     block = new TransactionalGenesisBlock();
                     TransactionalGenesisBlock genesisBlock = (TransactionalGenesisBlock)block;
+                    genesisBlock.ParkedFunds = br.ReadUInt64();
+                    byte[] delegatedAccountPK = br.ReadBytes(Globals.NODE_PUBLIC_KEY_SIZE);
+                    genesisBlock.DelegatedAccount = _identityKeyProvider.GetKey(delegatedAccountPK);
                     byte verifiersCount = br.ReadByte();
                     for (int i = 0; i < verifiersCount; i++)
                     {

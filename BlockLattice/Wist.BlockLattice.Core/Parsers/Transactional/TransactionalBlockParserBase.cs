@@ -17,13 +17,13 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         public override PacketType ChainType => PacketType.TransactionalChain;
 
-        protected override BlockBase Parse(ushort version, BinaryReader br)
+        protected override BlockBase Parse(ushort version, ulong height, byte[] prevHash, BinaryReader br)
         {
-            TransactionalBlockBase transactionalBlockBase =  ParseTransactional(version, br);
+            TransactionalBlockBase transactionalBlockBase =  ParseTransactional(version, height, prevHash, br);
 
             return transactionalBlockBase;
         }
 
-        protected abstract TransactionalBlockBase ParseTransactional(ushort version, BinaryReader br);
+        protected abstract TransactionalBlockBase ParseTransactional(ushort version, ulong height, byte[] prevHash, BinaryReader br);
     }
 }

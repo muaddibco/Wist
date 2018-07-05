@@ -10,6 +10,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
 using Wist.Core.States;
+using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Serializers.Signed
 {
@@ -27,9 +28,12 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             bw.Write(_block.ReportedTime.ToBinary());
         }
 
-        protected override void WritePowHeader(BinaryWriter bw, uint syncBlockHeader)
+        protected override void WriteSyncHeader(BinaryWriter bw, SynchronizationDescriptor synchronizationDescriptor)
         {
-            
+            byte[] hash = synchronizationDescriptor?.Hash ?? new byte[64];
+
+            bw.Write((ushort)0); // POWType
+            bw.Write(hash);
         }
     }
 }

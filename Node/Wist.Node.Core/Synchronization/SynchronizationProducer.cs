@@ -73,19 +73,10 @@ namespace Wist.Node.Core.Synchronization
                                 ReportedTime = synchronizationDescriptor?.MedianTime.AddMinutes(1) ?? DateTime.Now
                             };
 
-                            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock);
-
-                            try
+                            using (ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock))
                             {
                                 _communicationService.PostMessage(_synchronizationGroupState.GetAllParticipants(), signatureSupportSerializer);
                                 _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
-                            }
-                            finally
-                            {
-                                if(signatureSupportSerializer != null)
-                                {
-                                    _signatureSupportSerializersFactory.Utilize(signatureSupportSerializer);
-                                }
                             }
 
                         }, _synchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
