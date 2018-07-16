@@ -28,12 +28,17 @@ Network has a three-layer structure:
 3. Layer of nodes (_Synchronization Nodes_) responsible for:
    - creating Synchronization Blocks 
    - combining blockchains of registration of transactions of private blockchains into unified blockchain in order to ascertain History Immutability
+   - deferred transactions content consensus
 
 ### Scheme of responsibilities of Network Layers
 
 ![](https://github.com/muaddibco/Wist/blob/master/Wist%20Layers.png?raw=true)
 
 ## Transactions Flow
+### Synchronization Blocks Producing
+
+__TBD__
+
 ### Sending funds to another account
 1. Account peeks latest Synchronization Block broadcasted over network
 2. Calculates POW basing on account's Public Key and Synchronization Block hash

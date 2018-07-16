@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Wist.BlockLattice.Core.Enums;
 using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
@@ -17,7 +18,9 @@ namespace Wist.Node.Core.Synchronization
     public class SynchronizationGroupParticipationService : ISynchronizationGroupParticipationService
     {
         private readonly ISynchronizationProducer _synchronizationProducer;
+        private readonly INodeDposProvider _nodeDposProvider;
         private readonly ISynchronizationContext _synchronizationContext;
+        private readonly INodeContext _nodeContext;
         private readonly TransformBlock<string, string> _synchronizationGroupParticipationCheckAction;
         private readonly ActionBlock<string> _synchronizationGroupLeaderCheckAction;
         private readonly object _sync = new object();
@@ -27,10 +30,12 @@ namespace Wist.Node.Core.Synchronization
         private bool _isStarted;
         private IDisposable _synchronozationGroupLeaderCheckUnsubscriber;
 
-        public SynchronizationGroupParticipationService(ISynchronizationProducer synchronizationProducer, IStatesRepository statesRepository)
+        public SynchronizationGroupParticipationService(ISynchronizationProducer synchronizationProducer, IStatesRepository statesRepository, INodeDposProvidersFactory nodeDposProvidersFactory)
         {
             _synchronizationProducer = synchronizationProducer;
+            _nodeDposProvider = nodeDposProvidersFactory.Create(PacketType.TransactionalChain);
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
             _synchronizationGroupParticipationCheckAction = new TransformBlock<string, string>((Func<string, string>)SynchronizationGroupParticipationCheckAction);
             _synchronizationGroupLeaderCheckAction = new ActionBlock<string>(SynchronizationGroupLeaderCheckAction);
         }
@@ -73,7 +78,7 @@ namespace Wist.Node.Core.Synchronization
         private void CheckSynchronizationGroupParticipation()
         {
             //TODO: add real check for participation
-
+            int rating = _nodeDposProvider.GetCandidateRating(_nodeContext.NodeKey);
         }
 
         private string SynchronizationGroupParticipationCheckAction(string arg)

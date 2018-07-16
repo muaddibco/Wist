@@ -7,6 +7,7 @@ using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
+using Wist.Core.Identity;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
@@ -29,7 +30,7 @@ namespace Wist.Node.Core
             ThisNode = new ConsensusGroupParticipant() { };
         }
 
-        public byte[] PublicKey { get; }
+        public IKey NodeKey { get; }
 
         public ConsensusGroupParticipant ThisNode { get; }
         public List<ConsensusGroupParticipant> SyncGroupParticipants { get; }

@@ -4,15 +4,18 @@ using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
+using Wist.Core.Identity;
 
 namespace Wist.Node.Core.Interfaces
 {
     [ExtensionPoint]
     public interface INodeDposProvider
     {
-        PacketType ChainType { get; }
+        PacketType PacketType { get; }
 
-        double GetAllContributions(byte[] nodePublicKey);
+        double GetVotesForCandidate(IKey candidateKey);
+
+        int GetCandidateRating(IKey candidateKey);
 
         void UpdateContribution(BlockBase block);
 
