@@ -6,12 +6,12 @@ using Wist.Core.Architecture.Enums;
 namespace Wist.BlockLattice.Core.Parsers.Factories
 {
     [RegisterExtension(typeof(IBlockParsersFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class TransactionalBlockParsersFactory : BlockParsersFactoryBase
+    public class SinchronizationBlockParsersFactory : BlockParsersFactoryBase
     {
-        public TransactionalBlockParsersFactory(IBlockParser[] blockParsers) : base(blockParsers)
+        public SinchronizationBlockParsersFactory(IBlockParser[] blockParsers) : base(blockParsers)
         {
         }
 
-        public override PacketType PacketType => PacketType.TransactionalChain;
+        public override PacketType PacketType => PacketType.Synchronization;
     }
 }

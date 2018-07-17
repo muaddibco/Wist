@@ -23,7 +23,7 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         public override ushort BlockType => BlockTypes.Transaction_TransferFunds;
 
-        protected override TransactionalBlockBase ParseTransactional(ushort version, ulong height, byte[] prevHash, BinaryReader br)
+        protected override TransactionalBlockBase ParseTransactional(ushort version, BinaryReader br)
         {
             TransactionalBlockBase block = null;
 

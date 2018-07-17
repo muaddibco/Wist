@@ -6,7 +6,7 @@ namespace Wist.Core.Synchronization
 {
     public class SynchronizationDescriptor
     {
-        public SynchronizationDescriptor(uint blockHeight, byte[] hash, DateTime medianTime, DateTime receiveTime)
+        public SynchronizationDescriptor(ulong blockHeight, byte[] hash, DateTime medianTime, DateTime receiveTime)
         {
             BlockHeight = blockHeight;
             Hash = hash;
@@ -17,7 +17,7 @@ namespace Wist.Core.Synchronization
         /// <summary>
         /// Last synchronization block obtained from Network
         /// </summary>
-        public uint BlockHeight { get; private set; }
+        public ulong BlockHeight { get; private set; }
 
         public byte[] Hash { get; private set; }
 

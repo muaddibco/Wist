@@ -5,7 +5,7 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Synchronization
 {
-    public class SynchronizationConfirmedBlock : BlockBase
+    public class SynchronizationConfirmedBlock : SynchronizationBlockBase
     {
         public override PacketType PacketType => PacketType.Synchronization;
 
@@ -13,7 +13,7 @@ namespace Wist.BlockLattice.Core.DataModel.Synchronization
 
         public override ushort Version => 1;
 
-        public DateTime[] ReportedTimes { get; set; }
+        public ushort Round { get; set; }
 
         public byte[][] Signatures { get; set; }
 

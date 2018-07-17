@@ -16,11 +16,13 @@ namespace Wist.BlockLattice.Core.DataModel
 
         public abstract ushort Version { get; }
 
-        public uint BlockHeight { get; set; }
+        public ulong BlockHeight { get; set; }
 
         /// <summary>
         /// 64 byte value
         /// </summary>
         public byte[] Hash { get; set; }
+
+        public byte[] RawData { get; set; }
     }
 }

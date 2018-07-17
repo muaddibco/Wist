@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Wist.Core.Identity;
 
 namespace Wist.Core.States
 {
     public interface IAccountState : IState
     {
-        byte[] PublicKey { get; }
+        IKey AccountKey { get; }
+
 
         void Initialize();
     }

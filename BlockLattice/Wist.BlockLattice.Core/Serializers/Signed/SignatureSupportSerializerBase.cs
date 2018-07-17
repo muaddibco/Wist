@@ -78,13 +78,14 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             byte[] signature = _cryptoService.Sign(body);
 
             _binaryWriter.Write(signature);
-            _binaryWriter.Write(_accountState.PublicKey);
+            _binaryWriter.Write(_accountState.AccountKey.Value);
 
             return _memoryStream.ToArray();
         }
 
         public virtual void Initialize(SignedBlockBase signedBlockBase)
         {
+            _disposed = false;
             _block = signedBlockBase as T;
         }
 

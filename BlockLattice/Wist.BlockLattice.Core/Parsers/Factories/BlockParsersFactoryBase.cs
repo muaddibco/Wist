@@ -19,7 +19,7 @@ namespace Wist.BlockLattice.Core.Parsers.Factories
         {
             _blockParsersStack = new Dictionary<ushort, Stack<IBlockParser>>();
 
-            foreach (IBlockParser blockParser in blockParsers.Where(bp => bp.ChainType == PacketType))
+            foreach (IBlockParser blockParser in blockParsers.Where(bp => bp.PacketType == PacketType))
             {
                 if (!_blockParsersStack.ContainsKey(blockParser.BlockType))
                 {

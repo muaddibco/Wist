@@ -123,7 +123,7 @@ namespace Wist.Node.Core
         {
             _consensusCheckingService.EnrollConsensusDecisions(block, consensusDecisions);
 
-            if (consensusDecisions.Any(p => p.Participant.PublicKey.Equals32(_accountState.PublicKey)))
+            if (consensusDecisions.Any(p => p.Participant.PublicKey.Equals32(_accountState.AccountKey.Value)))
             {
                 _consensusItems.Add(new GenericConsensusBlock() { Block = block, ConsensusDecisions = consensusDecisions.Select(d => new GenericConsensusBlock.ConsensusDecisionItem { PublickKey = d.Participant.PublicKeyString, ConsensusState = d.State }).ToArray() });
             }

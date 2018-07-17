@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Identity;
 
 namespace Wist.Core.States
 {
@@ -14,7 +15,7 @@ namespace Wist.Core.States
     {
         private readonly Subject<string> _subject = new Subject<string>();
 
-        public byte[] PublicKey { get; private set; }
+        public IKey AccountKey { get; private set; }
 
         public string Name => nameof(AccountState);
 

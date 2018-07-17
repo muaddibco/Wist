@@ -10,7 +10,7 @@ namespace Wist.BlockLattice.Core.Interfaces
     [ExtensionPoint]
     public interface IBlockParser
     {
-        PacketType ChainType { get; }
+        PacketType PacketType { get; }
 
         ushort BlockType { get; }
 

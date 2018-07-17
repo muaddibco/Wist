@@ -38,7 +38,7 @@ namespace Wist.Node.Core
         private ICommunicationService _communicationHub;
         private uint _currentSyncBlockOrder;
 
-        private readonly Dictionary<uint, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>> _synchronizationBlocksByHeight;
+        private readonly Dictionary<ulong, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>> _synchronizationBlocksByHeight;
 
         private readonly BlockingCollection<SynchronizationBlockBase> _synchronizationBlocks;
         private readonly BlockingCollection<SynchronizationBlockRetransmissionV1> _retransmittedBlocks;
@@ -157,7 +157,7 @@ namespace Wist.Node.Core
                     _synchronizationBlocksByHeight[retransmittedBlock.BlockHeight].Add(publicKey, new List<SynchronizationBlockRetransmissionV1>());
                 }
 
-                if(!_synchronizationBlocksByHeight[retransmittedBlock.BlockHeight][publicKey].Any(s => s.PublicKey.Equals32(retransmittedBlock.PublicKey)))
+                if(!_synchronizationBlocksByHeight[retransmittedBlock.BlockHeight][publicKey].Any(s => s.Key.Equals(retransmittedBlock.Key)))
                 {
                     _synchronizationBlocksByHeight[retransmittedBlock.BlockHeight][publicKey].Add(retransmittedBlock);
                 }
@@ -169,7 +169,7 @@ namespace Wist.Node.Core
             }
         }
 
-        private void BroadcastConfirmation(uint height)
+        private void BroadcastConfirmation(ulong height)
         {
             List<SynchronizationBlockRetransmissionV1> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height].Where(r => _nodeContext.SyncGroupParticipants.Any(p => p.PublicKeyString == r.Key)).Select(kv => kv.Value.First()).OrderBy(s => s.ConfirmationPublicKey.ToHexString()).ToList();
 
@@ -185,7 +185,7 @@ namespace Wist.Node.Core
             //_communicationHub.PostMessage(synchronizationConfirmedBlock);
         }
 
-        private bool CheckSynchronizationCompleteConsensusAchieved(uint height)
+        private bool CheckSynchronizationCompleteConsensusAchieved(ulong height)
         {
             if (!_synchronizationBlocksByHeight.ContainsKey(height))
             {
@@ -216,9 +216,9 @@ namespace Wist.Node.Core
                 BlockHeight = synchronizationBlockV1.BlockHeight,
                 ReportedTime = synchronizationBlockV1.ReportedTime,
                 OffsetSinceLastMedian = (ushort)(DateTime.Now - _synchronizationContext.LastBlockDescriptor.ReceivingTime).TotalSeconds,
-                ConfirmationPublicKey = synchronizationBlockV1.PublicKey,
+                ConfirmationPublicKey = synchronizationBlockV1.Key.Value,
                 ConfirmationSignature = synchronizationBlockV1.Signature,
-                PublicKey = _accountState.PublicKey
+                Key = _accountState.AccountKey
             };
 
             //TODO: refactor

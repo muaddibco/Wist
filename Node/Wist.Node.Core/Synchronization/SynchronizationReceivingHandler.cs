@@ -25,15 +25,17 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly INeighborhoodState _neighborhoodState;
         private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
+        private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
         private ICommunicationService _communicationService;
         private uint _lastRetransmittedSyncBlockHeight;
 
-        public SynchronizationReceivingHandler(IStatesRepository statesRepository, ICommunicationServicesRegistry communicationServicesRegistry)
+        public SynchronizationReceivingHandler(IStatesRepository statesRepository, ICommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _neighborhoodState = statesRepository.GetInstance<INeighborhoodState>();
             _synchronizationBlocks = new BlockingCollection<SynchronizationProducingBlock>();
             _communicationServicesRegistry = communicationServicesRegistry;
+            _rawPacketProvidersFactory = rawPacketProvidersFactory;
         }
 
         public string Name => NAME;
@@ -73,7 +75,8 @@ namespace Wist.Node.Core.Synchronization
                 }
 
                 _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationBlock.BlockHeight, synchronizationBlock.Hash, synchronizationBlock.ReportedTime, DateTime.Now));
-                _communicationService.PostMessage(_neighborhoodState.GetAllNeighbors(), null);
+                IPacketProvider packetProvider = _rawPacketProvidersFactory.Create(synchronizationBlock);
+                _communicationService.PostMessage(_neighborhoodState.GetAllNeighbors(), packetProvider);
             }
         }
 

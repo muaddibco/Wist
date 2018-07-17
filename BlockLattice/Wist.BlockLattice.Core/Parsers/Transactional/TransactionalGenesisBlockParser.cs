@@ -25,9 +25,9 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         public override ushort BlockType => BlockTypes.Transaction_Genesis;
 
-        public override PacketType ChainType => PacketType.TransactionalChain;
+        public override PacketType PacketType => PacketType.TransactionalChain;
 
-        protected override BlockBase Parse(ushort version, ulong height, byte[] prevHash, BinaryReader br)
+        protected override BlockBase Parse(ushort version, BinaryReader br)
         {
             BlockBase block = null;
 

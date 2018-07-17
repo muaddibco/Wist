@@ -11,8 +11,6 @@ namespace Wist.Node.Core.Interfaces
 {
     public interface INodeContext : IState
     {
-        IKey NodeKey { get; }
-
         ConsensusGroupParticipant ThisNode { get; }
 
         ushort SyncGroupParticipantsCount { get; }

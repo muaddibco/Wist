@@ -115,7 +115,7 @@ namespace Wist.Node.Core.Synchronization
         {
             SortedDictionary<ushort, byte[]> topParticipants = _dposService.GetTopNodesPublicKeys(_nodeContext.SyncGroupParticipantsCount);
 
-            bool result = topParticipants.Any(t => t.Value.Equals32(_accountState.PublicKey));
+            bool result = topParticipants.Any(t => t.Value.Equals32(_accountState.AccountKey.Value));
 
             return result;
         }
@@ -124,7 +124,7 @@ namespace Wist.Node.Core.Synchronization
         {
             SortedDictionary<ushort, byte[]> topParticipants = _dposService.GetTopNodesPublicKeys(_nodeContext.SyncGroupParticipantsCount);
 
-            bool result = topParticipants.Any(t => t.Value.Equals32(_accountState.PublicKey));
+            bool result = topParticipants.Any(t => t.Value.Equals32(_accountState.AccountKey.Value));
 
             return !result;
         }

@@ -14,7 +14,7 @@ namespace Wist.Node.Core.Parsers
 
         public override ushort BlockType => BlockTypes.Consensus_GenericConsensus;
 
-        protected override BlockBase Parse(ushort version, ulong height, byte[] prevHash, BinaryReader br)
+        protected override BlockBase Parse(ushort version, BinaryReader br)
         {
             throw new NotImplementedException();
         }

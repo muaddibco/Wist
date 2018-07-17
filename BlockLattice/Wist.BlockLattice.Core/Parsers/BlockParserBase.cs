@@ -17,7 +17,7 @@ namespace Wist.BlockLattice.Core.Parsers
 
         public abstract ushort BlockType { get; }
 
-        public abstract PacketType ChainType { get; }
+        public abstract PacketType PacketType { get; }
 
         public virtual BlockBase ParseBody(byte[] blockBody)
         {
@@ -48,7 +48,11 @@ namespace Wist.BlockLattice.Core.Parsers
             ulong height = br.ReadUInt64();
             byte[] prevHash = br.ReadBytes(Globals.HASH_SIZE);
             ushort version = br.ReadUInt16();
-            return Parse(version, height, prevHash, br);
+            BlockBase blockBase = Parse(version, br);
+            blockBase.BlockHeight = height;
+            blockBase.Hash = prevHash;
+
+            return blockBase;
         }
 
         void SkipInitialBytes(BinaryReader br)
@@ -61,6 +65,6 @@ namespace Wist.BlockLattice.Core.Parsers
             ushort blockType = br.ReadUInt16();
         }
 
-        protected abstract BlockBase Parse(ushort version, ulong height, byte[] prevHash, BinaryReader br);
+        protected abstract BlockBase Parse(ushort version, BinaryReader br);
     }
 }
