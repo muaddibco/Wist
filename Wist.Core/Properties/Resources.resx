@@ -144,6 +144,9 @@
   <data name="ERR_REQUIRED_CONIGURATION_PARAMETER_NOT_SPECIFIED" xml:space="preserve">
     <value>Required configuration parameter '{0}' not specified at application configuration file.</value>
   </data>
+  <data name="ERR_STATE_SERVICE_NOT_SUPPORTED" xml:space="preserve">
+    <value>State service {0} not supported.</value>
+  </data>
   <data name="ERR_STRING_LEN_EVEN" xml:space="preserve">
     <value>String length must be even.</value>
   </data>

@@ -36,7 +36,7 @@ namespace Wist.Node.Core
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly ICryptoService _cryptoService;
         private ICommunicationService _communicationHub;
-        private uint _currentSyncBlockOrder;
+        private ulong _currentSyncBlockOrder;
 
         private readonly Dictionary<ulong, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>> _synchronizationBlocksByHeight;
 
@@ -54,7 +54,7 @@ namespace Wist.Node.Core
             _cryptoService = cryptoService;
             _synchronizationBlocks = new BlockingCollection<SynchronizationBlockBase>();
             _retransmittedBlocks = new BlockingCollection<SynchronizationBlockRetransmissionV1>();
-            _synchronizationBlocksByHeight = new Dictionary<uint, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>>();
+            _synchronizationBlocksByHeight = new Dictionary<ulong, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>>();
         }
 
         public string Name => BLOCKS_PROCESSOR_NAME;
@@ -85,7 +85,7 @@ namespace Wist.Node.Core
             }
             else if (synchronizationConfirmedBlock != null && _synchronizationContext.LastBlockDescriptor.BlockHeight < synchronizationConfirmedBlock.BlockHeight)
             {
-                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, synchronizationConfirmedBlock.Hash, _synchronizationContext.GetMedianValue(synchronizationConfirmedBlock.ReportedTimes), DateTime.Now));
+                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, synchronizationConfirmedBlock.Hash, synchronizationConfirmedBlock.ReportedTime, DateTime.Now));
                 _synchronizationProducer.DeferredBroadcast();
             }
 
@@ -176,7 +176,7 @@ namespace Wist.Node.Core
             SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock
             {
                 BlockHeight = height,
-                ReportedTimes = retransmittedSyncBlocks.Select(b => b.ReportedTime).ToArray(),
+                //ReportedTimes = retransmittedSyncBlocks.Select(b => b.ReportedTime).ToArray(),
                 PublicKeys = retransmittedSyncBlocks.Select(b => b.ConfirmationPublicKey).ToArray(),
                 Signatures = retransmittedSyncBlocks.Select(b => b.ConfirmationSignature).ToArray()
             };

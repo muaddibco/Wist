@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Exceptions;
 
 namespace Wist.Core.States
 {
@@ -35,13 +36,21 @@ namespace Wist.Core.States
 
         public IState GetInstance(string key)
         {
-            //TODO: add key check and dedicated exception on absence
+            if (!_states.ContainsKey(key))
+            {
+                throw new StateServiceNotSupportedException(key);
+            }
+
             return _states[key];
         }
 
         public T GetInstance<T>() where T : IState
         {
-            //TODO: add key check and dedicated exception on absence
+            if(!_statesByTypes.ContainsKey(typeof(T)))
+            {
+                throw new StateServiceNotSupportedException(typeof(T).FullName);
+            }
+
             return (T)_statesByTypes[typeof(T)];
         }
     }

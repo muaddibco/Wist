@@ -22,7 +22,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISynchronizationGroupState _synchronizationGroupState;
         private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
         private ICommunicationService _communicationService;
-        private uint _lastLaunchedSyncBlockOrder = 0;
+        private ulong _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
         public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, ICommunicationServicesRegistry communicationServicesRegistry)

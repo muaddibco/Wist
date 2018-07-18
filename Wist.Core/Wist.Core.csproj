@@ -12,8 +12,8 @@
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="NLog" Version="4.5.6" />
-    <PackageReference Include="PostSharp" Version="6.0.15-rc" />
-    <PackageReference Include="PostSharp.Redist" Version="6.0.15-rc" />
+    <PackageReference Include="PostSharp" Version="6.0.19" />
+    <PackageReference Include="PostSharp.Redist" Version="6.0.19" />
     <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
     <PackageReference Include="System.Reactive.Linq" Version="4.0.0" />

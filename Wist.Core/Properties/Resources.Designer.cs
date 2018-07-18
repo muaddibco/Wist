@@ -142,6 +142,15 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to State service {0} not supported..
+        /// </summary>
+        internal static string ERR_STATE_SERVICE_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_STATE_SERVICE_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to String length must be even..
         /// </summary>
         internal static string ERR_STRING_LEN_EVEN {

@@ -20,7 +20,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISynchronizationProducer _synchronizationProducer;
         private readonly INodeDposProvider _nodeDposProvider;
         private readonly ISynchronizationContext _synchronizationContext;
-        private readonly INodeContext _nodeContext;
+        private readonly IAccountState _accountState;
         private readonly TransformBlock<string, string> _synchronizationGroupParticipationCheckAction;
         private readonly ActionBlock<string> _synchronizationGroupLeaderCheckAction;
         private readonly object _sync = new object();
@@ -35,7 +35,7 @@ namespace Wist.Node.Core.Synchronization
             _synchronizationProducer = synchronizationProducer;
             _nodeDposProvider = nodeDposProvidersFactory.Create(PacketType.TransactionalChain);
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
-            _nodeContext = statesRepository.GetInstance<INodeContext>();
+            _accountState = statesRepository.GetInstance<IAccountState>();
             _synchronizationGroupParticipationCheckAction = new TransformBlock<string, string>((Func<string, string>)SynchronizationGroupParticipationCheckAction);
             _synchronizationGroupLeaderCheckAction = new ActionBlock<string>(SynchronizationGroupLeaderCheckAction);
         }
@@ -78,7 +78,7 @@ namespace Wist.Node.Core.Synchronization
         private void CheckSynchronizationGroupParticipation()
         {
             //TODO: add real check for participation
-            int rating = _nodeDposProvider.GetCandidateRating(_nodeContext.NodeKey);
+            int rating = _nodeDposProvider.GetCandidateRating(_accountState.AccountKey);
         }
 
         private string SynchronizationGroupParticipationCheckAction(string arg)
