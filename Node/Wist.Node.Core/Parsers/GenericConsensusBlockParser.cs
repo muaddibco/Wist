@@ -18,5 +18,10 @@ namespace Wist.Node.Core.Parsers
         {
             throw new NotImplementedException();
         }
+
+        protected override void ReadPowSection(BinaryReader br)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

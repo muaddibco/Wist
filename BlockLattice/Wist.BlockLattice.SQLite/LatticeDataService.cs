@@ -162,6 +162,13 @@ namespace Wist.BlockLattice.SQLite
         {
             AccountIdentity accountIdentity = GetAccountIdentity(key);
 
+            if(accountIdentity == null)
+            {
+                AddIdentity(key);
+
+                accountIdentity = GetAccountIdentity(key);
+            }
+
             if (accountIdentity != null)
             {
                 lock (_sync)

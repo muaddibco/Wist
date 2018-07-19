@@ -17,6 +17,8 @@ namespace Wist.Core.Cryptography
 
         bool Verify(byte[] signature, byte[] message, byte[] publickKey);
 
+
+
         void Initialize(byte[] privateKey);
     }
 }

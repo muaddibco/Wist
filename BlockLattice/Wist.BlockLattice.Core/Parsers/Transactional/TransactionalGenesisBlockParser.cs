@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Enums;
@@ -17,10 +14,12 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
     public class TransactionalGenesisBlockParser : BlockParserBase
     {
         private readonly IIdentityKeyProvider _identityKeyProvider;
+        private readonly IProofOfWorkCalculationFactory _proofOfWorkCalculationFactory;
 
-        public TransactionalGenesisBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base(proofOfWorkCalculationFactory)
+        public TransactionalGenesisBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base()
         {
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
+            _proofOfWorkCalculationFactory = proofOfWorkCalculationFactory;
         }
 
         public override ushort BlockType => BlockTypes.Transaction_Genesis;
@@ -45,15 +44,24 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
                         genesisBlock.VerifierOriginalHashList.Add(br.ReadBytes(Globals.HASH_SIZE));
                     }
                     genesisBlock.RecoveryOriginalHash = br.ReadBytes(Globals.HASH_SIZE);
-                    genesisBlock.Nonce = br.ReadBytes(Globals.NONCE_SIZE);
+                    genesisBlock.Nonce = br.ReadUInt64();
                     genesisBlock.HashNonce = br.ReadBytes(Globals.HASH_SIZE);
-                    genesisBlock.Hash = br.ReadBytes(Globals.HASH_SIZE);
+                    genesisBlock.HashPrev = br.ReadBytes(Globals.HASH_SIZE);
                     break;
                 default:
                     throw new Exceptions.BlockVersionNotSupportedException(version, BlockTypes.Transaction_Genesis);
             }
             
             return block;
+        }
+
+        protected override void ReadPowSection(BinaryReader br)
+        {
+            POWType powType = (POWType)br.ReadUInt16();
+            ulong nonce = br.ReadUInt64();
+
+            IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationFactory.Create(powType);
+            byte[] hash = br.ReadBytes(proofOfWorkCalculation.HashSize);
         }
     }
 }

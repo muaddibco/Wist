@@ -85,7 +85,7 @@ namespace Wist.Node.Core
             }
             else if (synchronizationConfirmedBlock != null && _synchronizationContext.LastBlockDescriptor.BlockHeight < synchronizationConfirmedBlock.BlockHeight)
             {
-                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, synchronizationConfirmedBlock.Hash, synchronizationConfirmedBlock.ReportedTime, DateTime.Now));
+                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, synchronizationConfirmedBlock.HashPrev, synchronizationConfirmedBlock.ReportedTime, DateTime.Now));
                 _synchronizationProducer.DeferredBroadcast();
             }
 

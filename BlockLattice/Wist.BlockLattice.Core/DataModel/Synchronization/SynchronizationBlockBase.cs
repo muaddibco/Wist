@@ -10,5 +10,7 @@ namespace Wist.BlockLattice.Core.DataModel.Synchronization
         public override PacketType PacketType => PacketType.Synchronization;
 
         public DateTime ReportedTime { get; set; }
+
+        public ulong BlockHeight { get; set; }
     }
 }

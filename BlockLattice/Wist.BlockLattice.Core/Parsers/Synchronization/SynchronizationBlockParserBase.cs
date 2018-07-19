@@ -12,8 +12,8 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 {
     public abstract class SynchronizationBlockParserBase : SignedBlockParserBase
     {
-        public SynchronizationBlockParserBase(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
-            : base(proofOfWorkCalculationFactory, identityKeyProvidersRegistry)
+        public SynchronizationBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
+            : base(identityKeyProvidersRegistry)
         {
         }
 
@@ -27,6 +27,11 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
             synchronizationBlockBase.ReportedTime = dateTime;
 
             return synchronizationBlockBase;
+        }
+
+        protected override void ReadPowSection(BinaryReader br)
+        {
+            
         }
 
         protected abstract SynchronizationBlockBase ParseSynchronization(ushort version, BinaryReader br);

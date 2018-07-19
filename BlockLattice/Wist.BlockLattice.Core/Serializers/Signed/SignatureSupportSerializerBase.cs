@@ -21,8 +21,6 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
         protected T _block;
         protected readonly ICryptoService _cryptoService;
-        protected readonly IAccountState _accountState;
-        protected readonly ISynchronizationContext _synchronizationContext;
 
         protected readonly MemoryStream _memoryStream;
         protected readonly BinaryWriter _binaryWriter;
@@ -31,11 +29,9 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
         private bool _disposed = false; // To detect redundant calls
 
-        public SignatureSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService, IStatesRepository statesRepository)
+        public SignatureSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService)
         {
             _cryptoService = cryptoService;
-            _accountState = statesRepository.GetInstance<IAccountState>();
-            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
 
             PacketType = packetType;
             BlockType = blockType;
@@ -61,12 +57,11 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             _memoryStream.SetLength(0);
 
             _binaryWriter.Write((ushort)PacketType);
-            _binaryWriter.Write(_synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0);
 
-            WriteSyncHeader(_binaryWriter, _synchronizationContext.LastBlockDescriptor);
+            WriteSyncHeader(_binaryWriter);
 
-            _binaryWriter.Write(_block.BlockType);
             _binaryWriter.Write(_block.Version);
+            _binaryWriter.Write(_block.BlockType);
 
             long pos = _memoryStream.Position;
 
@@ -80,7 +75,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             byte[] signature = _cryptoService.Sign(body);
 
             _binaryWriter.Write(signature);
-            _binaryWriter.Write(_accountState.AccountKey.Value);
+            _binaryWriter.Write(_block.Key.Value);
 
             return _memoryStream.ToArray();
         }
@@ -91,7 +86,9 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             _block = signedBlockBase as T;
         }
 
-        protected abstract void WriteSyncHeader(BinaryWriter bw, SynchronizationDescriptor synchronizationDescriptor);
+        protected virtual void WriteSyncHeader(BinaryWriter bw)
+        {
+        }
 
         protected abstract void WriteBody(BinaryWriter bw);
 

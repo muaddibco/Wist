@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wist.BlockLattice.Core.DataModel;
@@ -12,6 +11,7 @@ using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Communication;
+using Wist.Core.Cryptography;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 
@@ -74,7 +74,7 @@ namespace Wist.Node.Core.Synchronization
                     continue;
                 }
 
-                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationBlock.BlockHeight, synchronizationBlock.Hash, synchronizationBlock.ReportedTime, DateTime.Now));
+                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationBlock.BlockHeight, CryptoHelper.ComputeHash(synchronizationBlock.BodyBytes), synchronizationBlock.ReportedTime, DateTime.Now));
                 IPacketProvider packetProvider = _rawPacketProvidersFactory.Create(synchronizationBlock);
                 _communicationService.PostMessage(_neighborhoodState.GetAllNeighbors(), packetProvider);
             }

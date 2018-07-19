@@ -12,7 +12,7 @@ namespace Wist.BlockLattice.Core.Parsers
     {
         protected readonly IIdentityKeyProvider _identityKeyProvider;
 
-        public SignedBlockParserBase(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base(proofOfWorkCalculationFactory)
+        public SignedBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base()
         {
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }

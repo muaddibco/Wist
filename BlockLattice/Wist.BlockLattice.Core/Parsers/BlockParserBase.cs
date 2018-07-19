@@ -8,11 +8,8 @@ namespace Wist.BlockLattice.Core.Parsers
 {
     public abstract class BlockParserBase : IBlockParser
     {
-        private readonly IProofOfWorkCalculationFactory _proofOfWorkCalculationFactory;
-
-        public BlockParserBase(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory)
+        public BlockParserBase()
         {
-            _proofOfWorkCalculationFactory = proofOfWorkCalculationFactory;
         }
 
         public abstract ushort BlockType { get; }
@@ -45,25 +42,21 @@ namespace Wist.BlockLattice.Core.Parsers
 
         private BlockBase ParseBody(BinaryReader br)
         {
-            ulong height = br.ReadUInt64();
-            byte[] prevHash = br.ReadBytes(Globals.HASH_SIZE);
             ushort version = br.ReadUInt16();
+            ushort messageType = br.ReadUInt16();
             BlockBase blockBase = Parse(version, br);
-            blockBase.BlockHeight = height;
-            blockBase.Hash = prevHash;
 
             return blockBase;
         }
 
         void SkipInitialBytes(BinaryReader br)
         {
-            br.ReadBytes(2);
-            POWType powType = (POWType)br.ReadUInt16();
-            br.ReadUInt32();
-            br.ReadUInt64();
-            br.ReadBytes(_proofOfWorkCalculationFactory.Create(powType).HashSize);
-            ushort blockType = br.ReadUInt16();
+            br.ReadBytes(2); // Packet Type
+
+            ReadPowSection(br);
         }
+
+        protected abstract void ReadPowSection(BinaryReader br);
 
         protected abstract BlockBase Parse(ushort version, BinaryReader br);
     }

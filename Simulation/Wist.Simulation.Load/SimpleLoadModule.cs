@@ -9,6 +9,7 @@ using Wist.Communication.Sockets;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;
+using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.Node.Core.Configuration;
@@ -27,15 +28,17 @@ namespace Wist.Simulation.Load
         private readonly IConfigurationService _configurationService;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodesDataService _nodesDataService;
+        private readonly ICryptoService _cryptoService;
         private readonly IIdentityKeyProvider _identityKeyProvider;
 
-        public SimpleLoadModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService) 
+        public SimpleLoadModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService) 
             : base(loggerService)
         {
             _communicationService = clientCommunicationServiceRepository.GetInstance(nameof(TcpClientCommunicationService));
             _configurationService = configurationService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodesDataService = nodesDataService;
+            _cryptoService = cryptoService;
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }
 
@@ -47,6 +50,9 @@ namespace Wist.Simulation.Load
             _communicationService.Init(new SocketSettings(clientTcpCommunicationConfiguration.MaxConnections, clientTcpCommunicationConfiguration.ReceiveBufferSize, clientTcpCommunicationConfiguration.ListeningPort, System.Net.Sockets.AddressFamily.InterNetwork));
 
             byte[] seed = GetRandomSeed();
+
+            _cryptoService.Initialize(seed);
+
             byte[] keyBytes = Ed25519.PublicKeyFromSeed(seed);
             IKey key = _identityKeyProvider.GetKey(keyBytes);
 

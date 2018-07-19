@@ -19,22 +19,14 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
     public class SynchronizationProducingBlockSerializer : SignatureSupportSerializerBase<SynchronizationProducingBlock>
     {
 
-        public SynchronizationProducingBlockSerializer(ICryptoService cryptoService, IStatesRepository statesRepository) 
-            : base(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock, cryptoService, statesRepository)
+        public SynchronizationProducingBlockSerializer(ICryptoService cryptoService) 
+            : base(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock, cryptoService)
         {
         }
 
         protected override void WriteBody(BinaryWriter bw)
         {
             bw.Write(_block.ReportedTime.ToBinary());
-        }
-
-        protected override void WriteSyncHeader(BinaryWriter bw, SynchronizationDescriptor synchronizationDescriptor)
-        {
-            byte[] hash = synchronizationDescriptor?.Hash ?? new byte[64];
-
-            bw.Write((ushort)0); // POWType
-            bw.Write(hash);
         }
     }
 }

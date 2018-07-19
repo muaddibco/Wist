@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Numerics;
-using System.Text;
-using Wist.BlockLattice.Core.DataModel;
+﻿using System.IO;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Identity;
 using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Parsers.Transactional
@@ -17,7 +13,8 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class TransferFundsBlockParser : TransactionalBlockParserBase
     {
-        public TransferFundsBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base(proofOfWorkCalculationFactory)
+        public TransferFundsBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
+            : base(proofOfWorkCalculationFactory, identityKeyProvidersRegistry)
         {
         }
 

@@ -9,7 +9,7 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 {
     public abstract class SynchronizationConfirmedBlockParser : SynchronizationBlockParserBase
     {
-        public SynchronizationConfirmedBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base(proofOfWorkCalculationFactory, identityKeyProvidersRegistry)
+        public SynchronizationConfirmedBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base(identityKeyProvidersRegistry)
         {
         }
 
