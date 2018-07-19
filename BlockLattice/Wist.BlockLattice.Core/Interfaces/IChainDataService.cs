@@ -7,7 +7,7 @@ using Wist.Core.Identity;
 namespace Wist.BlockLattice.Core.Interfaces
 {
     [ExtensionPoint]
-    public interface IChainDataService : IDataService<BlockBase>
+    public interface IChainDataService : IDataService<BlockBase, long>
     {
         PacketType ChainType { get; }
 

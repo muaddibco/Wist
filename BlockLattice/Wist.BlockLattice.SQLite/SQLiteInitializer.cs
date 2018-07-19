@@ -13,6 +13,7 @@ namespace Wist.BlockLattice.SQLite
         protected override void InitializeInner()
         {
             LatticeDataService.Instance.LoadAllIdentities();
+            LatticeDataService.Instance.LoadAllKnownNodeIPs();
         }
     }
 }

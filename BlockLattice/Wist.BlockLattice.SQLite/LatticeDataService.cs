@@ -30,6 +30,7 @@ namespace Wist.BlockLattice.SQLite
         
         private static LatticeDataService _instance = null;
         private Dictionary<IKey, AccountIdentity> _keyIdentityMap;
+        private Dictionary<IKey, Node> _keyToNodeMap;
         private readonly IIdentityKeyProvider _identityKeyProvider;
 
         private readonly DataContext _dataContext;
@@ -148,23 +149,32 @@ namespace Wist.BlockLattice.SQLite
 
         public bool AddNode(IKey key, string ipAddressExpression = null)
         {
+            IPAddress ipAddress;
+            if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out ipAddress))
+            {
+                return AddNode(key, ipAddress);
+            }
+
+            return false;
+        }
+
+        public bool AddNode(IKey key, IPAddress ipAddress)
+        {
             AccountIdentity accountIdentity = GetAccountIdentity(key);
 
-            if(accountIdentity != null)
+            if (accountIdentity != null)
             {
-                lock(_sync)
+                lock (_sync)
                 {
                     Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
 
-                    if(node == null)
+                    if (node == null)
                     {
-                        IPAddress ipAddress;
 
-                        if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out ipAddress))
-                        {
-                            node = new Node { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes() };
-                            _dataContext.Nodes.Add(node);
-                        }
+                        node = new Node { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes() };
+                        _dataContext.Nodes.Add(node);
+                        _keyToNodeMap.Add(key, node);
+                        return true;
                     }
                 }
             }
@@ -173,6 +183,18 @@ namespace Wist.BlockLattice.SQLite
         }
 
         public bool UpdateNode(IKey key, string ipAddressExpression = null)
+        {
+            IPAddress ipAddress;
+
+            if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out ipAddress))
+            {
+                return UpdateNode(key, ipAddress);
+            }
+
+            return false;
+        }
+
+        public bool UpdateNode(IKey key, IPAddress ipAddress)
         {
             AccountIdentity accountIdentity = GetAccountIdentity(key);
 
@@ -184,13 +206,10 @@ namespace Wist.BlockLattice.SQLite
 
                     if (node != null)
                     {
-                        IPAddress ipAddress;
-
-                        if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out ipAddress))
-                        {
-                            node.IPAddress = ipAddress.GetAddressBytes();
-                            _dataContext.Update<Node>(node);
-                        }
+                        node.IPAddress = ipAddress.GetAddressBytes();
+                        _dataContext.Update<Node>(node);
+                        _keyToNodeMap[key].IPAddress = ipAddress.GetAddressBytes();
+                        return true;
                     }
                 }
             }
@@ -198,6 +217,38 @@ namespace Wist.BlockLattice.SQLite
             return false;
         }
 
+        public void LoadAllKnownNodeIPs()
+        {
+            lock (_sync)
+            {
+                _keyToNodeMap = _dataContext.Nodes.ToDictionary(i => _identityKeyProvider.GetKey(i.Identity.PublicKey), i => i);
+            }
+        }
+
+        public IPAddress GetNodeIpAddress(IKey key)
+        {
+            if(_keyToNodeMap.ContainsKey(key))
+            {
+                return new IPAddress(_keyToNodeMap[key].IPAddress);
+            }
+
+            return IPAddress.None;
+        }
+
+        public IEnumerable<Node> GetAllNodes()
+        {
+            return _keyToNodeMap.Values;
+        }
+
+        public Node GetNode(IKey key)
+        {
+            if(_keyToNodeMap.ContainsKey(key))
+            {
+                return _keyToNodeMap[key];
+            }
+
+            return null;
+        }
         #endregion Nodes
 
         #region Accounts Chain

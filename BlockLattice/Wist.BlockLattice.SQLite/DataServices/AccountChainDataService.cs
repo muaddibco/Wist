@@ -29,6 +29,11 @@ namespace Wist.BlockLattice.SQLite.DataServices
             throw new NotImplementedException();
         }
 
+        public BlockBase Get(long key)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<BlockBase> GetAll()
         {
             throw new NotImplementedException();
@@ -60,6 +65,16 @@ namespace Wist.BlockLattice.SQLite.DataServices
         }
 
         public BlockBase GetLastBlock(IKey key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Initialize()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Update(long key, BlockBase item)
         {
             throw new NotImplementedException();
         }
