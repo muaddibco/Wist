@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
 namespace Wist.Core
 {
-    public class GenericPool<T> where T : class
+    public class GenericPool<T> : IEnumerable<T> where T : class
     {
         Stack<T> _pool;
 
@@ -59,6 +60,16 @@ namespace Wist.Core
         {
             Int32 tokenId = Interlocked.Increment(ref _nextTokenId);
             return tokenId;
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return _pool.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _pool.GetEnumerator();
         }
     }
 }

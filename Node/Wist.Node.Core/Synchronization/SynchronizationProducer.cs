@@ -20,12 +20,12 @@ namespace Wist.Node.Core.Synchronization
         private readonly INodeContext _nodeContext;
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISynchronizationGroupState _synchronizationGroupState;
-        private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
-        private ICommunicationService _communicationService;
+        private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
+        private IServerCommunicationService _communicationService;
         private ulong _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
-        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, ICommunicationServicesRegistry communicationServicesRegistry)
+        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry)
         {
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodeContext = statesRepository.GetInstance<INodeContext>();

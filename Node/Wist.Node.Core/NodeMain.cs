@@ -28,8 +28,8 @@ namespace Wist.Node.Core
     {
         private static readonly object _sync = new object();
         private readonly ILogger _log;
-        private readonly ICommunicationServicesRepository _communicationServicesFactory;
-        private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
+        private readonly IServerCommunicationServicesRepository _communicationServicesFactory;
+        private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IConfigurationService _configurationService;
         private readonly IModulesRepository _modulesRepository;
         private readonly IRolesRegistry _rolesRegistry;
@@ -38,7 +38,7 @@ namespace Wist.Node.Core
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(ICommunicationServicesRepository communicationServicesFactory, ICommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService, IInitializer[] initializers)
+        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService, IInitializer[] initializers)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _communicationServicesFactory = communicationServicesFactory;
@@ -78,8 +78,8 @@ namespace Wist.Node.Core
 
         private void InitializeCommunicationLayer()
         {
-            ICommunicationService communicationServiceTcp = _communicationServicesFactory.GetInstance("GenericTcp");
-            ICommunicationService communicationServiceUdp = _communicationServicesFactory.GetInstance("GenericUdp");
+            IServerCommunicationService communicationServiceTcp = _communicationServicesFactory.GetInstance("GenericTcp");
+            IServerCommunicationService communicationServiceUdp = _communicationServicesFactory.GetInstance("GenericUdp");
 
             GeneralTcpCommunicationConfiguration generalTcpCommunicationConfiguration = _configurationService.Get<GeneralTcpCommunicationConfiguration>();
             GeneralUdpCommunicationConfiguration generalUdpCommunicationConfiguration = _configurationService.Get<GeneralUdpCommunicationConfiguration>();

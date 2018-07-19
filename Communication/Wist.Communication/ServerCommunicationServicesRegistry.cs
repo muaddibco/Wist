@@ -7,17 +7,17 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.Communication
 {
-    [RegisterDefaultImplementation(typeof(ICommunicationServicesRegistry), Lifetime = LifetimeManagement.Singleton)]
-    public class CommunicationServicesRegistry : ICommunicationServicesRegistry
+    [RegisterDefaultImplementation(typeof(IServerCommunicationServicesRegistry), Lifetime = LifetimeManagement.Singleton)]
+    public class ServerCommunicationServicesRegistry : IServerCommunicationServicesRegistry
     {
-        private readonly Dictionary<string, ICommunicationService> _communicationServices;
+        private readonly Dictionary<string, IServerCommunicationService> _communicationServices;
 
-        public CommunicationServicesRegistry()
+        public ServerCommunicationServicesRegistry()
         {
-            _communicationServices = new Dictionary<string, ICommunicationService>();
+            _communicationServices = new Dictionary<string, IServerCommunicationService>();
         }
 
-        public ICommunicationService GetInstance(string key)
+        public IServerCommunicationService GetInstance(string key)
         {
             if (key == null)
             {
@@ -28,7 +28,7 @@ namespace Wist.Communication
             return _communicationServices[key];
         }
 
-        public void RegisterInstance(ICommunicationService obj, string key)
+        public void RegisterInstance(IServerCommunicationService obj, string key)
         {
             if (obj == null)
             {

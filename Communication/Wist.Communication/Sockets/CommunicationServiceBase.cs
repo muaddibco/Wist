@@ -1,44 +1,34 @@
 ﻿using CommonServiceLocator;
-using Wist.Communication.Interfaces;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using Wist.Core;
-using Wist.BlockLattice.Core.Interfaces;
 using System.Threading.Tasks;
+using Wist.BlockLattice.Core.Interfaces;
+using Wist.Communication.Interfaces;
+using Wist.Core;
 using Wist.Core.Communication;
-using System.Collections.Concurrent;
-using Wist.Core.Logging;
 using Wist.Core.Identity;
+using Wist.Core.Logging;
 
 namespace Wist.Communication.Sockets
 {
     public abstract class CommunicationServiceBase : ICommunicationService
     {
         protected readonly ILogger _log;
-        private readonly IBufferManagerFactory _bufferManagerFactory;
-        private readonly IPacketsHandler _packetsHandler;
-        private GenericPool<ICommunicationChannel> _communicationChannelsPool;
-        private readonly List<ICommunicationChannel> _clientConnectedList;
-        protected SocketListenerSettings _settings;
-        protected Socket _listenSocket;
-        private int _connectedSockets = 0;
-        protected ICommunicationProvisioning _communicationProvisioning = null;
-        private INodesResolutionService _nodesResolutionService;
-        private readonly BlockingCollection<KeyValuePair<IKey, byte[]>> _messagesQueue;
-        private CancellationTokenSource _cancellationTokenSource;
-        private Func<ICommunicationChannel, IPEndPoint, int, bool> _onReceiveExtendedValidation;
+        protected readonly IBufferManagerFactory _bufferManagerFactory;
+        protected readonly IPacketsHandler _packetsHandler;
+        protected GenericPool<ICommunicationChannel> _communicationChannelsPool;
+        protected readonly List<ICommunicationChannel> _clientConnectedList;
+        protected int _connectedSockets = 0;
+        protected INodesResolutionService _nodesResolutionService;
+        protected readonly BlockingCollection<KeyValuePair<IKey, byte[]>> _messagesQueue;
+        protected CancellationTokenSource _cancellationTokenSource;
+        protected SocketSettings _settings;
 
-        /// <summary>
-        /// Create an uninitialized server instance.  
-        /// To start the server listening for connection requests
-        /// call the Init method followed by Start method 
-        /// </summary>
-        /// <param name="settings">instance of <see cref="SocketListenerSettings"/> with defined settings of listener</param>
-        /// <param name="receiveBufferSize">buffer size to use for each socket I/O operation</param>
         public CommunicationServiceBase(ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
         {
             _log = loggerService.GetLogger(GetType().Name);
@@ -48,7 +38,6 @@ namespace Wist.Communication.Sockets
             _nodesResolutionService = nodesResolutionService;
             _messagesQueue = new BlockingCollection<KeyValuePair<IKey, byte[]>>();
         }
-
         #region ICommunicationService implementation
 
         public abstract string Name { get; }
@@ -59,7 +48,7 @@ namespace Wist.Communication.Sockets
         /// or reused, but it is done this way to illustrate how the API can 
         /// easily be used to create reusable objects to increase server performance.
         /// </summary>
-        public virtual void Init(SocketListenerSettings settings, ICommunicationProvisioning communicationProvisioning = null)
+        public virtual void Init(SocketSettings settings)
         {
             _cancellationTokenSource?.Cancel();
 
@@ -67,30 +56,18 @@ namespace Wist.Communication.Sockets
 
             _settings = settings;
 
-            if (_communicationProvisioning != null)
-            {
-                _communicationProvisioning.AllowedEndpointsChanged -= CommunicationProvisioning_AllowedEndpointsChanged;
-            }
-
-            _communicationProvisioning = communicationProvisioning;
-
-            if(_communicationProvisioning != null)
-            {
-                _communicationProvisioning.AllowedEndpointsChanged += CommunicationProvisioning_AllowedEndpointsChanged;
-            }
-
             _packetsHandler?.Initialize();
 
             // Allocates one large byte buffer which all I/O operations use a piece of.  This guards against memory fragmentation
             IBufferManager bufferManager = _bufferManagerFactory.Create();
-            bufferManager.InitBuffer(_settings.ReceiveBufferSize * _settings.MaxConnections * 2, _settings.ReceiveBufferSize);
+            bufferManager.InitBuffer(_settings.BufferSize * _settings.MaxConnections * 2, _settings.BufferSize);
             _communicationChannelsPool = new GenericPool<ICommunicationChannel>(_settings.MaxConnections);
 
             for (int i = 0; i < _settings.MaxConnections; i++)
             {
                 ICommunicationChannel communicationChannel = ServiceLocator.Current.GetInstance<ICommunicationChannel>();
                 communicationChannel.SocketClosedEvent += ClientHandler_SocketClosedEvent;
-                communicationChannel.Init(bufferManager, _packetsHandler, _onReceiveExtendedValidation);
+                communicationChannel.Init(bufferManager, _packetsHandler);
                 _communicationChannelsPool.Push(communicationChannel);
             }
 
@@ -100,16 +77,10 @@ namespace Wist.Communication.Sockets
             }, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
-        public void Start()
+        public virtual void Start()
         {
-            _listenSocket = CreateSocket();
 
-            _listenSocket.Bind(_settings.ListeningEndpoint);
-
-            StartAccept();
         }
-
-        protected abstract void StartAccept();
 
         public void PostMessage(IKey destination, IPacketProvider message)
         {
@@ -150,37 +121,11 @@ namespace Wist.Communication.Sockets
             _cancellationTokenSource = null;
         }
 
-        public void RegisterOnReceivedExtendedValidation(Func<ICommunicationChannel, IPEndPoint, int, bool> onReceiveExtendedValidation)
-        {
-            _onReceiveExtendedValidation = onReceiveExtendedValidation;
-        }
-
         #endregion ICommunicationService implementation
 
+        #region Private Functions
+
         protected abstract Socket CreateSocket();
-
-        #region Private functions
-
-        private void CommunicationProvisioning_AllowedEndpointsChanged(object sender, EventArgs e)
-        {
-            List<ICommunicationChannel> clientsToBeDisconnected = _clientConnectedList.Where(c => _communicationProvisioning.AllowedEndpoints.All(ep => !ep.Address.Equals(c.RemoteIPAddress))).ToList();
-
-            foreach (ICommunicationChannel clientHandler in clientsToBeDisconnected)
-            {
-                clientHandler.Close();
-            }
-
-            while (_clientConnectedList.Any(c => clientsToBeDisconnected.Contains(c)))
-            {
-                Thread.Sleep(100);
-            };
-
-            foreach (IPEndPoint endPoint in _communicationProvisioning.AllowedEndpoints.Where(ep => _clientConnectedList.All(cc => !cc.RemoteIPAddress.Equals(ep.Address))))
-            {
-                ICommunicationChannel communicationChannel = CreateChannel(endPoint);
-                //TODO: what's next?
-            }
-        }
 
         private void ClientHandler_SocketClosedEvent(object sender, EventArgs e)
         {
@@ -191,7 +136,7 @@ namespace Wist.Communication.Sockets
 
         protected virtual void ReleaseClientHandler(ICommunicationChannel communicationChannel)
         {
-            if(_clientConnectedList.Contains(communicationChannel))
+            if (_clientConnectedList.Contains(communicationChannel))
             {
                 _clientConnectedList.Remove(communicationChannel);
             }
@@ -212,14 +157,14 @@ namespace Wist.Communication.Sockets
             try
             {
                 communicationChannel.AcceptSocket(socket);
-               _clientConnectedList.Add(communicationChannel);
+                _clientConnectedList.Add(communicationChannel);
             }
             catch (Exception ex)
             {
                 _log.Error($"Failed to accept connection by communication channel", ex);
                 ReleaseClientHandler(communicationChannel);
             }
-            
+
         }
 
         private void ProcessMessagesQueue(CancellationToken token)
@@ -236,14 +181,14 @@ namespace Wist.Communication.Sockets
                 }
                 else
                 {
-                    communicationChannel = CreateChannel(new IPEndPoint(address, _settings.ListeningEndpoint.Port));
+                    communicationChannel = CreateChannel(new IPEndPoint(address, _settings.RemotePort));
 
                     communicationChannel?.PostMessage(messageByKey.Value);
                 }
             }
         }
 
-        private ICommunicationChannel CreateChannel(EndPoint endPoint)
+        protected ICommunicationChannel CreateChannel(EndPoint endPoint)
         {
             ICommunicationChannel communicationChannel = null;
             if (_communicationChannelsPool.Count > 0)
@@ -252,7 +197,8 @@ namespace Wist.Communication.Sockets
 
                 Interlocked.Increment(ref _connectedSockets);
 
-                Socket socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                Socket socket = CreateSocket();
+
                 SocketAsyncEventArgs socketConnectAsyncEventArgs = new SocketAsyncEventArgs();
                 socketConnectAsyncEventArgs.Completed += Connect_Completed;
                 socketConnectAsyncEventArgs.RemoteEndPoint = endPoint;
@@ -305,6 +251,6 @@ namespace Wist.Communication.Sockets
             }
         }
 
-        #endregion Private functions
+        #endregion Private Functions
     }
 }

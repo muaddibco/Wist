@@ -32,7 +32,7 @@ namespace Wist.Node.Core.Synchronization
 
         private readonly object _joinSync = new object();
         private readonly ILogger _log;
-        private ICommunicationService _communicationHubSync;
+        private IServerCommunicationService _communicationHubSync;
         private readonly IConfigurationService _configurationService;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
@@ -45,7 +45,7 @@ namespace Wist.Node.Core.Synchronization
 
         private bool _joinedToSyncGroup;
 
-        public SynchronizationService(ICommunicationServicesRepository communicationHubFactory, IConfigurationService configurationService, 
+        public SynchronizationService(IServerCommunicationServicesRepository communicationHubFactory, IConfigurationService configurationService, 
             ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, 
             ISynchronizationProducer synchronizationProducer, IDposService dposService, ILoggerService loggerService)
         {

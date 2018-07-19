@@ -24,12 +24,12 @@ namespace Wist.Node.Core.Synchronization
         private readonly BlockingCollection<SynchronizationProducingBlock> _synchronizationBlocks;
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly INeighborhoodState _neighborhoodState;
-        private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
+        private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
-        private ICommunicationService _communicationService;
+        private IServerCommunicationService _communicationService;
         private uint _lastRetransmittedSyncBlockHeight;
 
-        public SynchronizationReceivingHandler(IStatesRepository statesRepository, ICommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory)
+        public SynchronizationReceivingHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _neighborhoodState = statesRepository.GetInstance<INeighborhoodState>();

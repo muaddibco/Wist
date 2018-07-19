@@ -8,16 +8,16 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.Communication
 {
-    [RegisterDefaultImplementation(typeof(ICommunicationServicesRepository), Lifetime = LifetimeManagement.Singleton)]
-    public class CommunicationServicesRepository : ICommunicationServicesRepository
+    [RegisterDefaultImplementation(typeof(IServerCommunicationServicesRepository), Lifetime = LifetimeManagement.Singleton)]
+    public class ServerCommunicationServicesRepository : IServerCommunicationServicesRepository
     {
-        private readonly Dictionary<string, ICommunicationService> _communicationServicesPool;
+        private readonly Dictionary<string, IServerCommunicationService> _communicationServicesPool;
 
-        public CommunicationServicesRepository(ICommunicationService[] communicationServices)
+        public ServerCommunicationServicesRepository(IServerCommunicationService[] communicationServices)
         {
-            _communicationServicesPool = new Dictionary<string, ICommunicationService>();
+            _communicationServicesPool = new Dictionary<string, IServerCommunicationService>();
 
-            foreach (ICommunicationService communicationService in communicationServices)
+            foreach (IServerCommunicationService communicationService in communicationServices)
             {
                 if(!_communicationServicesPool.ContainsKey(communicationService.Name))
                 {
@@ -26,7 +26,7 @@ namespace Wist.Communication
             }
         }
 
-        public ICommunicationService GetInstance(string key)
+        public IServerCommunicationService GetInstance(string key)
         {
             if(!_communicationServicesPool.ContainsKey(key))
             {

@@ -8,11 +8,22 @@ using Unity.Registration;
 
 namespace Wist.Core.Architecture.UnityExtensions.Monitor
 {
+    /// <summary>
+    /// This class is used for logging components being constructed by container
+    /// </summary>
     public class MonitorUnityBuilderStrategy : BuilderStrategy
     {
         private readonly ILog _log = LogManager.GetLogger(typeof(MonitorUnityBuilderStrategy));
 
         public ExtendedUnityContainer Container { get; set; }
+
+        /// <summary>
+        /// This class is used for logging components being constructed by container
+        /// </summary>
+        public MonitorUnityBuilderStrategy()
+        {
+
+        }
 
         public override void PreBuildUp(IBuilderContext context)
         {

@@ -6,6 +6,6 @@ namespace Wist.Communication.Interfaces
 {
     public interface IRequiresCommunicationHub
     {
-        void RegisterCommunicationHub(ICommunicationService communicationHub);
+        void RegisterCommunicationHub(IServerCommunicationService communicationHub);
     }
 }

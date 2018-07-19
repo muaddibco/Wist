@@ -19,13 +19,13 @@ namespace Wist.Node.Core.Roles
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly ISynchronizationGroupState _synchronizationGroupState;
         private readonly INodeContext _nodeContext;
-        private readonly ICommunicationServicesRegistry _communicationServicesRegistry;
+        private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly ISynchronizationGroupParticipationService _synchronizationGroupParticipationService;
-        private ICommunicationService _communicationService;
+        private IServerCommunicationService _communicationService;
         private uint _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
-        public SyncMasterRole(IStatesRepository statesRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICommunicationServicesRegistry communicationServicesRegistry, ISynchronizationGroupParticipationService synchronizationGroupParticipationService)
+        public SyncMasterRole(IStatesRepository statesRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, ISynchronizationGroupParticipationService synchronizationGroupParticipationService)
         {
             _nodeContext = statesRepository.GetInstance<INodeContext>();
             _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();

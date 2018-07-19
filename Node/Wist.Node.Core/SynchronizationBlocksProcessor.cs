@@ -35,7 +35,7 @@ namespace Wist.Node.Core
         private readonly IAccountState _accountState;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly ICryptoService _cryptoService;
-        private ICommunicationService _communicationHub;
+        private IServerCommunicationService _communicationHub;
         private ulong _currentSyncBlockOrder;
 
         private readonly Dictionary<ulong, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>> _synchronizationBlocksByHeight;
@@ -93,7 +93,7 @@ namespace Wist.Node.Core
             ReadyForParticipationBlock readyForParticipationBlock = blockBase as ReadyForParticipationBlock;
         }
 
-        public void RegisterCommunicationHub(ICommunicationService communicationHub)
+        public void RegisterCommunicationHub(IServerCommunicationService communicationHub)
         {
             _communicationHub = communicationHub;
         }

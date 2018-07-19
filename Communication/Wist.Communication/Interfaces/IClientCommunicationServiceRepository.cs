@@ -7,7 +7,7 @@ using Wist.Core.Architecture;
 namespace Wist.Communication.Interfaces
 {
     [ServiceContract]
-    public interface ICommunicationServicesRepository : IRepository<ICommunicationService, string>
+    public interface IClientCommunicationServiceRepository : IRepository<ICommunicationService, string>
     {
     }
 }

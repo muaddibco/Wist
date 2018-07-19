@@ -11,8 +11,8 @@ using Wist.Core.Logging;
 
 namespace Wist.Communication.Sockets
 {
-    [RegisterExtension(typeof(ICommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class UdpCommunicationService : CommunicationServiceBase
+    [RegisterExtension(typeof(IServerCommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
+    public class UdpCommunicationService : ServerCommunicationServiceBase
     {
         public UdpCommunicationService(ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(loggerService, bufferManagerFactory, packetsHandler, nodesResolutionService)
         {
@@ -27,7 +27,7 @@ namespace Wist.Communication.Sockets
 
         protected override Socket CreateSocket()
         {
-            return new Socket(_settings.ListeningEndpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+            return new Socket(_settings.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
         }
     }
 }

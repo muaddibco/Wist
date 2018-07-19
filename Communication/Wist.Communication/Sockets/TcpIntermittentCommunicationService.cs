@@ -15,7 +15,7 @@ using Wist.Core.Logging;
 
 namespace Wist.Communication.Sockets
 {
-    [RegisterExtension(typeof(ICommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterExtension(typeof(IServerCommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class TcpIntermittentCommunicationService : TcpCommunicationService
     {
 
@@ -25,11 +25,11 @@ namespace Wist.Communication.Sockets
 
         public override string Name => nameof(TcpIntermittentCommunicationService);
 
-        public override void Init(SocketListenerSettings settings, ICommunicationProvisioning communicationProvisioning = null)
+        public override void Init(SocketSettings settings)
         {
             RegisterOnReceivedExtendedValidation(OnCommunicationChannelReceived);
 
-            base.Init(settings, communicationProvisioning);
+            base.Init(settings);
         }
 
         private bool OnCommunicationChannelReceived(ICommunicationChannel communicationChannel, IPEndPoint remoteEndPoint, int receivedBytes)

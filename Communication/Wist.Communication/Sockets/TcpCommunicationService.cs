@@ -15,8 +15,8 @@ using Wist.Core.Logging;
 
 namespace Wist.Communication.Sockets
 {
-    [RegisterExtension(typeof(ICommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class TcpCommunicationService : CommunicationServiceBase
+    [RegisterExtension(typeof(IServerCommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
+    public class TcpCommunicationService : ServerCommunicationServiceBase
     {
         protected Semaphore _maxConnectedClients;
         protected readonly GenericPool<SocketAsyncEventArgs> _acceptEventArgsPool;
@@ -33,17 +33,21 @@ namespace Wist.Communication.Sockets
             }
         }
 
-        protected override Socket CreateSocket()
-        {
-            return new Socket(_settings.ListeningEndpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        }
+        #region Public Functions
 
-
-        public override void Init(SocketListenerSettings settings, ICommunicationProvisioning communicationProvisioning = null)
+        public override void Init(SocketSettings settings)
         {
             _maxConnectedClients = new Semaphore(settings.MaxConnections, settings.MaxConnections);
 
-            base.Init(settings, communicationProvisioning);
+            base.Init(settings);
+        }
+
+        #endregion Public Functions
+
+        #region Private Functions
+        protected override Socket CreateSocket()
+        {
+            return new Socket(_settings.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         }
 
         protected override void StartAccept()
@@ -143,5 +147,7 @@ namespace Wist.Communication.Sockets
 
             _acceptEventArgsPool.Push(acceptEventArgs);
         }
+
+        #endregion Private Functions
     }
 }

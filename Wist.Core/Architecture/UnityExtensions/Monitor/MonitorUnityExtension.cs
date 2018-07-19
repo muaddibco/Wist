@@ -6,9 +6,20 @@ using Unity.Extension;
 
 namespace Wist.Core.Architecture.UnityExtensions.Monitor
 {
+    /// <summary>
+    /// This class is used for logging components being constructed by container
+    /// </summary>
     public class MonitorUnityExtension : UnityContainerExtension
     {
         private MonitorUnityBuilderStrategy _monitorUnityBuilderStrategy;
+
+        /// <summary>
+        /// This class is used for logging components being constructed by container
+        /// </summary>
+        public MonitorUnityExtension()
+        {
+
+        }
 
         protected override void Initialize()
         {

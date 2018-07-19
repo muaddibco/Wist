@@ -102,7 +102,7 @@ namespace Wist.Communication
             }
         }
 
-        public void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler, Func<ICommunicationChannel, IPEndPoint, int, bool> onReceivedExtendedValidation = null)
+        public void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler)
         {
             _bufferManager = bufferManager;
             _packetsHandler = packetsHandler;
@@ -110,6 +110,10 @@ namespace Wist.Communication
             _bufferManager.SetBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
             _offsetReceive = _socketReceiveAsyncEventArgs.Offset;
             _offsetSend = _socketSendAsyncEventArgs.Offset;
+        }
+
+        public void RegisterExtendedValidation(Func<ICommunicationChannel, IPEndPoint, int, bool> onReceivedExtendedValidation)
+        {
             _onReceivedExtendedValidation = onReceivedExtendedValidation;
         }
 
