@@ -17,7 +17,7 @@ namespace Wist.Simulation.Load
         static void Main(string[] args)
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            XmlConfigurator.Configure(_log.Logger.Repository);
+            XmlConfigurator.Configure();// _log.Logger.Repository);
 
             _log.Info("===== NODE STARTED =====");
 

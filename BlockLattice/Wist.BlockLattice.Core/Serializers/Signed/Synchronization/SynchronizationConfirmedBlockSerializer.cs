@@ -13,8 +13,8 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Synchronization
 {
     public class SynchronizationConfirmedBlockSerializer : SignatureSupportSerializerBase<SynchronizationConfirmedBlock>
     {
-        public SynchronizationConfirmedBlockSerializer(ICryptoService cryptoService, IStatesRepository statesRepository, ISignatureSupportSerializersFactory serializersFactory) 
-            : base(PacketType.Synchronization, BlockTypes.Synchronization_ConfirmedBlock, cryptoService, statesRepository, serializersFactory)
+        public SynchronizationConfirmedBlockSerializer(ICryptoService cryptoService, IStatesRepository statesRepository) 
+            : base(PacketType.Synchronization, BlockTypes.Synchronization_ConfirmedBlock, cryptoService, statesRepository)
         {
         }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -6,25 +7,30 @@ using System.Reflection;
 using System.Text;
 using Unity;
 using Wist.Core.Architecture.UnityExtensions.Factory;
+using Wist.Core.Architecture.UnityExtensions.Monitor;
 
 namespace Wist.Core.Architecture.UnityExtensions
 {
     public class ExtendedUnityContainer : UnityContainer
     {
+        private readonly ILog _log = LogManager.GetLogger(typeof(ExtendedUnityContainer));
+
         public Enums.RunMode CurrentResolutionMode { get; set; }
         private readonly Dictionary<Type, List<string>> _registeredNames;
 
         public ExtendedUnityContainer()
         {
+            _log.Info("ExtendedUnityContainer creation");
             _registeredNames = new Dictionary<Type, List<string>>(); // GetNamesDictionaryByReflection();
             this.RegisterInstance(typeof(IUnityContainer), this);
 
             CurrentResolutionMode = Enums.RunMode.Default;
 
+
+            this.AddNewExtension<MonitorUnityExtension>();
             //this.AddNewExtension<FactoryUnityExtension>();
             //this.AddNewExtension<ResolutionModeUnityExtension>();
         }
-
 
         private Dictionary<Type, List<string>> GetNamesDictionaryByReflection()
         {

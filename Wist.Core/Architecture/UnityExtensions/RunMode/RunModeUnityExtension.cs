@@ -8,16 +8,16 @@ namespace Wist.Core.Architecture.UnityExtensions.RunMode
 {
     class RunModeUnityExtension : UnityContainerExtension
     {
-        private RunModeUnityBuilderStrategy _factoryUnityBuilderStrategy;
+        private RunModeUnityBuilderStrategy _runModeUnityBuilderStrategy;
 
         protected override void Initialize()
         {
-            _factoryUnityBuilderStrategy = new RunModeUnityBuilderStrategy
+            _runModeUnityBuilderStrategy = new RunModeUnityBuilderStrategy
             {
                 Container = Container as ExtendedUnityContainer
             };
 
-            Context.Strategies.Add(_factoryUnityBuilderStrategy, UnityBuildStage.Setup);
+            Context.Strategies.Add(_runModeUnityBuilderStrategy, UnityBuildStage.Setup);
         }
     }
 }

@@ -11,6 +11,7 @@ using Unity;
 using Unity.Lifetime;
 using Unity.ServiceLocation;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Exceptions;
 using Wist.Core.ExtensionMethods;
 
 namespace Wist.Core.Architecture.Registration
@@ -188,6 +189,12 @@ namespace Wist.Core.Architecture.Registration
         public void CommitRegistrationsToContainer()
         {
             //RegisterExtensionPointsIntoContainer(_container);
+            TypeRegistrations.Sort((t1, t2) => t1.ExtensionOrderPriority.CompareTo(t2.ExtensionOrderPriority));
+
+            AdjustToRunMode();
+
+            CheckNoCircularReferences();
+
             RegisterTypesIntoContainer(_container);
         }
 
@@ -212,21 +219,6 @@ namespace Wist.Core.Architecture.Registration
 
         private void RegisterTypesIntoContainer(IUnityContainer container)
         {
-            TypeRegistrations.Sort((t1, t2) => t1.ExtensionOrderPriority.CompareTo(t2.ExtensionOrderPriority));
-
-
-            if (CurrentRunMode == RunMode.Simulator)
-            {
-                IEnumerable<RegisterType> simulatorRegisterTypes =
-                    TypeRegistrations.Where(tr => tr.Role == RegistrationRole.SimulatorImplementation);
-
-                TypeRegistrations.RemoveAll(tr => tr.Role == RegistrationRole.DefaultImplementation && simulatorRegisterTypes.Any(srt => srt.Implements == tr.Implements));
-            }
-            else
-            {
-                TypeRegistrations.RemoveAll(tr => tr.Role == RegistrationRole.SimulatorImplementation);
-            }
-
             foreach (var registerAttribute in TypeRegistrations)
             {
                 // skip registered
@@ -254,6 +246,45 @@ namespace Wist.Core.Architecture.Registration
                 {
                     // registering type to create
                     container.RegisterType(from, to, name, lifetime);
+                }
+            }
+        }
+
+        private void AdjustToRunMode()
+        {
+            if (CurrentRunMode == RunMode.Simulator)
+            {
+                IEnumerable<RegisterType> simulatorRegisterTypes =
+                    TypeRegistrations.Where(tr => tr.Role == RegistrationRole.SimulatorImplementation);
+
+                TypeRegistrations.RemoveAll(tr => tr.Role == RegistrationRole.DefaultImplementation && simulatorRegisterTypes.Any(srt => srt.Implements == tr.Implements));
+            }
+            else
+            {
+                TypeRegistrations.RemoveAll(tr => tr.Role == RegistrationRole.SimulatorImplementation);
+            }
+        }
+
+        private void CheckNoCircularReferences()
+        {
+            Dictionary<Type, HashSet<Type>> typeToConstructorParams = new Dictionary<Type, HashSet<Type>>();
+
+            foreach (var registerAttribute in TypeRegistrations)
+            {
+                ConstructorInfo[] constructorInfos = registerAttribute.TypeToRegister.GetConstructors();
+                HashSet<Type> constructorParamTypes = new HashSet<Type>(constructorInfos.SelectMany(ci => ci.GetParameters().Select(p => p.ParameterType.IsArray ? p.ParameterType.GetElementType() : p.ParameterType)));
+
+                IEnumerable<RegisterType> referencedRegisterTypes = TypeRegistrations.Where(t => constructorParamTypes.Any(p => p == t.Implements));
+
+                foreach (RegisterType referencedRegisterType in referencedRegisterTypes)
+                {
+                    ConstructorInfo[] referencedConstructorInfos = referencedRegisterType.TypeToRegister.GetConstructors();
+                    HashSet<Type> referencedConstructorParamTypes = new HashSet<Type>(referencedConstructorInfos.SelectMany(ci => ci.GetParameters().Select(p => p.ParameterType.IsArray ? p.ParameterType.GetElementType() : p.ParameterType)));
+
+                    if (referencedConstructorParamTypes.Contains(registerAttribute.Implements))
+                    {
+                        throw new CircularClassReferenceException(registerAttribute.TypeToRegister, referencedRegisterType.TypeToRegister);
+                    }
                 }
             }
         }

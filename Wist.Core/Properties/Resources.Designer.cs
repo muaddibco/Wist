@@ -70,6 +70,15 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Circular class reference detected between classes {0} to {1}..
+        /// </summary>
+        internal static string ERR_CIRCULAR_CLASS_REFERENCE {
+            get {
+                return ResourceManager.GetString("ERR_CIRCULAR_CLASS_REFERENCE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to resolve factory Type {0}..
         /// </summary>
         internal static string ERR_FACTORY_TYPE_RESOLUTION_FAILURE {

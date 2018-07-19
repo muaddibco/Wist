@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommonServiceLocator;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -16,7 +17,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
         public const byte DLE = 0x10;
         public const byte STX = 0x02;
 
-        private readonly ISignatureSupportSerializersFactory _serializersFactory;
+        private Lazy<ISignatureSupportSerializersFactory> _serializersFactory;
 
         protected T _block;
         protected readonly ICryptoService _cryptoService;
@@ -30,12 +31,11 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
         private bool _disposed = false; // To detect redundant calls
 
-        public SignatureSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService, IStatesRepository statesRepository, ISignatureSupportSerializersFactory serializersFactory)
+        public SignatureSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService, IStatesRepository statesRepository)
         {
             _cryptoService = cryptoService;
             _accountState = statesRepository.GetInstance<IAccountState>();
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
-            _serializersFactory = serializersFactory;
 
             PacketType = packetType;
             BlockType = blockType;
@@ -43,6 +43,8 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             _memoryStream = new MemoryStream();
             _binaryWriter = new BinaryWriter(_memoryStream);
             _binaryReader = new BinaryReader(_memoryStream);
+
+            _serializersFactory = new Lazy<ISignatureSupportSerializersFactory>(() => ServiceLocator.Current.GetInstance<ISignatureSupportSerializersFactory>());
         }
 
         public PacketType PacketType { get; }
@@ -101,7 +103,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             {
                 if (disposing)
                 {
-                    _serializersFactory.Utilize(this);
+                    _serializersFactory.Value.Utilize(this);
                 }
                 else
                 {
