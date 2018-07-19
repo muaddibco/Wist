@@ -120,6 +120,9 @@
   <data name="ERR_CONSENSUS_ON_CHAINTYPE_NOT_SUPPORTED" xml:space="preserve">
     <value>Consensus on Chain Type {0} is not supported.</value>
   </data>
+  <data name="ERR_DPOS_PROVIDER_NOT_SUPPORTED" xml:space="preserve">
+    <value>DPOS Provider for PacketType {0} is not supported.</value>
+  </data>
   <data name="ERR_ROLE_NOT_SUPPORTED" xml:space="preserve">
     <value>Role '{0}' is not supported.</value>
   </data>

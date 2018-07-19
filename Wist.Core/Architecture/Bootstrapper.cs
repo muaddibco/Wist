@@ -61,8 +61,8 @@ namespace Wist.Core.Architecture
             try
             {
                 AggregateCatalog coreCatalog = new AggregateCatalog();
-                string exeFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                string exeName = Path.GetFileName(GetType().Assembly.Location);
+                string exeFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                string exeName = Path.GetFileName(Assembly.GetEntryAssembly().Location);
 
                 if (exeFolder != null)
                 {

@@ -70,6 +70,15 @@ namespace Wist.Node.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DPOS Provider for PacketType {0} is not supported..
+        /// </summary>
+        internal static string ERR_DPOS_PROVIDER_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_DPOS_PROVIDER_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Role &apos;{0}&apos; is not supported..
         /// </summary>
         internal static string ERR_ROLE_NOT_SUPPORTED {

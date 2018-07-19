@@ -73,7 +73,7 @@ namespace Wist.Core.Logging
             _log.Error(formattedMessage);
         }
 
-        public void ExceptionError(Exception ex, string msg, params object[] messageArgs)
+        public void Error(string msg, Exception ex, params object[] messageArgs)
         {
             if (ex == null)
             {
@@ -82,10 +82,10 @@ namespace Wist.Core.Logging
             }
 
             string formattedMessage = FormatMessage(msg, messageArgs);
-            string messageWithException = $"{formattedMessage} - Exception: {ex.GetType()}, {ex.Message} - {ex}";
+            //string messageWithException = $"{formattedMessage} - Exception: {ex.GetType()}, {ex.Message} - {ex}";
 
 
-            _log.Error(messageWithException);
+            _log.Error(formattedMessage, ex);
         }
 
         private void ConfigureLog4Net(string logConfigFilePath)

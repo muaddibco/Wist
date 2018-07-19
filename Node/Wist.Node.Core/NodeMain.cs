@@ -71,7 +71,7 @@ namespace Wist.Node.Core
                 }
                 catch (Exception ex)
                 {
-                    _log.ExceptionError(ex, $"Failed to initialize {item.GetType().FullName}");
+                    _log.Error($"Failed to initialize {item.GetType().FullName}", ex);
                 }
             }
         }
