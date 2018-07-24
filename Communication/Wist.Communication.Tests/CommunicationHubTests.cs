@@ -23,7 +23,7 @@ namespace Wist.Communication.Tests
             ICommunicationChannel clientHandler = Substitute.For<ICommunicationChannel>();
             ServiceLocator.Current.GetInstance<IUnityContainer>().RegisterInstance(clientHandler);
 
-            ApplicationContext applicationContext = new ApplicationContext((UnityContainer)ServiceLocator.Current.GetInstance<IUnityContainer>());
+            ApplicationContext applicationContext = new ApplicationContext() { Container = (UnityContainer)ServiceLocator.Current.GetInstance<IUnityContainer>() };
 
             ILoggerService loggerService = Substitute.For<ILoggerService>();
 

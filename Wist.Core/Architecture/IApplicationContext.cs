@@ -8,6 +8,6 @@ namespace Wist.Core.Architecture
     [ServiceContract]
     public interface IApplicationContext
     {
-        UnityContainer Container { get; }
+        UnityContainer Container { get; set; }
     }
 }

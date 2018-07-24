@@ -13,6 +13,7 @@ namespace Wist.Core.Logging
         {
         }
 
+        [Optional]
         public bool MeasureTime { get; set; }
 
         [Optional]

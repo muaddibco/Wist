@@ -12,6 +12,7 @@ using Unity;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Architecture.Registration;
 using Wist.Core.Architecture.UnityExtensions;
+using Wist.Core.Configuration;
 using Wist.Core.Logging;
 
 namespace Wist.Core.Architecture
@@ -29,7 +30,7 @@ namespace Wist.Core.Architecture
             _cancellationToken = ct;
         }
 
-        public IUnityContainer Container { get; private set; }
+        public UnityContainer Container { get; private set; }
 
         public virtual void Run()
         {
@@ -42,11 +43,23 @@ namespace Wist.Core.Architecture
 
                 ConfigureServiceLocator();
 
+                InitializeConfiguration();
+
                 RunInitializers();
             }
             finally
             {
                 _log.Info("Bootstrap Run completed");
+            }
+        }
+
+        private void InitializeConfiguration()
+        {
+            IEnumerable<IConfigurationSection> configurationSections = Container.ResolveAll<IConfigurationSection>();
+
+            foreach (IConfigurationSection configurationSection in configurationSections)
+            {
+                configurationSection.Initialize();
             }
         }
 
@@ -125,6 +138,8 @@ namespace Wist.Core.Architecture
             try
             {
                 _registrationManager.SetupServiceLocator();
+
+                Container.Resolve<IApplicationContext>().Container = Container;
             }
             catch (Exception ex)
             {
@@ -137,7 +152,7 @@ namespace Wist.Core.Architecture
             }
         }
 
-        private IUnityContainer CreateContainer()
+        private UnityContainer CreateContainer()
         {
             _log.Info("Container Creation started");
 

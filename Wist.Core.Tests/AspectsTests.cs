@@ -37,7 +37,7 @@ namespace Wist.Core.Tests
             });
             unityContainer.RegisterInstance(appConfig);
 
-            ApplicationContext applicationContext = new ApplicationContext(unityContainer);
+            ApplicationContext applicationContext = new ApplicationContext() { Container = unityContainer};
 
             ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[2] { new ConfigA(applicationContext), new ConfigB(applicationContext) });
 
@@ -67,7 +67,7 @@ namespace Wist.Core.Tests
             });
             unityContainer.RegisterInstance(appConfig);
 
-            ApplicationContext applicationContext = new ApplicationContext(unityContainer);
+            ApplicationContext applicationContext = new ApplicationContext() { Container = unityContainer };
 
             ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[1] { new ConfigRoles(applicationContext) });
 
@@ -95,7 +95,7 @@ namespace Wist.Core.Tests
             });
             unityContainer.RegisterInstance(appConfig);
 
-            ApplicationContext applicationContext = new ApplicationContext(unityContainer);
+            ApplicationContext applicationContext = new ApplicationContext() { Container = unityContainer };
 
             ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[1] { new ConfigInts(applicationContext) });
 

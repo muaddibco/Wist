@@ -6,12 +6,11 @@ namespace Wist.Core.Architecture
     [RegisterDefaultImplementation(typeof(IApplicationContext), Lifetime = LifetimeManagement.Singleton)]
     public class ApplicationContext : IApplicationContext
     {
-        public ApplicationContext(UnityContainer unityContainer)
+        public ApplicationContext()
         {
-            Container = unityContainer;
         }
 
-        public UnityContainer Container { get; }
+        public UnityContainer Container { get; set; }
     }
 
 }

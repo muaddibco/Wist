@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Text;
+﻿using System.Configuration;
 using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 using Wist.Core.Exceptions;
 
 namespace Wist.Core.Configuration
 {
-    [RegisterDefaultImplementation(typeof(IAppConfig))]
+    [RegisterDefaultImplementation(typeof(IAppConfig), Lifetime = LifetimeManagement.Singleton)]
     public class AppConfig : IAppConfig
     {
         public bool GetBool(string key, bool required = true)

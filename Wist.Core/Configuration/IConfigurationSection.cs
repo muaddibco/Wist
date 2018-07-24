@@ -9,5 +9,7 @@ namespace Wist.Core.Configuration
     public interface IConfigurationSection
     {
         string SectionName { get; }
+
+        void Initialize();
     }
 }
