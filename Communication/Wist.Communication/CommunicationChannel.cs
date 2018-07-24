@@ -286,13 +286,6 @@ namespace Wist.Communication
             _binaryWriter.Write(DLE);
             _binaryWriter.Write(STX);
 
-            uint packetLength = (uint)packet.Length;
-
-            Span<byte> span = new Span<byte>();
-            Memory<byte> memory = new Memory<byte>();
-            ArraySegment<byte> vs = new ArraySegment<byte>();
-            ArrayList arrayList = new ArrayList();
-
             long pos1 = _memoryStream.Position;
             _memoryStream.Seek(8, SeekOrigin.Current);
 
