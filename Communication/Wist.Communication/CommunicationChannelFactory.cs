@@ -1,18 +1,19 @@
-﻿using CommonServiceLocator;
+﻿using Unity;
 using Wist.Communication.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.Text;
+using Wist.Core.Architecture;
 
 namespace Wist.Communication
 {
     public class CommunicationChannelFactory : ICommunicationChannelFactory
     {
         private readonly Stack<ICommunicationChannel> _handlers;
+        private readonly IApplicationContext _applicationContext;
 
-        public CommunicationChannelFactory()
+        public CommunicationChannelFactory(IApplicationContext applicationContext)
         {
             _handlers = new Stack<ICommunicationChannel>();
+            _applicationContext = applicationContext;
         }
 
         public ICommunicationChannel Create()
@@ -22,7 +23,7 @@ namespace Wist.Communication
                 return _handlers.Pop();
             }
 
-            return ServiceLocator.Current.GetInstance<ICommunicationChannel>();
+            return _applicationContext.Container.Resolve<ICommunicationChannel>();
         }
 
         public void Utilize(ICommunicationChannel handler)

@@ -8,6 +8,7 @@ using System.Threading;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Communication;
 using Wist.Core.Logging;
+using Wist.Core.Architecture;
 
 namespace Wist.Communication.Sockets
 {
@@ -24,8 +25,8 @@ namespace Wist.Communication.Sockets
         /// </summary>
         /// <param name="settings">instance of <see cref="SocketListenerSettings"/> with defined settings of listener</param>
         /// <param name="receiveBufferSize">buffer size to use for each socket I/O operation</param>
-        public ServerCommunicationServiceBase(ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
-            : base(loggerService, bufferManagerFactory, packetsHandler, nodesResolutionService)
+        public ServerCommunicationServiceBase(IApplicationContext applicationContext, ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
+            : base(applicationContext, loggerService, bufferManagerFactory, packetsHandler, nodesResolutionService)
         {
         }
 
@@ -60,6 +61,8 @@ namespace Wist.Communication.Sockets
 
         public override void Start()
         {
+            base.Start();
+
             _listenSocket = CreateSocket();
 
             _listenSocket.Bind(_settingsListener.ListeningEndpoint);

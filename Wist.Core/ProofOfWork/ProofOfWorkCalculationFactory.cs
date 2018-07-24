@@ -1,7 +1,5 @@
-﻿using CommonServiceLocator;
-using System;
+﻿using Unity;
 using System.Collections.Generic;
-using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Exceptions;
@@ -12,8 +10,9 @@ namespace Wist.Core.ProofOfWork
     public class ProofOfWorkCalculationFactory : IProofOfWorkCalculationFactory
     {
         private readonly Dictionary<POWType, Stack<IProofOfWorkCalculation>> _proofOfWorkCalculationPool;
+        private readonly ApplicationContext _applicationContext;
 
-        public ProofOfWorkCalculationFactory(IProofOfWorkCalculation[] proofOfWorkCalculations)
+        public ProofOfWorkCalculationFactory(ApplicationContext applicationContext, IProofOfWorkCalculation[] proofOfWorkCalculations)
         {
             _proofOfWorkCalculationPool = new Dictionary<POWType, Stack<IProofOfWorkCalculation>>();
 
@@ -26,6 +25,8 @@ namespace Wist.Core.ProofOfWork
 
                 _proofOfWorkCalculationPool[calculation.POWType].Push(calculation);
             }
+
+            _applicationContext = applicationContext;
         }
 
         public IProofOfWorkCalculation Create(POWType key)
@@ -42,7 +43,7 @@ namespace Wist.Core.ProofOfWork
             else
             {
                 IProofOfWorkCalculation calculationTemp = _proofOfWorkCalculationPool[key].Pop();
-                IProofOfWorkCalculation calculation = (IProofOfWorkCalculation)ServiceLocator.Current.GetInstance(calculationTemp.GetType());
+                IProofOfWorkCalculation calculation = (IProofOfWorkCalculation)_applicationContext.Container.Resolve(calculationTemp.GetType());
                 _proofOfWorkCalculationPool[key].Push(calculationTemp);
 
                 return calculation;

@@ -10,6 +10,7 @@ using Wist.Communication.Tests.Fixtures;
 using Xunit;
 using Xunit.Sdk;
 using Wist.Core.Logging;
+using Wist.Core.Architecture;
 
 namespace Wist.Communication.Tests
 {
@@ -22,10 +23,12 @@ namespace Wist.Communication.Tests
             ICommunicationChannel clientHandler = Substitute.For<ICommunicationChannel>();
             ServiceLocator.Current.GetInstance<IUnityContainer>().RegisterInstance(clientHandler);
 
+            ApplicationContext applicationContext = new ApplicationContext((UnityContainer)ServiceLocator.Current.GetInstance<IUnityContainer>());
+
             ILoggerService loggerService = Substitute.For<ILoggerService>();
 
             IBufferManagerFactory bufferManagerFactory = Substitute.For<IBufferManagerFactory>();
-            ServerCommunicationServiceBase communicationHub = new TcpCommunicationService(loggerService, bufferManagerFactory, null, null);
+            ServerCommunicationServiceBase communicationHub = new TcpCommunicationService(applicationContext, loggerService, bufferManagerFactory, null, null);
 
             IPEndPoint communicationEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), listeningPort);
             SocketListenerSettings settings = new SocketListenerSettings(1, 100, communicationEndPoint);

@@ -33,12 +33,11 @@ namespace Wist.Node.Core
         private readonly IConfigurationService _configurationService;
         private readonly IModulesRepository _modulesRepository;
         private readonly IRolesRegistry _rolesRegistry;
-        private readonly IInitializer[] _initializers;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService, IInitializer[] initializers)
+        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _communicationServicesFactory = communicationServicesFactory;
@@ -46,14 +45,11 @@ namespace Wist.Node.Core
             _configurationService = configurationService;
             _modulesRepository = modulesRepository;
             _rolesRegistry = rolesRegistry;
-            _initializers = initializers;
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public void Initialize()
         {
-            InitializeGlobals();
-
             InitializeCommunicationLayer();
 
             ObtainConfiguredModules();
@@ -61,34 +57,17 @@ namespace Wist.Node.Core
             InitializeModules();
         }
 
-        private void InitializeGlobals()
-        {
-            foreach (IInitializer item in _initializers)
-            {
-                try
-                {
-                    item.Initialize();
-                }
-                catch (Exception ex)
-                {
-                    _log.Error($"Failed to initialize {item.GetType().FullName}", ex);
-                }
-            }
-        }
-
         private void InitializeCommunicationLayer()
         {
-            IServerCommunicationService communicationServiceTcp = _communicationServicesFactory.GetInstance("GenericTcp");
-            IServerCommunicationService communicationServiceUdp = _communicationServicesFactory.GetInstance("GenericUdp");
+            NodeConfiguration nodeConfiguration = (NodeConfiguration)_configurationService[NodeConfiguration.SECTION_NAME];
 
-            GeneralTcpCommunicationConfiguration generalTcpCommunicationConfiguration = _configurationService.Get<GeneralTcpCommunicationConfiguration>();
-            GeneralUdpCommunicationConfiguration generalUdpCommunicationConfiguration = _configurationService.Get<GeneralUdpCommunicationConfiguration>();
-
-            communicationServiceTcp.Init(new SocketListenerSettings(generalTcpCommunicationConfiguration.MaxConnections, generalTcpCommunicationConfiguration.ReceiveBufferSize, new IPEndPoint(IPAddress.Any, generalTcpCommunicationConfiguration.ListeningPort)));
-            communicationServiceUdp.Init(new SocketListenerSettings(1, generalUdpCommunicationConfiguration.ReceiveBufferSize, new IPEndPoint(IPAddress.Any, generalUdpCommunicationConfiguration.ListeningPort)));
-
-            _communicationServicesRegistry.RegisterInstance(communicationServiceTcp, "GenericTcp");
-            _communicationServicesRegistry.RegisterInstance(communicationServiceUdp, "GenericUdp");
+            foreach (string communicationServiceName in nodeConfiguration.CommunicationServices)
+            {
+                CommunicationConfigurationBase communicationConfiguration = (CommunicationConfigurationBase)_configurationService[communicationServiceName];
+                IServerCommunicationService serverCommunicationService = _communicationServicesFactory.GetInstance(communicationConfiguration.CommunicationServiceName);
+                serverCommunicationService.Init(new SocketListenerSettings(communicationConfiguration.MaxConnections, communicationConfiguration.ReceiveBufferSize, new IPEndPoint(IPAddress.Any, communicationConfiguration.ListeningPort)));
+                _communicationServicesRegistry.RegisterInstance(serverCommunicationService, communicationConfiguration.CommunicationServiceName);
+            }
         }
 
         private void InitializeModules()
@@ -130,20 +109,14 @@ namespace Wist.Node.Core
             }
         }
 
-        internal void UpdateKnownNodes()
-        {
-
-        }
-
-        internal void EnterNodesGroup()
-        {
-
-        }
-
         internal void Start()
         {
-            _communicationServicesRegistry.GetInstance("GenericTcp").Start();
-            _communicationServicesRegistry.GetInstance("GenericUdp").Start();
+            NodeConfiguration nodeConfiguration = (NodeConfiguration)_configurationService[NodeConfiguration.SECTION_NAME];
+            foreach (string communicationServiceName in nodeConfiguration.CommunicationServices)
+            {
+                CommunicationConfigurationBase communicationConfiguration = (CommunicationConfigurationBase)_configurationService[communicationServiceName];
+                _communicationServicesRegistry.GetInstance(communicationConfiguration.CommunicationServiceName).Start();
+            }
 
             IEnumerable<IRole> roles = _rolesRegistry.GetBulkInstances();
 

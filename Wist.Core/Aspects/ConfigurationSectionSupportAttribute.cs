@@ -1,11 +1,9 @@
-﻿using CommonServiceLocator;
+﻿using Unity;
 using PostSharp.Aspects;
 using PostSharp.Reflection;
 using PostSharp.Serialization;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 using Wist.Core.Configuration;
 using Wist.Core.Exceptions;
 
@@ -29,17 +27,17 @@ namespace Wist.Core.Aspects
 
         public override bool CompileTimeValidate(LocationInfo locationInfo)
         {
-            if (!typeof(IConfigurationSection).IsAssignableFrom(locationInfo.DeclaringType))
-                throw new MandatoryInterfaceNotImplementedException(GetType(), typeof(IConfigurationSection), locationInfo.DeclaringType);
+            if (!typeof(ConfigurationSectionBase).IsAssignableFrom(locationInfo.DeclaringType))
+                throw new MandatoryInterfaceNotImplementedException(GetType(), typeof(ConfigurationSectionBase), locationInfo.DeclaringType);
 
-            return !"SectionName".Equals(locationInfo.Name) && (locationInfo.PropertyInfo?.GetMethod.IsPublic ?? false) && (locationInfo.PropertyInfo?.SetMethod.IsPublic ?? false) && base.CompileTimeValidate(locationInfo);
+            return !"SectionName".Equals(locationInfo.Name) && !"ApplicationContext".Equals(locationInfo.Name) && (locationInfo.PropertyInfo?.GetMethod.IsPublic ?? false) && (locationInfo.PropertyInfo?.SetMethod.IsPublic ?? false) && base.CompileTimeValidate(locationInfo);
         }
 
         public override void OnGetValue(LocationInterceptionArgs args)
         {
-            IAppConfig appConfig = ServiceLocator.Current.GetInstance<IAppConfig>();
+            ConfigurationSectionBase sectionSupportInstance = args.Instance as ConfigurationSectionBase;
 
-            IConfigurationSection sectionSupportInstance = args.Instance as IConfigurationSection;
+            IAppConfig appConfig = sectionSupportInstance.ApplicationContext.Container.Resolve<IAppConfig>();
 
             string sectionName = sectionSupportInstance.SectionName;
             string key = string.IsNullOrWhiteSpace(sectionName) ? _propertyName : $"{sectionName}:{_propertyName}";

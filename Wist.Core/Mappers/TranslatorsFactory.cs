@@ -1,7 +1,5 @@
-﻿using CommonServiceLocator;
-using System;
+﻿using Unity;
 using System.Collections.Generic;
-using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Exceptions;
@@ -12,8 +10,9 @@ namespace Wist.Core.Translators
     public class TranslatorsFactory : ITranslatorsFactory
     {
         private readonly Dictionary<string, Dictionary<string, Stack<ITranslator>>> _translatorsPool;
+        private readonly IApplicationContext _applicationContext;
 
-        public TranslatorsFactory(ITranslator[] mappers)
+        public TranslatorsFactory(IApplicationContext applicationContext, ITranslator[] mappers)
         {
             _translatorsPool = new Dictionary<string, Dictionary<string, Stack<ITranslator>>>();
 
@@ -31,6 +30,8 @@ namespace Wist.Core.Translators
 
                 _translatorsPool[mapper.Source][mapper.Target].Push(mapper);
             }
+
+            this._applicationContext = applicationContext;
         }
 
         public ITranslator<TFrom, TTo> GetTranslator<TFrom, TTo>()
@@ -51,7 +52,7 @@ namespace Wist.Core.Translators
             else
             {
                 ITranslator<TFrom, TTo> translatorTemp = (ITranslator<TFrom, TTo>)_translatorsPool[from][to].Pop();
-                translator = ServiceLocator.Current.GetInstance<ITranslator<TFrom, TTo>>();
+                translator = _applicationContext.Container.Resolve<ITranslator<TFrom, TTo>>();
                 _translatorsPool[from][to].Push(translatorTemp);
             }
 

@@ -124,7 +124,7 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Aspect {0} requires mandatory interface {1} that is not implemented by type {1}..
+        ///   Looks up a localized string similar to Aspect {0} requires inheritance/implementation of type {1} that is not implemented by type {2}..
         /// </summary>
         internal static string ERR_MANDATORY_INTERFACE_NOT_IMPLEMENTED {
             get {

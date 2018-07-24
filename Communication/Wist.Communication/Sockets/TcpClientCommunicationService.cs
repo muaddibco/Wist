@@ -17,8 +17,8 @@ namespace Wist.Communication.Sockets
     public class TcpClientCommunicationService : CommunicationServiceBase
     {
 
-        public TcpClientCommunicationService(ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
-            : base(loggerService, bufferManagerFactory, packetsHandler, nodesResolutionService)
+        public TcpClientCommunicationService(IApplicationContext applicationContext, ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
+            : base(applicationContext, loggerService, bufferManagerFactory, packetsHandler, nodesResolutionService)
         {
 
         }

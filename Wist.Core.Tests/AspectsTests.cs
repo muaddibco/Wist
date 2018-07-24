@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Unity;
+using Wist.Core.Architecture;
 using Wist.Core.Configuration;
 using Wist.Core.Tests.Classes;
 using Wist.Tests.Core.Fixtures;
@@ -20,7 +21,7 @@ namespace Wist.Core.Tests
         [Fact]
         public void ConfigurationSectionTest()
         {
-            IUnityContainer unityContainer = ServiceLocator.Current.GetInstance<IUnityContainer>();
+            UnityContainer unityContainer = (UnityContainer)ServiceLocator.Current.GetInstance<IUnityContainer>();
             IAppConfig appConfig = Substitute.For<IAppConfig>();
             appConfig.GetString(null).ReturnsForAnyArgs(ci =>
             {
@@ -36,7 +37,9 @@ namespace Wist.Core.Tests
             });
             unityContainer.RegisterInstance(appConfig);
 
-            ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[2] { new ConfigA(), new ConfigB() });
+            ApplicationContext applicationContext = new ApplicationContext(unityContainer);
+
+            ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[2] { new ConfigA(applicationContext), new ConfigB(applicationContext) });
 
             ConfigA configA = (ConfigA)configurationService["configA"];
             ConfigB configB = (ConfigB)configurationService["configB"];
@@ -50,7 +53,7 @@ namespace Wist.Core.Tests
         [Fact]
         public void ConfigurationSectionArrayValueTest()
         {
-            IUnityContainer unityContainer = ServiceLocator.Current.GetInstance<IUnityContainer>();
+            UnityContainer unityContainer = (UnityContainer)ServiceLocator.Current.GetInstance<IUnityContainer>();
             IAppConfig appConfig = Substitute.For<IAppConfig>();
             appConfig.GetString(null).ReturnsForAnyArgs(ci =>
             {
@@ -64,7 +67,9 @@ namespace Wist.Core.Tests
             });
             unityContainer.RegisterInstance(appConfig);
 
-            ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[1] { new ConfigRoles() });
+            ApplicationContext applicationContext = new ApplicationContext(unityContainer);
+
+            ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[1] { new ConfigRoles(applicationContext) });
 
             ConfigRoles configRoles = (ConfigRoles)configurationService["configroles"];
 
@@ -76,7 +81,7 @@ namespace Wist.Core.Tests
         [Fact]
         public void ConfigurationSectionIntArrayValueTest()
         {
-            IUnityContainer unityContainer = ServiceLocator.Current.GetInstance<IUnityContainer>();
+            UnityContainer unityContainer = (UnityContainer)ServiceLocator.Current.GetInstance<IUnityContainer>();
             IAppConfig appConfig = Substitute.For<IAppConfig>();
             appConfig.GetString(null).ReturnsForAnyArgs(ci =>
             {
@@ -90,7 +95,9 @@ namespace Wist.Core.Tests
             });
             unityContainer.RegisterInstance(appConfig);
 
-            ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[1] { new ConfigInts() });
+            ApplicationContext applicationContext = new ApplicationContext(unityContainer);
+
+            ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[1] { new ConfigInts(applicationContext) });
 
             ConfigInts configInts = (ConfigInts)configurationService["configints"];
 

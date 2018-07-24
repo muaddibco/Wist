@@ -1,4 +1,4 @@
-﻿using CommonServiceLocator;
+﻿using Unity;
 using System.Collections.Generic;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Interfaces;
@@ -11,10 +11,12 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
     public class RawPacketProvidersFactory : IRawPacketProvidersFactory
     {
         private readonly Stack<IRawPacketProvider> _rawPacketProviders;
+        private readonly IApplicationContext _applicationContext;
 
-        public RawPacketProvidersFactory()
+        public RawPacketProvidersFactory(IApplicationContext applicationContext)
         {
             _rawPacketProviders = new Stack<IRawPacketProvider>();
+            _applicationContext = applicationContext;
         }
 
         public IRawPacketProvider Create()
@@ -25,7 +27,7 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
             }
             else
             {
-                IRawPacketProvider rawPacketProvider = ServiceLocator.Current.GetInstance<IRawPacketProvider>();
+                IRawPacketProvider rawPacketProvider = _applicationContext.Container.Resolve<IRawPacketProvider>();
 
                 return rawPacketProvider;
             }

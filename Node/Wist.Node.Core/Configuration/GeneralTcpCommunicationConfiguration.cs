@@ -8,9 +8,12 @@ using Wist.Core.Configuration;
 namespace Wist.Node.Core.Configuration
 {
     [RegisterExtension(typeof(IConfigurationSection), Lifetime = LifetimeManagement.Singleton)]
-    public class GeneralTcpCommunicationConfiguration : TcpCommunicationConfigurationBase
+    public class GeneralTcpCommunicationConfiguration : CommunicationConfigurationBase
     {
         public const string SECTION_NAME = "generalTcpCommunication";
-        public override string SectionName => SECTION_NAME;
+
+        public GeneralTcpCommunicationConfiguration(IApplicationContext applicationContext) : base(applicationContext, SECTION_NAME)
+        {
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using CommonServiceLocator;
+﻿using Unity;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
 using Wist.Core;
+using Wist.Core.Architecture;
 using Wist.Core.Communication;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
@@ -19,6 +20,7 @@ namespace Wist.Communication.Sockets
     public abstract class CommunicationServiceBase : ICommunicationService
     {
         protected readonly ILogger _log;
+        private readonly IApplicationContext _applicationContext;
         protected readonly IBufferManagerFactory _bufferManagerFactory;
         protected readonly IPacketsHandler _packetsHandler;
         protected GenericPool<ICommunicationChannel> _communicationChannelsPool;
@@ -29,9 +31,10 @@ namespace Wist.Communication.Sockets
         protected CancellationTokenSource _cancellationTokenSource;
         protected SocketSettings _settings;
 
-        public CommunicationServiceBase(ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
+        public CommunicationServiceBase(IApplicationContext applicationContext, ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService)
         {
             _log = loggerService.GetLogger(GetType().Name);
+            _applicationContext = applicationContext;
             _bufferManagerFactory = bufferManagerFactory;
             _packetsHandler = packetsHandler;
             _clientConnectedList = new List<ICommunicationChannel>();
@@ -65,21 +68,19 @@ namespace Wist.Communication.Sockets
 
             for (int i = 0; i < _settings.MaxConnections; i++)
             {
-                ICommunicationChannel communicationChannel = ServiceLocator.Current.GetInstance<ICommunicationChannel>();
+                ICommunicationChannel communicationChannel = _applicationContext.Container.Resolve<ICommunicationChannel>();
                 communicationChannel.SocketClosedEvent += ClientHandler_SocketClosedEvent;
                 communicationChannel.Init(bufferManager, _packetsHandler);
                 _communicationChannelsPool.Push(communicationChannel);
             }
-
-            Task.Factory.StartNew(() =>
-            {
-                ProcessMessagesQueue(_cancellationTokenSource.Token);
-            }, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
         public virtual void Start()
         {
-
+            Task.Factory.StartNew(() =>
+            {
+                ProcessMessagesQueue(_cancellationTokenSource.Token);
+            }, _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
         }
 
         public void PostMessage(IKey destination, IPacketProvider message)

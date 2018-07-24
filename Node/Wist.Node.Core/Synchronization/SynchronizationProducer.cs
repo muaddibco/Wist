@@ -7,6 +7,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Configuration;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
@@ -21,22 +22,25 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISynchronizationGroupState _synchronizationGroupState;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
+        private readonly IConfigurationService _configurationService;
         private IServerCommunicationService _communicationService;
         private ulong _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
-        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry)
+        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService)
         {
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodeContext = statesRepository.GetInstance<INodeContext>();
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
+            _configurationService = configurationService;
         }
 
         public void Initialize()
         {
-            _communicationService = _communicationServicesRegistry.GetInstance("GenericTcp");
+            
+            _communicationService = _communicationServicesRegistry.GetInstance(_configurationService.Get<SynchronizationConfiguration>().CommunicationServiceName);
         }
 
         public void DeferredBroadcast()

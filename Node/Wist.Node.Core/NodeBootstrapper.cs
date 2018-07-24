@@ -48,10 +48,6 @@ namespace Wist.Node.Core
 
                 nodeMain.Initialize();
 
-                nodeMain.UpdateKnownNodes();
-
-                nodeMain.EnterNodesGroup();
-
                 nodeMain.Start();
             }
             finally

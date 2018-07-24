@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Text;
+﻿using System.Net.Sockets;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
@@ -14,7 +11,8 @@ namespace Wist.Communication.Sockets
     [RegisterExtension(typeof(IServerCommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class UdpCommunicationService : ServerCommunicationServiceBase
     {
-        public UdpCommunicationService(ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(loggerService, bufferManagerFactory, packetsHandler, nodesResolutionService)
+        public UdpCommunicationService(IApplicationContext applicationContext, ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) 
+            : base(applicationContext, loggerService, bufferManagerFactory, packetsHandler, nodesResolutionService)
         {
         }
 

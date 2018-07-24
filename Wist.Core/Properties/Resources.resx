@@ -139,7 +139,7 @@
     <value>Instance of class {0} is not initialized yet. Please invoke its initialization method prior to usage.</value>
   </data>
   <data name="ERR_MANDATORY_INTERFACE_NOT_IMPLEMENTED" xml:space="preserve">
-    <value>Aspect {0} requires mandatory interface {1} that is not implemented by type {1}.</value>
+    <value>Aspect {0} requires inheritance/implementation of type {1} that is not implemented by type {2}.</value>
   </data>
   <data name="ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED" xml:space="preserve">
     <value>Proof of work algorithm {0} not supported.</value>

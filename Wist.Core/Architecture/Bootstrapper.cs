@@ -41,10 +41,38 @@ namespace Wist.Core.Architecture
                 ConfigureContainer();
 
                 ConfigureServiceLocator();
+
+                RunInitializers();
             }
             finally
             {
                 _log.Info("Bootstrap Run completed");
+            }
+        }
+
+        private void RunInitializers()
+        {
+            _log.Info("Running initializers started");
+
+            try
+            {
+                IEnumerable<IInitializer> initializers = Container.ResolveAll<IInitializer>();
+                foreach (IInitializer item in initializers)
+                {
+                    _log.Info($"Running initializer {item.GetType().FullName}");
+                    try
+                    {
+                        item.Initialize();
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error($"Failed to initialize {item.GetType().FullName}", ex);
+                    }
+                }
+            }
+            finally
+            {
+                _log.Info("Run initializers completed");
             }
         }
 

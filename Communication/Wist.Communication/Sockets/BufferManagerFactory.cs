@@ -1,7 +1,7 @@
 ﻿using CommonServiceLocator;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using Unity;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
@@ -12,6 +12,12 @@ namespace Wist.Communication.Sockets
     public class BufferManagerFactory : IBufferManagerFactory
     {
         private readonly Stack<IBufferManager> _bufferManagersPool = new Stack<IBufferManager>();
+        private readonly IApplicationContext _applicationContext;
+
+        public BufferManagerFactory(IApplicationContext applicationContext)
+        {
+            _applicationContext = applicationContext;
+        }
 
         public IBufferManager Create()
         {
@@ -25,13 +31,14 @@ namespace Wist.Communication.Sockets
                     }
                     else
                     {
-                        return ServiceLocator.Current.GetInstance<IBufferManager>();
+                        
+                        return _applicationContext.Container.Resolve<IBufferManager>();
                     }
                 }
             }
             else
             {
-                return ServiceLocator.Current.GetInstance<IBufferManager>();
+                return _applicationContext.Container.Resolve<IBufferManager>();
             }
         }
 

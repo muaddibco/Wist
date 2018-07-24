@@ -23,7 +23,8 @@ namespace Wist.Communication.Sockets
 
         public override string Name => "GenericTcp";
 
-        public TcpCommunicationService(ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) : base(loggerService, bufferManagerFactory, packetsHandler, nodesResolutionService)
+        public TcpCommunicationService(IApplicationContext applicationContext, ILoggerService loggerService, IBufferManagerFactory bufferManagerFactory, IPacketsHandler packetsHandler, INodesResolutionService nodesResolutionService) 
+            : base(applicationContext, loggerService, bufferManagerFactory, packetsHandler, nodesResolutionService)
         {
             _acceptEventArgsPool = new GenericPool<SocketAsyncEventArgs>(10);
 

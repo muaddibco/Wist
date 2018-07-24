@@ -1,5 +1,4 @@
 ﻿using Chaos.NaCl;
-using CommonServiceLocator;
 using System;
 using System.Security.Cryptography;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
@@ -12,7 +11,6 @@ using Wist.Core.Configuration;
 using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
-using Wist.Node.Core.Configuration;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Roles;
 using Wist.Simulation.Load.Configuration;
