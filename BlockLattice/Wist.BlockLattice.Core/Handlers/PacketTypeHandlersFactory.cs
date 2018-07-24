@@ -8,17 +8,20 @@ using Wist.BlockLattice.Core.Exceptions;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Logging;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
     [RegisterDefaultImplementation(typeof(IPacketVerifiersRepository), Lifetime = LifetimeManagement.Singleton)]
     public class PacketVerifiersRepository : IPacketVerifiersRepository
     {
+        private readonly ILogger _log;
         private readonly Dictionary<PacketType, IPacketVerifier> _packetVerifiers;
         private readonly object _sync = new object();
 
-        public PacketVerifiersRepository(IPacketVerifier[] packetVerifiers)
+        public PacketVerifiersRepository(IPacketVerifier[] packetVerifiers, ILoggerService loggerService)
         {
+            _log = loggerService.GetLogger(GetType().Name);
             _packetVerifiers = new Dictionary<PacketType, IPacketVerifier>();
 
             foreach (var packetVerifier in packetVerifiers)
@@ -34,7 +37,10 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             if (!_packetVerifiers.ContainsKey(packetType))
             {
-                throw new NotSupportedPacketTypeHandlerException(packetType);
+                _log.Warning($"No verifier found for packet type {packetType}");
+
+                //throw new NotSupportedPacketTypeHandlerException(packetType);
+                return null;
             }
 
             return _packetVerifiers[packetType];

@@ -33,11 +33,12 @@ namespace Wist.Node.Core
         private readonly IConfigurationService _configurationService;
         private readonly IModulesRepository _modulesRepository;
         private readonly IRolesRegistry _rolesRegistry;
+        private readonly IPacketsHandler _packetsHandler;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
+        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IPacketsHandler packetsHandler, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _communicationServicesFactory = communicationServicesFactory;
@@ -45,6 +46,7 @@ namespace Wist.Node.Core
             _configurationService = configurationService;
             _modulesRepository = modulesRepository;
             _rolesRegistry = rolesRegistry;
+            _packetsHandler = packetsHandler;
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -68,6 +70,8 @@ namespace Wist.Node.Core
                 serverCommunicationService.Init(new SocketListenerSettings(communicationConfiguration.MaxConnections, communicationConfiguration.ReceiveBufferSize, new IPEndPoint(IPAddress.Any, communicationConfiguration.ListeningPort)));
                 _communicationServicesRegistry.RegisterInstance(serverCommunicationService, communicationConfiguration.CommunicationServiceName);
             }
+
+            _packetsHandler.Initialize();
         }
 
         private void InitializeModules()
@@ -117,6 +121,8 @@ namespace Wist.Node.Core
                 CommunicationConfigurationBase communicationConfiguration = (CommunicationConfigurationBase)_configurationService[communicationServiceName];
                 _communicationServicesRegistry.GetInstance(communicationConfiguration.CommunicationServiceName).Start();
             }
+
+            _packetsHandler.Start();
 
             IEnumerable<IRole> roles = _rolesRegistry.GetBulkInstances();
 

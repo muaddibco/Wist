@@ -1,6 +1,6 @@
 ﻿<DLE><STX>
 	
-	Length				: 4 bytes (OF PACKET BODY + PACKET TYPE)
+	Length				: 8 bytes where effective value (OF PACKET BODY + PACKET TYPE) is of 4 bytes and 4 bytes reserved for escaping 
 
 = Header ==========================================================================================================================================================
 	Packet Type			: 2 bytes

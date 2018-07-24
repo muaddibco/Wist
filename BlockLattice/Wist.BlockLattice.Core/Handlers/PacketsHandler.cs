@@ -57,12 +57,15 @@ namespace Wist.BlockLattice.Core.Handlers
         /// <param name="messagePacket">Bytes of complete message for following processing</param>
         public void Push(byte[] messagePacket)
         {
+            _log.Debug($"Pushed packer for handling: {messagePacket.ToHexString()}");
             _messagePackets.Enqueue(messagePacket);
             _messageTrigger.Set();
         }
 
         public void Start()
         {
+            _log.Info("PacketsHandler starting");
+
             Stop();
 
             _cancellationTokenSource = new CancellationTokenSource();
@@ -84,13 +87,17 @@ namespace Wist.BlockLattice.Core.Handlers
                     Task.Factory.StartNew(() => Parse(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
                 }
             }, 1000, cancelToken: _cancellationTokenSource.Token, delayInMilliseconds: 3000);
+
+            _log.Info("PacketsHandler started");
         }
 
         public void Stop()
         {
+            _log.Info("PacketsHandler stopping");
             _messageTrigger?.Set();
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource = null;
+            _log.Info("PacketsHandler stopped");
         }
 
         private void ParseMain(CancellationToken token)
@@ -105,16 +112,20 @@ namespace Wist.BlockLattice.Core.Handlers
 
         private void Parse(CancellationToken token)
         {
+            _log.Info("Parse function starting");
             byte[] messagePacket;
             while (!token.IsCancellationRequested && _messagePackets.TryDequeue(out messagePacket))
             {
                 object @message = messagePacket;
                 Task.Factory.StartNew(m => ProcessMessagePacket((byte[])m), @message, token);
             }
+            _log.Info("Parse function finished");
         }
 
         private void ProcessMessagePacket(byte[] messagePacket)
         {
+            _log.Debug("ProcessMessagePacket started");
+
             if (messagePacket == null)
             {
                 _log.Warning("An EMPTY packet obtained at ProcessMessagePacket");
@@ -128,7 +139,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
             try
             {
-                bool res = chainTypeHandler.ValidatePacket(messagePacket);
+                bool res = chainTypeHandler?.ValidatePacket(messagePacket) ?? true;
 
                 if(res)
                 {

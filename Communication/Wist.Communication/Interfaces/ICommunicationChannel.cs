@@ -18,7 +18,7 @@ namespace Wist.Communication.Interfaces
 
         Queue<byte[]> MessagePackets { get; }
 
-        void PushForParsing(byte[] buf, int count);
+        void PushForParsing(byte[] buf, int offset, int count);
 
         void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler);
 

@@ -45,21 +45,30 @@ namespace Wist.Core.Configuration
 
             if (propertyInfo.PropertyType.IsArray)
             {
-                string[] arrValues = sValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                Array values;
 
-                Array values = Array.CreateInstance(propertyInfo.PropertyType.GetElementType(), arrValues.Length);
-                object arrValue;
-                int index = 0;
-
-                foreach (string arrSValue in arrValues)
+                if (string.IsNullOrEmpty(sValue) && _isOptional)
                 {
-                    if (TryConvertSingleValue(propertyInfo.PropertyType.GetElementType(), arrSValue.Trim(), out arrValue, _isOptional))
+                    values = Array.CreateInstance(propertyInfo.PropertyType.GetElementType(), 0);
+                }
+                else
+                {
+                    string[] arrValues = sValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                    values = Array.CreateInstance(propertyInfo.PropertyType.GetElementType(), arrValues.Length);
+                    object arrValue;
+                    int index = 0;
+
+                    foreach (string arrSValue in arrValues)
                     {
-                        values.SetValue(arrValue, index++);
-                    }
-                    else
-                    {
-                        throw new ConfigurationParameterValueConversionFailedException(sValue, key, propertyInfo.PropertyType, _propertyName, GetType());
+                        if (TryConvertSingleValue(propertyInfo.PropertyType.GetElementType(), arrSValue.Trim(), out arrValue, _isOptional))
+                        {
+                            values.SetValue(arrValue, index++);
+                        }
+                        else
+                        {
+                            throw new ConfigurationParameterValueConversionFailedException(sValue, key, propertyInfo.PropertyType, _propertyName, GetType());
+                        }
                     }
                 }
 

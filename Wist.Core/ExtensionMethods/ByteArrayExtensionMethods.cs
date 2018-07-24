@@ -26,19 +26,20 @@ namespace Wist.Core.ExtensionMethods
             return result;
         }
 
-        public static unsafe string ToHexString(this byte[] arr)
+        public static unsafe string ToHexString(this byte[] arr, int offset = 0, int length = 0)
         {
             if (arr != null)
             {
+                var arrLength = (length == 0 ? arr.Length : length);
                 var lookupP = _lookup32UnsafeP;
-                var result = new char[arr.Length * 2];
+                var result = new char[arrLength * 2];
                 fixed (byte* bytesP = arr)
                 fixed (char* resultP = result)
                 {
                     uint* resultP2 = (uint*)resultP;
-                    for (int i = 0; i < arr.Length; i++)
+                    for (int i = 0; i < arrLength; i++)
                     {
-                        resultP2[i] = lookupP[bytesP[i]];
+                        resultP2[i] = lookupP[bytesP[i + offset]];
                     }
                 }
                 return new string(result);

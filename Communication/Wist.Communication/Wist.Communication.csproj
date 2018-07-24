@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="PostSharp" Version="6.0.21" />
+    <PackageReference Include="System.Memory" Version="4.5.1" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.9.0" />
     <PackageReference Include="Unity" Version="5.8.6" />
   </ItemGroup>

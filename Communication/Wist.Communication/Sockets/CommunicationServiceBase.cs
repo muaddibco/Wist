@@ -59,8 +59,6 @@ namespace Wist.Communication.Sockets
 
             _settings = settings;
 
-            _packetsHandler?.Initialize();
-
             // Allocates one large byte buffer which all I/O operations use a piece of.  This guards against memory fragmentation
             IBufferManager bufferManager = _bufferManagerFactory.Create();
             bufferManager.InitBuffer(_settings.BufferSize * _settings.MaxConnections * 2, _settings.BufferSize);
