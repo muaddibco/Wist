@@ -6,7 +6,7 @@ using Wist.Core.Architecture;
 namespace Wist.Core.ProofOfWork
 {
     [ServiceContract]
-    public interface IProofOfWorkCalculationFactory : IFactory<IProofOfWorkCalculation, POWType>
+    public interface IProofOfWorkCalculationRepository : IRepository<IProofOfWorkCalculation, POWType>
     {
     }
 }

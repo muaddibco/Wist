@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Buffers.Binary;
+using System.IO;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
@@ -18,46 +20,51 @@ namespace Wist.BlockLattice.Core.Parsers
 
         public virtual BlockBase ParseBody(byte[] blockBody)
         {
-            using (MemoryStream ms = new MemoryStream(blockBody))
-            {
-                using (BinaryReader br = new BinaryReader(ms))
-                {
-                    return ParseBody(br);
-                }
-            }
+            Span<byte> span = new Span<byte>(blockBody);
+
+            return ParseBody(span);
         }
 
         public virtual BlockBase Parse(byte[] source)
         {
-            using (MemoryStream ms = new MemoryStream(source))
-            {
-                using (BinaryReader br = new BinaryReader(ms))
-                {
-                    SkipInitialBytes(br);
+            Span<byte> span = new Span<byte>(source);
+            
+            Span<byte> spanHeader;
+            Span<byte> spanBody = SliceInitialBytes(span, out spanHeader);
 
-                    return ParseBody(br);
-                }
-            }
-        }
+            BlockBase blockBase = ParseBody(spanBody);
 
-        private BlockBase ParseBody(BinaryReader br)
-        {
-            ushort version = br.ReadUInt16();
-            ushort messageType = br.ReadUInt16();
-            BlockBase blockBase = Parse(version, br);
+            FillBlockBaseHeader(blockBase, spanHeader);
+
+            blockBase.BodyBytes = spanBody.ToArray();
+            blockBase.RawData = source;
 
             return blockBase;
         }
 
-        void SkipInitialBytes(BinaryReader br)
+        private BlockBase ParseBody(Span<byte> spanBody)
         {
-            br.ReadBytes(2); // Packet Type
+            ushort version = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
+            ushort messageType = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2));
+            BlockBase blockBase = ParseBlockBase(version, spanBody.Slice(4));
 
-            ReadPowSection(br);
+            return blockBase;
         }
 
-        protected abstract void ReadPowSection(BinaryReader br);
+        protected virtual Span<byte> SliceInitialBytes(Span<byte> span, out Span<byte> spanHeader)
+        {
+            spanHeader = span.Slice(0, 2);
 
-        protected abstract BlockBase Parse(ushort version, BinaryReader br);
+            return span.Slice(2);
+        }
+
+        protected abstract BlockBase ParseBlockBase(ushort version, Span<byte> spanBody);
+
+        protected virtual Span<byte> FillBlockBaseHeader(BlockBase blockBase, Span<byte> spanHeader)
+        {
+            PacketType packetType = (PacketType)BinaryPrimitives.ReadUInt16LittleEndian(spanHeader);
+
+            return spanHeader.Slice(2);
+        }
     }
 }

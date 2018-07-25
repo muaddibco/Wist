@@ -16,6 +16,9 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.Core.Aspects;
 using Wist.Core.Logging;
+using System.Linq;
+using System.Threading.Tasks.Dataflow;
+using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
@@ -24,8 +27,9 @@ namespace Wist.BlockLattice.Core.Handlers
     {
         private readonly ILogger _log;
         private readonly IPacketVerifiersRepository _chainTypeValidationHandlersFactory;
-        private readonly IBlockParsersFactoriesRepository _blockParsersFactoriesRepository;
+        private readonly IBlockParsersRepositoriesRepository _blockParsersFactoriesRepository;
         private readonly IBlocksHandlersFactory _blocksProcessorFactory;
+        private readonly IProofOfWorkCalculationRepository _proofOfWorkCalculationRepository;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
         private readonly ManualResetEventSlim _messageTrigger;
 
@@ -33,12 +37,13 @@ namespace Wist.BlockLattice.Core.Handlers
 
         public bool IsInitialized { get; private set; }
 
-        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersFactoriesRepository blockParsersFactoriesRepository, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
+        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersRepositoriesRepository blockParsersFactoriesRepository, IBlocksHandlersFactory blocksProcessorFactory, IProofOfWorkCalculationRepository proofOfWorkCalculationFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
             _blockParsersFactoriesRepository = blockParsersFactoriesRepository;
             _blocksProcessorFactory = blocksProcessorFactory;
+            _proofOfWorkCalculationRepository = proofOfWorkCalculationFactory;
             _messagePackets = new ConcurrentQueue<byte[]>();
             _messageTrigger = new ManualResetEventSlim();
         }
@@ -132,19 +137,15 @@ namespace Wist.BlockLattice.Core.Handlers
                 return;
             }
 
-            IPacketVerifier chainTypeHandler = null;
-
-            PacketType packetType = (PacketType)BitConverter.ToUInt16(messagePacket, 0);
-            chainTypeHandler = _chainTypeValidationHandlersFactory.GetInstance(packetType);
-
             try
             {
-                bool res = chainTypeHandler?.ValidatePacket(messagePacket) ?? true;
+                PacketType packetType = (PacketType)BitConverter.ToUInt16(messagePacket, 0);
 
-                if(res)
+                bool res = ValidatePacket(packetType, messagePacket);
+
+                if (res)
                 {
-                    IBlockParsersFactory blockParsersFactory = _blockParsersFactoriesRepository.GetBlockParsersFactory(packetType);
-                    BlockBase blockBase = ParseMessagePacket(blockParsersFactory, messagePacket);
+                    BlockBase blockBase = ParseMessagePacket(packetType, messagePacket);
 
                     DispatchBlock(blockBase);
                 }
@@ -155,29 +156,48 @@ namespace Wist.BlockLattice.Core.Handlers
             }
         }
 
-        private BlockBase ParseMessagePacket(IBlockParsersFactory blockParsersFactory, byte[] messagePacket)
+        private bool ValidatePacket(PacketType packetType, byte[] messagePacket)
+        {
+            IPacketVerifier chainTypeHandler = null;
+
+            chainTypeHandler = _chainTypeValidationHandlersFactory.GetInstance(packetType);
+
+            bool res = chainTypeHandler?.ValidatePacket(messagePacket) ?? true;
+            return res;
+        }
+
+        private BlockBase ParseMessagePacket(PacketType packetType, byte[] messagePacket)
         {
             BlockBase blockBase = null;
             IBlockParser blockParser = null;
+            IBlockParsersRepository blockParsersFactory = null;
 
             try
             {
-                ushort blockType = BitConverter.ToUInt16(messagePacket, 2);
+                //TODO: weigh assumption that all messages are sync based (have reference to latest Sync Block)
 
-                blockParser = blockParsersFactory.Create(blockType);
+                POWType powType = (POWType)BitConverter.ToUInt16(messagePacket, 10);
+
+                IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.GetInstance(powType);
+
+                int powSize = 0;
+
+                if(powType != POWType.None)
+                {
+                    powSize = 8 + proofOfWorkCalculation.HashSize;
+                }
+
+                ushort blockType = BitConverter.ToUInt16(messagePacket, 12 + powSize + 2);
+
+                blockParsersFactory = _blockParsersFactoriesRepository.GetBlockParsersRepository(packetType);
+
+                blockParser = blockParsersFactory.GetInstance(blockType);
 
                 blockBase = blockParser.Parse(messagePacket);
             }
             catch (Exception ex)
             {
                 _log.Error($"Failed to parse message {messagePacket.ToHexString()}", ex);
-            }
-            finally
-            {
-                if (blockParser != null)
-                {
-                    blockParsersFactory.Utilize(blockParser);
-                }
             }
 
             return blockBase;
@@ -189,11 +209,8 @@ namespace Wist.BlockLattice.Core.Handlers
             {
                 IEnumerable<IBlocksHandler> blocksProcessors = _blocksProcessorFactory.GetBulkInstances(block.PacketType);
 
-                //TODO: weigh make it in parallel
-                foreach (IBlocksHandler blocksProcessor in blocksProcessors)
-                {
-                    blocksProcessor.ProcessBlock(block);
-                }
+                //TODO: weigh to check whether number of processors is greater than 1 before parallelizing for sake of performance
+                blocksProcessors.AsParallel().ForAll(p => p.ProcessBlock(block));
             }
         }
     }

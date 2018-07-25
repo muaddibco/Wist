@@ -22,8 +22,8 @@ namespace Wist.BlockLattice.Core.Handlers
         public const int MESSAGE_SIGNATURE_SIZE = 64;
         public const int MESSAGE_PUBLICKEY_SIZE = 32;
 
-        public SignaturedPacketTypeHandler(IStatesRepository statesRepository, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, ILoggerService loggerService) 
-            : base(statesRepository, loggerService, proofOfWorkCalculationFactory)
+        public SignaturedPacketTypeHandler(IStatesRepository statesRepository, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository, ILoggerService loggerService) 
+            : base(statesRepository, loggerService, proofOfWorkCalculationRepository)
         {
         }
 

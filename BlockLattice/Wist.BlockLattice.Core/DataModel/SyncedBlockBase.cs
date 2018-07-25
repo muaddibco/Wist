@@ -9,7 +9,7 @@ namespace Wist.BlockLattice.Core.DataModel
     {
         public ulong BlockHeight { get; set; }
 
-        public uint SyncBlockOrder { get; set; }
+        public ulong SyncBlockOrder { get; set; }
 
         public POWType POWType { get; set; }
 

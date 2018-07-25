@@ -8,18 +8,13 @@ namespace Wist.Node.Core.Parsers
 {
     public class GenericConsensusBlockParser : ConsensusBlockParserBase
     {
-        public GenericConsensusBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base(proofOfWorkCalculationFactory)
+        public GenericConsensusBlockParser(IProofOfWorkCalculationRepository proofOfWorkCalculationRepository) : base(proofOfWorkCalculationRepository)
         {
         }
 
         public override ushort BlockType => BlockTypes.Consensus_GenericConsensus;
 
-        protected override BlockBase Parse(ushort version, BinaryReader br)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void ReadPowSection(BinaryReader br)
+        protected override BlockBase ParseBlockBase(ushort version, Span<byte> spanBody)
         {
             throw new NotImplementedException();
         }

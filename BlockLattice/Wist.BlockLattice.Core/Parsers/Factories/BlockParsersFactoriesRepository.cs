@@ -5,17 +5,17 @@ using Wist.Core.Architecture;
 
 namespace Wist.BlockLattice.Core.Parsers.Factories
 {
-    [RegisterDefaultImplementation(typeof(IBlockParsersFactoriesRepository), Lifetime = Wist.Core.Architecture.Enums.LifetimeManagement.Singleton)]
-    public class BlockParsersFactoriesRepository : IBlockParsersFactoriesRepository
+    [RegisterDefaultImplementation(typeof(IBlockParsersRepositoriesRepository), Lifetime = Wist.Core.Architecture.Enums.LifetimeManagement.Singleton)]
+    public class BlockParsersFactoriesRepository : IBlockParsersRepositoriesRepository
     {
-        private readonly IBlockParsersFactory[] _blockParsersFactories;
+        private readonly IBlockParsersRepository[] _blockParsersFactories;
 
-        public BlockParsersFactoriesRepository(IBlockParsersFactory[] blockParsersFactories)
+        public BlockParsersFactoriesRepository(IBlockParsersRepository[] blockParsersFactories)
         {
             _blockParsersFactories = blockParsersFactories;
         }
 
-        public IBlockParsersFactory GetBlockParsersFactory(PacketType packetType)
+        public IBlockParsersRepository GetBlockParsersRepository(PacketType packetType)
         {
             return _blockParsersFactories.FirstOrDefault(f => f.PacketType == packetType);
         }

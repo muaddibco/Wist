@@ -28,8 +28,11 @@ namespace Wist.BlockLattice.Core.Serializers
         {
             bw.Write(_block.SyncBlockOrder);
             bw.Write((ushort)_block.POWType);
-            bw.Write(_block.Nonce);
-            bw.Write(_block.HashNonce);
+            if (_block.POWType != Wist.Core.ProofOfWork.POWType.None)
+            {
+                bw.Write(_block.Nonce);
+                bw.Write(_block.HashNonce);
+            }
         }
     }
 }

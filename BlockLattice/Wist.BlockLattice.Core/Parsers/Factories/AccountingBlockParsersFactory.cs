@@ -8,8 +8,8 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.BlockLattice.Core.Parsers.Factories
 {
-    [RegisterExtension(typeof(IBlockParsersFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class AccountingBlockParsersFactory : BlockParsersFactoryBase
+    [RegisterExtension(typeof(IBlockParsersRepository), Lifetime = LifetimeManagement.Singleton)]
+    public class AccountingBlockParsersFactory : BlockParsersRepositoryBase
     {
         public AccountingBlockParsersFactory(IBlockParser[] blockParsers) : base(blockParsers)
         {

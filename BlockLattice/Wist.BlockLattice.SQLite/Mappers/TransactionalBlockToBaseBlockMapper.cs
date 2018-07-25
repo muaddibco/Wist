@@ -8,11 +8,11 @@ namespace Wist.BlockLattice.SQLite.Mappers
 {
     public class TransactionalBlockToBaseBlockMapper : TranslatorBase<TransactionalBlock, BlockBase>
     {
-        private readonly IBlockParsersFactory _blockParsersFactory;
+        private readonly IBlockParsersRepository _blockParsersRepository;
 
-        public TransactionalBlockToBaseBlockMapper(IBlockParsersFactoriesRepository blockParsersFactoriesRepository)
+        public TransactionalBlockToBaseBlockMapper(IBlockParsersRepositoriesRepository blockParsersFactoriesRepository)
         {
-            _blockParsersFactory = blockParsersFactoriesRepository.GetBlockParsersFactory(PacketType.TransactionalChain);
+            _blockParsersRepository = blockParsersFactoriesRepository.GetBlockParsersRepository(PacketType.TransactionalChain);
         }
 
         public override BlockBase Translate(TransactionalBlock transactionalBlock)
@@ -23,19 +23,9 @@ namespace Wist.BlockLattice.SQLite.Mappers
 
             IBlockParser blockParser = null;
 
-            try
-            {
-                blockParser = _blockParsersFactory.Create(blockType);
+            blockParser = _blockParsersRepository.GetInstance(blockType);
 
-                transactionalBlockBase = blockParser.ParseBody(transactionalBlock.BlockContent);
-            }
-            finally
-            {
-                if (blockParser != null)
-                {
-                    _blockParsersFactory.Utilize(blockParser);
-                }
-            }
+            transactionalBlockBase = blockParser.ParseBody(transactionalBlock.BlockContent);
 
             return transactionalBlockBase;
         }

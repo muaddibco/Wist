@@ -1,12 +1,13 @@
-﻿using Wist.BlockLattice.Core.Enums;
+﻿using System;
+using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
 namespace Wist.BlockLattice.Core.Parsers.Factories
 {
-    [RegisterExtension(typeof(IBlockParsersFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class SinchronizationBlockParsersFactory : BlockParsersFactoryBase
+    [RegisterExtension(typeof(IBlockParsersRepository), Lifetime = LifetimeManagement.Singleton)]
+    public class SinchronizationBlockParsersFactory : BlockParsersRepositoryBase
     {
         public SinchronizationBlockParsersFactory(IBlockParser[] blockParsers) : base(blockParsers)
         {

@@ -17,16 +17,17 @@ namespace Wist.BlockLattice.Core.Parsers
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }
 
-        protected override BlockBase Parse(ushort version, BinaryReader br)
+        protected override BlockBase ParseBlockBase(ushort version, Span<byte> spanBody)
         {
-            SignedBlockBase signedBlockBase = ParseSigned(version, br);
+            SignedBlockBase signedBlockBase;
+            Span<byte> spanPostBody = ParseSigned(version, spanBody, out signedBlockBase);
 
-            signedBlockBase.Key = _identityKeyProvider.GetKey(br.ReadBytes(Globals.NODE_PUBLIC_KEY_SIZE));
-            signedBlockBase.Signature = br.ReadBytes(Globals.SIGNATURE_SIZE);
+            signedBlockBase.Key = _identityKeyProvider.GetKey(spanPostBody.Slice(0, Globals.NODE_PUBLIC_KEY_SIZE).ToArray());
+            signedBlockBase.Signature = spanPostBody.Slice(Globals.NODE_PUBLIC_KEY_SIZE, Globals.SIGNATURE_SIZE).ToArray();
 
             return signedBlockBase;
         }
 
-        protected abstract SignedBlockBase ParseSigned(ushort version, BinaryReader br);
+        protected abstract Span<byte> ParseSigned(ushort version, Span<byte> spanBody, out SignedBlockBase signedBlockBase);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -10,30 +11,28 @@ using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Parsers.Synchronization
 {
-    public abstract class SynchronizationBlockParserBase : SignedBlockParserBase
+    public abstract class SynchronizationBlockParserBase : SyncedBlockParserBase
     {
-        public SynchronizationBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
-            : base(identityKeyProvidersRegistry)
+        public SynchronizationBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository) 
+            : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
         {
         }
 
         public override PacketType PacketType => PacketType.Synchronization;
 
-        protected override SignedBlockBase ParseSigned(ushort version, BinaryReader br)
+        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
         {
-            DateTime dateTime = DateTime.FromBinary(br.ReadInt64());
+            DateTime dateTime = DateTime.FromBinary(BinaryPrimitives.ReadInt64LittleEndian(spanBody));
 
-            SynchronizationBlockBase synchronizationBlockBase = ParseSynchronization(version, br);
+            SynchronizationBlockBase synchronizationBlockBase;
+            Span<byte> spanPostBody = ParseSynchronization(version, spanBody.Slice(8), out synchronizationBlockBase);
             synchronizationBlockBase.ReportedTime = dateTime;
 
-            return synchronizationBlockBase;
+            syncedBlockBase = synchronizationBlockBase;
+
+            return spanPostBody;
         }
 
-        protected override void ReadPowSection(BinaryReader br)
-        {
-            
-        }
-
-        protected abstract SynchronizationBlockBase ParseSynchronization(ushort version, BinaryReader br);
+        protected abstract Span<byte> ParseSynchronization(ushort version, Span<byte> spanBody, out SynchronizationBlockBase synchronizationBlockBase);
     }
 }

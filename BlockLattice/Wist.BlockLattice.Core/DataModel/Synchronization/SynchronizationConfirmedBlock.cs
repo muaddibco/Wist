@@ -15,8 +15,6 @@ namespace Wist.BlockLattice.Core.DataModel.Synchronization
 
         public ushort Round { get; set; }
 
-        public byte[] HashPrev { get; set; }
-
         public byte[][] Signatures { get; set; }
 
         public byte[][] PublicKeys { get; set; }

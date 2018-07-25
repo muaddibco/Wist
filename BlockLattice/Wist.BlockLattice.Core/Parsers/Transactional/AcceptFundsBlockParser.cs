@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Buffers.Binary;
+using System.IO;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
@@ -10,36 +12,36 @@ using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Parsers.Transactional
 {
-    [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.Singleton)]
     public class AcceptFundsBlockParser : TransactionalBlockParserBase
     {
-        public AcceptFundsBlockParser(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base(proofOfWorkCalculationFactory, identityKeyProvidersRegistry)
+        public AcceptFundsBlockParser(IProofOfWorkCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base(proofOfWorkCalculationRepository, identityKeyProvidersRegistry)
         {
         }
 
         public override ushort BlockType => BlockTypes.Transaction_AcceptFunds;
 
-        protected override TransactionalBlockBase ParseTransactional(ushort version, BinaryReader br)
+        protected override Span<byte> ParseTransactional(ushort version, Span<byte> spanBody, out TransactionalBlockBase transactionalBlockBase)
         {
             TransactionalBlockBase block = null;
 
             if (version == 1)
             {
-                byte[] origin = br.ReadBytes(64);
-                ulong funds = br.ReadUInt64();
+                byte[] origin = spanBody.Slice(0, Globals.HASH_SIZE).ToArray();
+                ulong funds = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Slice(Globals.HASH_SIZE));
 
                 block = new AcceptFundsBlockV1()
                 {
                     SourceOriginalHash = origin,
-                    UptodateFunds = funds
+                    UptodateFunds = funds,
                 };
-            }
-            else
-            {
-                throw new BlockVersionNotSupportedException(version, BlockType);
+
+                transactionalBlockBase = block;
+
+                return spanBody.Slice(Globals.HASH_SIZE + 8);
             }
 
-            return block;
+            throw new BlockVersionNotSupportedException(version, BlockType);
         }
     }
 }

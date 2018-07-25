@@ -6,8 +6,8 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.Node.Core.Parsers
 {
-    [RegisterExtension(typeof(IBlockParsersFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class ConsensusBlockParsersFactory : BlockParsersFactoryBase
+    [RegisterExtension(typeof(IBlockParsersRepository), Lifetime = LifetimeManagement.Singleton)]
+    public class ConsensusBlockParsersFactory : BlockParsersRepositoryBase
     {
         public ConsensusBlockParsersFactory(IBlockParser[] blockParsers) : base(blockParsers)
         {

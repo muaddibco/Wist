@@ -6,7 +6,8 @@ namespace Wist.Core.ProofOfWork
 {
     public enum POWType : ushort
     {
-        Keccak256 = 0,
+        None = 0,
+        Keccak256,
         SHA3
     }
 }

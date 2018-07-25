@@ -13,11 +13,11 @@ namespace Wist.BlockLattice.Core.Handlers
 {
     public abstract class PowBasedPacketVerifierBase : PacketVerifierBase
     {
-        private readonly IProofOfWorkCalculationFactory _proofOfWorkCalculationFactory;
+        private readonly IProofOfWorkCalculationRepository _proofOfWorkCalculationRepository;
 
-        public PowBasedPacketVerifierBase(IStatesRepository statesRepository, ILoggerService loggerService, IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base(statesRepository, loggerService)
+        public PowBasedPacketVerifierBase(IStatesRepository statesRepository, ILoggerService loggerService, IProofOfWorkCalculationRepository proofOfWorkCalculationFactory) : base(statesRepository, loggerService)
         {
-            _proofOfWorkCalculationFactory = proofOfWorkCalculationFactory;
+            _proofOfWorkCalculationRepository = proofOfWorkCalculationFactory;
         }
 
         protected override bool ValidatePacket(BinaryReader br, uint syncBlockHeight)
@@ -30,7 +30,7 @@ namespace Wist.BlockLattice.Core.Handlers
             ushort powTypeValue = br.ReadUInt16();
             POWType pOWType = (POWType)powTypeValue;
 
-            IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationFactory.Create(pOWType);
+            IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.GetInstance(pOWType);
 
             ulong nonce = br.ReadUInt64();
             byte[] hash = br.ReadBytes(proofOfWorkCalculation.HashSize);

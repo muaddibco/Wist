@@ -9,7 +9,7 @@ namespace Wist.Node.Core.Parsers
 {
     public abstract class ConsensusBlockParserBase : BlockParserBase
     {
-        public ConsensusBlockParserBase(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory) : base()
+        public ConsensusBlockParserBase(IProofOfWorkCalculationRepository proofOfWorkCalculationRepository) : base()
         {
         }
 

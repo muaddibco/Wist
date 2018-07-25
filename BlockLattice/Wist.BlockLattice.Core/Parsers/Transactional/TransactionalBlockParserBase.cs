@@ -12,31 +12,26 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 {
     public abstract class TransactionalBlockParserBase : SyncedBlockParserBase
     {
-        private readonly IProofOfWorkCalculationFactory _proofOfWorkCalculationFactory;
+        private readonly IProofOfWorkCalculationRepository _proofOfWorkCalculationRepository;
 
-        public TransactionalBlockParserBase(IProofOfWorkCalculationFactory proofOfWorkCalculationFactory, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
-            : base(identityKeyProvidersRegistry)
+        public TransactionalBlockParserBase(IProofOfWorkCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
+            : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
         {
-            _proofOfWorkCalculationFactory = proofOfWorkCalculationFactory;
+            _proofOfWorkCalculationRepository = proofOfWorkCalculationRepository;
         }
 
         public override PacketType PacketType => PacketType.TransactionalChain;
 
-        protected override SyncedBlockBase ParseSynced(ushort version, BinaryReader br)
+        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
         {
-            TransactionalBlockBase transactionalBlockBase =  ParseTransactional(version, br);
+            TransactionalBlockBase transactionalBlockBase;
 
-            return transactionalBlockBase;
+            Span<byte> spanPostBody = ParseTransactional(version, spanBody, out transactionalBlockBase);
+            syncedBlockBase = transactionalBlockBase;
+
+            return spanPostBody;
         }
 
-        protected override void ReadPowSection(BinaryReader br)
-        {
-            POWType powType = (POWType)br.ReadUInt16();
-            br.ReadUInt32();
-            br.ReadUInt64();
-            br.ReadBytes(_proofOfWorkCalculationFactory.Create(powType).HashSize);
-        }
-
-        protected abstract TransactionalBlockBase ParseTransactional(ushort version, BinaryReader br);
+        protected abstract Span<byte> ParseTransactional(ushort version, Span<byte> spanBody, out TransactionalBlockBase transactionalBlockBase);
     }
 }

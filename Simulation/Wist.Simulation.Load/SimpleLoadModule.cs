@@ -1,6 +1,7 @@
 ﻿using Chaos.NaCl;
 using System;
 using System.Security.Cryptography;
+using Wist.BlockLattice.Core;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
@@ -66,10 +67,12 @@ namespace Wist.Simulation.Load
 
             SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock()
             {
+                SyncBlockOrder = 0,
                 BlockHeight = 1,
                 Key = key,
                 ReportedTime = DateTime.Now,
-                Round = 1
+                Round = 1,
+                HashPrev = new byte[Globals.HASH_SIZE]
             };
 
             ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);
