@@ -133,6 +133,15 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Performance Counters service with name &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string ERR_PERFORMANCE_COUNTERS_SERVICE_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_PERFORMANCE_COUNTERS_SERVICE_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Proof of work algorithm {0} not supported..
         /// </summary>
         internal static string ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED {

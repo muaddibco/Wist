@@ -8,11 +8,11 @@ namespace Wist.Core.PerformanceCounters
     [CounterType(CounterType = PerformanceCounterType.RawFraction)]
     public class FloatingPointCounter : PerformanceCounterBase, IPerformanceCounterBase<double>
     {
-        public FloatingPointCounter(string categoryName, string counterName, string instanceName) :
-            base(categoryName, counterName, instanceName, PerformanceCounterType.RawFraction)
-        {
-            baseCounter = new RawBaseCounter(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName, BaseRawValue * 100);
-        }
+        //public FloatingPointCounter(string categoryName, string counterName, string instanceName) :
+        //    base(categoryName, counterName, instanceName, PerformanceCounterType.RawFraction)
+        //{
+        //    baseCounter = new RawBaseCounter(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName, BaseRawValue * 100);
+        //}
 
         public static long BaseRawValue = 1000;
 

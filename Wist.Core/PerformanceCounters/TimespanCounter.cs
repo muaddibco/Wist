@@ -7,12 +7,15 @@ namespace Wist.Core.PerformanceCounters
     [CounterType(CounterType = PerformanceCounterType.AverageTimer32)]
     public class TimespanCounter : PerformanceCounterBase, IPerformanceCounterBase<TimeSpan>
     {
-        public TimespanCounter(string categoryName, string counterName, string instanceName) :
-            base(categoryName, counterName, instanceName, PerformanceCounterType.AverageTimer32)
-        {
-            QueryPerformanceFrequency(ref frequency);
-            baseCounter = new AverageBaseCounter(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName);
-        }
+        /// <summary>
+        /// Used for representation of a timestamp by the performance counters.
+        /// </summary>
+        private long _frequency;
+
+        //public TimespanCounter(string categoryName, string counterName, string instanceName) :
+        //    base(categoryName, counterName, instanceName, PerformanceCounterType.AverageTimer32)
+        //{
+        //}
 
         protected AverageBaseCounter baseCounter { get; set; }
 
@@ -24,15 +27,18 @@ namespace Wist.Core.PerformanceCounters
         [DllImport("kernel32.dll")]
         static extern short QueryPerformanceFrequency(ref long x);
 
-        /// <summary>
-        /// Used for representation of a timestamp by the performance counters.
-        /// </summary>
-        private readonly long frequency;
+        public override void Initialize(string categoryName, string counterName, string instanceName, PerformanceCounterType expectedType)
+        {
+            base.Initialize(categoryName, counterName, instanceName, expectedType);
 
+            QueryPerformanceFrequency(ref _frequency);
+            baseCounter = new AverageBaseCounter();
+            baseCounter.Initialize(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName, PerformanceCounterType.AverageBase);
+        }
 
         public TimeSpan IncrementBy(TimeSpan difference)
         {
-            _counter.IncrementBy((long)difference.TotalMilliseconds * frequency / 1000);
+            _counter.IncrementBy((long)difference.TotalMilliseconds * _frequency / 1000);
             baseCounter.Increment();
             return difference;
         }

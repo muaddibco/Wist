@@ -27,7 +27,10 @@ namespace Wist.Core.PerformanceCounters
                 throw new InvalidContractException($"Expected interface with a {typeof(PerfCounterCategoryAttribute)} attribute");
             }
 
-            PerformanceCounterCategory.Delete(categoryAttr.Name);
+            if (PerformanceCounterCategory.Exists(categoryAttr.Name))
+            {
+                PerformanceCounterCategory.Delete(categoryAttr.Name);
+            }
         }
 
         public static void RegisterContract(Type contractType)
@@ -35,13 +38,14 @@ namespace Wist.Core.PerformanceCounters
             var categoryAttr = contractType.GetCustomAttribute<PerfCounterCategoryAttribute>();
             if (null == categoryAttr)
             {
-                throw new InvalidContractException($"Expected interface with a {typeof(PerfCounterCategoryAttribute)} attribute");
+                throw new InvalidContractException($"Expected class with a {typeof(PerfCounterCategoryAttribute)} attribute");
             }
 
 
             if (PerformanceCounterCategory.Exists(categoryAttr.Name))
             {
-                throw new CategoryAlreadyExistsException($"Category {categoryAttr.Name} already exists");
+                return;
+                //throw new CategoryAlreadyExistsException($"Category {categoryAttr.Name} already exists");
             }
 
             var counterCreationDataCollection = new CounterCreationDataCollection();
@@ -57,11 +61,13 @@ namespace Wist.Core.PerformanceCounters
                 {
                     throw new InvalidContractException($"Property {prop.Name} must have a getter and a setter to be valid.");
                 }
+
                 var perfCounterBaseInstance = Activator.CreateInstance<PerformanceCounterBase>();
                 if (prop.PropertyType.BaseType.FullName != perfCounterBaseInstance.GetType().FullName)
                 {
                     throw new InvalidContractException($"Property {prop.Name} must be of {typeof(PerformanceCounterBase).FullName} type.");
                 }
+
                 var counterAttributeInstance = Activator.CreateInstance<CounterTypeAttribute>();
                 if (prop.PropertyType.CustomAttributes == null || !prop.PropertyType.CustomAttributes.Any(x => x.AttributeType.FullName == counterAttributeInstance.GetType().FullName))
                 {
@@ -71,7 +77,7 @@ namespace Wist.Core.PerformanceCounters
                 var counterList = GetCounterCreationData(prop.PropertyType, attr);
                 counterCreationDataCollection.AddRange(counterList.ToArray());
             }
-
+            
             PerformanceCounterCategory.Create(categoryAttr.Name, categoryAttr.Help, PerformanceCounterCategoryType.MultiInstance, counterCreationDataCollection);
         }
 

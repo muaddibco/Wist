@@ -5,10 +5,10 @@ namespace Wist.Core.PerformanceCounters
     [CounterType(CounterType = PerformanceCounterType.NumberOfItems64)]
     public class IntegerCounter : PerformanceCounterBase, IPerformanceCounter<long>
     {
-        public IntegerCounter(string categoryName, string counterName, string instanceName, bool readOnly = false) :
-            base(categoryName, counterName, instanceName, PerformanceCounterType.NumberOfItems64, readOnly)
-        {
-        }
+        //public IntegerCounter(string categoryName, string counterName, string instanceName, bool readOnly = false) :
+        //    base(categoryName, counterName, instanceName, PerformanceCounterType.NumberOfItems64, readOnly)
+        //{
+        //}
 
         public long Decrement()
         {

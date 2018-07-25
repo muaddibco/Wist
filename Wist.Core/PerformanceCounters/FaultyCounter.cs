@@ -4,10 +4,10 @@ namespace Wist.Core.PerformanceCounters
 {
     public class FaultyCounter : PerformanceCounterBase, IPerformanceCounter<long>
     {
-        public FaultyCounter(string categoryName, string counterName, string instanceName) :
-            base(categoryName, counterName, instanceName, PerformanceCounterType.NumberOfItems64)
-        {
-        }
+        //public FaultyCounter(string categoryName, string counterName, string instanceName) :
+        //    base(categoryName, counterName, instanceName, PerformanceCounterType.NumberOfItems64)
+        //{
+        //}
 
         public long Decrement()
         {

@@ -5,10 +5,10 @@ namespace Wist.Core.PerformanceCounters
     [CounterType(CounterType = PerformanceCounterType.RateOfCountsPerSecond32)]
     public class RateOfCountsPerSecondCounter : PerformanceCounterBase, IPerformanceCounter<long>
     {
-        public RateOfCountsPerSecondCounter(string categoryName, string counterName, string instanceName, bool readOnly = false) :
-            base(categoryName, counterName, instanceName, PerformanceCounterType.RateOfCountsPerSecond32, readOnly)
-        {
-        }
+        //public RateOfCountsPerSecondCounter(string categoryName, string counterName, string instanceName, bool readOnly = false) :
+        //    base(categoryName, counterName, instanceName, PerformanceCounterType.RateOfCountsPerSecond32, readOnly)
+        //{
+        //}
 
         public long Decrement()
         {

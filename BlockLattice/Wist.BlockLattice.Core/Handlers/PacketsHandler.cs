@@ -19,6 +19,8 @@ using Wist.Core.Logging;
 using System.Linq;
 using System.Threading.Tasks.Dataflow;
 using Wist.Core.ProofOfWork;
+using Wist.Core.PerformanceCounters;
+using Wist.BlockLattice.Core.PerformanceCounters;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
@@ -32,12 +34,13 @@ namespace Wist.BlockLattice.Core.Handlers
         private readonly IProofOfWorkCalculationRepository _proofOfWorkCalculationRepository;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
         private readonly ManualResetEventSlim _messageTrigger;
+        private readonly EndToEndCountersService _endToEndCountersService;
 
         private CancellationTokenSource _cancellationTokenSource;
 
         public bool IsInitialized { get; private set; }
 
-        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersRepositoriesRepository blockParsersFactoriesRepository, IBlocksHandlersFactory blocksProcessorFactory, IProofOfWorkCalculationRepository proofOfWorkCalculationFactory, ILoggerService loggerService)
+        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersRepositoriesRepository blockParsersFactoriesRepository, IBlocksHandlersFactory blocksProcessorFactory, IProofOfWorkCalculationRepository proofOfWorkCalculationFactory, IPerformanceCountersRepository performanceCountersRepository, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
@@ -46,6 +49,7 @@ namespace Wist.BlockLattice.Core.Handlers
             _proofOfWorkCalculationRepository = proofOfWorkCalculationFactory;
             _messagePackets = new ConcurrentQueue<byte[]>();
             _messageTrigger = new ManualResetEventSlim();
+            _endToEndCountersService = performanceCountersRepository.GetInstance<EndToEndCountersService>();
         }
 
         public void Initialize()
@@ -129,6 +133,8 @@ namespace Wist.BlockLattice.Core.Handlers
 
         private void ProcessMessagePacket(byte[] messagePacket)
         {
+            _endToEndCountersService.TransactionsThroughput.Increment();
+
             _log.Debug("ProcessMessagePacket started");
 
             if (messagePacket == null)

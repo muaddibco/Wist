@@ -8,10 +8,18 @@ namespace Wist.Core.PerformanceCounters
     [CounterType(CounterType = PerformanceCounterType.AverageCount64)]
     public class SuccessRateCounter : PerformanceCounterBase
     {
-        public SuccessRateCounter(string categoryName, string counterName, string instanceName) :
-            base(categoryName, counterName, instanceName, PerformanceCounterType.AverageCount64, false)
+        //public SuccessRateCounter(string categoryName, string counterName, string instanceName) :
+        //    base(categoryName, counterName, instanceName, PerformanceCounterType.AverageCount64, false)
+        //{
+        //    baseCounter = new AverageBaseCounter(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName);
+        //}
+
+        public override void Initialize(string categoryName, string counterName, string instanceName, PerformanceCounterType expectedType)
         {
-            baseCounter = new AverageBaseCounter(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName);
+            base.Initialize(categoryName, counterName, instanceName, expectedType);
+
+            baseCounter = new AverageBaseCounter();
+            baseCounter.Initialize(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName, PerformanceCounterType.AverageBase);
         }
 
         public long Success()

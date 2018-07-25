@@ -141,6 +141,9 @@
   <data name="ERR_MANDATORY_INTERFACE_NOT_IMPLEMENTED" xml:space="preserve">
     <value>Aspect {0} requires inheritance/implementation of type {1} that is not implemented by type {2}.</value>
   </data>
+  <data name="ERR_PERFORMANCE_COUNTERS_SERVICE_NOT_SUPPORTED" xml:space="preserve">
+    <value>Performance Counters service with name '{0}' is not supported.</value>
+  </data>
   <data name="ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED" xml:space="preserve">
     <value>Proof of work algorithm {0} not supported.</value>
   </data>

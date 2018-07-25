@@ -2,7 +2,7 @@
 
 namespace Wist.Core.PerformanceCounters
 {
-    [AttributeUsage(AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public sealed class PerfCounterCategoryAttribute : Attribute
     {
         static PerfCounterCategoryAttribute()
