@@ -182,7 +182,11 @@ namespace Wist.Communication.Sockets
                 {
                     communicationChannel = CreateChannel(new IPEndPoint(address, _settings.RemotePort));
 
-                    communicationChannel?.PostMessage(messageByKey.Value);
+                    if (communicationChannel != null)
+                    {
+                        _clientConnectedList.Add(communicationChannel);
+                        communicationChannel.PostMessage(messageByKey.Value);
+                    }
                 }
             }
         }
@@ -190,6 +194,7 @@ namespace Wist.Communication.Sockets
         protected ICommunicationChannel CreateChannel(EndPoint endPoint)
         {
             ICommunicationChannel communicationChannel = null;
+
             if (_communicationChannelsPool.Count > 0)
             {
                 communicationChannel = _communicationChannelsPool.Pop();
@@ -222,6 +227,10 @@ namespace Wist.Communication.Sockets
                         socketConnectAsyncEventArgs.Completed -= Connect_Completed;
                     }
                 }
+            }
+            else
+            {
+                _log.Error("No more room for communication channels left");
             }
 
             return communicationChannel;

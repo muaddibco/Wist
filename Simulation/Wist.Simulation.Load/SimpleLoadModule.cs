@@ -12,9 +12,11 @@ using Wist.Core.Configuration;
 using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
+using Wist.Core.PerformanceCounters;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Roles;
 using Wist.Simulation.Load.Configuration;
+using Wist.Simulation.Load.PerformanceCounters;
 
 namespace Wist.Simulation.Load
 {
@@ -29,8 +31,9 @@ namespace Wist.Simulation.Load
         private readonly INodesDataService _nodesDataService;
         private readonly ICryptoService _cryptoService;
         private readonly IIdentityKeyProvider _identityKeyProvider;
+        private readonly SimpleLoadCountersService _simpleLoadCountersService;
 
-        public SimpleLoadModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService) 
+        public SimpleLoadModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository) 
             : base(loggerService)
         {
             _communicationService = clientCommunicationServiceRepository.GetInstance(nameof(TcpClientCommunicationService));
@@ -39,6 +42,7 @@ namespace Wist.Simulation.Load
             _nodesDataService = nodesDataService;
             _cryptoService = cryptoService;
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
+            _simpleLoadCountersService = performanceCountersRepository.GetInstance<SimpleLoadCountersService>();
         }
 
         public override string Name => nameof(SimpleLoadModule);
@@ -64,19 +68,27 @@ namespace Wist.Simulation.Load
 
             _nodesDataService.Add(node);
 
-
-            SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock()
+            int index = 0;
+            do
             {
-                SyncBlockOrder = 0,
-                BlockHeight = 1,
-                Key = key,
-                ReportedTime = DateTime.Now,
-                Round = 1,
-                HashPrev = new byte[Globals.HASH_SIZE]
-            };
+                unchecked
+                {
+                    SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock()
+                    {
+                        SyncBlockOrder = 0,
+                        BlockHeight = (ulong)++index,
+                        Key = key,
+                        ReportedTime = DateTime.Now,
+                        Round = 1,
+                        HashPrev = new byte[Globals.HASH_SIZE]
+                    };
 
-            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);
-            _communicationService.PostMessage(keyTarget, signatureSupportSerializer);
+                    ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);
+                    _communicationService.PostMessage(keyTarget, signatureSupportSerializer);
+
+                    _simpleLoadCountersService.SentMessages.Increment();
+                }
+            } while (true);
         }
 
         private byte[] GetRandomSeed()

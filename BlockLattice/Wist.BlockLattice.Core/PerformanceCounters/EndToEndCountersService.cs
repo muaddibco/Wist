@@ -4,13 +4,20 @@ using Wist.Core.PerformanceCounters;
 
 namespace Wist.BlockLattice.Core.PerformanceCounters
 {
-    [PerfCounterCategory("WistTransactionsMeasurement")]
+    [PerfCounterCategory("Wist E2E Measurements")]
     [RegisterExtension(typeof(IPerformanceCountersCategoryBase), Lifetime = LifetimeManagement.Singleton)]
     public class EndToEndCountersService : PerformanceCountersCategoryBase
     {
+        public EndToEndCountersService(IApplicationContext applicationContext) : base(applicationContext)
+        {
+        }
+
         public override string Name => "EndToEndCounters";
 
-        [PerfCounter(nameof(TransactionsThroughput), "End to end transactions throughput")]
-        public RateOfCountsPerSecondCounter TransactionsThroughput { get; set; }
+        [PerfCounter(nameof(HandlingTransactionsThroughput), "Throughput of transactions being handled")]
+        public RateOfCountsPerSecondCounter HandlingTransactionsThroughput { get; set; }
+
+        [PerfCounter(nameof(PushedForHandlingTransactionsThroughput), "Throughput of transactions pushed for handling")]
+        public RateOfCountsPerSecondCounter PushedForHandlingTransactionsThroughput { get; set; }
     }
 }

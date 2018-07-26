@@ -1,4 +1,5 @@
-﻿using Unity;
+﻿using System.Diagnostics;
+using Unity;
 using Wist.Core.Architecture.Enums;
 
 namespace Wist.Core.Architecture
@@ -8,9 +9,12 @@ namespace Wist.Core.Architecture
     {
         public ApplicationContext()
         {
+            InstanceName = Process.GetCurrentProcess().ProcessName;
         }
 
         public UnityContainer Container { get; set; }
+
+        public string InstanceName { get; set; }
     }
 
 }

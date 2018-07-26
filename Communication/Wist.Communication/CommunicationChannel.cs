@@ -18,6 +18,8 @@ using Wist.Communication.Exceptions;
 using Wist.Core.ExtensionMethods;
 using System.Buffers.Binary;
 using System.Collections;
+using Wist.Core.PerformanceCounters;
+using Wist.Communication.PerformanceCounters;
 
 namespace Wist.Communication
 {
@@ -33,11 +35,14 @@ namespace Wist.Communication
         private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
         private readonly SocketAsyncEventArgs _socketSendAsyncEventArgs;
         private readonly ManualResetEventSlim _socketAcceptedEvent;
+        private readonly ManualResetEventSlim _socketSendEvent;
         private readonly MemoryStream _memoryStream;
         private readonly BinaryWriter _binaryWriter;
+        private readonly CommunicationCountersService _communicationCountersService;
         
         private IPacketsHandler _packetsHandler;
         private CancellationTokenSource _cancellationTokenSource;
+        private CancellationToken _cancellationToken;
 
         public const byte STX = 0x02;
         public const byte DLE = 0x10;
@@ -59,7 +64,7 @@ namespace Wist.Communication
         private uint _packetLengthExpected;
         private uint _packetLengthRemained;
 
-        private bool _isSending;
+        private bool _isSendProcessing;
         private bool _isBusy;
         private bool _disposed = false; // To detect redundant calls
 
@@ -67,7 +72,7 @@ namespace Wist.Communication
 
         public event EventHandler<EventArgs> SocketClosedEvent;
 
-        public CommunicationChannel(ILoggerService loggerService)
+        public CommunicationChannel(ILoggerService loggerService, IPerformanceCountersRepository performanceCountersRepository)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _packets = new Queue<byte[]>();
@@ -78,9 +83,12 @@ namespace Wist.Communication
             _socketSendAsyncEventArgs = new SocketAsyncEventArgs();
             _socketSendAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Send_Completed);
             _socketAcceptedEvent = new ManualResetEventSlim(false);
+            _socketSendEvent = new ManualResetEventSlim();
 
             _memoryStream = new MemoryStream();
             _binaryWriter = new BinaryWriter(_memoryStream);
+
+            _communicationCountersService = performanceCountersRepository?.GetInstance<CommunicationCountersService>();
         }
 
         #region ICommunicationChannel implementation
@@ -110,6 +118,11 @@ namespace Wist.Communication
 
         public void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler)
         {
+            _cancellationTokenSource?.Cancel();
+
+            _cancellationTokenSource = new CancellationTokenSource();
+            _cancellationToken = _cancellationTokenSource.Token;
+
             _bufferManager = bufferManager;
             _packetsHandler = packetsHandler;
 
@@ -125,6 +138,8 @@ namespace Wist.Communication
 
         public void AcceptSocket(Socket acceptSocket)
         {
+            _communicationCountersService?.CommunicationChannels.Increment();
+
             _log.Info($"Socket accepted by Communication channel.  Remote endpoint = {IPAddress.Parse(((IPEndPoint)acceptSocket.LocalEndPoint).Address.ToString())}:{((IPEndPoint)acceptSocket.LocalEndPoint).Port.ToString()}");
 
             if (acceptSocket.Connected)
@@ -147,9 +162,9 @@ namespace Wist.Communication
             {
                 _postedMessages.Enqueue(message);
 
-                if (!_isSending)
+                if (!_isSendProcessing)
                 {
-                    _isSending = true;
+                    _isSendProcessing = true;
 
                     Task.Factory.StartNew(() => StartSend(), TaskCreationOptions.LongRunning);
                 }
@@ -188,6 +203,7 @@ namespace Wist.Communication
         {
             if (e.LastOperation == SocketAsyncOperation.Send)
             {
+                _socketSendEvent.Set();
                 _log.Info($"Send_Completed to IP {RemoteIPAddress}");
 
                 ProcessSend();
@@ -224,6 +240,7 @@ namespace Wist.Communication
         {
             if (_socketReceiveAsyncEventArgs.SocketError != SocketError.Success)
             {
+                _communicationCountersService?.CommunicationErrors.Increment();
                 _log.Error($"ProcessReceive ended with SocketError={_socketReceiveAsyncEventArgs.SocketError} from IP {RemoteIPAddress}");
 
                 CloseClientSocket();
@@ -232,6 +249,7 @@ namespace Wist.Communication
             }
             
             Int32 remainingBytesToProcess = _socketReceiveAsyncEventArgs.BytesTransferred;
+            _communicationCountersService?.BytesReceived.IncrementBy(remainingBytesToProcess);
 
             if (_onReceivedExtendedValidation?.Invoke(this, _socketReceiveAsyncEventArgs.RemoteEndPoint as IPEndPoint, remainingBytesToProcess) ?? true)
             {
@@ -248,6 +266,7 @@ namespace Wist.Communication
 
         private void CloseClientSocket()
         {
+            _communicationCountersService?.CommunicationChannels.Decrement();
             _log.Info($"Closing client socket with IP {RemoteIPAddress}");
 
             try
@@ -260,6 +279,7 @@ namespace Wist.Communication
                 _log.Warning($"Socket shutdown failed for IP {RemoteIPAddress}", ex);
             }
 
+            _isSendProcessing = false;
             _socketReceiveAsyncEventArgs.AcceptSocket.Close();
             
             _bufferManager.FreeBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
@@ -311,6 +331,9 @@ namespace Wist.Communication
         {
             _socketAcceptedEvent.Wait();
 
+            if (_cancellationToken.IsCancellationRequested)
+                return;
+
             try
             {
                 if (_postMessageRemainedBytes == 0)
@@ -333,7 +356,7 @@ namespace Wist.Communication
                         }
                         else
                         {
-                            _isSending = false;
+                            _isSendProcessing = false;
                             return;
                         }
                     }
@@ -345,16 +368,23 @@ namespace Wist.Communication
                     length = _postMessageRemainedBytes;
                 }
 
+                _communicationCountersService?.BytesSent.IncrementBy(length);
+
                 _socketSendAsyncEventArgs.SetBuffer(_offsetSend, length);
                 Buffer.BlockCopy(_currentPostMessage, _currentPostMessage.Length - _postMessageRemainedBytes, _socketSendAsyncEventArgs.Buffer, _offsetSend, length);
 
                 _log.Debug($"Sending bytes: {_socketSendAsyncEventArgs.Buffer.ToHexString(_socketSendAsyncEventArgs.Offset, length)}");
 
+                _socketSendEvent.Reset();
                 bool willRaiseEvent = _socketSendAsyncEventArgs.AcceptSocket.SendAsync(_socketSendAsyncEventArgs);
 
                 if (!willRaiseEvent)
                 {
                     ProcessSend();
+                }
+                else
+                {
+                    _socketSendEvent.Wait(_cancellationToken);
                 }
             }
             catch (Exception ex)
@@ -362,25 +392,22 @@ namespace Wist.Communication
                 _log.Error($"Failure during StartSend to IP {RemoteIPAddress}", ex);
                 CloseClientSocket();
             }
-            finally
-            {
-                _isSending = false;
-            }
         }
 
         private void ProcessSend()
         {
+            _postMessageRemainedBytes -= _socketSendAsyncEventArgs.BytesTransferred;
+
             try
             {
-                _postMessageRemainedBytes -= _socketSendAsyncEventArgs.BytesTransferred;
-
                 if (_socketSendAsyncEventArgs.SocketError == SocketError.Success)
                 {
                     StartSend();
                 }
                 else
                 {
-                    _isSending = false;
+                    _communicationCountersService?.CommunicationErrors.Increment();
+                    _isSendProcessing = false;
                     CloseClientSocket();
                 }
             }
@@ -549,7 +576,10 @@ namespace Wist.Communication
         {
             do
             {
-                _tempLengthBuf[_tempLengthBufSize++] = _currentBuf[offset++];
+                if (offset < _currentBuf.Length)
+                {
+                    _tempLengthBuf[_tempLengthBufSize++] = _currentBuf[offset++];
+                }
 
             } while (_currentBuf.Length >= offset && _tempLengthBufSize < 8);
 

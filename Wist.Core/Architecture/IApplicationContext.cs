@@ -9,5 +9,7 @@ namespace Wist.Core.Architecture
     public interface IApplicationContext
     {
         UnityContainer Container { get; set; }
+
+        string InstanceName { get; set; }
     }
 }

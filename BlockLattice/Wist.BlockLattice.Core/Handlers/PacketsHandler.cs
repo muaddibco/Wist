@@ -66,6 +66,7 @@ namespace Wist.BlockLattice.Core.Handlers
         /// <param name="messagePacket">Bytes of complete message for following processing</param>
         public void Push(byte[] messagePacket)
         {
+            _endToEndCountersService.PushedForHandlingTransactionsThroughput.Increment();
             _log.Debug($"Pushed packer for handling: {messagePacket.ToHexString()}");
             _messagePackets.Enqueue(messagePacket);
             _messageTrigger.Set();
@@ -133,7 +134,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
         private void ProcessMessagePacket(byte[] messagePacket)
         {
-            _endToEndCountersService.TransactionsThroughput.Increment();
+            _endToEndCountersService.HandlingTransactionsThroughput.Increment();
 
             _log.Debug("ProcessMessagePacket started");
 
