@@ -123,4 +123,7 @@
   <data name="ERR_MAX_MESSAGE_SIZE_EXCEEDED" xml:space="preserve">
     <value>Packet exceeded max message size limit.</value>
   </data>
+  <data name="ERR_SOCKET_IS_DISCONNECTED" xml:space="preserve">
+    <value>Socket with remote end point {0}:{1} is disconnected unexpectedly</value>
+  </data>
 </root>

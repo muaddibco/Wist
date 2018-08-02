@@ -1,23 +1,17 @@
 ﻿using Wist.Communication.Interfaces;
-using log4net;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wist.BlockLattice.Core.Interfaces;
-using Wist.Core.Communication;
 using Wist.Core.Logging;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using System.IO;
-using Wist.Communication.Exceptions;
 using Wist.Core.ExtensionMethods;
-using System.Buffers.Binary;
-using System.Collections;
 using Wist.Core.PerformanceCounters;
 using Wist.Communication.PerformanceCounters;
 
@@ -28,8 +22,7 @@ namespace Wist.Communication
     {
         private readonly object _sync = new object();
         private readonly ILogger _log;
-        private readonly Queue<byte[]> _packets;
-        private readonly Queue<byte[]> _messagePackets;
+        private readonly ConcurrentQueue<byte[]> _packets;
         private readonly ConcurrentQueue<byte[]> _postedMessages;
         private IBufferManager _bufferManager;
         private readonly SocketAsyncEventArgs _socketReceiveAsyncEventArgs;
@@ -50,19 +43,9 @@ namespace Wist.Communication
         private int _offsetReceive;
         private int _offsetSend;
 
-        private byte[] _currentBuf;
-        private byte[] _currentPacket;
         private byte[] _currentPostMessage;
         private int _postMessageRemainedBytes;
 
-        private byte[] _tempLengthBuf = new byte[8]; // Packet size can include up to 8 bytes because if length bytes values are equal to either DLE or STX they'll be encoded with DLE
-        private byte _tempLengthBufSize = 0;
-
-        private bool _packetStartFound;
-        private bool _lastPrevBufByteIsDle;
-        private bool _lengthIsSet;
-        private uint _packetLengthExpected;
-        private uint _packetLengthRemained;
 
         private bool _isSendProcessing;
         private bool _isBusy;
@@ -75,8 +58,7 @@ namespace Wist.Communication
         public CommunicationChannel(ILoggerService loggerService, IPerformanceCountersRepository performanceCountersRepository)
         {
             _log = loggerService.GetLogger(GetType().Name);
-            _packets = new Queue<byte[]>();
-            _messagePackets = new Queue<byte[]>();
+            _packets = new ConcurrentQueue<byte[]>();
             _postedMessages = new ConcurrentQueue<byte[]>();
             _socketReceiveAsyncEventArgs = new SocketAsyncEventArgs();
             _socketReceiveAsyncEventArgs.Completed += new EventHandler<SocketAsyncEventArgs>(Receive_Completed);
@@ -93,8 +75,6 @@ namespace Wist.Communication
 
         #region ICommunicationChannel implementation
 
-        public Queue<byte[]> MessagePackets => _messagePackets;
-
         public IPAddress RemoteIPAddress { get; set; } = IPAddress.None;
 
         public void PushForParsing(byte[] buf, int offset, int count)
@@ -106,7 +86,15 @@ namespace Wist.Communication
 
                 _log.Debug(packet.ToHexString());
 
-                _packets.Enqueue(packet);
+                if (packet != null)
+                {
+                    _communicationCountersService.ParsingQueueSize.Increment();
+                    _packets.Enqueue(packet);
+                }
+                else
+                {
+
+                }
 
                 ParseReceivedData();
             }
@@ -218,22 +206,36 @@ namespace Wist.Communication
         {
             _log.Info($"Start receive from IP {RemoteIPAddress}");
 
-            try
+            if(!_socketReceiveAsyncEventArgs.AcceptSocket.Connected)
             {
-                bool willRaiseEvent = _socketReceiveAsyncEventArgs.AcceptSocket.ReceiveAsync(_socketReceiveAsyncEventArgs);
 
-                if (!willRaiseEvent)
+            }
+
+            //if (_socketReceiveAsyncEventArgs.AcceptSocket.Connected)
+            {
+                try
                 {
-                    _log.Info($"Going to ProcessReceive from IP {RemoteIPAddress}");
+                    bool willRaiseEvent = _socketReceiveAsyncEventArgs.AcceptSocket.ReceiveAsync(_socketReceiveAsyncEventArgs);
 
-                    ProcessReceive();
+                    if (!willRaiseEvent)
+                    {
+                        _log.Info($"Going to ProcessReceive from IP {RemoteIPAddress}");
+
+                        ProcessReceive();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Failure during StartReceive from IP {RemoteIPAddress}", ex);
+                    throw;
                 }
             }
-            catch (Exception ex)
-            {
-                _log.Error($"Failure during StartReceive from IP {RemoteIPAddress}", ex);
-                throw;
-            }
+            //else
+            //{
+            //    SocketIsDisconnectedException socketIsDisconnectedException = new SocketIsDisconnectedException((IPEndPoint)_socketReceiveAsyncEventArgs.AcceptSocket.RemoteEndPoint);
+            //    _log.Error("Unexpected socket disconnection", socketIsDisconnectedException);
+            //    throw socketIsDisconnectedException;
+            //}
         }
 
         private void ProcessReceive()
@@ -281,8 +283,6 @@ namespace Wist.Communication
 
             _isSendProcessing = false;
             _socketReceiveAsyncEventArgs.AcceptSocket.Close();
-            
-            _bufferManager.FreeBuffer(_socketReceiveAsyncEventArgs, _socketSendAsyncEventArgs);
 
             SocketClosedEvent?.Invoke(this, null);
         }
@@ -428,8 +428,16 @@ namespace Wist.Communication
             if (_isBusy)
                 return;
 
-            Task.Run(() =>
+            Task.Factory.StartNew(() =>
             {
+                byte[] currentPacket = null;
+                byte[] tempLengthBuf = new byte[8]; // Packet size can include up to 8 bytes because if length bytes values are equal to either DLE or STX they'll be encoded with DLE
+                byte tempLengthBufSize = 0;
+                bool lengthIsSet = false;
+                bool packetStartFound = false;
+                bool lastPrevBufByteIsDle = false;
+                uint packetLengthExpected = 0, packetLengthRemained = 0;
+
                 lock (_sync)
                 {
                     if (_isBusy)
@@ -442,72 +450,64 @@ namespace Wist.Communication
                 {
                     while (_packets.Count > 0)
                     {
-                        _currentBuf = _packets.Dequeue();
+                        byte[] currentBuf;
 
-                        _log.Debug($"Picked bytes for parsing: {_currentBuf.ToHexString()}");
+                        if (!_packets.TryDequeue(out currentBuf))
+                            continue;
+
+                        _communicationCountersService.ParsingQueueSize.Decrement();
+
+                        if (currentBuf == null)
+                            continue;
+
+                        _log.Debug($"Picked bytes for parsing: {currentBuf.ToHexString()}");
 
                         int offset = 0;
 
                         do
                         {
-                            if (!_packetStartFound)
+                            if (!packetStartFound)
                             {
-                                if (_lastPrevBufByteIsDle && _currentBuf[0] == STX)
-                                {
-                                    _packetStartFound = true;
-                                    offset++;
-                                }
-                                else
-                                {
-                                    for (; offset < _currentBuf.Length - 1; offset++)
-                                    {
-                                        if (_currentBuf[offset] == DLE && _currentBuf[offset + 1] == STX)
-                                        {
-                                            _packetStartFound = true;
-                                            offset += 2;
-                                            break;
-                                        }
-                                    }
-
-                                    if (!_packetStartFound)
-                                    {
-                                        offset++;
-                                        _lastPrevBufByteIsDle = _currentBuf[_currentBuf.Length - 1] == DLE;
-                                    }
-                                }
+                                packetStartFound = CheckPacketStart(ref lastPrevBufByteIsDle, currentBuf, ref offset);
                             }
 
-                            if (_packetStartFound)
+                            if (packetStartFound)
                             {
-                                if (!_lengthIsSet)
+                                if (!lengthIsSet)
                                 {
-                                    offset = SetPacketLength(offset);
+                                    lengthIsSet = TryGetPacketLength(ref offset, currentBuf, out packetLengthExpected, out packetLengthRemained, tempLengthBuf, ref tempLengthBufSize);
                                 }
 
-                                if (_lengthIsSet)
+                                if (lengthIsSet)
                                 {
-                                    if (_packetLengthRemained == _packetLengthExpected)
+                                    if (currentPacket == null)
                                     {
-                                        _currentPacket = new byte[_packetLengthExpected];
+                                        currentPacket = new byte[packetLengthExpected];
                                     }
 
-                                    if (_currentBuf.Length > offset)
+                                    if (currentBuf.Length > offset)
                                     {
-                                        ushort bytesToCopy = (ushort)Math.Min(_currentBuf.Length - offset, _packetLengthRemained);
+                                        ushort bytesToCopy = (ushort)Math.Min(currentBuf.Length - offset, packetLengthRemained);
                                         //TODO: seems will be bug with huge packets!!!
-                                        Buffer.BlockCopy(_currentBuf, offset, _currentPacket, (int)(_packetLengthExpected - _packetLengthRemained), bytesToCopy);
-                                        _packetLengthRemained -= bytesToCopy;
+                                        Buffer.BlockCopy(currentBuf, offset, currentPacket, (int)(packetLengthExpected - packetLengthRemained), bytesToCopy);
+                                        packetLengthRemained -= bytesToCopy;
                                         offset += bytesToCopy;
 
-                                        if (_packetLengthRemained == 0)
+                                        if (packetLengthRemained == 0)
                                         {
-                                            _packetsHandler.Push(_currentPacket);
-                                            Reset();
+                                            _packetsHandler.Push(currentPacket);
+                                            currentPacket = null;
+                                            lengthIsSet = false;
+                                            packetStartFound = false;
+                                            lastPrevBufByteIsDle = false;
+                                            packetLengthExpected = 0;
+                                            packetLengthRemained = 0;
+                                            tempLengthBufSize = 0;
                                         }
                                     }
                                 }
                             }
-                        } while (_currentBuf.Length > offset);
+                        } while (currentBuf.Length > offset);
                     }
 
                     _isBusy = false;
@@ -524,17 +524,37 @@ namespace Wist.Communication
                         ParseReceivedData();
                     }
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
         }
 
-        private void Reset()
+        private static bool CheckPacketStart(ref bool lastPrevBufByteIsDle, byte[] currentBuf, ref int offset)
         {
-            _packetStartFound = false;
-            _lengthIsSet = false;
-            _lastPrevBufByteIsDle = false;
-            _packetLengthExpected = 0;
-            _packetLengthRemained = 0;
-            _tempLengthBufSize = 0;
+            bool packetStartFound = false;
+            if (lastPrevBufByteIsDle && currentBuf[0] == STX)
+            {
+                packetStartFound = true;
+                offset++;
+            }
+            else
+            {
+                for (; offset < currentBuf.Length - 1; offset++)
+                {
+                    if (currentBuf[offset] == DLE && currentBuf[offset + 1] == STX)
+                    {
+                        packetStartFound = true;
+                        offset += 2;
+                        break;
+                    }
+                }
+
+                if (!packetStartFound)
+                {
+                    offset++;
+                    lastPrevBufByteIsDle = currentBuf[currentBuf.Length - 1] == DLE;
+                }
+            }
+
+            return packetStartFound;
         }
 
         private bool TryFetchLength(byte[] buffer, int bufLen, out uint length)
@@ -572,28 +592,33 @@ namespace Wist.Communication
             return false;
         }
 
-        private int SetPacketLength(int offset)
+        private bool TryGetPacketLength(ref int offset, byte[] currentBuf, out uint packetLengthExpected, out uint packetLengthRemained, byte[] tempLengthBuf, ref byte tempLengthBufSize)
         {
+            packetLengthExpected = 0;
+            packetLengthRemained = 0;
+
+            bool lengthIsSet = false;
+
             do
             {
-                if (offset < _currentBuf.Length)
+                if (offset < currentBuf.Length)
                 {
-                    _tempLengthBuf[_tempLengthBufSize++] = _currentBuf[offset++];
+                    tempLengthBuf[tempLengthBufSize++] = currentBuf[offset++];
                 }
 
-            } while (_currentBuf.Length >= offset && _tempLengthBufSize < 8);
+            } while (currentBuf.Length > offset && tempLengthBufSize < 8);
 
-            if (_tempLengthBufSize == 8)
+            if (tempLengthBufSize == 8)
             {
-                _lengthIsSet = TryFetchLength(_tempLengthBuf, _tempLengthBufSize, out _packetLengthExpected);
+                lengthIsSet = TryFetchLength(tempLengthBuf, tempLengthBufSize, out packetLengthExpected);
 
-                if (_lengthIsSet)
+                if (lengthIsSet)
                 {
-                    _packetLengthRemained = _packetLengthExpected;
+                    packetLengthRemained = packetLengthExpected;
                 }
             }
 
-            return offset;
+            return lengthIsSet;
         }
 
         #endregion Parsing functionality

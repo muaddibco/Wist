@@ -16,8 +16,6 @@ namespace Wist.Communication.Interfaces
 
         IPAddress RemoteIPAddress { get; }
 
-        Queue<byte[]> MessagePackets { get; }
-
         void PushForParsing(byte[] buf, int offset, int count);
 
         void Init(IBufferManager bufferManager, IPacketsHandler packetsHandler);

@@ -31,5 +31,20 @@ namespace Wist.Core.PerformanceCounters
                 }
             }
         }
+
+        public void Setup()
+        {
+            foreach (IPerformanceCountersCategoryBase perfCounterCategory in _performanceCountersCategoryBases)
+            {
+                try
+                {
+                    perfCounterCategory.Setup();
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Failed to initialize PerformanceCategory {perfCounterCategory.Name}", ex);
+                }
+            }
+        }
     }
 }

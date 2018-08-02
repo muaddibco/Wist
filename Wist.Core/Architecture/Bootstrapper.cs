@@ -53,7 +53,7 @@ namespace Wist.Core.Architecture
             }
         }
 
-        private void InitializeConfiguration()
+        protected virtual void InitializeConfiguration()
         {
             IEnumerable<IConfigurationSection> configurationSections = Container.ResolveAll<IConfigurationSection>();
 
@@ -63,7 +63,7 @@ namespace Wist.Core.Architecture
             }
         }
 
-        private void RunInitializers()
+        protected virtual void RunInitializers()
         {
             _log.Info("Running initializers started");
 
@@ -132,7 +132,7 @@ namespace Wist.Core.Architecture
             }
         }
 
-        private void ConfigureServiceLocator()
+        protected virtual void ConfigureServiceLocator()
         {
             _log.Info("ServiceLocator Configuration started");
             try
@@ -171,7 +171,7 @@ namespace Wist.Core.Architecture
             }
         }
 
-        private void ConfigureContainer()
+        protected virtual void ConfigureContainer()
         {
             _log.Info("Container Configuration started");
             try

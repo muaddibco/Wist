@@ -172,22 +172,32 @@ namespace Wist.Communication.Sockets
             {
                 IPAddress address = _nodesResolutionService.ResolveNodeAddress(messageByKey.Key);
 
-                ICommunicationChannel communicationChannel = _clientConnectedList.FirstOrDefault(c => c.RemoteIPAddress.Equals(address));
+                ICommunicationChannel communicationChannel = GetChannel(address);
 
                 if (communicationChannel != null)
                 {
                     communicationChannel.PostMessage(messageByKey.Value);
                 }
-                else
+            }
+        }
+
+        protected ICommunicationChannel GetChannel(IPAddress address)
+        {
+            //TODO: implement double check with lock for sake of better performance
+            lock (_communicationChannelsPool)
+            {
+                ICommunicationChannel communicationChannel = _clientConnectedList.FirstOrDefault(c => c.RemoteIPAddress.Equals(address));
+                if (communicationChannel == null)
                 {
                     communicationChannel = CreateChannel(new IPEndPoint(address, _settings.RemotePort));
 
                     if (communicationChannel != null)
                     {
                         _clientConnectedList.Add(communicationChannel);
-                        communicationChannel.PostMessage(messageByKey.Value);
                     }
                 }
+
+                return communicationChannel;
             }
         }
 

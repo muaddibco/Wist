@@ -21,9 +21,6 @@ namespace Wist.Core.PerformanceCounters
 
         public void Initialize()
         {
-            CategoryFactory.UnregisterContract(GetType());
-            CategoryFactory.RegisterContract(GetType());
-
             var categoryAttr = GetType().GetCustomAttribute<PerfCounterCategoryAttribute>();
             if (null == categoryAttr)
             {
@@ -41,6 +38,12 @@ namespace Wist.Core.PerformanceCounters
                     prop.SetValue(this, performanceCounterBase);//, BindingFlags.CreateInstance |BindingFlags.Public |BindingFlags.Instance, null, new object[] { categoryAttr.Name, prop.Name, "Wist" }));
                 }
             }
+        }
+
+        public void Setup()
+        {
+            CategoryFactory.UnregisterContract(GetType());
+            CategoryFactory.RegisterContract(GetType());
         }
     }
 }

@@ -39,7 +39,7 @@ namespace Wist.Node.Core
 
         #region Private Functions
 
-        private void StartNode()
+        protected virtual void StartNode()
         {
             _log.Info("Starting Node");
             try

@@ -28,5 +28,8 @@ namespace Wist.Communication.PerformanceCounters
 
         [PerfCounter(nameof(CommunicationErrors), "Rate of socket errors")]
         public RateOfCountsPerSecondCounter CommunicationErrors { get; set; }
+
+        [PerfCounter(nameof(ParsingQueueSize), "Size of parsing queue")]
+        public IntegerCounter ParsingQueueSize { get; set; }
     }
 }

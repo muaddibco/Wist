@@ -21,12 +21,14 @@ using System.Threading.Tasks.Dataflow;
 using Wist.Core.ProofOfWork;
 using Wist.Core.PerformanceCounters;
 using Wist.BlockLattice.Core.PerformanceCounters;
+using System.Diagnostics;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
     [RegisterDefaultImplementation(typeof(IPacketsHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class PacketsHandler : IPacketsHandler
     {
+        private const byte DLE = 0x10;
         private readonly ILogger _log;
         private readonly IPacketVerifiersRepository _chainTypeValidationHandlersFactory;
         private readonly IBlockParsersRepositoriesRepository _blockParsersFactoriesRepository;
@@ -69,6 +71,8 @@ namespace Wist.BlockLattice.Core.Handlers
             _endToEndCountersService.PushedForHandlingTransactionsThroughput.Increment();
             _log.Debug($"Pushed packer for handling: {messagePacket.ToHexString()}");
             _messagePackets.Enqueue(messagePacket);
+            _endToEndCountersService.MessagesQueueSize.Increment();
+
             _messageTrigger.Set();
         }
 
@@ -90,13 +94,13 @@ namespace Wist.BlockLattice.Core.Handlers
                 }
             }, TaskCreationOptions.LongRunning);
 
-            PeriodicTaskFactory.Start(() => 
+            PeriodicTaskFactory.Start(() =>
             {
-                if(_messagePackets.Count > 100)
+                if (_endToEndCountersService.ParallelParsers.RawValue > 0 && _messagePackets.Count / 10000 > _endToEndCountersService.ParallelParsers.RawValue)
                 {
                     Task.Factory.StartNew(() => Parse(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
                 }
-            }, 1000, cancelToken: _cancellationTokenSource.Token, delayInMilliseconds: 3000);
+            }, 3000, cancelToken: _cancellationTokenSource.Token, delayInMilliseconds: 3000);
 
             _log.Info("PacketsHandler started");
         }
@@ -110,30 +114,31 @@ namespace Wist.BlockLattice.Core.Handlers
             _log.Info("PacketsHandler stopped");
         }
 
-        private void ParseMain(CancellationToken token)
-        {
-            while(!token.IsCancellationRequested)
-            {
-                _messageTrigger.Reset();
-                Parse(token);
-                _messageTrigger.Wait();
-            }
-        }
-
         private void Parse(CancellationToken token)
         {
             _log.Info("Parse function starting");
-            byte[] messagePacket;
-            while (!token.IsCancellationRequested && _messagePackets.TryDequeue(out messagePacket))
+
+            try
             {
-                object @message = messagePacket;
-                Task.Factory.StartNew(m => ProcessMessagePacket((byte[])m), @message, token);
+                _endToEndCountersService.ParallelParsers.Increment();
+
+                byte[] messagePacket;
+                while (!token.IsCancellationRequested && _messagePackets.TryDequeue(out messagePacket))
+                {
+                    _endToEndCountersService.MessagesQueueSize.Decrement();
+                    ProcessMessagePacket(messagePacket);
+                }
             }
-            _log.Info("Parse function finished");
+            finally
+            {
+                _log.Info("Parse function finished");
+                _endToEndCountersService.ParallelParsers.Decrement();
+            }
         }
 
         private void ProcessMessagePacket(byte[] messagePacket)
         {
+            var handlingStopwatch = Stopwatch.StartNew();
             _endToEndCountersService.HandlingTransactionsThroughput.Increment();
 
             _log.Debug("ProcessMessagePacket started");
@@ -146,13 +151,17 @@ namespace Wist.BlockLattice.Core.Handlers
 
             try
             {
-                PacketType packetType = (PacketType)BitConverter.ToUInt16(messagePacket, 0);
+                byte[] decodedPacket = DecodeMessage(messagePacket);
 
-                bool res = ValidatePacket(packetType, messagePacket);
+                PacketType packetType = (PacketType)BitConverter.ToUInt16(decodedPacket, 0);
+
+                bool res = ValidatePacket(packetType, decodedPacket);
 
                 if (res)
                 {
-                    BlockBase blockBase = ParseMessagePacket(packetType, messagePacket);
+                    BlockBase blockBase = ParseMessagePacket(packetType, decodedPacket);
+
+                    blockBase.RawData = messagePacket;
 
                     DispatchBlock(blockBase);
                 }
@@ -161,6 +170,40 @@ namespace Wist.BlockLattice.Core.Handlers
             {
                 _log.Error($"Failed to process packet {messagePacket.ToHexString()}", ex);
             }
+            finally
+            {
+                handlingStopwatch.Stop();
+                _endToEndCountersService.PacketHandlingTimeMeasure.IncrementBy(handlingStopwatch.Elapsed);
+            }
+        }
+
+        private byte[] DecodeMessage(byte[] messagePacket)
+        {
+            MemoryStream memoryStream = new MemoryStream();
+
+            bool dleDetected = false;
+
+            foreach (byte b in messagePacket)
+            {
+                if(b != DLE)
+                {
+                    if (dleDetected)
+                    {
+                        dleDetected = false;
+                        memoryStream.WriteByte((byte)(b - DLE));
+                    }
+                    else
+                    {
+                        memoryStream.WriteByte(b);
+                    }
+                }
+                else
+                {
+                    dleDetected = true;
+                }
+            }
+
+            return memoryStream.ToArray();
         }
 
         private bool ValidatePacket(PacketType packetType, byte[] messagePacket)

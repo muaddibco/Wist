@@ -77,5 +77,14 @@ namespace Wist.Communication.Properties {
                 return ResourceManager.GetString("ERR_MAX_MESSAGE_SIZE_EXCEEDED", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Socket with remote end point {0}:{1} is disconnected unexpectedly.
+        /// </summary>
+        internal static string ERR_SOCKET_IS_DISCONNECTED {
+            get {
+                return ResourceManager.GetString("ERR_SOCKET_IS_DISCONNECTED", resourceCulture);
+            }
+        }
     }
 }

@@ -37,7 +37,6 @@ namespace Wist.BlockLattice.Core.Parsers
             FillBlockBaseHeader(blockBase, spanHeader);
 
             blockBase.BodyBytes = spanBody.ToArray();
-            blockBase.RawData = source;
 
             return blockBase;
         }

@@ -11,5 +11,7 @@ namespace Wist.Core.PerformanceCounters
         string Name { get; }
 
         void Initialize();
+
+        void Setup();
     }
 }
