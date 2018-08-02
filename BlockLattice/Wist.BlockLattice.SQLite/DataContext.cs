@@ -35,6 +35,8 @@ namespace Wist.BlockLattice.SQLite
 
         public DbSet<TransactionalGenesis> TransactionalGenesises { get; set; }
 
+        public DbSet<SynchronizationBlock> SynchronizationBlocks { get; set; }
+
         public void EnsureConfigurationCompleted()
         {
             _manualResetEventSlim.Wait();

@@ -21,21 +21,23 @@ namespace Wist.Node.Core.Synchronization
     public class SynchronizationReceivingHandler : IBlocksHandler
     {
         public const string NAME = "SynchronizationReceiving";
-        private readonly BlockingCollection<SynchronizationProducingBlock> _synchronizationBlocks;
+        private readonly BlockingCollection<SynchronizationConfirmedBlock> _synchronizationBlocks;
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly INeighborhoodState _neighborhoodState;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
+        private readonly IChainDataService _chainDataService;
         private IServerCommunicationService _communicationService;
         private uint _lastRetransmittedSyncBlockHeight;
 
-        public SynchronizationReceivingHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory)
+        public SynchronizationReceivingHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IChainDataServicesManager chainDataServicesManager)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _neighborhoodState = statesRepository.GetInstance<INeighborhoodState>();
-            _synchronizationBlocks = new BlockingCollection<SynchronizationProducingBlock>();
+            _synchronizationBlocks = new BlockingCollection<SynchronizationConfirmedBlock>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
+            _chainDataService = chainDataServicesManager.GetChainDataService(PacketType.Synchronization);
         }
 
         public string Name => NAME;
@@ -53,7 +55,7 @@ namespace Wist.Node.Core.Synchronization
 
         public void ProcessBlock(BlockBase blockBase)
         {
-            SynchronizationProducingBlock synchronizationBlock = blockBase as SynchronizationProducingBlock;
+            SynchronizationConfirmedBlock synchronizationBlock = blockBase as SynchronizationConfirmedBlock;
 
             if(synchronizationBlock != null)
             {
@@ -67,15 +69,18 @@ namespace Wist.Node.Core.Synchronization
         {
             List<SynchronizationBlockBase> synchronizationBlocksPerLoop = new List<SynchronizationBlockBase>();
 
-            foreach (SynchronizationProducingBlock synchronizationBlock in _synchronizationBlocks.GetConsumingEnumerable(ct))
+            foreach (SynchronizationConfirmedBlock synchronizationBlock in _synchronizationBlocks.GetConsumingEnumerable(ct))
             {
-                if (_synchronizationContext.LastBlockDescriptor.BlockHeight >= synchronizationBlock.BlockHeight)
+                if ((_synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0) >= synchronizationBlock.BlockHeight)
                 {
                     continue;
                 }
 
                 _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationBlock.BlockHeight, CryptoHelper.ComputeHash(synchronizationBlock.BodyBytes), synchronizationBlock.ReportedTime, DateTime.Now));
                 IPacketProvider packetProvider = _rawPacketProvidersFactory.Create(synchronizationBlock);
+
+                _chainDataService.Add(synchronizationBlock);
+
                 _communicationService.PostMessage(_neighborhoodState.GetAllNeighbors(), packetProvider);
             }
         }

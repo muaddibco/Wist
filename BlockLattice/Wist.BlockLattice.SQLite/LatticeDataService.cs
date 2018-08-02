@@ -479,6 +479,18 @@ namespace Wist.BlockLattice.SQLite
 
         #endregion Transactional Chain
 
+        #region Synchronization
+
+        public void AddSynchronizationBlock(ulong blockHeight, DateTime receiveTime, DateTime medianTime, byte[] content)
+        {
+            lock(_sync)
+            {
+                _dataContext.SynchronizationBlocks.Add(new SynchronizationBlock() { SynchronizationBlockId = blockHeight, ReceiveTime = receiveTime, MedianTime = medianTime, BlockContent = content });
+            }
+        }
+
+        #endregion Synchronization
+
         #region Common section
         public void Initialize()
         {

@@ -27,5 +27,10 @@ namespace Wist.Core.Synchronization
         /// Local date and time when last synchronization block was obtained
         /// </summary>
         public DateTime ReceivingTime { get; private set; }
+
+        public override string ToString()
+        {
+            return $"[{BlockHeight} @ {ReceivingTime}]: {MedianTime}";
+        }
     }
 }

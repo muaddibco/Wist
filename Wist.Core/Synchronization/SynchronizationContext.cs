@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Logging;
 using Wist.Core.States;
 
 namespace Wist.Core.Synchronization
@@ -16,10 +17,12 @@ namespace Wist.Core.Synchronization
         public const string NAME = "SynchronizationState";
 
         private readonly Subject<string> _synchronizationSublect;
+        private readonly ILogger _logger;
 
-        public SynchronizationContext()
+        public SynchronizationContext(ILoggerService loggerService)
         {
             _synchronizationSublect = new Subject<string>();
+            _logger = loggerService.GetLogger(nameof(SynchronizationContext));
         }
 
         public SynchronizationDescriptor LastBlockDescriptor { get; private set; }
@@ -67,6 +70,8 @@ namespace Wist.Core.Synchronization
             {
                 throw new ArgumentNullException(nameof(synchronizationDescriptor));
             }
+
+            _logger.Info($"UpdateLastSyncBlockDescriptor: {synchronizationDescriptor}");
 
             if (LastBlockDescriptor == null || synchronizationDescriptor.BlockHeight > LastBlockDescriptor.BlockHeight)
             {
