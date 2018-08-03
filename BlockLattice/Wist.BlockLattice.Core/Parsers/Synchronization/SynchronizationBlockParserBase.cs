@@ -20,7 +20,7 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 
         public override PacketType PacketType => PacketType.Synchronization;
 
-        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
+        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase)
         {
             DateTime dateTime = DateTime.FromBinary(BinaryPrimitives.ReadInt64LittleEndian(spanBody));
 

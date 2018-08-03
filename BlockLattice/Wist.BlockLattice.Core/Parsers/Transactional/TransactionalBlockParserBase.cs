@@ -22,7 +22,7 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         public override PacketType PacketType => PacketType.TransactionalChain;
 
-        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
+        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase)
         {
             TransactionalBlockBase transactionalBlockBase;
 

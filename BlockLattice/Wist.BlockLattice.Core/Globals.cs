@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Wist.BlockLattice.Core
+﻿namespace Wist.BlockLattice.Core
 {
     public static class Globals
     {

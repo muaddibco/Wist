@@ -5,7 +5,7 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Synchronization
 {
-    public abstract class SynchronizationBlockBase : SyncedBlockBase
+    public abstract class SynchronizationBlockBase : SyncedLinkedBlockBase
     {
         public SynchronizationBlockBase() => POWType = Wist.Core.ProofOfWork.POWType.None;
 

@@ -20,7 +20,7 @@ namespace Wist.BlockLattice.Core.Parsers
         {
             ulong blockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanBody);
             byte[] prevHash = spanBody.Slice(8, Globals.HASH_SIZE).ToArray();
-            SyncedBlockBase syncedBlockBase;
+            SyncedLinkedBlockBase syncedBlockBase;
             Span<byte> spanPostBody = ParseSynced(version, spanBody.Slice(8 + Globals.HASH_SIZE), out syncedBlockBase);
             syncedBlockBase.BlockHeight = blockHeight;
             syncedBlockBase.HashPrev = prevHash;
@@ -49,7 +49,7 @@ namespace Wist.BlockLattice.Core.Parsers
 
         protected override Span<byte> FillBlockBaseHeader(BlockBase blockBase, Span<byte> spanHeader)
         {
-            SyncedBlockBase syncedBlockBase = (SyncedBlockBase)blockBase;
+            SyncedLinkedBlockBase syncedBlockBase = (SyncedLinkedBlockBase)blockBase;
 
             spanHeader = base.FillBlockBaseHeader(blockBase, spanHeader);
 
@@ -68,6 +68,6 @@ namespace Wist.BlockLattice.Core.Parsers
             return spanHeader.Slice(10);
         }
 
-        protected abstract Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase);
+        protected abstract Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase);
     }
 }

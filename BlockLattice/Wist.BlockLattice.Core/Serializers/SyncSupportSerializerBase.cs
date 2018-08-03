@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Serializers.Signed;
 using Wist.Core.Cryptography;
-using Wist.Core.States;
-using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Serializers
 {
@@ -21,7 +16,6 @@ namespace Wist.BlockLattice.Core.Serializers
         protected override void WriteBody(BinaryWriter bw)
         {
             bw.Write(_block.BlockHeight);
-            bw.Write(_block.HashPrev);
         }
 
         protected override void WriteSyncHeader(BinaryWriter bw)

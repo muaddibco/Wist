@@ -6,7 +6,7 @@ using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel
 {
-    public abstract class GenesisBlockBase : SyncedBlockBase
+    public abstract class GenesisBlockBase : SyncedLinkedBlockBase
     {
         public GenesisBlockBase()
         {

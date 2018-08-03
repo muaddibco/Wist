@@ -9,7 +9,7 @@ using Wist.Core.Cryptography;
 namespace Wist.BlockLattice.Core.Serializers.Signed.Synchronization
 {
     [RegisterExtension(typeof(ISignatureSupportSerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class SynchronizationConfirmedBlockSerializer : SyncSupportSerializerBase<SynchronizationConfirmedBlock>
+    public class SynchronizationConfirmedBlockSerializer : SyncLinkedSupportSerializerBase<SynchronizationConfirmedBlock>
     {
         public SynchronizationConfirmedBlockSerializer(ICryptoService cryptoService) 
             : base(PacketType.Synchronization, BlockTypes.Synchronization_ConfirmedBlock, cryptoService)
