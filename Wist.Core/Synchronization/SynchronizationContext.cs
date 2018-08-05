@@ -14,8 +14,6 @@ namespace Wist.Core.Synchronization
     [RegisterExtension(typeof(IState), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationContext : ISynchronizationContext
     {
-        public const string NAME = "SynchronizationState";
-
         private readonly Subject<string> _synchronizationSublect;
         private readonly ILogger _logger;
 
@@ -29,7 +27,7 @@ namespace Wist.Core.Synchronization
 
         public SynchronizationDescriptor PrevBlockDescriptor { get; private set; }
 
-        public string Name => NAME;
+        public string Name => nameof(SynchronizationContext);
 
         /// <summary>
         /// Utility function that returns median value from provided array

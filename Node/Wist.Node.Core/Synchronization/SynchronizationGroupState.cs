@@ -14,7 +14,7 @@ namespace Wist.Node.Core.Synchronization
     [RegisterExtension(typeof(IState), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationGroupState : ISynchronizationGroupState
     {
-        public const string NAME = "SynchronizationGroupState";
+        public const string NAME = nameof(SynchronizationGroupState);
 
         private readonly ConcurrentDictionary<IKey, IKey> _participants;
         private readonly Subject<string> _subject = new Subject<string>();

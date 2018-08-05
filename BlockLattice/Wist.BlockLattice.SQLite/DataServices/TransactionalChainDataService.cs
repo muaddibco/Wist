@@ -16,13 +16,13 @@ namespace Wist.BlockLattice.SQLite.DataServices
     [RegisterExtension(typeof(IChainDataService), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionalChainDataService : IChainDataService
     {
-        private readonly ITranslatorsFactory _mapperFactory;
+        private readonly ITranslatorsRepository _mapperFactory;
         private readonly ISignatureSupportSerializersFactory _serializersFactory;
 
         public PacketType ChainType => PacketType.TransactionalChain;
 
 
-        public TransactionalChainDataService(ITranslatorsFactory mapperFactory, ISignatureSupportSerializersFactory serializersFactory)
+        public TransactionalChainDataService(ITranslatorsRepository mapperFactory, ISignatureSupportSerializersFactory serializersFactory)
         {
             _mapperFactory = mapperFactory;
             _serializersFactory = serializersFactory;
@@ -72,7 +72,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
         {
             TransactionalGenesisModification transactionalGenesis = LatticeDataService.Instance.GetLastTransactionalGenesisModification(key);
 
-            ITranslator<TransactionalGenesisModification, GenesisBlockBase> mapper = _mapperFactory.GetTranslator<TransactionalGenesisModification, GenesisBlockBase>();
+            ITranslator<TransactionalGenesisModification, GenesisBlockBase> mapper = _mapperFactory.GetInstance<TransactionalGenesisModification, GenesisBlockBase>();
 
             return mapper?.Translate(transactionalGenesis);
         }
@@ -81,7 +81,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
         {
             TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(key);
 
-            ITranslator<TransactionalBlock, BlockBase> mapper = _mapperFactory.GetTranslator<TransactionalBlock, BlockBase>();
+            ITranslator<TransactionalBlock, BlockBase> mapper = _mapperFactory.GetInstance<TransactionalBlock, BlockBase>();
 
             BlockBase block = mapper?.Translate(transactionalBlock);
 
@@ -98,7 +98,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
                 {
                     TransactionalGenesisModification transactionalBlock = LatticeDataService.Instance.GetLastTransactionalGenesisModification(genesis);
 
-                    ITranslator<TransactionalGenesisModification, TransactionalGenesisBlock> translator = _mapperFactory.GetTranslator<TransactionalGenesisModification, TransactionalGenesisBlock>();
+                    ITranslator<TransactionalGenesisModification, TransactionalGenesisBlock> translator = _mapperFactory.GetInstance<TransactionalGenesisModification, TransactionalGenesisBlock>();
 
                     TransactionalGenesisBlock block = translator?.Translate(transactionalBlock);
 
@@ -112,7 +112,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
                 {
                     TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(genesis.Identity, false);
 
-                    ITranslator<TransactionalBlock, TransactionalBlockBaseV1> translator = _mapperFactory.GetTranslator<TransactionalBlock, TransactionalBlockBaseV1>();
+                    ITranslator<TransactionalBlock, TransactionalBlockBaseV1> translator = _mapperFactory.GetInstance<TransactionalBlock, TransactionalBlockBaseV1>();
 
                     TransactionalBlockBaseV1 block = translator?.Translate(transactionalBlock);
 
@@ -133,7 +133,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
                 {
                     TransactionalGenesisModification transactionalBlock = LatticeDataService.Instance.GetLastTransactionalGenesisModification(genesis);
 
-                    ITranslator<TransactionalGenesisModification, BlockBase> translator = _mapperFactory.GetTranslator<TransactionalGenesisModification, BlockBase>();
+                    ITranslator<TransactionalGenesisModification, BlockBase> translator = _mapperFactory.GetInstance<TransactionalGenesisModification, BlockBase>();
 
                     BlockBase block = translator?.Translate(transactionalBlock);
 

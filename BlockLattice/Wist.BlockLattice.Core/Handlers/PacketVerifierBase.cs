@@ -17,7 +17,7 @@ namespace Wist.BlockLattice.Core.Handlers
         public PacketVerifierBase(IStatesRepository statesRepository, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
-            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
+            _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
         }
 
         public abstract PacketType PacketType { get; }

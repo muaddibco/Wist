@@ -216,6 +216,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="SimulationLoadInitializer.cs" />
+    <Compile Include="SyncConfirmedSingleModule.cs" />
     <Compile Include="SyncConfirmedLoadModule.cs" />
     <Compile Include="TransactionRegistrationLoadModule.cs" />
     <Compile Include="TypeRegistrator.cs" />

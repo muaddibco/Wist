@@ -34,8 +34,8 @@ namespace Wist.Node.Core.Synchronization
         {
             _synchronizationProducer = synchronizationProducer;
             _nodeDposProvider = nodeDposProvidersFactory.Create(PacketType.TransactionalChain);
-            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
-            _accountState = statesRepository.GetInstance<IAccountState>();
+            _synchronizationContext = statesRepository.GetInstance<Wist.Core.Synchronization.SynchronizationContext>();
+            _accountState = statesRepository.GetInstance<AccountState>();
             _synchronizationGroupParticipationCheckAction = new TransformBlock<string, string>((Func<string, string>)SynchronizationGroupParticipationCheckAction);
             _synchronizationGroupLeaderCheckAction = new ActionBlock<string>(SynchronizationGroupLeaderCheckAction);
         }

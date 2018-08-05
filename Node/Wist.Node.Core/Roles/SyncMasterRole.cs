@@ -27,8 +27,8 @@ namespace Wist.Node.Core.Roles
 
         public SyncMasterRole(IStatesRepository statesRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, ISynchronizationGroupParticipationService synchronizationGroupParticipationService)
         {
-            _nodeContext = statesRepository.GetInstance<INodeContext>();
-            _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();
+            _nodeContext = statesRepository.GetInstance<NodeContext>();
+            _synchronizationGroupState = statesRepository.GetInstance<SynchronizationGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _synchronizationGroupParticipationService = synchronizationGroupParticipationService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;

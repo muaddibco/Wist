@@ -9,7 +9,6 @@ using Wist.Core.States;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterExtension(typeof(IPacketVerifier), Lifetime = LifetimeManagement.TransientPerResolve)]
     public abstract class SignaturedBasedPacketVerifierBase : PowBasedPacketVerifierBase
     {
         private readonly ICryptoService _cryptoService;

@@ -46,8 +46,8 @@ namespace Wist.Node.Core
 
         public ConsensusBlocksProcessor(IStatesRepository statesRepository, IChainValidationServiceManager chainConsensusServiceManager, IConsensusCheckingService consensusCheckingService)
         {
-            _nodeContext = statesRepository.GetInstance<INodeContext>();
-            _accountState = statesRepository.GetInstance<IAccountState>();
+            _nodeContext = statesRepository.GetInstance<NodeContext>();
+            _accountState = statesRepository.GetInstance<AccountState>();
             _chainConsensusServiceManager = chainConsensusServiceManager;
             _consensusCheckingService = consensusCheckingService;
             _blocks = new Dictionary<PacketType, ConcurrentQueue<BlockBase>>();

@@ -16,9 +16,9 @@ namespace Wist.BlockLattice.SQLite.DataServices
     [RegisterExtension(typeof(IChainDataService), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationDataService : IChainDataService
     {
-        private readonly ITranslatorsFactory _mapperFactory;
+        private readonly ITranslatorsRepository _mapperFactory;
 
-        public SynchronizationDataService(ITranslatorsFactory mapperFactory)
+        public SynchronizationDataService(ITranslatorsRepository mapperFactory)
         {
             _mapperFactory = mapperFactory;
         }
@@ -84,7 +84,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
         {
             SynchronizationBlock synchronizationBlock = LatticeDataService.Instance.GetLastSynchronizationBlock();
 
-            ITranslator<SynchronizationBlock, SynchronizationConfirmedBlock> translator = _mapperFactory.GetTranslator<SynchronizationBlock, SynchronizationConfirmedBlock>();
+            ITranslator<SynchronizationBlock, SynchronizationConfirmedBlock> translator = _mapperFactory.GetInstance<SynchronizationBlock, SynchronizationConfirmedBlock>();
 
             SynchronizationConfirmedBlock synchronizationConfirmedBlock = translator.Translate(synchronizationBlock);
 

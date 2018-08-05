@@ -13,7 +13,7 @@ using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Parsers
 {
-    [RegisterExtension(typeof(IPacketVerifier), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterExtension(typeof(IPacketVerifier), Lifetime = LifetimeManagement.Singleton)]
     public class ConsensusPacketTypeHandler : SignaturedBasedPacketVerifierBase
     {
         private readonly IConsensusHub _consensusHub;

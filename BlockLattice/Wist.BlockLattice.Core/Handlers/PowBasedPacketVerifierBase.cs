@@ -42,26 +42,33 @@ namespace Wist.BlockLattice.Core.Handlers
             ushort powTypeValue =  BinaryPrimitives.ReadUInt16LittleEndian(span);
             POWType pOWType = (POWType)powTypeValue;
 
-            IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.GetInstance(pOWType);
-
-            ulong nonce = BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(2));
-            byte[] hash = span.Slice(10, proofOfWorkCalculation.HashSize).ToArray();
-
-            BigInteger bigInteger = new BigInteger((syncBlockHeight == _synchronizationContext.LastBlockDescriptor.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash);
-            bigInteger += nonce;
-
-            byte[] input = bigInteger.ToByteArray();
-            byte[] computedHash = proofOfWorkCalculation.CalculateHash(input);
-
-            spanOut = span.Slice(10 + proofOfWorkCalculation.HashSize);
-
-            if (!computedHash.EqualsX16(hash))
+            if (pOWType != POWType.None)
             {
-                _log.Error("Computed HASH differs from obtained one");
-                return false;
-            }
+                //TODO: Add difficulty check
 
-            //TODO: Add difficulty check
+                IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.GetInstance(pOWType);
+
+                ulong nonce = BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(2));
+                byte[] hash = span.Slice(10, proofOfWorkCalculation.HashSize).ToArray();
+
+                BigInteger bigInteger = new BigInteger((syncBlockHeight == _synchronizationContext.LastBlockDescriptor.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash);
+                bigInteger += nonce;
+
+                byte[] input = bigInteger.ToByteArray();
+                byte[] computedHash = proofOfWorkCalculation.CalculateHash(input);
+
+                spanOut = span.Slice(10 + proofOfWorkCalculation.HashSize);
+
+                if (!computedHash.EqualsX16(hash))
+                {
+                    _log.Error("Computed HASH differs from obtained one");
+                    return false;
+                }
+            }
+            else
+            {
+                spanOut = span.Slice(2);
+            }
 
             return true;
         }

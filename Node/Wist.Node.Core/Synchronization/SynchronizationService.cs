@@ -53,9 +53,9 @@ namespace Wist.Node.Core.Synchronization
             //_communicationHubSync = communicationHubFactory.Create();
             _configurationService = configurationService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
-            _nodeContext = statesRepository.GetInstance<INodeContext>();
-            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
-            _accountState = statesRepository.GetInstance<IAccountState>();
+            _nodeContext = statesRepository.GetInstance<NodeContext>();
+            _synchronizationContext = statesRepository.GetInstance<Wist.Core.Synchronization.SynchronizationContext>();
+            _accountState = statesRepository.GetInstance<AccountState>();
             _synchronizationProducer = synchronizationProducer;
             _dposService = dposService;
         }

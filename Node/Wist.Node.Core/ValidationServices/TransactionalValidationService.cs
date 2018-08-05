@@ -37,7 +37,7 @@ namespace Wist.Node.Core.ValidationServices
         {
             _messageTrigger = new ManualResetEventSlim();
             _consensusOperationFactory = consensusOperationFactory;
-            _nodeContext = statesRepository.GetInstance<INodeContext>();
+            _nodeContext = statesRepository.GetInstance<NodeContext>();
             _consensusMap = new Dictionary<string, Dictionary<string, Dictionary<string, ValidationState>>>();
         }
 

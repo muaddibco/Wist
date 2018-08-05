@@ -18,7 +18,7 @@ namespace Wist.Node.Core
     [RegisterExtension(typeof(IState), Lifetime = LifetimeManagement.Singleton)]
     public class NodeContext : INodeContext
     {
-        public const string NAME = "NodeState";
+        public const string NAME = nameof(NodeContext);
 
         private readonly Subject<string> _subject = new Subject<string>();
 
