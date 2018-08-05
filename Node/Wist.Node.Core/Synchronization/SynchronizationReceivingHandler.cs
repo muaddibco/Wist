@@ -67,8 +67,6 @@ namespace Wist.Node.Core.Synchronization
 
         private void ProcessBlocks(CancellationToken ct)
         {
-            List<SynchronizationBlockBase> synchronizationBlocksPerLoop = new List<SynchronizationBlockBase>();
-
             foreach (SynchronizationConfirmedBlock synchronizationBlock in _synchronizationBlocks.GetConsumingEnumerable(ct))
             {
                 if ((_synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0) >= synchronizationBlock.BlockHeight)

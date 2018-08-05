@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
+using System.Collections.Generic;
+using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.Core.Identity;
 using Wist.Core.ProofOfWork;
@@ -10,7 +12,7 @@ namespace Wist.BlockLattice.Core.Parsers
     {
         private readonly IProofOfWorkCalculationRepository _proofOfWorkCalculationRepository;
 
-        public SyncedBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository) 
+        public SyncedBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository)
             : base(identityKeyProvidersRegistry)
         {
             _proofOfWorkCalculationRepository = proofOfWorkCalculationRepository;
@@ -19,11 +21,9 @@ namespace Wist.BlockLattice.Core.Parsers
         protected override Span<byte> ParseSigned(ushort version, Span<byte> spanBody, out SignedBlockBase signedBlockBase)
         {
             ulong blockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanBody);
-            byte[] prevHash = spanBody.Slice(8, Globals.HASH_SIZE).ToArray();
-            SyncedLinkedBlockBase syncedBlockBase;
+            SyncedBlockBase syncedBlockBase;
             Span<byte> spanPostBody = ParseSynced(version, spanBody.Slice(8 + Globals.HASH_SIZE), out syncedBlockBase);
             syncedBlockBase.BlockHeight = blockHeight;
-            syncedBlockBase.HashPrev = prevHash;
             signedBlockBase = syncedBlockBase;
 
             return spanPostBody;
@@ -36,7 +36,7 @@ namespace Wist.BlockLattice.Core.Parsers
             POWType powType = (POWType)BinaryPrimitives.ReadUInt16LittleEndian(span1.Slice(8));
             int sliceSkip = 0;
 
-            if(powType != POWType.None)
+            if (powType != POWType.None)
             {
                 IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.GetInstance(powType);
                 sliceSkip = 8 + proofOfWorkCalculation.HashSize;
@@ -68,6 +68,6 @@ namespace Wist.BlockLattice.Core.Parsers
             return spanHeader.Slice(10);
         }
 
-        protected abstract Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase);
+        protected abstract Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase);
     }
 }

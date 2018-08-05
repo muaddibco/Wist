@@ -11,7 +11,7 @@ using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Parsers.Synchronization
 {
-    public abstract class SynchronizationBlockParserBase : SyncedBlockParserBase
+    public abstract class SynchronizationBlockParserBase : SyncLinkedBlockParserBase
     {
         public SynchronizationBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository) 
             : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
@@ -20,7 +20,7 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 
         public override PacketType PacketType => PacketType.Synchronization;
 
-        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase)
+        protected override Span<byte> ParseSyncLinked(ushort version, Span<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase)
         {
             DateTime dateTime = DateTime.FromBinary(BinaryPrimitives.ReadInt64LittleEndian(spanBody));
 
