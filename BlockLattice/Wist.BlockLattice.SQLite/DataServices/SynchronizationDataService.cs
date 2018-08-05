@@ -5,15 +5,24 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.BlockLattice.DataModel;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Identity;
+using Wist.Core.Translators;
 
 namespace Wist.BlockLattice.SQLite.DataServices
 {
     [RegisterExtension(typeof(IChainDataService), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationDataService : IChainDataService
     {
+        private readonly ITranslatorsFactory _mapperFactory;
+
+        public SynchronizationDataService(ITranslatorsFactory mapperFactory)
+        {
+            _mapperFactory = mapperFactory;
+        }
+
         public PacketType ChainType => PacketType.Synchronization;
 
         public void Add(BlockBase item)
@@ -73,7 +82,13 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public BlockBase GetLastBlock(IKey key)
         {
-            throw new NotImplementedException();
+            SynchronizationBlock synchronizationBlock = LatticeDataService.Instance.GetLastSynchronizationBlock();
+
+            ITranslator<SynchronizationBlock, SynchronizationConfirmedBlock> translator = _mapperFactory.GetTranslator<SynchronizationBlock, SynchronizationConfirmedBlock>();
+
+            SynchronizationConfirmedBlock synchronizationConfirmedBlock = translator.Translate(synchronizationBlock);
+
+            return synchronizationConfirmedBlock;
         }
 
         public void Initialize()

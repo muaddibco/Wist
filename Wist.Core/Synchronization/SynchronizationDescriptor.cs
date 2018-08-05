@@ -6,12 +6,12 @@ namespace Wist.Core.Synchronization
 {
     public class SynchronizationDescriptor
     {
-        public SynchronizationDescriptor(ulong blockHeight, byte[] hash, DateTime medianTime, DateTime receiveTime)
+        public SynchronizationDescriptor(ulong blockHeight, byte[] hash, DateTime medianTime, DateTime updateTime)
         {
             BlockHeight = blockHeight;
             Hash = hash;
             MedianTime = medianTime;
-            ReceivingTime = receiveTime;
+            UpdateTime = updateTime;
         }
 
         /// <summary>
@@ -26,11 +26,11 @@ namespace Wist.Core.Synchronization
         /// <summary>
         /// Local date and time when last synchronization block was obtained
         /// </summary>
-        public DateTime ReceivingTime { get; private set; }
+        public DateTime UpdateTime { get; private set; }
 
         public override string ToString()
         {
-            return $"[{BlockHeight} @ {ReceivingTime}]: {MedianTime}";
+            return $"[{BlockHeight} @ {UpdateTime}]: {MedianTime}";
         }
     }
 }

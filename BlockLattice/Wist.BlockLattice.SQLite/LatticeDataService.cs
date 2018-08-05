@@ -489,6 +489,14 @@ namespace Wist.BlockLattice.SQLite
             }
         }
 
+        public SynchronizationBlock GetLastSynchronizationBlock()
+        {
+            lock(_sync)
+            {
+                return _dataContext.SynchronizationBlocks.OrderByDescending(b => b.SynchronizationBlockId).FirstOrDefault();
+            }
+        }
+
         #endregion Synchronization
 
         #region Common section

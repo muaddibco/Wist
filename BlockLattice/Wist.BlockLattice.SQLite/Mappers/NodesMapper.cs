@@ -1,9 +1,12 @@
-﻿using Wist.Core.Identity;
+﻿using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
+using Wist.Core.Identity;
 using Wist.Core.Translators;
 using NodeModel = Wist.BlockLattice.Core.DataModel.Nodes.Node;
 
 namespace Wist.BlockLattice.SQLite.Mappers
 {
+    [RegisterExtension(typeof(ITranslator), Lifetime = LifetimeManagement.Singleton)]
     public class NodesMapper : TranslatorBase<DataModel.Node, NodeModel>
     {
         private readonly IIdentityKeyProvidersRegistry _identityKeyProvidersRegistry;
