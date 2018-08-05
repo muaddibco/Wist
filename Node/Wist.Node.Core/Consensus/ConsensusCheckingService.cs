@@ -37,17 +37,17 @@ namespace Wist.Node.Core.Consensus
 
             if (!_blockConsensusStatesMap.ContainsKey(block))
             {
-                consensusState = new BlockConsensusState(block, consensusDecisions.ToDictionary(c => c.Participant.PublicKey.ToHexString(), c => c.State));
+                consensusState = new BlockConsensusState(block, consensusDecisions.ToDictionary(c => c.Participant.PublicKey, c => c.State));
                 _blockConsensusStatesMap.TryAdd(block, consensusState);
             }
             else if (_blockConsensusStatesMap.TryGetValue(block, out consensusState))
             {
                 lock (consensusState)
                 {
-                    foreach (var consensusDecision in consensusDecisions.Where(d => !consensusState.ParticipantDecisionsMap.ContainsKey(d.Participant.PublicKey.ToHexString())))
+                    foreach (var consensusDecision in consensusDecisions.Where(d => !consensusState.ParticipantDecisionsMap.ContainsKey(d.Participant.PublicKey)))
                     {
                         consensusState.IsChecked = false;
-                        consensusState.ParticipantDecisionsMap.Add(consensusDecision.Participant.PublicKey.ToHexString(), consensusDecision.State);
+                        consensusState.ParticipantDecisionsMap.Add(consensusDecision.Participant.PublicKey, consensusDecision.State);
                     }
                 }
 

@@ -7,6 +7,6 @@ namespace Wist.Node.Core.MemPools
     {
         public Type ElementType { get; } = typeof(T);
 
-        public abstract void AddIfNotExist(T item);
+        public abstract bool AddIfNotExist(T item);
     }
 }

@@ -5,6 +5,6 @@ namespace Wist.Core.States
     [ServiceContract]
     public interface IStatesRepository : IRepository<IState, string>
     {
-        T GetInstance<T>() where T : IState;
+        T GetInstance<T>() where T : class, IState;
     }
 }

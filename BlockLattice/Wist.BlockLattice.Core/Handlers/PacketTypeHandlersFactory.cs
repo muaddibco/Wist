@@ -17,7 +17,6 @@ namespace Wist.BlockLattice.Core.Handlers
     {
         private readonly ILogger _log;
         private readonly Dictionary<PacketType, IPacketVerifier> _packetVerifiers;
-        private readonly object _sync = new object();
 
         public PacketVerifiersRepository(IPacketVerifier[] packetVerifiers, ILoggerService loggerService)
         {
@@ -39,7 +38,6 @@ namespace Wist.BlockLattice.Core.Handlers
             {
                 _log.Warning($"No verifier found for packet type {packetType}");
 
-                //throw new NotSupportedPacketTypeHandlerException(packetType);
                 return null;
             }
 

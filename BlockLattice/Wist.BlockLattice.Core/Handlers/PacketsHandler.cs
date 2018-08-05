@@ -208,11 +208,10 @@ namespace Wist.BlockLattice.Core.Handlers
 
         private bool ValidatePacket(PacketType packetType, byte[] messagePacket)
         {
-            IPacketVerifier chainTypeHandler = null;
+            IPacketVerifier packetVerifier = _chainTypeValidationHandlersFactory.GetInstance(packetType);
 
-            chainTypeHandler = _chainTypeValidationHandlersFactory.GetInstance(packetType);
+            bool res = packetVerifier?.ValidatePacket(messagePacket) ?? true;
 
-            bool res = chainTypeHandler?.ValidatePacket(messagePacket) ?? true;
             return res;
         }
 

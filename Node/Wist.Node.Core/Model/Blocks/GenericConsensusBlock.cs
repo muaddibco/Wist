@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
+using Wist.Core.Identity;
 
 namespace Wist.Node.Core.Model.Blocks
 {
@@ -16,7 +17,7 @@ namespace Wist.Node.Core.Model.Blocks
 
         public class ConsensusDecisionItem
         {
-            public string PublickKey { get; set; }
+            public IKey PublickKey { get; set; }
             public ValidationState ConsensusState { get; set; }
         }
     }

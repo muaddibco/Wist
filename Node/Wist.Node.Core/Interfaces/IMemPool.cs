@@ -13,6 +13,6 @@ namespace Wist.Node.Core.Interfaces
 
     public interface IMemPool<T> : IMemPool
     {
-        void AddIfNotExist(T item);
+        bool AddIfNotExist(T item);
     }
 }

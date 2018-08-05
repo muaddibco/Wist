@@ -13,6 +13,7 @@ using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Cryptography;
 using Wist.Core.ExtensionMethods;
+using Wist.Core.Identity;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
@@ -35,16 +36,17 @@ namespace Wist.Node.Core
         private readonly IAccountState _accountState;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly ICryptoService _cryptoService;
+        private readonly IIdentityKeyProvider _identityKeyProvider;
         private IServerCommunicationService _communicationHub;
         private ulong _currentSyncBlockOrder;
 
-        private readonly Dictionary<ulong, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>> _synchronizationBlocksByHeight;
+        private readonly Dictionary<ulong, Dictionary<IKey, List<SynchronizationBlockRetransmissionV1>>> _synchronizationBlocksByHeight;
 
         private readonly BlockingCollection<SynchronizationBlockBase> _synchronizationBlocks;
         private readonly BlockingCollection<SynchronizationBlockRetransmissionV1> _retransmittedBlocks;
         
 
-        public SynchronizationBlocksProcessor(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICryptoService cryptoService)
+        public SynchronizationBlocksProcessor(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationProducer = synchronizationProducer;
@@ -52,9 +54,10 @@ namespace Wist.Node.Core
             _accountState = statesRepository.GetInstance<IAccountState>();
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _cryptoService = cryptoService;
+            _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
             _synchronizationBlocks = new BlockingCollection<SynchronizationBlockBase>();
             _retransmittedBlocks = new BlockingCollection<SynchronizationBlockRetransmissionV1>();
-            _synchronizationBlocksByHeight = new Dictionary<ulong, Dictionary<string, List<SynchronizationBlockRetransmissionV1>>>();
+            _synchronizationBlocksByHeight = new Dictionary<ulong, Dictionary<IKey, List<SynchronizationBlockRetransmissionV1>>>();
         }
 
         public string Name => BLOCKS_PROCESSOR_NAME;
@@ -148,10 +151,10 @@ namespace Wist.Node.Core
             {
                 if(!_synchronizationBlocksByHeight.ContainsKey(retransmittedBlock.BlockHeight))
                 {
-                    _synchronizationBlocksByHeight.Add(retransmittedBlock.BlockHeight, new Dictionary<string, List<SynchronizationBlockRetransmissionV1>>());
+                    _synchronizationBlocksByHeight.Add(retransmittedBlock.BlockHeight, new Dictionary<IKey, List<SynchronizationBlockRetransmissionV1>>());
                 }
 
-                string publicKey = retransmittedBlock.ConfirmationPublicKey.ToHexString();
+                IKey publicKey = _identityKeyProvider.GetKey(retransmittedBlock.ConfirmationPublicKey);
                 if(!_synchronizationBlocksByHeight[retransmittedBlock.BlockHeight].ContainsKey(publicKey))
                 {
                     _synchronizationBlocksByHeight[retransmittedBlock.BlockHeight].Add(publicKey, new List<SynchronizationBlockRetransmissionV1>());
@@ -171,7 +174,7 @@ namespace Wist.Node.Core
 
         private void BroadcastConfirmation(ulong height)
         {
-            List<SynchronizationBlockRetransmissionV1> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height].Where(r => _nodeContext.SyncGroupParticipants.Any(p => p.PublicKeyString == r.Key)).Select(kv => kv.Value.First()).OrderBy(s => s.ConfirmationPublicKey.ToHexString()).ToList();
+            List<SynchronizationBlockRetransmissionV1> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height].Where(r => _nodeContext.SyncGroupParticipants.Any(p => p.PublicKey == r.Key)).Select(kv => kv.Value.First()).OrderBy(s => s.ConfirmationPublicKey.ToHexString()).ToList();
 
             SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock
             {
@@ -193,12 +196,12 @@ namespace Wist.Node.Core
             }
 
             ushort count = 0;
-            Dictionary<string, List<SynchronizationBlockRetransmissionV1>> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height];
-            foreach (string publicKey in retransmittedSyncBlocks.Keys)
+            Dictionary<IKey, List<SynchronizationBlockRetransmissionV1>> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height];
+            foreach (IKey publicKey in retransmittedSyncBlocks.Keys)
             {
-                if (_nodeContext.SyncGroupParticipants.Any(p => p.PublicKeyString == publicKey))
+                if (_nodeContext.SyncGroupParticipants.Any(p => p.PublicKey == publicKey))
                 {
-                    IEnumerable<SynchronizationBlockRetransmissionV1> lst = retransmittedSyncBlocks[publicKey].Where(s => _nodeContext.SyncGroupParticipants.Any(p => p.PublicKey.Equals32(s.ConfirmationPublicKey)));
+                    IEnumerable<SynchronizationBlockRetransmissionV1> lst = retransmittedSyncBlocks[publicKey].Where(s => _nodeContext.SyncGroupParticipants.Any(p => p.PublicKey.Equals(s.ConfirmationPublicKey)));
                     if (lst.Count() >= TARGET_CONSENSUS_LOW_LIMIT && lst.Any(l => lst.First().ReportedTime == l.ReportedTime))
                     {
                         count++;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Wist.Core.Identity;
 
 namespace Wist.Node.Core.Model
 {
@@ -9,8 +10,7 @@ namespace Wist.Node.Core.Model
         /// <summary>
         /// 32 byte length Public Key of Consensus Group Participant
         /// </summary>
-        public byte[] PublicKey { get; set; }
-        public string PublicKeyString { get; set; }
+        public IKey PublicKey { get; set; }
 
         public double Weight { get; set; }
     }

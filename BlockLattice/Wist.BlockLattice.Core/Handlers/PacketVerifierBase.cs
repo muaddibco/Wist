@@ -1,18 +1,9 @@
-﻿using log4net;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System;
+using System.Buffers.Binary;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.Logging;
-using Wist.Core.ProofOfWork;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 
@@ -38,37 +29,28 @@ namespace Wist.BlockLattice.Core.Handlers
         /// <returns></returns>
         public bool ValidatePacket(byte[] packet)
         {
-            using (MemoryStream ms = new MemoryStream(packet))
+            Span<byte> span = new Span<byte>(packet);
+
+            ulong syncBlockHeight = BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(2));
+
+            if ((_synchronizationContext.LastBlockDescriptor?.BlockHeight.Equals(syncBlockHeight) ?? true) ||
+                (_synchronizationContext.PrevBlockDescriptor?.BlockHeight.Equals(syncBlockHeight) ?? true))
             {
-                using (BinaryReader br = new BinaryReader(ms))
+                bool res = ValidatePacket(span.Slice(10), syncBlockHeight);
+                if (!res)
                 {
-                    SkipPacketType(br);
-                    uint syncBlockHeight = br.ReadUInt32();
-
-                    if (_synchronizationContext.LastBlockDescriptor.BlockHeight == syncBlockHeight || _synchronizationContext.LastBlockDescriptor.BlockHeight == syncBlockHeight)
-                    {
-                        bool res = ValidatePacket(br, syncBlockHeight);
-                        if(!res)
-                        {
-                            _log.Error(packet.ToHexString());
-                        }
-
-                        return res;
-                    }
-                    else
-                    {
-                        _log.Error($"Synchronization block height is outdated: {packet.ToHexString()}");
-                        return false;
-                    }
+                    _log.Error(packet.ToHexString());
                 }
+
+                return res;
+            }
+            else
+            {
+                _log.Error($"Synchronization block height is outdated: {packet.ToHexString()}");
+                return false;
             }
         }
 
-        private static void SkipPacketType(BinaryReader br)
-        {
-            br.ReadUInt16();
-        }
-
-        protected abstract bool ValidatePacket(BinaryReader br, uint syncBlockHeight);
+        protected abstract bool ValidatePacket(Span<byte> span, ulong syncBlockHeight);
     }
 }

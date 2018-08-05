@@ -33,7 +33,7 @@ namespace Wist.Node.Core.Synchronization
         public SynchronizationReceivingHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IChainDataServicesManager chainDataServicesManager)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
-            _neighborhoodState = statesRepository.GetInstance<INeighborhoodState>();
+            _neighborhoodState = statesRepository.GetInstance<NeighborhoodState>();
             _synchronizationBlocks = new BlockingCollection<SynchronizationConfirmedBlock>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
@@ -75,10 +75,10 @@ namespace Wist.Node.Core.Synchronization
                 }
 
                 _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationBlock.BlockHeight, CryptoHelper.ComputeHash(synchronizationBlock.BodyBytes), synchronizationBlock.ReportedTime, DateTime.Now));
-                IPacketProvider packetProvider = _rawPacketProvidersFactory.Create(synchronizationBlock);
 
                 _chainDataService.Add(synchronizationBlock);
 
+                IPacketProvider packetProvider = _rawPacketProvidersFactory.Create(synchronizationBlock);
                 _communicationService.PostMessage(_neighborhoodState.GetAllNeighbors(), packetProvider);
             }
         }
