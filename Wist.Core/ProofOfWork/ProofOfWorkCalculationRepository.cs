@@ -39,17 +39,15 @@ namespace Wist.Core.ProofOfWork
 
             lock (_sync)
             {
-                if (_proofOfWorkCalculations[key].Count > 0)
+                if (_proofOfWorkCalculations[key].Count > 1)
                 {
                     return _proofOfWorkCalculations[key].Pop();
                 }
-                else
-                {
-                    IProofOfWorkCalculation calculationTemp = _proofOfWorkCalculations[key].Pop();
-                    IProofOfWorkCalculation calculation = (IProofOfWorkCalculation)_applicationContext.Container.Resolve(calculationTemp.GetType());
-                    _proofOfWorkCalculations[key].Push(calculationTemp);
-                    return calculation;
-                }
+
+                IProofOfWorkCalculation calculationTemp = _proofOfWorkCalculations[key].Pop();
+                IProofOfWorkCalculation calculation = (IProofOfWorkCalculation)_applicationContext.Container.Resolve(calculationTemp.GetType());
+                _proofOfWorkCalculations[key].Push(calculationTemp);
+                return calculation;
             }
         }
 

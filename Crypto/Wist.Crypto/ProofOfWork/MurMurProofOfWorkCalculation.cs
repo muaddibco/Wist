@@ -6,17 +6,17 @@ using Wist.Core.ProofOfWork;
 namespace Wist.Crypto.ProofOfWork
 {
     [RegisterExtension(typeof(IProofOfWorkCalculation), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class Keccak256ProofOfWorkCalculation : IProofOfWorkCalculation
+    public class MurMurProofOfWorkCalculation : IProofOfWorkCalculation
     {
-        public POWType POWType => POWType.Keccak256;
+        public POWType POWType => POWType.MurMur;
 
         public int HashSize => _hash.HashSize;
 
         private readonly IHash _hash;
 
-        public Keccak256ProofOfWorkCalculation()
+        public MurMurProofOfWorkCalculation()
         {
-            _hash = HashFactory.Crypto.SHA3.CreateKeccak256();
+            _hash = HashFactory.Hash128.CreateMurmur3_128();
         }
 
         public byte[] CalculateHash(byte[] input)

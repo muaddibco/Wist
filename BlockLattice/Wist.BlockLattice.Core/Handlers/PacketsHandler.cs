@@ -225,9 +225,9 @@ namespace Wist.BlockLattice.Core.Handlers
 
                 POWType powType = (POWType)BitConverter.ToUInt16(messagePacket, 10);
 
-                //proofOfWorkCalculation = _proofOfWorkCalculationRepository.Create(powType);
-                int hashSize = 32; // proofOfWorkCalculation.HashSize;
-                //_proofOfWorkCalculationRepository.Utilize(proofOfWorkCalculation);
+                proofOfWorkCalculation = _proofOfWorkCalculationRepository.Create(powType);
+                int hashSize = proofOfWorkCalculation.HashSize;
+                _proofOfWorkCalculationRepository.Utilize(proofOfWorkCalculation);
                 int powSize = 0;
 
                 if(powType != POWType.None)
