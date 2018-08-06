@@ -161,9 +161,12 @@ namespace Wist.BlockLattice.Core.Handlers
                 {
                     BlockBase blockBase = ParseMessagePacket(packetType, decodedPacket);
 
-                    blockBase.RawData = messagePacket;
+                    if (blockBase != null)
+                    {
+                        blockBase.RawData = messagePacket;
 
-                    DispatchBlock(blockBase);
+                        DispatchBlock(blockBase);
+                    }
                 }
             }
             catch (Exception ex)

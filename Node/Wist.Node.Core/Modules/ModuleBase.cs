@@ -1,8 +1,4 @@
-﻿using log4net;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading;
 using Wist.Core.Logging;
 using Wist.Node.Core.Interfaces;
 
@@ -12,6 +8,7 @@ namespace Wist.Node.Core.Roles
     {
         private readonly object _sync = new object();
         protected readonly ILogger _log;
+        protected CancellationToken _cancellationToken;
 
         public ModuleBase(ILoggerService loggerService)
         {
@@ -22,10 +19,12 @@ namespace Wist.Node.Core.Roles
 
         public bool IsInitialized { get; private set; }
 
-        public void Initialize()
+        public void Initialize(CancellationToken ct)
         {
             if (IsInitialized)
                 return;
+
+            _cancellationToken = ct;
 
             lock (_sync)
             {

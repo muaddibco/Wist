@@ -46,7 +46,7 @@ namespace Wist.Node.Core
             {
                 NodeMain nodeMain = ServiceLocator.Current.GetInstance<NodeMain>();
 
-                nodeMain.Initialize();
+                nodeMain.Initialize(_cancellationToken);
 
                 nodeMain.Start();
             }

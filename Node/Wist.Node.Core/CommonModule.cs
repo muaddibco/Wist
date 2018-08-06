@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Wist.BlockLattice.Core.Interfaces;
+﻿using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Logging;
@@ -29,6 +25,7 @@ namespace Wist.Node.Core
         {
             IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(SynchronizationReceivingHandler.NAME);
             _blocksHandlersFactory.RegisterInstance(blocksHandler);
+            blocksHandler.Initialize(_cancellationToken);
         }
     }
 }

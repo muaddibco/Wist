@@ -27,7 +27,7 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
             }
             else
             {
-                IRawPacketProvider rawPacketProvider = _applicationContext.Container.Resolve<IRawPacketProvider>();
+                IRawPacketProvider rawPacketProvider = _applicationContext.Container.Resolve<RawPacketProvider>();
 
                 return rawPacketProvider;
             }

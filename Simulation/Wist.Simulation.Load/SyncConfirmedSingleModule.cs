@@ -10,6 +10,8 @@ using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.Core.PerformanceCounters;
+using Wist.Core.States;
+using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Simulation.Load
@@ -17,18 +19,21 @@ namespace Wist.Simulation.Load
     [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
     public class SyncConfirmedSingleModule : LoadModuleBase
     {
-        public SyncConfirmedSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository) 
+        private readonly ISynchronizationContext _synchronizationContext;
+
+        public SyncConfirmedSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository) 
             : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository)
         {
+            _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
         }
 
-        public override string Name => nameof(SyncConfirmedLoadModule);
+        public override string Name => nameof(SyncConfirmedSingleModule);
 
         protected override void InitializeInner()
         {
             base.InitializeInner();
 
-            ulong index = 0;
+            ulong index = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
 
             string cmd = null;
             do

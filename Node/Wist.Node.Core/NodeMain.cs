@@ -50,13 +50,13 @@ namespace Wist.Node.Core
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
-        public void Initialize()
+        public void Initialize(CancellationToken ct)
         {
             InitializeCommunicationLayer();
 
             ObtainConfiguredModules();
 
-            InitializeModules();
+            InitializeModules(ct);
         }
 
         private void InitializeCommunicationLayer()
@@ -74,7 +74,7 @@ namespace Wist.Node.Core
             _packetsHandler.Initialize();
         }
 
-        private void InitializeModules()
+        private void InitializeModules(CancellationToken ct)
         {
             IEnumerable<IModule> modules = _modulesRepository.GetBulkInstances();
 
@@ -82,7 +82,7 @@ namespace Wist.Node.Core
             {
                 try
                 {
-                    module.Initialize();
+                    module.Initialize(ct);
                 }
                 catch (Exception ex)
                 {

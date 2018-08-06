@@ -22,7 +22,9 @@ namespace Wist.BlockLattice.Core.Parsers
         {
             Span<byte> span = new Span<byte>(blockBody);
 
-            return ParseBody(span);
+            BlockBase blockBase = ParseBody(span);
+
+            return blockBase;
         }
 
         public virtual BlockBase Parse(byte[] source)
@@ -36,8 +38,6 @@ namespace Wist.BlockLattice.Core.Parsers
 
             FillBlockBaseHeader(blockBase, spanHeader);
 
-            blockBase.BodyBytes = spanBody.ToArray();
-
             return blockBase;
         }
 
@@ -46,6 +46,8 @@ namespace Wist.BlockLattice.Core.Parsers
             ushort version = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
             ushort messageType = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2));
             BlockBase blockBase = ParseBlockBase(version, spanBody.Slice(4));
+
+            blockBase.BodyBytes = spanBody.ToArray();
 
             return blockBase;
         }

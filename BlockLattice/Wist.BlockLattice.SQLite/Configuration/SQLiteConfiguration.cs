@@ -15,5 +15,8 @@ namespace Wist.BlockLattice.SQLite.Configuration
         }
 
         public string ConnectionString { get; set; }
+
+        [Optional]
+        public bool WipeOnStart { get; set; }
     }
 }

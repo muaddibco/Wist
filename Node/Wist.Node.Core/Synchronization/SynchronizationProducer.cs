@@ -57,10 +57,8 @@ namespace Wist.Node.Core.Synchronization
                     _syncProducingCancellation?.Cancel();
                     _syncProducingCancellation = null;
                 }
-                else
-                {
-                    _syncProducingCancellation = new CancellationTokenSource();
-                }
+
+                _syncProducingCancellation = new CancellationTokenSource();
 
                 int delay = (int)(60000 - (DateTime.Now - (_synchronizationContext.LastBlockDescriptor?.UpdateTime ?? DateTime.Now)).TotalMilliseconds);
 

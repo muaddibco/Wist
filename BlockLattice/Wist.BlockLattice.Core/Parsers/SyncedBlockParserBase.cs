@@ -22,7 +22,7 @@ namespace Wist.BlockLattice.Core.Parsers
         {
             ulong blockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanBody);
             SyncedBlockBase syncedBlockBase;
-            Span<byte> spanPostBody = ParseSynced(version, spanBody.Slice(8 + Globals.HASH_SIZE), out syncedBlockBase);
+            Span<byte> spanPostBody = ParseSynced(version, spanBody.Slice(8), out syncedBlockBase);
             syncedBlockBase.BlockHeight = blockHeight;
             signedBlockBase = syncedBlockBase;
 
