@@ -8,6 +8,7 @@ namespace Wist.Core.ProofOfWork
     {
         None = 0,
         Keccak256,
-        MurMur
+        MurMur,
+        Tiger4
     }
 }

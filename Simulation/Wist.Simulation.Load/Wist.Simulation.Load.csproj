@@ -249,6 +249,10 @@
       <Project>{D50F9107-FC2E-44DF-ABAD-510CC70E2E54}</Project>
       <Name>Chaos.NaCl</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Crypto\HashLib\CoreHashLib\CoreHashLib.csproj">
+      <Project>{9D352643-DCF0-408F-9A11-65DC1D110E83}</Project>
+      <Name>CoreHashLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Crypto\Wist.Crypto\Wist.Crypto.csproj">
       <Project>{78dcdbfc-7fb0-4783-b172-c6043d6aa9dc}</Project>
       <Name>Wist.Crypto</Name>
