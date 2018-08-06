@@ -96,7 +96,10 @@ namespace Wist.Communication
 
                 }
 
-                ParseReceivedData();
+                if (!_isBusy)
+                {
+                    ParseReceivedData();
+                }
             }
             catch (Exception ex)
             {
@@ -425,8 +428,13 @@ namespace Wist.Communication
 
         private void ParseReceivedData()
         {
-            if (_isBusy)
-                return;
+            lock (_sync)
+            {
+                if (_isBusy)
+                    return;
+
+                _isBusy = true;
+            }
 
             Task.Factory.StartNew(() =>
             {
@@ -437,14 +445,6 @@ namespace Wist.Communication
                 bool packetStartFound = false;
                 bool lastPrevBufByteIsDle = false;
                 uint packetLengthExpected = 0, packetLengthRemained = 0;
-
-                lock (_sync)
-                {
-                    if (_isBusy)
-                        return;
-
-                    _isBusy = true;
-                }
 
                 try
                 {
@@ -510,15 +510,15 @@ namespace Wist.Communication
                         } while (currentBuf.Length > offset);
                     }
 
-                    _isBusy = false;
                 }
                 catch (Exception ex)
                 {
-                    _isBusy = false;
                     _log.Error("Failed to parse packet", ex);
                 }
                 finally
                 {
+                    _isBusy = false;
+
                     if (_packets.Count > 0)
                     {
                         ParseReceivedData();

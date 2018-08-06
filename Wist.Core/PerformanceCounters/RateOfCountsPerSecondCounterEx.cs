@@ -6,7 +6,7 @@ namespace Wist.Core.PerformanceCounters
     /// A concrete implementation for an Integer value type counter over Microsoft library.
     /// </summary>
     [CounterType(CounterType = PerformanceCounterType.RateOfCountsPerSecond64)]
-    public class RateOfCountsPerSecondCounterEx : PerformanceCounterBase, IPerformanceCounter<long>
+    public class RateOfCountsPerSecondCounterEx : PerformanceCounterBase
     {
         //public RateOfCountsPerSecondCounterEx(string categoryName, string counterName, string instanceName, bool readOnly = false) :
         //    base(categoryName, counterName, instanceName, PerformanceCounterType.RateOfCountsPerSecond64, readOnly)

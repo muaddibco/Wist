@@ -16,9 +16,9 @@ namespace Wist.Node.Core.Roles
     [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
     public class MasterNodeModule : ModuleBase
     {
-        private readonly IBlocksHandlersFactory _blocksProcessorFactory;
+        private readonly IBlocksHandlersRegistry _blocksProcessorFactory;
 
-        public MasterNodeModule(ILoggerService loggerService, IBlocksHandlersFactory blocksProcessorFactory) : base(loggerService)
+        public MasterNodeModule(ILoggerService loggerService, IBlocksHandlersRegistry blocksProcessorFactory) : base(loggerService)
         {
             _blocksProcessorFactory = blocksProcessorFactory;
         }

@@ -1,23 +1,18 @@
-﻿using log4net;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
-using Wist.Core.Models;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.DataModel;
-using Wist.Core.Aspects;
 using Wist.Core.Logging;
 using System.Linq;
-using System.Threading.Tasks.Dataflow;
 using Wist.Core.ProofOfWork;
 using Wist.Core.PerformanceCounters;
 using Wist.BlockLattice.Core.PerformanceCounters;
@@ -25,14 +20,14 @@ using System.Diagnostics;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterDefaultImplementation(typeof(IPacketsHandler), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterDefaultImplementation(typeof(IPacketsHandler), Lifetime = LifetimeManagement.Singleton)]
     public class PacketsHandler : IPacketsHandler
     {
         private const byte DLE = 0x10;
         private readonly ILogger _log;
         private readonly IPacketVerifiersRepository _chainTypeValidationHandlersFactory;
         private readonly IBlockParsersRepositoriesRepository _blockParsersFactoriesRepository;
-        private readonly IBlocksHandlersFactory _blocksProcessorFactory;
+        private readonly IBlocksHandlersRegistry _blocksProcessorFactory;
         private readonly IProofOfWorkCalculationRepository _proofOfWorkCalculationRepository;
         private readonly ConcurrentQueue<byte[]> _messagePackets;
         private readonly ManualResetEventSlim _messageTrigger;
@@ -42,7 +37,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
         public bool IsInitialized { get; private set; }
 
-        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersRepositoriesRepository blockParsersFactoriesRepository, IBlocksHandlersFactory blocksProcessorFactory, IProofOfWorkCalculationRepository proofOfWorkCalculationFactory, IPerformanceCountersRepository performanceCountersRepository, ILoggerService loggerService)
+        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersRepositoriesRepository blockParsersFactoriesRepository, IBlocksHandlersRegistry blocksProcessorFactory, IProofOfWorkCalculationRepository proofOfWorkCalculationFactory, IPerformanceCountersRepository performanceCountersRepository, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
@@ -223,29 +218,44 @@ namespace Wist.BlockLattice.Core.Handlers
             BlockBase blockBase = null;
             IBlockParser blockParser = null;
             IBlockParsersRepository blockParsersFactory = null;
-
+            IProofOfWorkCalculation proofOfWorkCalculation = null;
             try
             {
                 //TODO: weigh assumption that all messages are sync based (have reference to latest Sync Block)
 
                 POWType powType = (POWType)BitConverter.ToUInt16(messagePacket, 10);
 
-                IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.GetInstance(powType);
-
+                //proofOfWorkCalculation = _proofOfWorkCalculationRepository.Create(powType);
+                int hashSize = 32; // proofOfWorkCalculation.HashSize;
+                //_proofOfWorkCalculationRepository.Utilize(proofOfWorkCalculation);
                 int powSize = 0;
 
                 if(powType != POWType.None)
                 {
-                    powSize = 8 + proofOfWorkCalculation.HashSize;
+                    powSize = 8 + hashSize;
                 }
 
                 ushort blockType = BitConverter.ToUInt16(messagePacket, 12 + powSize + 2);
 
                 blockParsersFactory = _blockParsersFactoriesRepository.GetBlockParsersRepository(packetType);
 
-                blockParser = blockParsersFactory.GetInstance(blockType);
+                if (blockParsersFactory != null)
+                {
+                    blockParser = blockParsersFactory.GetInstance(blockType);
 
-                blockBase = blockParser.Parse(messagePacket);
+                    if (blockParser != null)
+                    {
+                        blockBase = blockParser.Parse(messagePacket);
+                    }
+                    else
+                    {
+                        _log.Error($"Block parser of packet type {packetType} and block type {blockType} not found! Message: {messagePacket.ToHexString()}");
+                    }
+                }
+                else
+                {
+                    _log.Error($"Block parser factory of packet type {packetType} not found! Message: {messagePacket.ToHexString()}");
+                }
             }
             catch (Exception ex)
             {

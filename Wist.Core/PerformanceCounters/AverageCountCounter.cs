@@ -16,30 +16,30 @@ namespace Wist.Core.PerformanceCounters
 
         public override void Initialize(string categoryName, string counterName, string instanceName, PerformanceCounterType expectedType)
         {
-            baseCounter = new AverageBaseCounter();
-            baseCounter.Initialize(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName, PerformanceCounterType.AverageBase);
+            BaseCounter = new AverageBaseCounter();
+            BaseCounter.Initialize(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName, PerformanceCounterType.AverageBase);
 
             base.Initialize(categoryName, counterName, instanceName, expectedType);
         }
 
         public long IncrementBy(long value)
         {
-            baseCounter.Increment();
+            BaseCounter.Increment();
             return _counter.IncrementBy(value);
         }
 
         public long Increment()
         {
-            baseCounter.Increment();
+            BaseCounter.Increment();
             return _counter.Increment();
         }
 
         public long Decrement()
         {
-            baseCounter.Decrement();
+            BaseCounter.Decrement();
             return _counter.Decrement();
         }
 
-        protected AverageBaseCounter baseCounter { get; set; }
+        protected AverageBaseCounter BaseCounter { get; set; }
     }
 }

@@ -7,10 +7,16 @@ using Wist.Node.Core.MemPools;
 
 namespace Wist.Node.Core.Registry
 {
+    //TODO: add performance counter for measuring MemPool size
     [RegisterExtension(typeof(IMemPool), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionRegisterBlocksMemPool : MemPoolBase<TransactionRegisterBlock>
     {
         private readonly ConcurrentDictionary<int, TransactionRegisterBlock> _transactionRegisterBlocks;
+
+        public TransactionRegisterBlocksMemPool()
+        {
+            _transactionRegisterBlocks = new ConcurrentDictionary<int, TransactionRegisterBlock>();
+        }
 
         public override bool AddIfNotExist(TransactionRegisterBlock item)
         {

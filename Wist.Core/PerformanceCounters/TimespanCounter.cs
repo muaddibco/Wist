@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace Wist.Core.PerformanceCounters
 {
     [CounterType(CounterType = PerformanceCounterType.AverageTimer32)]
-    public class TimespanCounter : PerformanceCounterBase, IPerformanceCounterBase<TimeSpan>
+    public class TimespanCounter : PerformanceCounterBase
     {
         /// <summary>
         /// Used for representation of a timestamp by the performance counters.

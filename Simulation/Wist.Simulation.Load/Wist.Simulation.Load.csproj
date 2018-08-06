@@ -218,11 +218,14 @@
     <Compile Include="SimulationLoadInitializer.cs" />
     <Compile Include="SyncConfirmedSingleModule.cs" />
     <Compile Include="SyncConfirmedLoadModule.cs" />
+    <Compile Include="TransactionRegistrationSingleModule.cs" />
     <Compile Include="TransactionRegistrationLoadModule.cs" />
     <Compile Include="TypeRegistrator.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

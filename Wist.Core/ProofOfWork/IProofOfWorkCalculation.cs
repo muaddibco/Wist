@@ -10,7 +10,7 @@ namespace Wist.Core.ProofOfWork
     {
         POWType POWType { get; }
 
-        ushort HashSize { get; }
+        int HashSize { get; }
 
         byte[] CalculateHash(byte[] input);
     }

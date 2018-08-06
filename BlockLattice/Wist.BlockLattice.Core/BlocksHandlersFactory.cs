@@ -1,5 +1,4 @@
-﻿using CommonServiceLocator;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
 using Wist.BlockLattice.Core.Interfaces;
@@ -8,49 +7,53 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.BlockLattice.Core
 {
-    [RegisterDefaultImplementation(typeof(IBlocksHandlersFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class BlocksHandlersFactory : IBlocksHandlersFactory
+    [RegisterDefaultImplementation(typeof(IBlocksHandlersRegistry), Lifetime = LifetimeManagement.Singleton)]
+    public class BlocksHandlersRegistry : IBlocksHandlersRegistry
     {
-        private readonly Dictionary<string, IBlocksHandler> _blocksProcessors;
-        private readonly Dictionary<PacketType, HashSet<IBlocksHandler>> _blocksProcessorsRegistered;
+        private readonly Dictionary<string, IBlocksHandler> _blocksHandlers;
+        private readonly Dictionary<PacketType, HashSet<IBlocksHandler>> _blocksHandlersRegistered;
 
-        public BlocksHandlersFactory(IBlocksHandler[] blocksProcessors)
+        public BlocksHandlersRegistry(IBlocksHandler[] blocksProcessors)
         {
-            _blocksProcessorsRegistered = new Dictionary<PacketType, HashSet<IBlocksHandler>>();
-            _blocksProcessors = new Dictionary<string, IBlocksHandler>();
+            _blocksHandlersRegistered = new Dictionary<PacketType, HashSet<IBlocksHandler>>();
+            _blocksHandlers = new Dictionary<string, IBlocksHandler>();
 
             foreach (IBlocksHandler blocksProcessor in blocksProcessors)
             {
-                if(!_blocksProcessors.ContainsKey(blocksProcessor.Name))
+                if(!_blocksHandlers.ContainsKey(blocksProcessor.Name))
                 {
-                    _blocksProcessors.Add(blocksProcessor.Name, blocksProcessor);
+                    _blocksHandlers.Add(blocksProcessor.Name, blocksProcessor);
                 }
             }
         }
         public IBlocksHandler GetInstance(string blocksProcessorName)
         {
-            if (!_blocksProcessors.ContainsKey(blocksProcessorName))
+            if (!_blocksHandlers.ContainsKey(blocksProcessorName))
             {
                 throw new BlocksProcessorNotRegisteredException(blocksProcessorName);
             }
 
-            return _blocksProcessors[blocksProcessorName];
+            return _blocksHandlers[blocksProcessorName];
         }
 
         public IEnumerable<IBlocksHandler> GetBulkInstances(PacketType key)
         {
-            //TODO: add key check
-            return _blocksProcessorsRegistered[key];
+            if(!_blocksHandlersRegistered.ContainsKey(key))
+            {
+                throw new BlockHandlerNotSupportedException(key);
+            }
+
+            return _blocksHandlersRegistered[key];
         }
 
         public void RegisterInstance(IBlocksHandler obj)
         {
-            if(!_blocksProcessorsRegistered.ContainsKey(obj.PacketType))
+            if(!_blocksHandlersRegistered.ContainsKey(obj.PacketType))
             {
-                _blocksProcessorsRegistered.Add(obj.PacketType, new HashSet<IBlocksHandler>());
+                _blocksHandlersRegistered.Add(obj.PacketType, new HashSet<IBlocksHandler>());
             }
 
-            _blocksProcessorsRegistered[obj.PacketType].Add(obj);
+            _blocksHandlersRegistered[obj.PacketType].Add(obj);
         }
     }
 }

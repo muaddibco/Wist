@@ -6,7 +6,7 @@ namespace Wist.Core.PerformanceCounters
     /// Floating point counter with precision of 3 digits after integer part in performance counter.
     /// </summary>
     [CounterType(CounterType = PerformanceCounterType.RawFraction)]
-    public class FloatingPointCounter : PerformanceCounterBase, IPerformanceCounterBase<double>
+    public class FloatingPointCounter : PerformanceCounterBase
     {
         //public FloatingPointCounter(string categoryName, string counterName, string instanceName) :
         //    base(categoryName, counterName, instanceName, PerformanceCounterType.RawFraction)

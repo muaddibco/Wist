@@ -38,7 +38,7 @@ namespace Wist.Node.Core
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IPacketsHandler packetsHandler, IBlocksHandlersFactory blocksProcessorFactory, ILoggerService loggerService)
+        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IPacketsHandler packetsHandler, IBlocksHandlersRegistry blocksProcessorFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _communicationServicesFactory = communicationServicesFactory;

@@ -18,22 +18,22 @@ namespace Wist.Core.PerformanceCounters
         {
             base.Initialize(categoryName, counterName, instanceName, expectedType);
 
-            baseCounter = new AverageBaseCounter();
-            baseCounter.Initialize(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName, PerformanceCounterType.AverageBase);
+            BaseCounter = new AverageBaseCounter();
+            BaseCounter.Initialize(categoryName, CategoryFactory.GetBaseNameFromCounter(counterName), instanceName, PerformanceCounterType.AverageBase);
         }
 
         public long Success()
         {
-            baseCounter.Increment();
+            BaseCounter.Increment();
             return _counter.IncrementBy(100);
         }
 
         public long Failure()
         {
-            baseCounter.Increment();
+            BaseCounter.Increment();
             return _counter.IncrementBy(0);
         }
 
-        protected AverageBaseCounter baseCounter { get; set; }
+        protected AverageBaseCounter BaseCounter { get; set; }
     }
 }

@@ -35,7 +35,7 @@ namespace Wist.Simulation.Load
 
             ulong index = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
 
-            byte[] prevHash = null;
+            byte[] prevHash = _synchronizationContext.LastBlockDescriptor?.Hash;
 
             do
             {

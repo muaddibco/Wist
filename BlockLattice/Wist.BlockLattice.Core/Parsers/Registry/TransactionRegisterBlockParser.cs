@@ -3,11 +3,15 @@ using System.Buffers.Binary;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
+using Wist.BlockLattice.Core.Interfaces;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 using Wist.Core.Identity;
 using Wist.Core.ProofOfWork;
 
 namespace Wist.BlockLattice.Core.Parsers.Registry
 {
+    [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionRegisterBlockParser : SyncedBlockParserBase
     {
         public TransactionRegisterBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository) : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)

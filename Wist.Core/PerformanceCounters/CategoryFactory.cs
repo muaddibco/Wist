@@ -1,14 +1,10 @@
 ﻿using Wist.Core.Exceptions;
 using Wist.Core.ExtensionMethods;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Wist.Core.PerformanceCounters
 {
@@ -62,14 +58,12 @@ namespace Wist.Core.PerformanceCounters
                     throw new InvalidContractException($"Property {prop.Name} must have a getter and a setter to be valid.");
                 }
 
-                var perfCounterBaseInstance = Activator.CreateInstance<PerformanceCounterBase>();
-                if (prop.PropertyType.BaseType.FullName != perfCounterBaseInstance.GetType().FullName)
+                if (prop.PropertyType.BaseType.FullName != typeof(PerformanceCounterBase).FullName)
                 {
                     throw new InvalidContractException($"Property {prop.Name} must be of {typeof(PerformanceCounterBase).FullName} type.");
                 }
 
-                var counterAttributeInstance = Activator.CreateInstance<CounterTypeAttribute>();
-                if (prop.PropertyType.CustomAttributes == null || !prop.PropertyType.CustomAttributes.Any(x => x.AttributeType.FullName == counterAttributeInstance.GetType().FullName))
+                if (prop.PropertyType.CustomAttributes == null || !prop.PropertyType.CustomAttributes.Any(x => x.AttributeType.FullName == typeof(CounterTypeAttribute).FullName))
                 {
                     throw new InvalidContractException($"Property {prop.Name} must have a {typeof(CounterTypeAttribute).FullName} attribute.");
                 }

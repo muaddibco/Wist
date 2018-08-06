@@ -120,6 +120,9 @@
   <data name="ERR_BLOCKS_PROCESSOR_NOT_REGISTERED" xml:space="preserve">
     <value>Blocks Processor with name {0} is not registered.</value>
   </data>
+  <data name="ERR_BLOCK_HANDLER_NOT_SUPPORTED" xml:space="preserve">
+    <value>Block Handler for PacketType {0} is not supported.</value>
+  </data>
   <data name="ERR_BLOCK_VERSION_NOT_SUPPORTED" xml:space="preserve">
     <value>Version '{0}' is not supported for block type '{1}'.</value>
   </data>

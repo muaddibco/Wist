@@ -13,7 +13,7 @@ namespace Wist.Crypto.ProofOfWork
     {
         public POWType POWType => POWType.Keccak256;
 
-        public ushort HashSize => 16;
+        public int HashSize => _hash.HashSize;
 
         private readonly IHash _hash;
 
@@ -24,8 +24,8 @@ namespace Wist.Crypto.ProofOfWork
 
         public byte[] CalculateHash(byte[] input)
         {
-            HashResult hash = _hash.ComputeBytes(input);
-            return hash.GetBytes();
+            HashResult hashRes = _hash.ComputeBytes(input);
+            return hashRes.GetBytes();
         }
     }
 }

@@ -38,8 +38,9 @@ namespace Wist.BlockLattice.Core.Parsers
 
             if (powType != POWType.None)
             {
-                IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.GetInstance(powType);
+                IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.Create(powType);
                 sliceSkip = 8 + proofOfWorkCalculation.HashSize;
+                _proofOfWorkCalculationRepository.Utilize(proofOfWorkCalculation);
             }
 
             spanHeader = span.Slice(0, spanHeader.Length + 10 + sliceSkip);
@@ -49,7 +50,7 @@ namespace Wist.BlockLattice.Core.Parsers
 
         protected override Span<byte> FillBlockBaseHeader(BlockBase blockBase, Span<byte> spanHeader)
         {
-            SyncedLinkedBlockBase syncedBlockBase = (SyncedLinkedBlockBase)blockBase;
+            SyncedBlockBase syncedBlockBase = (SyncedBlockBase)blockBase;
 
             spanHeader = base.FillBlockBaseHeader(blockBase, spanHeader);
 
@@ -58,11 +59,13 @@ namespace Wist.BlockLattice.Core.Parsers
 
             if (powType != POWType.None)
             {
-                IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.GetInstance(powType);
+                IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.Create(powType);
+                int hashSize = proofOfWorkCalculation.HashSize;
                 syncedBlockBase.Nonce = BinaryPrimitives.ReadUInt64LittleEndian(spanHeader.Slice(10));
-                syncedBlockBase.HashNonce = spanHeader.Slice(18, proofOfWorkCalculation.HashSize).ToArray();
+                syncedBlockBase.HashNonce = spanHeader.Slice(18, hashSize).ToArray();
+                _proofOfWorkCalculationRepository.Utilize(proofOfWorkCalculation);
 
-                return spanHeader.Slice(18 + proofOfWorkCalculation.HashSize);
+                return spanHeader.Slice(18 + hashSize);
             }
 
             return spanHeader.Slice(10);

@@ -4,17 +4,16 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Logging;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Roles;
-using Wist.Node.Core.Synchronization;
 
-namespace Wist.Node.Core
+namespace Wist.Node.Core.Registry
 {
     [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
-    public class CommonModule : ModuleBase
+    public class TransactionsRegistrationModule : ModuleBase
     {
-        public const string NAME = nameof(CommonModule);
+        public const string NAME = nameof(TransactionsRegistrationModule);
         private readonly IBlocksHandlersRegistry _blocksHandlersFactory;
 
-        public CommonModule(ILoggerService loggerService, IBlocksHandlersRegistry blocksHandlersFactory) : base(loggerService)
+        public TransactionsRegistrationModule(ILoggerService loggerService, IBlocksHandlersRegistry blocksHandlersFactory) : base(loggerService)
         {
             _blocksHandlersFactory = blocksHandlersFactory;
         }
@@ -23,7 +22,7 @@ namespace Wist.Node.Core
 
         protected override void InitializeInner()
         {
-            IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(SynchronizationReceivingHandler.NAME);
+            IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(TransactionsRegistryHandler.NAME);
             _blocksHandlersFactory.RegisterInstance(blocksHandler);
             blocksHandler.Initialize(_cancellationToken);
         }

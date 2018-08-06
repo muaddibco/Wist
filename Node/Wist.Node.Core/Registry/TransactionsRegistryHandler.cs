@@ -6,12 +6,15 @@ using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 using Wist.Core.Communication;
 using Wist.Core.States;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Registry
 {
+    [RegisterExtension(typeof(IBlocksHandler), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionsRegistryHandler : IBlocksHandler
     {
         public const string NAME = "TransactionsRegistry";
@@ -22,13 +25,16 @@ namespace Wist.Node.Core.Registry
         private readonly INeighborhoodState _neighborhoodState;
         private readonly IMemPool<TransactionRegisterBlock> _transactionRegisterBlocksMemPool;
         private IServerCommunicationService _communicationService;
+        private  Timer _timer;
 
         public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IMemPoolsRepository memPoolsRepository)
         {
+            _registrationBlocks = new BlockingCollection<TransactionRegisterBlock>();
             _neighborhoodState = statesRepository.GetInstance<RegistryGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
             _transactionRegisterBlocksMemPool = memPoolsRepository.GetInstance<TransactionRegisterBlock>();
+            
         }
 
         public string Name => NAME;
@@ -60,6 +66,11 @@ namespace Wist.Node.Core.Registry
         {
             foreach (TransactionRegisterBlock transactionRegisterBlock in _registrationBlocks.GetConsumingEnumerable(ct))
             {
+                if(_timer == null)
+                {
+                    _timer = new Timer(new TimerCallback(TimerElapsed), _transactionRegisterBlocksMemPool, 120000, Timeout.Infinite);
+                }
+
                 bool isNew = _transactionRegisterBlocksMemPool.AddIfNotExist(transactionRegisterBlock);
 
                 if (isNew)
@@ -68,6 +79,11 @@ namespace Wist.Node.Core.Registry
                     _communicationService.PostMessage(_neighborhoodState.GetAllNeighbors(), packetProvider);
                 }
             }
+        }
+
+        private void TimerElapsed(object o)
+        {
+
         }
 
         #endregion PrivateFunctions
