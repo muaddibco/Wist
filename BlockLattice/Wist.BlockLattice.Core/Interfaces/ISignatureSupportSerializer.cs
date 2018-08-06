@@ -16,5 +16,7 @@ namespace Wist.BlockLattice.Core.Interfaces
         ushort BlockType { get; }
 
         void Initialize(SignedBlockBase signedBlockBase);
+
+        void FillBodyAndRowBytes();
     }
 }

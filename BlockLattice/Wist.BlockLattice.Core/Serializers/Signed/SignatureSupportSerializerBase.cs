@@ -1,14 +1,10 @@
 ﻿using CommonServiceLocator;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Cryptography;
-using Wist.Core.States;
-using Wist.Core.Synchronization;
 
 namespace Wist.BlockLattice.Core.Serializers.Signed
 {
@@ -116,6 +112,42 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
         public void Dispose()
         {
             Dispose(true);
+        }
+
+        public void FillBodyAndRowBytes()
+        {
+            if (_block == null)
+            {
+                return;
+            }
+
+            _memoryStream.Seek(0, SeekOrigin.Begin);
+            _memoryStream.SetLength(0);
+
+            _binaryWriter.Write((ushort)PacketType);
+
+            WriteSyncHeader(_binaryWriter);
+
+            _binaryWriter.Write(_block.Version);
+            _binaryWriter.Write(_block.BlockType);
+
+            long pos = _memoryStream.Position;
+
+            WriteBody(_binaryWriter);
+
+            long bodyLength = _memoryStream.Position - pos;
+            _memoryStream.Seek(pos, SeekOrigin.Begin);
+
+            byte[] body = _binaryReader.ReadBytes((int)bodyLength);
+
+            _block.BodyBytes = body;
+
+            byte[] signature = _cryptoService.Sign(body);
+
+            _binaryWriter.Write(signature);
+            _binaryWriter.Write(_block.Key.Value);
+
+            _block.RawData = _memoryStream.ToArray();
         }
 
         ~SignatureSupportSerializerBase()

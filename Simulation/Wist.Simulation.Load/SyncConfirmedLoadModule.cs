@@ -10,6 +10,8 @@ using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.Core.PerformanceCounters;
+using Wist.Core.States;
+using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Simulation.Load
@@ -17,9 +19,12 @@ namespace Wist.Simulation.Load
     [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
     public class SyncConfirmedLoadModule : LoadModuleBase
     {
-        public SyncConfirmedLoadModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository) 
+        private readonly ISynchronizationContext _synchronizationContext;
+
+        public SyncConfirmedLoadModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository) 
             : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository)
         {
+            _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
         }
 
         public override string Name => nameof(SyncConfirmedLoadModule);
@@ -28,22 +33,29 @@ namespace Wist.Simulation.Load
         {
             base.InitializeInner();
 
-            int index = 0;
+            ulong index = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
+
+            byte[] prevHash = null;
+
             do
             {
                 unchecked
                 {
                     SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock()
                     {
-                        SyncBlockOrder = 0,
+                        SyncBlockOrder = index,
                         BlockHeight = (ulong)++index,
                         Key = _key,
                         ReportedTime = DateTime.Now,
                         Round = 1,
-                        HashPrev = new byte[Globals.HASH_SIZE]
+                        HashPrev = prevHash ?? new byte[Globals.HASH_SIZE]
                     };
 
                     ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);
+                    signatureSupportSerializer.FillBodyAndRowBytes();
+
+                    prevHash = CryptoHelper.ComputeHash(synchronizationConfirmedBlock.BodyBytes);
+
                     _communicationService.PostMessage(_keyTarget, signatureSupportSerializer);
 
                     _loadCountersService.SentMessages.Increment();

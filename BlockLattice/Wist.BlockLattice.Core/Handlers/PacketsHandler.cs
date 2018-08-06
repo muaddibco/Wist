@@ -163,7 +163,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
                     if (blockBase != null)
                     {
-                        blockBase.RawData = messagePacket;
+                        blockBase.RawData = decodedPacket;
 
                         DispatchBlock(blockBase);
                     }

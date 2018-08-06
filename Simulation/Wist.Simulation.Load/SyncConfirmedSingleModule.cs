@@ -36,6 +36,7 @@ namespace Wist.Simulation.Load
             ulong index = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
 
             string cmd = null;
+            byte[] prevHash = null;
             do
             {
                 unchecked
@@ -47,10 +48,14 @@ namespace Wist.Simulation.Load
                         Key = _key,
                         ReportedTime = DateTime.Now,
                         Round = 1,
-                        HashPrev = new byte[Globals.HASH_SIZE]
+                        HashPrev = prevHash ?? new byte[Globals.HASH_SIZE]
                     };
 
                     ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);
+                    signatureSupportSerializer.FillBodyAndRowBytes();
+
+                    prevHash = CryptoHelper.ComputeHash(synchronizationConfirmedBlock.BodyBytes);
+
                     _communicationService.PostMessage(_keyTarget, signatureSupportSerializer);
 
                     _loadCountersService.SentMessages.Increment();
