@@ -15,11 +15,11 @@ namespace Wist.Node.Console
 
         static void Main(string[] args)
         {
-            int minWorkerThreads, minCompletionPortThreads;
-            int maxWorkerThreads, maxCompletionPortThreads;
-            ThreadPool.GetMinThreads(out minWorkerThreads, out minCompletionPortThreads);
-            ThreadPool.GetMaxThreads(out maxWorkerThreads, out maxCompletionPortThreads);
-            ThreadPool.SetMaxThreads(minWorkerThreads * 100, minCompletionPortThreads);
+            //int minWorkerThreads, minCompletionPortThreads;
+            //int maxWorkerThreads, maxCompletionPortThreads;
+            //ThreadPool.GetMinThreads(out minWorkerThreads, out minCompletionPortThreads);
+            //ThreadPool.GetMaxThreads(out maxWorkerThreads, out maxCompletionPortThreads);
+            //ThreadPool.SetMaxThreads(minWorkerThreads * 100, minCompletionPortThreads);
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             XmlConfigurator.Configure(_log.Logger.Repository);

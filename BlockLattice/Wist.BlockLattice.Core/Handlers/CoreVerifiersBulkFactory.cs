@@ -6,7 +6,7 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
-    [RegisterDefaultImplementation(typeof(CoreVerifiersBulkFactory), Lifetime = LifetimeManagement.Singleton)]
+    [RegisterDefaultImplementation(typeof(ICoreVerifiersBulkFactory), Lifetime = LifetimeManagement.Singleton)]
     public class CoreVerifiersBulkFactory : ICoreVerifiersBulkFactory
     {
         private readonly ICoreVerifier[] _coreVerifiers;

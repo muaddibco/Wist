@@ -49,16 +49,27 @@ namespace Wist.BlockLattice.Core.Handlers
             ulong syncBlockHeight = syncedBlockBase.SyncBlockHeight;
             uint nonce = syncedBlockBase.Nonce;
             byte[] powHash = syncedBlockBase.HashNonce;
+            byte[] baseHash;
 
-            //TODO: make difficulty check dynamic
-            if (powHash[0] != 0 && powHash[1] != 0)
-                return false;
+            if (syncedBlockBase.PacketType != PacketType.Synchronization)
+            {
+                //TODO: make difficulty check dynamic
+                //if (powHash[0] != 0 || powHash[1] != 0)
+                //{
+                //    return false;
+                //}
 
-            BigInteger bigInteger = new BigInteger((syncBlockHeight == _synchronizationContext.LastBlockDescriptor.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash);
-            bigInteger += nonce;
+                BigInteger bigInteger = new BigInteger((syncBlockHeight == _synchronizationContext.LastBlockDescriptor.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash);
+                bigInteger += nonce;
 
-            byte[] input = bigInteger.ToByteArray();
-            byte[] computedHash = _proofOfWorkCalculation.CalculateHash(input);
+                baseHash = bigInteger.ToByteArray();
+            }
+            else
+            {
+                baseHash = (syncBlockHeight == _synchronizationContext.LastBlockDescriptor.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash;
+            }
+
+            byte[] computedHash = _proofOfWorkCalculation.CalculateHash(baseHash);
 
             if (!computedHash.Equals24(powHash))
             {

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.Core.Identity;
 using Wist.Core.ProofOfWork;
@@ -33,19 +31,9 @@ namespace Wist.BlockLattice.Core.Parsers
         {
             Span<byte> span1 = base.SliceInitialBytes(span, out spanHeader);
 
-            POWType powType = (POWType)BinaryPrimitives.ReadUInt16LittleEndian(span1.Slice(8));
-            int sliceSkip = 0;
+            spanHeader = span.Slice(0, spanHeader.Length + 8 + Globals.NONCE_LENGTH + Globals.POW_HASH_SIZE);
 
-            if (powType != POWType.None)
-            {
-                IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.Create(powType);
-                sliceSkip = 8 + proofOfWorkCalculation.HashSize;
-                _proofOfWorkCalculationRepository.Utilize(proofOfWorkCalculation);
-            }
-
-            spanHeader = span.Slice(0, spanHeader.Length + 10 + sliceSkip);
-
-            return span1.Slice(10 + sliceSkip);
+            return span1.Slice(8 + Globals.NONCE_LENGTH + Globals.POW_HASH_SIZE);
         }
 
         protected override Span<byte> FillBlockBaseHeader(BlockBase blockBase, Span<byte> spanHeader)
@@ -55,20 +43,10 @@ namespace Wist.BlockLattice.Core.Parsers
             spanHeader = base.FillBlockBaseHeader(blockBase, spanHeader);
 
             syncedBlockBase.SyncBlockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanHeader);
-            POWType powType = (POWType)BinaryPrimitives.ReadUInt16LittleEndian(spanHeader.Slice(8));
+            syncedBlockBase.Nonce = BinaryPrimitives.ReadUInt32LittleEndian(spanHeader.Slice(8));
+            syncedBlockBase.HashNonce = spanHeader.Slice(12, Globals.POW_HASH_SIZE).ToArray();
 
-            if (powType != POWType.None)
-            {
-                IProofOfWorkCalculation proofOfWorkCalculation = _proofOfWorkCalculationRepository.Create(powType);
-                int hashSize = proofOfWorkCalculation.HashSize;
-                syncedBlockBase.Nonce = BinaryPrimitives.ReadUInt64LittleEndian(spanHeader.Slice(10));
-                syncedBlockBase.HashNonce = spanHeader.Slice(18, hashSize).ToArray();
-                _proofOfWorkCalculationRepository.Utilize(proofOfWorkCalculation);
-
-                return spanHeader.Slice(18 + hashSize);
-            }
-
-            return spanHeader.Slice(10);
+            return spanHeader.Slice(12 + Globals.POW_HASH_SIZE);
         }
 
         protected abstract Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase);

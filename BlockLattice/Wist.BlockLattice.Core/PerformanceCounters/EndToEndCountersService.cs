@@ -14,8 +14,17 @@ namespace Wist.BlockLattice.Core.PerformanceCounters
 
         public override string Name => "EndToEndCounters";
 
-        [PerfCounter(nameof(HandlingTransactionsThroughput), "Throughput of transactions being handled")]
-        public RateOfCountsPerSecondCounter HandlingTransactionsThroughput { get; set; }
+        [PerfCounter(nameof(DecodingThroughput), "Throughput of decodings per second")]
+        public RateOfCountsPerSecondCounter DecodingThroughput { get; set; }
+
+        [PerfCounter(nameof(ParsingThroughput), "Throughput of parsings per second")]
+        public RateOfCountsPerSecondCounter ParsingThroughput { get; set; }
+
+        [PerfCounter(nameof(CoreValidationThroughput), "Throughput of core validations per second")]
+        public RateOfCountsPerSecondCounter CoreValidationThroughput { get; set; }
+
+        [PerfCounter(nameof(DispatchThroughput), "Throughput of dispatches per second")]
+        public RateOfCountsPerSecondCounter DispatchThroughput { get; set; }
 
         [PerfCounter(nameof(ParallelParsers), "Number of parsers working in parallel")]
         public IntegerCounter ParallelParsers { get; set; }

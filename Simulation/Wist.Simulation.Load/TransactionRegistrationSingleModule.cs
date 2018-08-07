@@ -16,6 +16,7 @@ using Wist.Core.ProofOfWork;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
+using Wist.Core.ExtensionMethods;
 
 namespace Wist.Simulation.Load
 {
@@ -58,7 +59,6 @@ namespace Wist.Simulation.Load
                     Key = _key,
                     Nonce = 1234,
                     HashNonce = powHash,
-                    POWType = Globals.POW_TYPE,
                     ReferencedPacketType = PacketType.TransactionalChain,
                     ReferencedBlockType = BlockTypes.Transaction_Confirm,
                     ReferencedHeight = 1234,
@@ -66,6 +66,9 @@ namespace Wist.Simulation.Load
                 };
 
                 ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionRegisterBlock);
+
+                _log.Info($"Sending message: {signatureSupportSerializer.GetBytes().ToHexString()}");
+
                 _communicationService.PostMessage(_keyTarget, signatureSupportSerializer);
 
                 Console.WriteLine("Block sent. Press <Enter> for next or type 'exit' and press <Enter> for exit...");

@@ -22,10 +22,15 @@ namespace Wist.BlockLattice.Core.Parsers
             SignedBlockBase signedBlockBase;
             Span<byte> spanPostBody = ParseSigned(version, spanBody, out signedBlockBase);
 
-            signedBlockBase.Key = _identityKeyProvider.GetKey(spanPostBody.Slice(0, Globals.NODE_PUBLIC_KEY_SIZE).ToArray());
-            signedBlockBase.Signature = spanPostBody.Slice(Globals.NODE_PUBLIC_KEY_SIZE, Globals.SIGNATURE_SIZE).ToArray();
+            signedBlockBase.Signature = spanPostBody.Slice(0, Globals.SIGNATURE_SIZE).ToArray();
+            signedBlockBase.Key = _identityKeyProvider.GetKey(spanPostBody.Slice(Globals.SIGNATURE_SIZE, Globals.NODE_PUBLIC_KEY_SIZE).ToArray());
 
             return signedBlockBase;
+        }
+
+        protected override byte[] GetBodyBytes(Span<byte> spanBody)
+        {
+            return spanBody.Slice(0, spanBody.Length - Globals.SIGNATURE_SIZE - Globals.NODE_PUBLIC_KEY_SIZE).ToArray();
         }
 
         protected abstract Span<byte> ParseSigned(ushort version, Span<byte> spanBody, out SignedBlockBase signedBlockBase);

@@ -47,32 +47,32 @@ namespace Wist.Simulation.Load
         {
             base.InitializeInner();
 
-            IHash hash = HashFactory.Crypto.CreateTiger_4_192();
+            //IHash hash = HashFactory.Crypto.CreateTiger_4_192();
 
-            List<byte[]> seeds = new List<byte[]>();
-            List<byte[]> hashes = new List<byte[]>();
+            //List<byte[]> seeds = new List<byte[]>();
+            //List<byte[]> hashes = new List<byte[]>();
 
-            byte[] seed1 = GetRandomSeed();
-            BigInteger bigInteger1 = new BigInteger(seed1);
+            //byte[] seed1 = GetRandomSeed();
+            //BigInteger bigInteger1 = new BigInteger(seed1);
 
-            bool found = false;
+            //bool found = false;
 
 
-            Stopwatch stopwatch1 = Stopwatch.StartNew();
-            for (int i = 0; i < 10000000; i++)
-            {
-                bigInteger1 += 1;
+            //Stopwatch stopwatch1 = Stopwatch.StartNew();
+            //for (int i = 0; i < 10000000; i++)
+            //{
+            //    bigInteger1 += 1;
 
-                byte[] calc = hash.ComputeBytes(bigInteger1.ToByteArray()).GetBytes();
+            //    byte[] calc = hash.ComputeBytes(bigInteger1.ToByteArray()).GetBytes();
 
-                if(calc[0] == 0 && calc[1] == 0 && calc[2] == 0 )
-                {
-                    found = true;
-                    break;
-                }
-            }
+            //    if(calc[0] == 0 && calc[1] == 0 && calc[2] == 0 )
+            //    {
+            //        found = true;
+            //        break;
+            //    }
+            //}
 
-            long elapsed = stopwatch1.ElapsedMilliseconds;
+            //long elapsed = stopwatch1.ElapsedMilliseconds;
 
             ulong index = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
             byte[] syncHash = _synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.HASH_SIZE];
@@ -93,7 +93,6 @@ namespace Wist.Simulation.Load
                     Key = _key,
                     Nonce = 1234,
                     HashNonce = powHash,
-                    POWType = Globals.POW_TYPE,
                     ReferencedPacketType = PacketType.TransactionalChain,
                     ReferencedBlockType = BlockTypes.Transaction_Confirm,
                     ReferencedHeight = 1234,
