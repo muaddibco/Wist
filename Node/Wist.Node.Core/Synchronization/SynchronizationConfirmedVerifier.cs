@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 using Wist.BlockLattice.Core;
+using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Handlers;
 using Wist.BlockLattice.Core.Interfaces;
@@ -11,36 +12,32 @@ using Wist.Core.ExtensionMethods;
 using Wist.Core.Logging;
 using Wist.Core.ProofOfWork;
 using Wist.Core.States;
+using Wist.Core.Synchronization;
 
 namespace Wist.Node.Core.Synchronization
 {
     [RegisterExtension(typeof(IPacketVerifier), Lifetime = LifetimeManagement.Singleton)]
-    public class SynchronizationConfirmedVerifier : SignaturedBasedPacketVerifierBase
+    public class SynchronizationConfirmedVerifier : IPacketVerifier
     {
+        private readonly ISynchronizationContext _synchronizationContext;
+
         public SynchronizationConfirmedVerifier(IStatesRepository statesRepository, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository, ICryptoService cryptoService, ILoggerService loggerService) 
-            : base(statesRepository, proofOfWorkCalculationRepository, cryptoService, loggerService)
         {
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
         }
 
-        public override PacketType PacketType => PacketType.Synchronization;
+        public PacketType PacketType => PacketType.Synchronization;
 
-        protected override bool ValidatePackerAfterSignature(Span<byte> span, ulong syncBlockHeight, byte[] publicKey)
+        public bool ValidatePacket(BlockBase blockBase)
         {
-            ushort version = BinaryPrimitives.ReadUInt16LittleEndian(span);
-            ushort blockType = BinaryPrimitives.ReadUInt16LittleEndian(span.Slice(2));
-            ulong blockHeight = BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(4));
-            byte[] prevHash = span.Slice(12, Globals.HASH_SIZE).ToArray();
+            SyncedLinkedBlockBase syncedBlockBase = (SyncedLinkedBlockBase)blockBase;
 
-            if(blockType == BlockTypes.Synchronization_ConfirmedBlock && version == 1)
+            if(syncedBlockBase.BlockType == BlockTypes.Synchronization_ConfirmedBlock && syncedBlockBase.Version == 1)
             {
-                if (_synchronizationContext.LastBlockDescriptor != null && _synchronizationContext.LastBlockDescriptor.BlockHeight + 1 <= blockHeight || _synchronizationContext.LastBlockDescriptor == null)
+                if (_synchronizationContext.LastBlockDescriptor != null && _synchronizationContext.LastBlockDescriptor.BlockHeight + 1 <= syncedBlockBase.BlockHeight || _synchronizationContext.LastBlockDescriptor == null)
                 {
-                    if (_synchronizationContext.LastBlockDescriptor != null && prevHash.Equals64(_synchronizationContext.LastBlockDescriptor.Hash) ||
-                        _synchronizationContext.LastBlockDescriptor == null
-                        && BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(12)) == 0 && BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(20)) == 0
-                        && BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(28)) == 0 && BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(36)) == 0
-                        && BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(44)) == 0 && BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(52)) == 0
-                        && BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(60)) == 0 && BinaryPrimitives.ReadUInt64LittleEndian(span.Slice(68)) == 0)
+                    if (_synchronizationContext.LastBlockDescriptor != null && syncedBlockBase.HashPrev.Equals64(_synchronizationContext.LastBlockDescriptor.Hash) ||
+                        _synchronizationContext.LastBlockDescriptor == null && syncedBlockBase.HashPrev.Equals64(new byte[64]))
                     {
                         return true;
                     }

@@ -63,7 +63,7 @@ namespace Wist.Core.ExtensionMethods
                 throw new ArgumentNullException(nameof(b));
 
             if (a.Length % 16 != 0 || b.Length % 16 != 0)
-                throw new ArgumentOutOfRangeException("HashX16Equals can check only sizes of hash values multiple of 16");
+                throw new ArgumentOutOfRangeException("EqualsX16 can check only sizes of hash values multiple of 16");
 
             int length = a.Length;
             if (length != b.Length)
@@ -90,6 +90,50 @@ namespace Wist.Core.ExtensionMethods
                         length -= 16;
                     }
                     return (length <= 0);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks equality of hash values. Function checks only hash values with sizes multiple of 16.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+        public static unsafe bool Equals24(this byte[] a, byte[] b)
+        {
+            if (a == null)
+                throw new ArgumentNullException(nameof(a));
+
+            if (b == null)
+                throw new ArgumentNullException(nameof(b));
+
+            if (a.Length != 24 || b.Length != 24)
+                throw new ArgumentOutOfRangeException("Equals24 can check only sizes of hash values multiple of 24");
+
+            int length = a.Length;
+            if (length != b.Length)
+            {
+                return false;
+            }
+
+            fixed (byte* a1 = a)
+            {
+                byte* pa1 = a1;
+                fixed (byte* b1 = b)
+                {
+                    byte* pb1 = b1;
+                    long* pla1 = (long*)pa1;
+                    long* pla2 = (long*)(pa1 + 8);
+                    long* pla3 = (long*)(pa1 + 16);
+                    long* plb1 = (long*)pb1;
+                    long* plb2 = (long*)(pb1 + 8);
+                    long* plb3 = (long*)(pb1 + 16);
+
+                    return *pla1 == *plb1
+                        && *pla2 == *plb2
+                        && *pla3 == *plb3;
                 }
             }
         }

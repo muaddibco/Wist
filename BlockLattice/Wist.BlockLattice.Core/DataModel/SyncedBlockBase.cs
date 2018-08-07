@@ -9,14 +9,12 @@ namespace Wist.BlockLattice.Core.DataModel
     {
         public ulong BlockHeight { get; set; }
 
-        public ulong SyncBlockOrder { get; set; }
+        public ulong SyncBlockHeight { get; set; }
 
-        public POWType POWType { get; set; }
-
-        public ulong Nonce { get; set; }
+        public uint Nonce { get; set; }
 
         /// <summary>
-        /// 64 byte value of hash of sum of Hash of referenced Sync Block Content and Nonce
+        /// 24 byte value of hash of sum of Hash of referenced Sync Block Content and Nonce
         /// </summary>
         public byte[] HashNonce { get; set; }
     }

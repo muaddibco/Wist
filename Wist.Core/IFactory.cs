@@ -24,4 +24,9 @@ namespace Wist.Core
 
         void Utilize(T obj);
     }
+
+    public interface IBulkFactory<T>
+    {
+        IEnumerable<T> Create();
+    }
 }

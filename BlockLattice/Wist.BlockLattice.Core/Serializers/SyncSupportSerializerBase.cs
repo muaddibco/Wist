@@ -20,7 +20,7 @@ namespace Wist.BlockLattice.Core.Serializers
 
         protected override void WriteSyncHeader(BinaryWriter bw)
         {
-            bw.Write(_block.SyncBlockOrder);
+            bw.Write(_block.SyncBlockHeight);
             bw.Write((ushort)_block.POWType);
             if (_block.POWType != Wist.Core.ProofOfWork.POWType.None)
             {

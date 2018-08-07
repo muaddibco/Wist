@@ -17,42 +17,53 @@ using Wist.Core.ProofOfWork;
 using Wist.Core.PerformanceCounters;
 using Wist.BlockLattice.Core.PerformanceCounters;
 using System.Diagnostics;
+using System.Threading.Tasks.Dataflow;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
     [RegisterDefaultImplementation(typeof(IPacketsHandler), Lifetime = LifetimeManagement.Singleton)]
     public class PacketsHandler : IPacketsHandler
     {
-        private const byte DLE = 0x10;
         private readonly ILogger _log;
         private readonly IPacketVerifiersRepository _chainTypeValidationHandlersFactory;
         private readonly IBlockParsersRepositoriesRepository _blockParsersFactoriesRepository;
         private readonly IBlocksHandlersRegistry _blocksProcessorFactory;
+        private readonly ICoreVerifiersBulkFactory _coreVerifiersBulkFactory;
         private readonly IProofOfWorkCalculationRepository _proofOfWorkCalculationRepository;
-        private readonly ConcurrentQueue<byte[]> _messagePackets;
+        private readonly BlockingCollection<byte[]> _messagePackets;
         private readonly ManualResetEventSlim _messageTrigger;
         private readonly EndToEndCountersService _endToEndCountersService;
+        private readonly PacketHandlingFlow[] _handlingFlows;
 
         private CancellationTokenSource _cancellationTokenSource;
 
         public bool IsInitialized { get; private set; }
 
-        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersRepositoriesRepository blockParsersFactoriesRepository, IBlocksHandlersRegistry blocksProcessorFactory, IProofOfWorkCalculationRepository proofOfWorkCalculationFactory, IPerformanceCountersRepository performanceCountersRepository, ILoggerService loggerService)
+        public PacketsHandler(IPacketVerifiersRepository packetTypeHandlersFactory, IBlockParsersRepositoriesRepository blockParsersFactoriesRepository, IBlocksHandlersRegistry blocksProcessorFactory, ICoreVerifiersBulkFactory coreVerifiersBulkFactory, IPerformanceCountersRepository performanceCountersRepository, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _chainTypeValidationHandlersFactory = packetTypeHandlersFactory;
             _blockParsersFactoriesRepository = blockParsersFactoriesRepository;
             _blocksProcessorFactory = blocksProcessorFactory;
-            _proofOfWorkCalculationRepository = proofOfWorkCalculationFactory;
-            _messagePackets = new ConcurrentQueue<byte[]>();
+            _coreVerifiersBulkFactory = coreVerifiersBulkFactory;
+            _messagePackets = new BlockingCollection<byte[]>();
             _messageTrigger = new ManualResetEventSlim();
             _endToEndCountersService = performanceCountersRepository.GetInstance<EndToEndCountersService>();
+
+            _handlingFlows = new PacketHandlingFlow[Environment.ProcessorCount];
+
+
         }
 
         public void Initialize()
         {
             if(!IsInitialized)
             {
+                _handlingFlows = new Thread[Environment.ProcessorCount];
+                //for (int i = 0; i < Environment.ProcessorCount; i++)
+                //{
+                //    _handlingThreads[i] = new Thread(new ThreadStart(Parse)) { IsBackground = true };
+                //}
                 IsInitialized = true;
             }
         }
@@ -65,7 +76,7 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             _endToEndCountersService.PushedForHandlingTransactionsThroughput.Increment();
             _log.Debug($"Pushed packer for handling: {messagePacket.ToHexString()}");
-            _messagePackets.Enqueue(messagePacket);
+            _messagePackets.Add(messagePacket);
             _endToEndCountersService.MessagesQueueSize.Increment();
 
             _messageTrigger.Set();
@@ -78,24 +89,9 @@ namespace Wist.BlockLattice.Core.Handlers
             Stop();
 
             _cancellationTokenSource = new CancellationTokenSource();
-
-            Task.Factory.StartNew(() => 
-            {
-                while (!_cancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    _messageTrigger.Reset();
-                    Parse(_cancellationTokenSource.Token);
-                    _messageTrigger.Wait(_cancellationTokenSource.Token);
-                }
-            }, TaskCreationOptions.LongRunning);
-
-            PeriodicTaskFactory.Start(() =>
-            {
-                if (_endToEndCountersService.ParallelParsers.RawValue > 0 && _messagePackets.Count / 10000 > _endToEndCountersService.ParallelParsers.RawValue)
-                {
-                    Task.Factory.StartNew(() => Parse(_cancellationTokenSource.Token), TaskCreationOptions.LongRunning);
-                }
-            }, 3000, cancelToken: _cancellationTokenSource.Token, delayInMilliseconds: 3000);
+            Parallel.For(1, Environment.ProcessorCount, 
+                new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = _cancellationTokenSource.Token }, 
+                i => Task.Factory.StartNew(() =>  Parse(i), _cancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default));
 
             _log.Info("PacketsHandler started");
         }
@@ -109,18 +105,20 @@ namespace Wist.BlockLattice.Core.Handlers
             _log.Info("PacketsHandler stopped");
         }
 
-        private void Parse(CancellationToken token)
+        private void Parse(int iteration)
         {
-            _log.Info("Parse function starting");
+            CancellationToken token = _cancellationTokenSource.Token;
+
+            _log.Info($"Parse function #{iteration} starting");
 
             try
             {
                 _endToEndCountersService.ParallelParsers.Increment();
 
-                byte[] messagePacket;
-                while (!token.IsCancellationRequested && _messagePackets.TryDequeue(out messagePacket))
+                foreach (byte[] messagePacket in _messagePackets.GetConsumingEnumerable(_cancellationTokenSource.Token))
                 {
                     _endToEndCountersService.MessagesQueueSize.Decrement();
+                    _handlingFlows[iteration].PostMessage(messagePacket);
                     ProcessMessagePacket(messagePacket);
                 }
             }
@@ -175,35 +173,6 @@ namespace Wist.BlockLattice.Core.Handlers
             }
         }
 
-        private byte[] DecodeMessage(byte[] messagePacket)
-        {
-            MemoryStream memoryStream = new MemoryStream();
-
-            bool dleDetected = false;
-
-            foreach (byte b in messagePacket)
-            {
-                if(b != DLE)
-                {
-                    if (dleDetected)
-                    {
-                        dleDetected = false;
-                        memoryStream.WriteByte((byte)(b - DLE));
-                    }
-                    else
-                    {
-                        memoryStream.WriteByte(b);
-                    }
-                }
-                else
-                {
-                    dleDetected = true;
-                }
-            }
-
-            return memoryStream.ToArray();
-        }
-
         private bool ValidatePacket(PacketType packetType, byte[] messagePacket)
         {
             IPacketVerifier packetVerifier = _chainTypeValidationHandlersFactory.GetInstance(packetType);
@@ -213,67 +182,5 @@ namespace Wist.BlockLattice.Core.Handlers
             return res;
         }
 
-        private BlockBase ParseMessagePacket(PacketType packetType, byte[] messagePacket)
-        {
-            BlockBase blockBase = null;
-            IBlockParser blockParser = null;
-            IBlockParsersRepository blockParsersFactory = null;
-            IProofOfWorkCalculation proofOfWorkCalculation = null;
-            try
-            {
-                //TODO: weigh assumption that all messages are sync based (have reference to latest Sync Block)
-
-                POWType powType = (POWType)BitConverter.ToUInt16(messagePacket, 10);
-
-                proofOfWorkCalculation = _proofOfWorkCalculationRepository.Create(powType);
-                int hashSize = proofOfWorkCalculation.HashSize;
-                _proofOfWorkCalculationRepository.Utilize(proofOfWorkCalculation);
-                int powSize = 0;
-
-                if(powType != POWType.None)
-                {
-                    powSize = 8 + hashSize;
-                }
-
-                ushort blockType = BitConverter.ToUInt16(messagePacket, 12 + powSize + 2);
-
-                blockParsersFactory = _blockParsersFactoriesRepository.GetBlockParsersRepository(packetType);
-
-                if (blockParsersFactory != null)
-                {
-                    blockParser = blockParsersFactory.GetInstance(blockType);
-
-                    if (blockParser != null)
-                    {
-                        blockBase = blockParser.Parse(messagePacket);
-                    }
-                    else
-                    {
-                        _log.Error($"Block parser of packet type {packetType} and block type {blockType} not found! Message: {messagePacket.ToHexString()}");
-                    }
-                }
-                else
-                {
-                    _log.Error($"Block parser factory of packet type {packetType} not found! Message: {messagePacket.ToHexString()}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.Error($"Failed to parse message {messagePacket.ToHexString()}", ex);
-            }
-
-            return blockBase;
-        }
-
-        private void DispatchBlock(BlockBase block)
-        {
-            if (block != null)
-            {
-                IEnumerable<IBlocksHandler> blocksProcessors = _blocksProcessorFactory.GetBulkInstances(block.PacketType);
-
-                //TODO: weigh to check whether number of processors is greater than 1 before parallelizing for sake of performance
-                blocksProcessors.AsParallel().ForAll(p => p.ProcessBlock(block));
-            }
-        }
     }
 }

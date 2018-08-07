@@ -6,6 +6,7 @@ using Wist.Core.Architecture;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Handlers;
 using Wist.Core.Synchronization;
+using Wist.BlockLattice.Core.DataModel;
 
 namespace Wist.BlockLattice.Core.Interfaces
 {
@@ -14,6 +15,6 @@ namespace Wist.BlockLattice.Core.Interfaces
     {
         PacketType PacketType { get; }
 
-        bool ValidatePacket(byte[] packet);
+        bool ValidatePacket(BlockBase block);
     }
 }

@@ -54,7 +54,7 @@ namespace Wist.BlockLattice.Core.Parsers
 
             spanHeader = base.FillBlockBaseHeader(blockBase, spanHeader);
 
-            syncedBlockBase.SyncBlockOrder = BinaryPrimitives.ReadUInt64LittleEndian(spanHeader);
+            syncedBlockBase.SyncBlockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanHeader);
             POWType powType = (POWType)BinaryPrimitives.ReadUInt16LittleEndian(spanHeader.Slice(8));
 
             if (powType != POWType.None)

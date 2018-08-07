@@ -43,7 +43,7 @@ namespace Wist.Simulation.Load
                 {
                     SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock()
                     {
-                        SyncBlockOrder = index,
+                        SyncBlockHeight = index,
                         BlockHeight = (ulong)++index,
                         Key = _key,
                         ReportedTime = DateTime.Now,

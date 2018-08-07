@@ -53,7 +53,7 @@ namespace Wist.Simulation.Load
             {
                 TransactionRegisterBlock transactionRegisterBlock = new TransactionRegisterBlock
                 {
-                    SyncBlockOrder = index,
+                    SyncBlockHeight = index,
                     BlockHeight = 1,
                     Key = _key,
                     Nonce = 1234,
