@@ -58,15 +58,22 @@ namespace Wist.BlockLattice.Core.Handlers
                 //{
                 //    return false;
                 //}
+                BigInteger bigInteger;
+                if (_synchronizationContext.LastBlockDescriptor != null || _synchronizationContext.PrevBlockDescriptor != null)
+                {
+                    bigInteger = new BigInteger((syncBlockHeight == _synchronizationContext.LastBlockDescriptor?.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash);
+                }
+                else
+                {
+                    bigInteger = new BigInteger(new byte[Globals.HASH_SIZE]);
+                }
 
-                BigInteger bigInteger = new BigInteger((syncBlockHeight == _synchronizationContext.LastBlockDescriptor.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash);
                 bigInteger += nonce;
-
                 baseHash = bigInteger.ToByteArray();
             }
             else
             {
-                baseHash = (syncBlockHeight == _synchronizationContext.LastBlockDescriptor.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash;
+                baseHash = (syncBlockHeight == _synchronizationContext.LastBlockDescriptor?.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash;
             }
 
             byte[] computedHash = _proofOfWorkCalculation.CalculateHash(baseHash);
