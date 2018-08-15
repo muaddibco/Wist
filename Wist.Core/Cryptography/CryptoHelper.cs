@@ -15,9 +15,10 @@ namespace Wist.Core.Cryptography
         /// <returns></returns>
         public static byte[] ComputeHash(byte[] input)
         {
-            using (SHA512 sha512 = SHA512CryptoServiceProvider.Create())
+            //using (SHA512 hashAlgorithm = SHA512CryptoServiceProvider.Create())
+            using (SHA256 hashAlgorithm = SHA256CryptoServiceProvider.Create())
             {
-                byte[] hash = sha512.ComputeHash(input);
+                byte[] hash = hashAlgorithm.ComputeHash(input);
                 return hash;
             }            
         }
@@ -27,8 +28,11 @@ namespace Wist.Core.Cryptography
             byte[] buffer = input;
             for (int i = 0; i < level; i++)
             {
-                using (SHA512 sha512 = SHA512CryptoServiceProvider.Create())
-                    buffer = sha512.ComputeHash(buffer);
+                //using (SHA512 hashAlgorithm = SHA512CryptoServiceProvider.Create())
+                using (SHA256 hashAlgorithm = SHA256CryptoServiceProvider.Create())
+                {
+                    buffer = hashAlgorithm.ComputeHash(buffer);
+                }
             }
             return buffer;
         }

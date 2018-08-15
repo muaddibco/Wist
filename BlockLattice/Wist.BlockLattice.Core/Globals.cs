@@ -11,7 +11,7 @@ namespace Wist.BlockLattice.Core
         public const byte NONCE_LENGTH = 4;
         public const byte POW_HASH_SIZE = 24;
         public const byte VERSION_LENGTH = 4;
-        public const byte HASH_SIZE = 64;
+        public const byte HASH_SIZE = 32; // weigh using SHA3-256 with size of 32 byte
         public const byte NODE_PUBLIC_KEY_SIZE = 32;
         public const byte SIGNATURE_SIZE = 64;
         public const POWType POW_TYPE = POWType.Tiger4;
