@@ -142,6 +142,24 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Predicate with name &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string ERR_PREDICATE_IS_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_PREDICATE_IS_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specifying name of predicate is mandatory.
+        /// </summary>
+        internal static string ERR_PREDICATE_NAME_IS_MANDATORY {
+            get {
+                return ResourceManager.GetString("ERR_PREDICATE_NAME_IS_MANDATORY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Proof of work algorithm {0} not supported..
         /// </summary>
         internal static string ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED {

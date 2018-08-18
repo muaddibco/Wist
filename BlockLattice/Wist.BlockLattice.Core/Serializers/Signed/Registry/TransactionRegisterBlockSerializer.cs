@@ -20,10 +20,10 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
         {
             base.WriteBody(bw);
 
-            bw.Write((ushort)_block.ReferencedPacketType);
-            bw.Write(_block.ReferencedBlockType);
-            bw.Write(_block.ReferencedHeight);
-            bw.Write(_block.ReferencedBodyHash);
+            bw.Write((ushort)_block.TransactionHeader.ReferencedPacketType);
+            bw.Write(_block.TransactionHeader.ReferencedBlockType);
+            bw.Write(_block.TransactionHeader.ReferencedHeight);
+            bw.Write(_block.TransactionHeader.ReferencedBodyHash);
         }
     }
 }

@@ -59,10 +59,13 @@ namespace Wist.Simulation.Load
                     Key = _key,
                     Nonce = 1234,
                     HashNonce = powHash,
-                    ReferencedPacketType = PacketType.TransactionalChain,
-                    ReferencedBlockType = BlockTypes.Transaction_Confirm,
-                    ReferencedHeight = 1234,
-                    ReferencedBodyHash = new byte[Globals.HASH_SIZE]
+                    TransactionHeader = new TransactionHeader
+                    {
+                        ReferencedPacketType = PacketType.TransactionalChain,
+                        ReferencedBlockType = BlockTypes.Transaction_Confirm,
+                        ReferencedHeight = 1234,
+                        ReferencedBodyHash = new byte[Globals.HASH_SIZE]
+                    }
                 };
 
                 ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionRegisterBlock);

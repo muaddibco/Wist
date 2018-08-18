@@ -5,6 +5,8 @@
         public const ushort Unknown = 0;
         public const ushort Genesis = 1;
         public const ushort Registry_TransactionRegister = 1;
+        public const ushort Registry_TransactionFullBlock = 2;
+        public const ushort Registry_TransactionShortBlock = 3;
 
         public const ushort Transaction_Genesis = 2;
         public const ushort Transaction_AcceptFunds = 3;

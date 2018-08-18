@@ -144,6 +144,12 @@
   <data name="ERR_PERFORMANCE_COUNTERS_SERVICE_NOT_SUPPORTED" xml:space="preserve">
     <value>Performance Counters service with name '{0}' is not supported.</value>
   </data>
+  <data name="ERR_PREDICATE_IS_NOT_SUPPORTED" xml:space="preserve">
+    <value>Predicate with name '{0}' is not supported.</value>
+  </data>
+  <data name="ERR_PREDICATE_NAME_IS_MANDATORY" xml:space="preserve">
+    <value>Specifying name of predicate is mandatory</value>
+  </data>
   <data name="ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED" xml:space="preserve">
     <value>Proof of work algorithm {0} not supported.</value>
   </data>
