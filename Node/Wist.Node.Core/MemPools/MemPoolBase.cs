@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.MemPools
@@ -7,6 +8,8 @@ namespace Wist.Node.Core.MemPools
     {
         public Type ElementType { get; } = typeof(T);
 
-        public abstract bool AddIfNotExist(T item);
+        public abstract bool Enqueue(T item);
+        public abstract IEnumerable<T> DequeueBulk(int maxCount);
+        public abstract void RemoveAll(IEnumerable<T> items);
     }
 }

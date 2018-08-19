@@ -24,6 +24,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
             bw.Write(_block.TransactionHeader.ReferencedBlockType);
             bw.Write(_block.TransactionHeader.ReferencedHeight);
             bw.Write(_block.TransactionHeader.ReferencedBodyHash);
+            bw.Write(_block.TransactionHeader.ReferencedTargetHash);
         }
     }
 }

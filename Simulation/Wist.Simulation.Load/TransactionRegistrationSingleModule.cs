@@ -17,6 +17,7 @@ using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 using Wist.Core.ExtensionMethods;
+using Chaos.NaCl;
 
 namespace Wist.Simulation.Load
 {
@@ -50,6 +51,10 @@ namespace Wist.Simulation.Load
             byte[] powHash = _proofOfWorkCalculation.CalculateHash(hashNonce);
 
 
+            byte[] seedTarget = GetRandomSeed();
+            byte[] targetKeyBytes = Ed25519.PublicKeyFromSeed(seedTarget);
+            byte[] targetHash = CryptoHelper.ComputeHash(targetKeyBytes);
+
             do
             {
                 TransactionRegisterBlock transactionRegisterBlock = new TransactionRegisterBlock
@@ -64,7 +69,8 @@ namespace Wist.Simulation.Load
                         ReferencedPacketType = PacketType.TransactionalChain,
                         ReferencedBlockType = BlockTypes.Transaction_Confirm,
                         ReferencedHeight = 1234,
-                        ReferencedBodyHash = new byte[Globals.HASH_SIZE]
+                        ReferencedBodyHash = new byte[Globals.HASH_SIZE],
+                        ReferencedTargetHash = targetHash
                     }
                 };
 

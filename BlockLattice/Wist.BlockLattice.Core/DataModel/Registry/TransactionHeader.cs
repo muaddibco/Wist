@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Wist.BlockLattice.Core.Enums;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel.Registry
 {
@@ -12,6 +13,8 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
         public ulong ReferencedHeight { get; set; }
 
         public byte[] ReferencedBodyHash { get; set; }
+
+        public byte[] ReferencedTargetHash { get; set; }
 
         public bool Equals(TransactionHeader x, TransactionHeader y)
         {

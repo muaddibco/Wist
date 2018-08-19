@@ -28,6 +28,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
             ushort referencedBlockType = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2));
             ulong referencedBlockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Slice(4));
             byte[] referencedBlockHash = spanBody.Slice(12, Globals.HASH_SIZE).ToArray();
+            byte[] referencedTargetHash = spanBody.Slice(12 + Globals.HASH_SIZE, Globals.HASH_SIZE).ToArray();
             TransactionRegisterBlock transactionRegisterBlock = new TransactionRegisterBlock
             {
                 TransactionHeader = new TransactionHeader
@@ -35,7 +36,8 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
                     ReferencedPacketType = referencedPacketType,
                     ReferencedBlockType = referencedBlockType,
                     ReferencedHeight = referencedBlockHeight,
-                    ReferencedBodyHash = referencedBlockHash
+                    ReferencedBodyHash = referencedBlockHash,
+                    ReferencedTargetHash = referencedTargetHash
                 }
             };
 

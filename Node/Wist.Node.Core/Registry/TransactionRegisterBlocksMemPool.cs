@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Timers;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.Core.Architecture;
@@ -11,9 +12,10 @@ namespace Wist.Node.Core.Registry
 {
     //TODO: add performance counter for measuring MemPool size
     [RegisterExtension(typeof(IMemPool), Lifetime = LifetimeManagement.Singleton)]
-    public class TransactionRegisterBlocksMemPool : MemPoolBase<TransactionRegisterBlock>
+    public class TransactionRegisterBlocksMemPool : MemPoolBase<KeyedTransactionHeader>
     {
-        private readonly ConcurrentDictionary<int, TransactionRegisterBlock> _transactionRegisterBlocks;
+        private readonly ConcurrentDictionary<int, KeyedTransactionHeader> _transactionRegisterBlocks;
+        private readonly ConcurrentQueue<KeyedTransactionHeader> _transactionRegisterBlocksQueue;
         private readonly ILogger _logger;
         private readonly Timer _timer;
         private int _oldValue;
@@ -29,14 +31,48 @@ namespace Wist.Node.Core.Registry
             };
             _timer.Start();
             _logger = loggerService.GetLogger(nameof(TransactionRegisterBlocksMemPool));
-            _transactionRegisterBlocks = new ConcurrentDictionary<int, TransactionRegisterBlock>();
+            _transactionRegisterBlocks = new ConcurrentDictionary<int, KeyedTransactionHeader>();
+            _transactionRegisterBlocksQueue = new ConcurrentQueue<KeyedTransactionHeader>();
         }
 
-        public override bool AddIfNotExist(TransactionRegisterBlock item)
+        public override bool Enqueue(KeyedTransactionHeader item)
         {
-            TransactionRegisterBlock transactionRegisterBlock = _transactionRegisterBlocks.AddOrUpdate(item.GetHashCode(), item, (k, v) => v);
+            KeyedTransactionHeader transactionRegisterBlock = _transactionRegisterBlocks.AddOrUpdate(item.GetHashCode(), item, (k, v) => v);
 
-            return transactionRegisterBlock == item;
+            if(transactionRegisterBlock == item)
+            {
+                _transactionRegisterBlocksQueue.Enqueue(item);
+
+                return true;
+            }
+
+            return false;
+        }
+        
+        public override IEnumerable<KeyedTransactionHeader> DequeueBulk(int maxCount)
+        {
+            int collectedCount;
+
+            List<KeyedTransactionHeader> transactionHeaders = new List<KeyedTransactionHeader>();
+
+            do
+            {
+                KeyedTransactionHeader transactionHeader;
+
+                if(!_transactionRegisterBlocksQueue.TryDequeue(out transactionHeader))
+                {
+                    break;
+                }
+
+
+            } while (true);
+
+            return transactionHeaders;
+        }
+
+        public override void RemoveAll(IEnumerable<KeyedTransactionHeader> items)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

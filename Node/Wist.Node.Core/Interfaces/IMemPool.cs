@@ -13,6 +13,10 @@ namespace Wist.Node.Core.Interfaces
 
     public interface IMemPool<T> : IMemPool
     {
-        bool AddIfNotExist(T item);
+        bool Enqueue(T item);
+
+        IEnumerable<T> DequeueBulk(int maxCount);
+
+        void RemoveAll(IEnumerable<T> items);
     }
 }

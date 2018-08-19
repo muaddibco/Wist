@@ -1,4 +1,5 @@
-﻿using HashLib;
+﻿using Chaos.NaCl;
+using HashLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -46,6 +47,10 @@ namespace Wist.Simulation.Load
         protected override void InitializeInner()
         {
             base.InitializeInner();
+
+            byte[] seedTarget = GetRandomSeed();
+            byte[] targetKeyBytes = Ed25519.PublicKeyFromSeed(seedTarget);
+            byte[] targetHash = CryptoHelper.ComputeHash(targetKeyBytes);
 
             //IHash hash = HashFactory.Crypto.CreateTiger_4_192();
 
@@ -98,7 +103,8 @@ namespace Wist.Simulation.Load
                         ReferencedPacketType = PacketType.TransactionalChain,
                         ReferencedBlockType = BlockTypes.Transaction_Confirm,
                         ReferencedHeight = 1234,
-                        ReferencedBodyHash = new byte[Globals.HASH_SIZE]
+                        ReferencedBodyHash = new byte[Globals.HASH_SIZE],
+                        ReferencedTargetHash = targetHash
                     }
                 };
 
