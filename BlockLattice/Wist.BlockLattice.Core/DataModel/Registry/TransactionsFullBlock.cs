@@ -9,6 +9,8 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public override ushort Version => 1;
 
+        public byte Round { get; set; }
+
         public SortedList<int, TransactionHeader> TransactionHeaders { get; set; }
     }
 }

@@ -17,19 +17,17 @@ namespace Wist.Node.Core.Registry
     {
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly IPredicate _isBlockProducerPredicate;
-        private readonly ITargetBlock<IMemPool<TransactionRegisterBlock>> _transactionsRegistryProducingFlow;
-        private readonly IMemPool<TransactionRegisterBlock> _transactionsRegistryMemPool;
-
+        private readonly ITargetBlock<IRegistryMemPool> _transactionsRegistryProducingFlow;
+        private readonly IRegistryMemPool _registryMemPool;
         private Timer _timer;
         private IDisposable _syncContextUnsubscriber;
 
-        public RegistryBlockProducerService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IMemPoolsRepository memPoolsRepository)
+        public RegistryBlockProducerService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool)
         {
             _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
             _isBlockProducerPredicate = predicatesRepository.GetInstance("IsBlockProducer");
-            _transactionsRegistryMemPool = memPoolsRepository.GetInstance<TransactionRegisterBlock>();
 
-            TransformBlock<IMemPool<TransactionRegisterBlock>, SortedList<int, TransactionHeader>> deduplicateAndOrderTransactionHeadersBlock = new TransformBlock<IMemPool<TransactionRegisterBlock>, SortedList<int, TransactionHeader>>((Func<IMemPool<TransactionRegisterBlock>, SortedList<int, TransactionHeader>>)DeduplicateAndOrderTransactionHeaders);
+            TransformBlock<IRegistryMemPool, SortedList<int, TransactionHeader>> deduplicateAndOrderTransactionHeadersBlock = new TransformBlock<IRegistryMemPool, SortedList<int, TransactionHeader>>((Func<IRegistryMemPool, SortedList<int, TransactionHeader>>)DeduplicateAndOrderTransactionHeaders);
             TransformBlock<SortedList<int, TransactionHeader>, TransactionsFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<int, TransactionHeader>, TransactionsFullBlock>((Func<SortedList<int, TransactionHeader>, TransactionsFullBlock>)ProduceTransactionsFullBlock);
             ActionBlock<TransactionsFullBlock> sendTransactionsFullBlock = new ActionBlock<TransactionsFullBlock>((Action<TransactionsFullBlock>)SendTransactionsFullBlock);
             TransformBlock<TransactionsFullBlock, TransactionsShortBlock> produceTransactionsShortBlock = new TransformBlock<TransactionsFullBlock, TransactionsShortBlock>((Func<TransactionsFullBlock, TransactionsShortBlock>)ProduceTransactionsShortBlock);
@@ -41,6 +39,7 @@ namespace Wist.Node.Core.Registry
             produceTransactionsShortBlock.LinkTo(sendTransactionsShortBlock);
 
             _transactionsRegistryProducingFlow = deduplicateAndOrderTransactionHeadersBlock;
+            _registryMemPool = registryMemPool;
         }
 
         public void Initialize()
@@ -67,7 +66,7 @@ namespace Wist.Node.Core.Registry
         {
             if(_isBlockProducerPredicate.Evaluate())
             {
-                _transactionsRegistryProducingFlow.Post(_transactionsRegistryMemPool);
+                _transactionsRegistryProducingFlow.Post(_registryMemPool);
             }
         }
 
@@ -87,7 +86,7 @@ namespace Wist.Node.Core.Registry
             _timer?.Dispose();
         }
 
-        private SortedList<int, TransactionHeader> DeduplicateAndOrderTransactionHeaders(IMemPool<TransactionRegisterBlock> memPool)
+        private SortedList<int, TransactionHeader> DeduplicateAndOrderTransactionHeaders(IRegistryMemPool memPool)
         {
             SortedList<int, TransactionHeader> deduplicatedOrderedTransactionHeaders = new SortedList<int, TransactionHeader>();
 
