@@ -12,7 +12,7 @@ using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.Core.PerformanceCounters;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
@@ -25,9 +25,9 @@ namespace Wist.Simulation.Load
     public class TransactionRegistrationSingleModule : LoadModuleBase
     {
         private readonly ISynchronizationContext _synchronizationContext;
-        private readonly IProofOfWorkCalculation _proofOfWorkCalculation;
+        private readonly IHashCalculation _proofOfWorkCalculation;
 
-        public TransactionRegistrationSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository)
+        public TransactionRegistrationSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationRepository proofOfWorkCalculationRepository)
             : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository)
         {
             _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();

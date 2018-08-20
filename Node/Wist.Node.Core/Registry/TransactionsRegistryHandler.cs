@@ -23,7 +23,7 @@ namespace Wist.Node.Core.Registry
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
         private readonly INeighborhoodState _neighborhoodState;
-        private readonly IMemPool<KeyedTransactionHeader> _transactionRegisterBlocksMemPool;
+        private readonly IMemPool<TransactionRegisterBlock> _transactionRegisterBlocksMemPool;
         private IServerCommunicationService _communicationService;
         private  Timer _timer;
 
@@ -33,7 +33,7 @@ namespace Wist.Node.Core.Registry
             _neighborhoodState = statesRepository.GetInstance<RegistryGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
-            _transactionRegisterBlocksMemPool = memPoolsRepository.GetInstance<KeyedTransactionHeader>();
+            _transactionRegisterBlocksMemPool = memPoolsRepository.GetInstance<TransactionRegisterBlock>();
             
         }
 
@@ -73,7 +73,7 @@ namespace Wist.Node.Core.Registry
 
                 //TODO: add logic that will check whether received Transaction Header was already stored into blockchain
 
-                bool isNew = _transactionRegisterBlocksMemPool.Enqueue(new KeyedTransactionHeader(transactionRegisterBlock.Key, transactionRegisterBlock.TransactionHeader));
+                bool isNew = _transactionRegisterBlocksMemPool.Enqueue(transactionRegisterBlock);
 
                 if (isNew)
                 {

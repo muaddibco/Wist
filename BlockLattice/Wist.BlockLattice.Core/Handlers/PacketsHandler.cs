@@ -7,7 +7,7 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Logging;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 using Wist.Core.PerformanceCounters;
 using Wist.BlockLattice.Core.PerformanceCounters;
 

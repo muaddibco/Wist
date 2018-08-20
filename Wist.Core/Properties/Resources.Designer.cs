@@ -162,9 +162,9 @@ namespace Wist.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Proof of work algorithm {0} not supported..
         /// </summary>
-        internal static string ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED {
+        internal static string ERR_HASH_ALGORITHM_NOT_SUPPORTED {
             get {
-                return ResourceManager.GetString("ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED", resourceCulture);
+                return ResourceManager.GetString("ERR_HASH_ALGORITHM_NOT_SUPPORTED", resourceCulture);
             }
         }
         

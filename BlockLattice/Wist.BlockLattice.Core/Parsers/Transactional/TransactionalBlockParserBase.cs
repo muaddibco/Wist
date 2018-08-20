@@ -6,15 +6,15 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Identity;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 
 namespace Wist.BlockLattice.Core.Parsers.Transactional
 {
     public abstract class TransactionalBlockParserBase : SyncLinkedBlockParserBase
     {
-        private readonly IProofOfWorkCalculationRepository _proofOfWorkCalculationRepository;
+        private readonly IHashCalculationRepository _proofOfWorkCalculationRepository;
 
-        public TransactionalBlockParserBase(IProofOfWorkCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
+        public TransactionalBlockParserBase(IHashCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
             : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
         {
             _proofOfWorkCalculationRepository = proofOfWorkCalculationRepository;

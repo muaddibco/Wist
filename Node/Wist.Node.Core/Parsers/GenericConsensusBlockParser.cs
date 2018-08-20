@@ -2,13 +2,13 @@
 using System.IO;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 
 namespace Wist.Node.Core.Parsers
 {
     public class GenericConsensusBlockParser : ConsensusBlockParserBase
     {
-        public GenericConsensusBlockParser(IProofOfWorkCalculationRepository proofOfWorkCalculationRepository) : base(proofOfWorkCalculationRepository)
+        public GenericConsensusBlockParser(IHashCalculationRepository proofOfWorkCalculationRepository) : base(proofOfWorkCalculationRepository)
         {
         }
 

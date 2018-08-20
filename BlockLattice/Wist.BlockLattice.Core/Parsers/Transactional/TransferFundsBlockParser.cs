@@ -8,14 +8,14 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Identity;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 
 namespace Wist.BlockLattice.Core.Parsers.Transactional
 {
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.Singleton)]
     public class TransferFundsBlockParser : TransactionalBlockParserBase
     {
-        public TransferFundsBlockParser(IProofOfWorkCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
+        public TransferFundsBlockParser(IHashCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
             : base(proofOfWorkCalculationRepository, identityKeyProvidersRegistry)
         {
         }

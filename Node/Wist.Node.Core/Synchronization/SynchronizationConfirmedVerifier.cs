@@ -10,7 +10,7 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.Logging;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 
@@ -21,7 +21,7 @@ namespace Wist.Node.Core.Synchronization
     {
         private readonly ISynchronizationContext _synchronizationContext;
 
-        public SynchronizationConfirmedVerifier(IStatesRepository statesRepository, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository, ICryptoService cryptoService, ILoggerService loggerService) 
+        public SynchronizationConfirmedVerifier(IStatesRepository statesRepository, IHashCalculationRepository proofOfWorkCalculationRepository, ICryptoService cryptoService, ILoggerService loggerService) 
         {
             _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
         }

@@ -8,7 +8,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.Logging;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 
@@ -19,9 +19,9 @@ namespace Wist.BlockLattice.Core.Handlers
     {
         private readonly ILogger _log;
         private readonly ISynchronizationContext _synchronizationContext;
-        private readonly IProofOfWorkCalculation _proofOfWorkCalculation;
+        private readonly IHashCalculation _proofOfWorkCalculation;
 
-        public SyncHeightVerifier(IStatesRepository statesRepository, IProofOfWorkCalculationRepository proofOfWorkCalculationFactory, ILoggerService loggerService)
+        public SyncHeightVerifier(IStatesRepository statesRepository, IHashCalculationRepository proofOfWorkCalculationFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();

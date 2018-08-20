@@ -5,13 +5,12 @@ using Wist.Core.Architecture.Enums;
 
 namespace Wist.Core.Identity
 {
-
     [RegisterExtension(typeof(IIdentityKeyProvider), Lifetime = LifetimeManagement.Singleton)]
-    public class EcdsaPublicKeyProvider : IIdentityKeyProvider
+    public class TransactionRegistryKeyProvider : IIdentityKeyProvider
     {
-        public string Name => "Ecdsa";
+        public string Name => "TransactionRegistry";
 
-        public IEqualityComparer<IKey> GetComparer() => new Public32Key();
+        public IEqualityComparer<IKey> GetComparer() => new TransactionRegistryKey();
 
         public IKey GetKey(byte[] keyBytes)
         {
@@ -20,12 +19,12 @@ namespace Wist.Core.Identity
                 throw new ArgumentNullException(nameof(keyBytes));
             }
 
-            if(keyBytes.Length != 32)
+            if (keyBytes.Length != 16)
             {
-                throw new ArgumentOutOfRangeException("The size of byte array must be 32 bytes");
+                throw new ArgumentOutOfRangeException("The size of byte array must be 16 bytes");
             }
 
-            return new Public32Key { Value = keyBytes };
+            return new TransactionRegistryKey { Value = keyBytes };
         }
     }
 }

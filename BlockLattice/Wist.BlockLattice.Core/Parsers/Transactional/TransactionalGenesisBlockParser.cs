@@ -7,7 +7,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Identity;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 
 namespace Wist.BlockLattice.Core.Parsers.Transactional
 {
@@ -15,9 +15,9 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
     public class TransactionalGenesisBlockParser : TransactionalBlockParserBase
     {
         private readonly IIdentityKeyProvider _identityKeyProvider;
-        private readonly IProofOfWorkCalculationRepository _proofOfWorkCalculationRepository;
+        private readonly IHashCalculationRepository _proofOfWorkCalculationRepository;
 
-        public TransactionalGenesisBlockParser(IProofOfWorkCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
+        public TransactionalGenesisBlockParser(IHashCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
             : base(proofOfWorkCalculationRepository, identityKeyProvidersRegistry)
         {
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();

@@ -1,10 +1,9 @@
 ﻿using Chaos.NaCl;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
+using Wist.Core.HashCalculations;
 
 namespace Wist.Crypto
 {
@@ -12,11 +11,14 @@ namespace Wist.Crypto
     public class CryptoServiceEd25519 : ICryptoService
     {
         private byte[] _expandedPrivateKey;
+        private readonly IHashCalculation _hashCalculation;
 
-        public CryptoServiceEd25519()
+        public CryptoServiceEd25519(IHashCalculationRepository hashCalculationRepository)
         {
-
+            _hashCalculation = hashCalculationRepository.Create(HashType.MurMur);
         }
+
+        public byte[] ComputeTransactionKey(byte[] bytes) => _hashCalculation.CalculateHash(bytes);
 
         public void Initialize(byte[] privateKey)
         {

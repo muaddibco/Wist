@@ -7,13 +7,13 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Identity;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 
 namespace Wist.BlockLattice.Core.Parsers.Synchronization
 {
     public abstract class SynchronizationBlockParserBase : SyncLinkedBlockParserBase
     {
-        public SynchronizationBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository) 
+        public SynchronizationBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationRepository proofOfWorkCalculationRepository) 
             : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
         {
         }

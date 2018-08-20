@@ -1,20 +1,20 @@
 ﻿using HashLib;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 
-namespace Wist.Crypto.ProofOfWork
+namespace Wist.Crypto.HashCalculations
 {
-    [RegisterExtension(typeof(IProofOfWorkCalculation), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class Keccak256ProofOfWorkCalculation : IProofOfWorkCalculation
+    [RegisterExtension(typeof(IHashCalculation), Lifetime = LifetimeManagement.TransientPerResolve)]
+    public class Keccak256HashCalculation : IHashCalculation
     {
-        public POWType POWType => POWType.Keccak256;
+        public HashType HashType => HashType.Keccak256;
 
         public int HashSize => _hash.HashSize;
 
         private readonly IHash _hash;
 
-        public Keccak256ProofOfWorkCalculation()
+        public Keccak256HashCalculation()
         {
             _hash = HashFactory.Crypto.SHA3.CreateKeccak256();
         }

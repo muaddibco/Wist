@@ -11,5 +11,7 @@ namespace Wist.Core.Identity
         string Name { get; }
 
         IKey GetKey(byte[] keyBytes);
+
+        IEqualityComparer<IKey> GetComparer();
     }
 }

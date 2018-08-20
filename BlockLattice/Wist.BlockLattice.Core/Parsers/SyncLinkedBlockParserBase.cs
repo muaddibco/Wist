@@ -2,15 +2,15 @@
 using System.Buffers.Binary;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.Core.Identity;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 
 namespace Wist.BlockLattice.Core.Parsers
 {
     public abstract class SyncLinkedBlockParserBase : SyncedBlockParserBase
     {
-        private readonly IProofOfWorkCalculationRepository _proofOfWorkCalculationRepository;
+        private readonly IHashCalculationRepository _proofOfWorkCalculationRepository;
 
-        public SyncLinkedBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IProofOfWorkCalculationRepository proofOfWorkCalculationRepository) 
+        public SyncLinkedBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationRepository proofOfWorkCalculationRepository) 
             : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
         {
             _proofOfWorkCalculationRepository = proofOfWorkCalculationRepository;

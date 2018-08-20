@@ -1,20 +1,20 @@
 ﻿using HashLib;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
-using Wist.Core.ProofOfWork;
+using Wist.Core.HashCalculations;
 
-namespace Wist.Crypto.ProofOfWork
+namespace Wist.Crypto.HashCalculations
 {
-    [RegisterExtension(typeof(IProofOfWorkCalculation), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class Tiger4ProofOfWorkCalculation : IProofOfWorkCalculation
+    [RegisterExtension(typeof(IHashCalculation), Lifetime = LifetimeManagement.TransientPerResolve)]
+    public class Tiger4HashCalculation : IHashCalculation
     {
-        public POWType POWType => POWType.Tiger4;
+        public HashType HashType => HashType.Tiger4;
 
         public int HashSize => _hash.HashSize;
 
         private readonly IHash _hash;
 
-        public Tiger4ProofOfWorkCalculation()
+        public Tiger4HashCalculation()
         {
             _hash = HashFactory.Crypto.CreateTiger_4_192();
         }

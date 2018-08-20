@@ -2,13 +2,10 @@
 
 namespace Wist.Core.Identity
 {
-    /// <summary>
-    /// Class represents Public Key with length of 32 bytes
-    /// </summary>
-    public class Public32Key : IKey
+    public class TransactionRegistryKey : IKey
     {
         /// <summary>
-        /// Byte array of length of 32 bytes
+        /// Byte array of length of 16 bytes
         /// </summary>
         public byte[] Value { get; set; } //TODO: need to add length check at setter
 
@@ -19,36 +16,36 @@ namespace Wist.Core.Identity
                 return true;
             }
 
-            Public32Key pk1 = x as Public32Key;
-            Public32Key pk2 = y as Public32Key;
+            TransactionRegistryKey pk1 = x as TransactionRegistryKey;
+            TransactionRegistryKey pk2 = y as TransactionRegistryKey;
 
-            if(pk1 == null || pk2 == null)
+            if (pk1 == null || pk2 == null)
             {
                 return false;
             }
 
-            return pk1.Value.Equals32(pk2.Value);
+            return pk1.Value.EqualsX16(pk2.Value);
         }
 
         public int GetHashCode(IKey obj)
         {
-            return ((Public32Key)obj).Value.GetHashCode32();
+            return ((TransactionRegistryKey)obj).Value.GetHashCode16();
         }
 
-        public override int GetHashCode() => Value.GetHashCode32();
+        public override int GetHashCode() => Value.GetHashCode16();
 
         public override string ToString() => Value.ToHexString();
 
         public override bool Equals(object obj)
         {
-            Public32Key pk = obj as Public32Key;
+            TransactionRegistryKey pk = obj as TransactionRegistryKey;
 
-            if(pk == null)
+            if (pk == null)
             {
                 return false;
             }
 
-            return Value.Equals32(pk.Value);
+            return Value.EqualsX16(pk.Value);
         }
     }
 }
