@@ -6,6 +6,8 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
+using Wist.Core.States;
+using Wist.Core.Synchronization;
 
 namespace Wist.Node.Core.Registry
 {
@@ -24,16 +26,17 @@ namespace Wist.Node.Core.Registry
         private readonly Dictionary<ulong, SortedDictionary<int, TransactionRegisterBlock>> _transactionRegisterBlocksOrdered;
         private readonly Dictionary<ulong, HashSet<TransactionRegisterBlock>> _transactionRegisterBlocks;
         private readonly Dictionary<ulong, int> _transactionsCounters;
-        private readonly Dictionary<ulong, Dictionary<IKey, TransactionRegisterBlock>> _transactionRegistryByKey;
+        private readonly Dictionary<ulong, Dictionary<IKey, TransactionRegisterBlock>> _transactionRegistryByTransactionHash;
         private readonly Dictionary<ulong, Dictionary<byte, HashSet<TransactionsShortBlock>>> _transactionsShortBlocks;
         private readonly IIdentityKeyProvider _identityKeyProvider;
         private readonly ILogger _logger;
         private readonly Timer _timer;
         private readonly ICryptoService _cryptoService;
+        private readonly SynchronizationContext _synchronizationContext;
         private int _oldValue;
         private readonly object _sync = new object();
 
-        public TransactionRegistryMemPool(ILoggerService loggerService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService)
+        public TransactionRegistryMemPool(ILoggerService loggerService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IStatesRepository statesRepository)
         {
             _oldValue = 0;
             _timer = new Timer(1000);
@@ -49,9 +52,10 @@ namespace Wist.Node.Core.Registry
             _transactionsCounters = new Dictionary<ulong, int>();
             _transactionRegisterBlocks = new Dictionary<ulong, HashSet<TransactionRegisterBlock>>();
             _transactionRegisterBlocksOrdered = new Dictionary<ulong, SortedDictionary<int, TransactionRegisterBlock>>();
-            _transactionRegistryByKey = new Dictionary<ulong, Dictionary<IKey, TransactionRegisterBlock>>();
+            _transactionRegistryByTransactionHash = new Dictionary<ulong, Dictionary<IKey, TransactionRegisterBlock>>();
             _transactionsShortBlocks = new Dictionary<ulong, Dictionary<byte, HashSet<TransactionsShortBlock>>>();
             _cryptoService = cryptoService;
+            _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
         }
         
         public bool EnqueueTransactionRegisterBlock(TransactionRegisterBlock transactionRegisterBlock)
@@ -98,6 +102,23 @@ namespace Wist.Node.Core.Registry
         public void ClearByConfirmed(TransactionsShortBlock transactionsShortBlock) => throw new System.NotImplementedException();
 
         //TODO: need to understand whether it is needed to pass height of Sync Block or automatically take latest one?
-        public IEnumerable<TransactionRegisterBlock> DequeueBulk(int maxCount) => throw new System.NotImplementedException();
+        public IEnumerable<TransactionRegisterBlock> DequeueBulk(int maxCount)
+        {
+            List<TransactionRegisterBlock> items = new List<TransactionRegisterBlock>();
+            lock(_sync)
+            {
+                ulong syncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
+
+                while (_transactionRegisterBlocksOrdered.Count > 0)
+                {
+                    foreach (int orderKey in _transactionRegisterBlocksOrdered[syncBlockHeight].Keys)
+                    {
+                        TransactionRegisterBlock transactionRegisterBlock = _transactionRegisterBlocksOrdered[syncBlockHeight][orderKey];
+                    }
+                }
+            }
+
+            return items;
+        }
     }
 }
