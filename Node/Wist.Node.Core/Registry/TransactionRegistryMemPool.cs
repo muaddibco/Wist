@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Timers;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.Core.Architecture;
@@ -99,12 +100,20 @@ namespace Wist.Node.Core.Registry
         }
 
         public int GetConfidenceRate(TransactionsShortBlock transactionsShortBlock) => throw new System.NotImplementedException();
-        public void ClearByConfirmed(TransactionsShortBlock transactionsShortBlock) => throw new System.NotImplementedException();
+
+        public void ClearByConfirmed(TransactionsShortBlock transactionsShortBlock)
+        {
+            if (_transactionRegistryByTransactionHash.ContainsKey(transactionsShortBlock.SyncBlockHeight))
+            {
+                Dictionary<IKey, TransactionRegisterBlock> mutualValues = _transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight].Where(kvp => transactionsShortBlock.TransactionHeaderHashes.Values.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            }
+        }
 
         //TODO: need to understand whether it is needed to pass height of Sync Block or automatically take latest one?
         public IEnumerable<TransactionRegisterBlock> DequeueBulk(int maxCount)
         {
             List<TransactionRegisterBlock> items = new List<TransactionRegisterBlock>();
+            Dictionary<IKey, HashSet<ulong>> obtainedTransactions = new Dictionary<IKey, HashSet<ulong>>();
             lock(_sync)
             {
                 ulong syncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
@@ -114,6 +123,17 @@ namespace Wist.Node.Core.Registry
                     foreach (int orderKey in _transactionRegisterBlocksOrdered[syncBlockHeight].Keys)
                     {
                         TransactionRegisterBlock transactionRegisterBlock = _transactionRegisterBlocksOrdered[syncBlockHeight][orderKey];
+
+                        if (!obtainedTransactions.ContainsKey(transactionRegisterBlock.Key))
+                        {
+                            obtainedTransactions.Add(transactionRegisterBlock.Key, new HashSet<ulong>());
+                        }
+                        else if(obtainedTransactions[transactionRegisterBlock.Key].Contains(transactionRegisterBlock.BlockHeight))
+                        {
+                            continue;
+                        }
+
+                        items.Add(transactionRegisterBlock);
                     }
                 }
             }

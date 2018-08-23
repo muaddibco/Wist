@@ -30,5 +30,10 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
         {
             return obj.ReferencedPacketType.GetHashCode() ^ obj.ReferencedBlockType.GetHashCode() ^ obj.ReferencedHeight.GetHashCode();
         }
+
+        public override int GetHashCode()
+        {
+            return ReferencedPacketType.GetHashCode() ^ ReferencedBlockType.GetHashCode() ^ ReferencedHeight.GetHashCode();
+        }
     }
 }
