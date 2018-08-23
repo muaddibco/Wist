@@ -49,7 +49,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
             using (ISignatureSupportSerializer serializer = _serializersFactory.Create(transactionalGenesisBlock))
             {
-                LatticeDataService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.Key, transactionalGenesisBlock.Version, serializer.GetBytes());
+                LatticeDataService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.Key, transactionalGenesisBlock.Version, transactionalGenesisBlock.NonHeaderBytes);
             }
         }
 

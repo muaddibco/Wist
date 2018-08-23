@@ -16,8 +16,16 @@ namespace Wist.BlockLattice.Core.DataModel
 
         public abstract ushort Version { get; }
 
+        /// <summary>
+        /// Bytes of packet (without signature and public key)
+        /// </summary>
         public byte[] BodyBytes { get; set; }
 
+        public abstract byte[] NonHeaderBytes { get; }
+
+        /// <summary>
+        /// All bytes of packet (without DLE + STX and length)
+        /// </summary>
         public byte[] RawData { get; set; }
     }
 }

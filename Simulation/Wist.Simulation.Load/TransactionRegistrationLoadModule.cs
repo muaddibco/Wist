@@ -35,8 +35,8 @@ namespace Wist.Simulation.Load
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly IHashCalculation _proofOfWorkCalculation;
 
-        public TransactionRegistrationLoadModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationRepository proofOfWorkCalculationRepository)
-            : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository)
+        public TransactionRegistrationLoadModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationRepository proofOfWorkCalculationRepository, IHashCalculationRepository hashCalculationRepository)
+            : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository, hashCalculationRepository)
         {
             _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
             _proofOfWorkCalculation = proofOfWorkCalculationRepository.Create(Globals.POW_TYPE);
@@ -87,14 +87,14 @@ namespace Wist.Simulation.Load
             bigInteger += nonce;
             byte[] hashNonce = bigInteger.ToByteArray();
             byte[] powHash = _proofOfWorkCalculation.CalculateHash(hashNonce);
-            int count = 0;
+            ulong count = 0;
             Stopwatch stopwatch = Stopwatch.StartNew();
             do
             {
                 TransactionRegisterBlock transactionRegisterBlock = new TransactionRegisterBlock
                 {
                     SyncBlockHeight = index,
-                    BlockHeight = 1,
+                    BlockHeight = count,
                     Key = _key,
                     Nonce = 1234,
                     HashNonce = powHash,

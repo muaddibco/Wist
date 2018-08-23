@@ -10,6 +10,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;
 using Wist.Core.Cryptography;
+using Wist.Core.HashCalculations;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.Core.PerformanceCounters;
@@ -28,13 +29,14 @@ namespace Wist.Simulation.Load
         protected readonly INodesDataService _nodesDataService;
         protected readonly ICryptoService _cryptoService;
         protected readonly IIdentityKeyProvider _identityKeyProvider;
+        protected readonly IHashCalculation _hashCalculation;
         protected readonly LoadCountersService _loadCountersService;
 
         protected ICommunicationChannel _communicationChannel;
         protected IKey _key;
         protected IKey _keyTarget;
 
-        public LoadModuleBase(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository)
+        public LoadModuleBase(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IHashCalculationRepository hashCalculationRepository)
             : base(loggerService)
         {
             _communicationService = clientCommunicationServiceRepository.GetInstance(nameof(TcpClientCommunicationService));
@@ -44,6 +46,7 @@ namespace Wist.Simulation.Load
             _cryptoService = cryptoService;
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
             _loadCountersService = performanceCountersRepository.GetInstance<LoadCountersService>();
+            _hashCalculation = hashCalculationRepository.Create(Globals.POW_TYPE);
         }
 
         protected override void InitializeInner()

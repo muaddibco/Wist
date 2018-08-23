@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
@@ -31,7 +32,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
             if(synchronizationConfirmedBlock != null)
             {
-                LatticeDataService.Instance.AddSynchronizationBlock(synchronizationConfirmedBlock.BlockHeight, DateTime.Now, synchronizationConfirmedBlock.ReportedTime, synchronizationConfirmedBlock.BodyBytes);
+                LatticeDataService.Instance.AddSynchronizationBlock(synchronizationConfirmedBlock.BlockHeight, DateTime.Now, synchronizationConfirmedBlock.ReportedTime, synchronizationConfirmedBlock.NonHeaderBytes);
             }
         }
 

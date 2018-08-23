@@ -73,7 +73,14 @@ namespace Wist.BlockLattice.Core.Handlers
             }
             else
             {
-                baseHash = (syncBlockHeight == _synchronizationContext.LastBlockDescriptor?.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash;
+                if (_synchronizationContext.LastBlockDescriptor == null)
+                {
+                    baseHash = new byte[Globals.HASH_SIZE];
+                }
+                else
+                {
+                    baseHash = (syncBlockHeight == _synchronizationContext.LastBlockDescriptor.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash;
+                }
             }
 
             byte[] computedHash = _proofOfWorkCalculation.CalculateHash(baseHash);

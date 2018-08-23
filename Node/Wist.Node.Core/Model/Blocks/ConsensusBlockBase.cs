@@ -6,7 +6,7 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.Node.Core.Model.Blocks
 {
-    public abstract class ConsensusBlockBase : BlockBase
+    public abstract class ConsensusBlockBase : SignedBlockBase
     {
         public override PacketType PacketType => PacketType.Consensus;
     }

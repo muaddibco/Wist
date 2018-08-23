@@ -43,7 +43,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
             syncedBlockBase = transactionRegisterBlock;
 
-            return spanBody.Slice(12 + Globals.HASH_SIZE);
+            return spanBody.Slice(12 + Globals.HASH_SIZE + Globals.HASH_SIZE);
         }
     }
 }

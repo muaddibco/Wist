@@ -7,6 +7,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;
 using Wist.Core.Cryptography;
+using Wist.Core.HashCalculations;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.Core.PerformanceCounters;
@@ -21,8 +22,8 @@ namespace Wist.Simulation.Load
     {
         private readonly ISynchronizationContext _synchronizationContext;
 
-        public SyncConfirmedSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository) 
-            : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository)
+        public SyncConfirmedSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationRepository hashCalculationRepository) 
+            : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository, hashCalculationRepository)
         {
             _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
         }
@@ -37,6 +38,7 @@ namespace Wist.Simulation.Load
 
             string cmd = null;
             byte[] prevHash = _synchronizationContext.LastBlockDescriptor?.Hash;
+            byte[] prevPowHash = _hashCalculation.CalculateHash(prevHash ?? new byte[Globals.HASH_SIZE]);
             do
             {
                 unchecked
@@ -48,13 +50,15 @@ namespace Wist.Simulation.Load
                         Key = _key,
                         ReportedTime = DateTime.Now,
                         Round = 1,
-                        HashPrev = prevHash ?? new byte[Globals.HASH_SIZE]
+                        HashPrev = prevHash ?? new byte[Globals.HASH_SIZE],
+                        HashNonce = prevPowHash
                     };
 
                     ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);
                     signatureSupportSerializer.FillBodyAndRowBytes();
 
                     prevHash = CryptoHelper.ComputeHash(synchronizationConfirmedBlock.BodyBytes);
+                    prevPowHash = _hashCalculation.CalculateHash(prevHash);
 
                     _communicationService.PostMessage(_keyTarget, signatureSupportSerializer);
 
