@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 using Wist.BlockLattice.Core.DataModel.Registry;
@@ -27,9 +28,13 @@ namespace Wist.Node.Core.Registry
         private readonly Dictionary<ulong, SortedDictionary<int, TransactionRegisterBlock>> _transactionRegisterBlocksOrdered;
         private readonly Dictionary<ulong, HashSet<TransactionRegisterBlock>> _transactionRegisterBlocks;
         private readonly Dictionary<ulong, int> _transactionsCounters;
+
+        // Key of this dictionary is hash of concatenation of Public Key of sender and Height of transaction
         private readonly Dictionary<ulong, Dictionary<IKey, TransactionRegisterBlock>> _transactionRegistryByTransactionHash;
+        private readonly Dictionary<ulong, Dictionary<IKey, int>> _transactionOrderByTransactionHash;
+
         private readonly Dictionary<ulong, Dictionary<byte, HashSet<TransactionsShortBlock>>> _transactionsShortBlocks;
-        private readonly IIdentityKeyProvider _identityKeyProvider;
+        private readonly IIdentityKeyProvider _transactionHashKey;
         private readonly ILogger _logger;
         private readonly Timer _timer;
         private readonly ICryptoService _cryptoService;
@@ -48,13 +53,14 @@ namespace Wist.Node.Core.Registry
             };
             _timer.Start();
 
-            _identityKeyProvider = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
+            _transactionHashKey = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
             _logger = loggerService.GetLogger(nameof(TransactionRegistryMemPool));
             _transactionsCounters = new Dictionary<ulong, int>();
             _transactionRegisterBlocks = new Dictionary<ulong, HashSet<TransactionRegisterBlock>>();
             _transactionRegisterBlocksOrdered = new Dictionary<ulong, SortedDictionary<int, TransactionRegisterBlock>>();
             _transactionRegistryByTransactionHash = new Dictionary<ulong, Dictionary<IKey, TransactionRegisterBlock>>();
             _transactionsShortBlocks = new Dictionary<ulong, Dictionary<byte, HashSet<TransactionsShortBlock>>>();
+            _transactionOrderByTransactionHash = new Dictionary<ulong, Dictionary<IKey, int>>();
             _cryptoService = cryptoService;
             _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
         }
@@ -68,12 +74,19 @@ namespace Wist.Node.Core.Registry
                     _transactionsCounters.Add(transactionRegisterBlock.SyncBlockHeight, 0);
                     _transactionRegisterBlocks.Add(transactionRegisterBlock.SyncBlockHeight, new HashSet<TransactionRegisterBlock>());
                     _transactionRegisterBlocksOrdered.Add(transactionRegisterBlock.SyncBlockHeight, new SortedDictionary<int, TransactionRegisterBlock>());
+                    _transactionRegistryByTransactionHash.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, TransactionRegisterBlock>());
+                    _transactionOrderByTransactionHash.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, int>());
                 }
 
                 if(_transactionRegisterBlocks[transactionRegisterBlock.SyncBlockHeight].Add(transactionRegisterBlock))
                 {
-                    _transactionRegisterBlocksOrdered[transactionRegisterBlock.SyncBlockHeight].Add(_transactionsCounters[transactionRegisterBlock.SyncBlockHeight]++, transactionRegisterBlock);
+                    _transactionRegisterBlocksOrdered[transactionRegisterBlock.SyncBlockHeight].Add(_transactionsCounters[transactionRegisterBlock.SyncBlockHeight], transactionRegisterBlock);
 
+                    IKey key = GetTransactionRegistryHashKey(transactionRegisterBlock);
+
+                    _transactionRegistryByTransactionHash[transactionRegisterBlock.SyncBlockHeight].Add(key, transactionRegisterBlock);
+                    _transactionOrderByTransactionHash[transactionRegisterBlock.SyncBlockHeight].Add(key, _transactionsCounters[transactionRegisterBlock.SyncBlockHeight]);
+                    _transactionsCounters[transactionRegisterBlock.SyncBlockHeight]++;
                     return true;
                 }
             }
@@ -99,13 +112,33 @@ namespace Wist.Node.Core.Registry
             }
         }
 
-        public int GetConfidenceRate(TransactionsShortBlock transactionsShortBlock) => throw new System.NotImplementedException();
+        public int GetConfidenceRate(TransactionsShortBlock transactionsShortBlock)
+        {
+            lock(_sync)
+            {
+                Dictionary<IKey, TransactionRegisterBlock> mutualValues = _transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight].Where(kvp => transactionsShortBlock.TransactionHeaderHashes.Values.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                return mutualValues.Count;
+            }
+        }
 
         public void ClearByConfirmed(TransactionsShortBlock transactionsShortBlock)
         {
-            if (_transactionRegistryByTransactionHash.ContainsKey(transactionsShortBlock.SyncBlockHeight))
+            lock (_sync)
             {
-                Dictionary<IKey, TransactionRegisterBlock> mutualValues = _transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight].Where(kvp => transactionsShortBlock.TransactionHeaderHashes.Values.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                if (_transactionRegistryByTransactionHash.ContainsKey(transactionsShortBlock.SyncBlockHeight))
+                {
+                    Dictionary<IKey, TransactionRegisterBlock> mutualValues = _transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight].Where(kvp => transactionsShortBlock.TransactionHeaderHashes.Values.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                    _transactionRegisterBlocks[transactionsShortBlock.SyncBlockHeight].ExceptWith(mutualValues.Values);
+
+                    foreach (IKey key in mutualValues.Keys)
+                    {
+                        _transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight].Remove(key);
+                        _transactionRegisterBlocksOrdered[transactionsShortBlock.SyncBlockHeight].Remove(_transactionOrderByTransactionHash[transactionsShortBlock.SyncBlockHeight][key]);
+                        _transactionOrderByTransactionHash[transactionsShortBlock.SyncBlockHeight].Remove(key);
+                    }
+                }
             }
         }
 
@@ -139,6 +172,20 @@ namespace Wist.Node.Core.Registry
             }
 
             return items;
+        }
+
+        private IKey GetTransactionRegistryHashKey(TransactionRegisterBlock transactionRegisterBlock)
+        {
+            byte[] transactionHeightBytes = BitConverter.GetBytes(transactionRegisterBlock.BlockHeight);
+
+            byte[] senderAndHeightBytes = new byte[transactionRegisterBlock.Key.Length + transactionHeightBytes.Length];
+
+            Array.Copy(transactionRegisterBlock.Key.Value, senderAndHeightBytes, transactionRegisterBlock.Key.Length);
+            Array.Copy(transactionHeightBytes, 0, senderAndHeightBytes, transactionRegisterBlock.Key.Length, transactionHeightBytes.Length);
+
+            IKey key = _transactionHashKey.GetKey(senderAndHeightBytes);
+
+            return key;
         }
     }
 }

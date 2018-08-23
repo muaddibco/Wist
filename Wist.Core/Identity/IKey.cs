@@ -9,6 +9,8 @@ namespace Wist.Core.Identity
     /// </summary>
     public interface IKey : IEqualityComparer<IKey>
     {
+        int Length { get; }
+
         byte[] Value { get; set; }
     }
 }

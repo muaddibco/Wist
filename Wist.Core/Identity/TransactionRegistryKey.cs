@@ -9,6 +9,8 @@ namespace Wist.Core.Identity
         /// </summary>
         public byte[] Value { get; set; } //TODO: need to add length check at setter
 
+        public int Length => 16;
+
         public bool Equals(IKey x, IKey y)
         {
             if (x == null && y == null)
