@@ -1,9 +1,10 @@
 using System;
+using Wist.Tests.Core.Fixtures;
 using Xunit;
 
 namespace Wist.Node.Core.Tests
 {
-    public class UnitTest1
+    public class TransactionsRegistrationsTests : IClassFixture<DependencyInjectionSupportFixture>
     {
         [Fact]
         public void Test1()
