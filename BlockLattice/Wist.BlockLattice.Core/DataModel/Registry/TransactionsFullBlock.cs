@@ -11,6 +11,6 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public byte Round { get; set; }
 
-        public SortedList<int, TransactionHeader> TransactionHeaders { get; set; }
+        public SortedList<ushort, TransactionRegisterBlock> TransactionHeaders { get; set; }
     }
 }

@@ -12,8 +12,6 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public byte Round { get; set; }
 
-        public ushort ItemsCount { get; set; }
-
         public SortedList<ushort, IKey> TransactionHeaderHashes { get; set; }
 
         public bool Equals(TransactionsShortBlock x, TransactionsShortBlock y)

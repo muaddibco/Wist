@@ -9,7 +9,7 @@ namespace Wist.Node.Core.Registry
     {
         bool EnqueueTransactionRegisterBlock(TransactionRegisterBlock transactionRegisterBlock);
         bool EnqueueTransactionsShortBlock(TransactionsShortBlock transactionsShortBlock);
-        IEnumerable<TransactionRegisterBlock> DequeueBulk(int maxCount);
+        SortedList<ushort, TransactionRegisterBlock> DequeueBulk(int maxCount);
         int GetConfidenceRate(TransactionsShortBlock transactionsShortBlock);
         void ClearByConfirmed(TransactionsShortBlock transactionsShortBlock);
     }

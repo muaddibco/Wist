@@ -23,7 +23,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
             base.WriteBody(bw);
 
             bw.Write(_block.Round);
-            bw.Write(_block.ItemsCount);
+            bw.Write((ushort)_block.TransactionHeaderHashes.Count);
 
             foreach (var item in _block.TransactionHeaderHashes)
             {

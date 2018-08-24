@@ -34,9 +34,9 @@ namespace Wist.Node.Core.Registry
 
         private readonly Dictionary<ulong, Dictionary<byte, HashSet<TransactionsShortBlock>>> _transactionsShortBlocks;
         private readonly IIdentityKeyProvider _transactionHashKey;
+        private readonly ICryptoService _cryptoService;
         private readonly ILogger _logger;
         private readonly Timer _timer;
-        private readonly ICryptoService _cryptoService;
         private readonly SynchronizationContext _synchronizationContext;
         private int _oldValue;
         private readonly object _sync = new object();
@@ -141,13 +141,15 @@ namespace Wist.Node.Core.Registry
         }
 
         //TODO: need to understand whether it is needed to pass height of Sync Block or automatically take latest one?
-        public IEnumerable<TransactionRegisterBlock> DequeueBulk(int maxCount)
+        public SortedList<ushort, TransactionRegisterBlock> DequeueBulk(int maxCount)
         {
-            List<TransactionRegisterBlock> items = new List<TransactionRegisterBlock>();
+            SortedList<ushort, TransactionRegisterBlock> items = new SortedList<ushort, TransactionRegisterBlock>();
             Dictionary<IKey, HashSet<ulong>> obtainedTransactions = new Dictionary<IKey, HashSet<ulong>>();
             lock(_sync)
             {
                 ulong syncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
+
+                ushort order = 0;
 
                 while (_transactionRegisterBlocksOrdered.Count > 0)
                 {
@@ -164,7 +166,8 @@ namespace Wist.Node.Core.Registry
                             continue;
                         }
 
-                        items.Add(transactionRegisterBlock);
+                        //TODO: overflow!!!
+                        items.Add(order++, transactionRegisterBlock);
                     }
                 }
             }

@@ -33,7 +33,6 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
             ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(1));
 
             transactionsShortBlock.Round = round;
-            transactionsShortBlock.ItemsCount = itemsCount;
             transactionsShortBlock.TransactionHeaderHashes = new SortedList<ushort, IKey>(itemsCount);
 
             for (int i = 0; i < itemsCount; i++)
