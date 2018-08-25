@@ -44,6 +44,9 @@ namespace Wist.BlockLattice.Core.Tests
 
             DateTime expectedDateTime = DateTime.Now;
 
+            byte[] powHash = BinaryBuilder.GetPowHash(1234);
+            byte[] prevHash = BinaryBuilder.GetPrevHash(1234);
+
             for (int i = 0; i < signersCount; i++)
             {
                 byte[] privateSignerKey = BinaryBuilder.GetRandomSeed();
@@ -76,9 +79,6 @@ namespace Wist.BlockLattice.Core.Tests
                     }
                 }
             }
-
-            byte[] powHash = BinaryBuilder.GetPowHash(1234);
-            byte[] prevHash = BinaryBuilder.GetPrevHash(1234);
 
             byte[] packet = BinaryBuilder.GetSignedPacket(
                 PacketType.Synchronization, 

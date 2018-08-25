@@ -22,22 +22,12 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Synchronization
 
             bw.Write(_block.ReportedTime.ToBinary());
             bw.Write(_block.Round);
-            bw.Write((byte)(_block.PublicKeys?.Length ?? 0));
-
-            if (_block.PublicKeys != null)
+            byte signersCount = (byte)(_block.PublicKeys?.Length ?? 0);
+            bw.Write(signersCount);
+            for (int i = 0; i < signersCount; i++)
             {
-                foreach (byte[] pk in _block.PublicKeys)
-                {
-                    bw.Write(pk);
-                }
-            }
-
-            if (_block.Signatures != null)
-            {
-                foreach (byte[] signature in _block.Signatures)
-                {
-                    bw.Write(signature);
-                }
+                bw.Write(_block.PublicKeys[i]);
+                bw.Write(_block.Signatures[i]);
             }
         }
     }
