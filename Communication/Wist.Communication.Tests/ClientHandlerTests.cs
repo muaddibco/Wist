@@ -32,8 +32,8 @@ namespace Wist.Communication.Tests
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
             ICommunicationChannel handler = new CommunicationChannel(loggerService, null);
             handler.Init(DependencyInjectionFixture.BufferManager, messagesHandler);
-            byte[] packet = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44};
-            byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc};
+            byte[] packet = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44};
+            byte[] expectedPacket = new byte[] { 0xaa, 0xbb, 0xcc};
 
             handler.PushForParsing(packet, 0, packet.Length);
 
@@ -41,8 +41,8 @@ namespace Wist.Communication.Tests
 
             Assert.True(packets.Count == 1);
 
-            byte[] messagePacket = packets.First();
-            Assert.Equal(messagePacket, parsedPacket);
+            byte[] actualPacket = packets.First();
+            Assert.Equal(expectedPacket, actualPacket);
         }
 
         [Fact]
@@ -54,7 +54,7 @@ namespace Wist.Communication.Tests
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
             ICommunicationChannel handler = new CommunicationChannel(loggerService, null);
             handler.Init(DependencyInjectionFixture.BufferManager, messagesHandler);
-            byte[] packet = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, 0x03, 0x00, 0xaa, 0xbb, 0xcc};
+            byte[] packet = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xbb, 0xcc};
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc };
 
             handler.PushForParsing(packet, 0, packet.Length);
@@ -76,7 +76,7 @@ namespace Wist.Communication.Tests
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
             ICommunicationChannel handler = new CommunicationChannel(loggerService, null);
             handler.Init(DependencyInjectionFixture.BufferManager, messagesHandler);
-            byte[] packet = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, CommunicationChannel.DLE, CommunicationChannel.DLE + 0x02, 0x00, 0xaa, 0xbb, 0xdd, 0x44 };
+            byte[] packet = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, CommunicationChannel.DLE, CommunicationChannel.DLE + 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xbb, 0xdd, 0x44 };
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb };
 
             handler.PushForParsing(packet, 0, packet.Length);
@@ -98,7 +98,7 @@ namespace Wist.Communication.Tests
             messagesHandler.WhenForAnyArgs(m => m.Push(null)).Do(ci => packets.Add(ci.ArgAt<byte[]>(0)));
             ICommunicationChannel handler = new CommunicationChannel(loggerService, null);
             handler.Init(DependencyInjectionFixture.BufferManager, messagesHandler);
-            byte[] packet1 = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, 0x09, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
+            byte[] packet1 = new byte[] { CommunicationChannel.DLE, CommunicationChannel.STX, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
             byte[] packet2 = new byte[] { 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc, 0xdd, 0x44, 0x03, 0x00, 0xaa, 0xbb };
 
@@ -123,7 +123,7 @@ namespace Wist.Communication.Tests
             ICommunicationChannel handler = new CommunicationChannel(loggerService, null);
             handler.Init(DependencyInjectionFixture.BufferManager, messagesHandler);
             byte[] packet1 = new byte[] { 0x45, 0x65, CommunicationChannel.DLE };
-            byte[] packet2 = new byte[] { CommunicationChannel.STX, 0x09, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
+            byte[] packet2 = new byte[] { CommunicationChannel.STX, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
             byte[] packet3 = new byte[] { 0x03, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0x44 };
             byte[] parsedPacket = new byte[] { 0xaa, 0xbb, 0xcc, 0xdd, 0x44, 0x03, 0x00, 0xaa, 0xbb };
 

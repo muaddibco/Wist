@@ -7,7 +7,7 @@ namespace Wist.Node.Core.Tests
     public class TransactionsRegistrationsTests : IClassFixture<DependencyInjectionSupportFixture>
     {
         [Fact]
-        public void Test1()
+        public void TransactionsRegisterHandlerTest()
         {
 
         }

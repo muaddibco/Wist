@@ -88,7 +88,7 @@ namespace Wist.Communication
 
                 if (packet != null)
                 {
-                    _communicationCountersService.ParsingQueueSize.Increment();
+                    _communicationCountersService?.ParsingQueueSize.Increment();
                     _packets.Enqueue(packet);
                 }
                 else
@@ -455,7 +455,7 @@ namespace Wist.Communication
                         if (!_packets.TryDequeue(out currentBuf))
                             continue;
 
-                        _communicationCountersService.ParsingQueueSize.Decrement();
+                        _communicationCountersService?.ParsingQueueSize.Decrement();
 
                         if (currentBuf == null)
                             continue;

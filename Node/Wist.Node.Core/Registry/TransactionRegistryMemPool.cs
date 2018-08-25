@@ -37,7 +37,7 @@ namespace Wist.Node.Core.Registry
         private readonly ICryptoService _cryptoService;
         private readonly ILogger _logger;
         private readonly Timer _timer;
-        private readonly SynchronizationContext _synchronizationContext;
+        private readonly ISynchronizationContext _synchronizationContext;
         private int _oldValue;
         private readonly object _sync = new object();
 
@@ -144,30 +144,21 @@ namespace Wist.Node.Core.Registry
         public SortedList<ushort, TransactionRegisterBlock> DequeueBulk(int maxCount)
         {
             SortedList<ushort, TransactionRegisterBlock> items = new SortedList<ushort, TransactionRegisterBlock>();
-            Dictionary<IKey, HashSet<ulong>> obtainedTransactions = new Dictionary<IKey, HashSet<ulong>>();
             lock(_sync)
             {
                 ulong syncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
 
                 ushort order = 0;
 
-                while (_transactionRegisterBlocksOrdered.Count > 0)
+                foreach (int orderKey in _transactionRegisterBlocksOrdered[syncBlockHeight].Keys)
                 {
-                    foreach (int orderKey in _transactionRegisterBlocksOrdered[syncBlockHeight].Keys)
+                    TransactionRegisterBlock transactionRegisterBlock = _transactionRegisterBlocksOrdered[syncBlockHeight][orderKey];
+
+                    items.Add(order++, transactionRegisterBlock);
+
+                    if (order == ushort.MaxValue)
                     {
-                        TransactionRegisterBlock transactionRegisterBlock = _transactionRegisterBlocksOrdered[syncBlockHeight][orderKey];
-
-                        if (!obtainedTransactions.ContainsKey(transactionRegisterBlock.Key))
-                        {
-                            obtainedTransactions.Add(transactionRegisterBlock.Key, new HashSet<ulong>());
-                        }
-                        else if(obtainedTransactions[transactionRegisterBlock.Key].Contains(transactionRegisterBlock.BlockHeight))
-                        {
-                            continue;
-                        }
-
-                        //TODO: overflow!!!
-                        items.Add(order++, transactionRegisterBlock);
+                        break;
                     }
                 }
             }

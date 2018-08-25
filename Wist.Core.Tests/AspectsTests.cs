@@ -40,9 +40,12 @@ namespace Wist.Core.Tests
             ApplicationContext applicationContext = new ApplicationContext() { Container = unityContainer};
 
             ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[2] { new ConfigA(applicationContext), new ConfigB(applicationContext) });
-
+            
             ConfigA configA = (ConfigA)configurationService["configA"];
             ConfigB configB = (ConfigB)configurationService["configB"];
+            configA.Initialize();
+            configB.Initialize();
+
             ushort maxValueA = configA.MaxValue;
             ushort maxValueB = configB.MaxValue;
 
@@ -72,7 +75,7 @@ namespace Wist.Core.Tests
             ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[1] { new ConfigRoles(applicationContext) });
 
             ConfigRoles configRoles = (ConfigRoles)configurationService["configroles"];
-
+            configRoles.Initialize();
             Assert.Equal(2, configRoles.Roles.Length);
             Assert.Contains("roleA", configRoles.Roles);
             Assert.Contains("roleB", configRoles.Roles);
@@ -100,6 +103,7 @@ namespace Wist.Core.Tests
             ConfigurationService configurationService = new ConfigurationService(new IConfigurationSection[1] { new ConfigInts(applicationContext) });
 
             ConfigInts configInts = (ConfigInts)configurationService["configints"];
+            configInts.Initialize();
 
             Assert.Equal(2, configInts.Ints.Length);
             Assert.Contains(5, configInts.Ints);

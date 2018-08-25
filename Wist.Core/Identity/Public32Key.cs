@@ -7,6 +7,16 @@ namespace Wist.Core.Identity
     /// </summary>
     public class Public32Key : IKey
     {
+        public Public32Key()
+        {
+
+        }
+
+        public Public32Key(byte[] value)
+        {
+            Value = value;
+        }
+
         /// <summary>
         /// Byte array of length of 32 bytes
         /// </summary>
