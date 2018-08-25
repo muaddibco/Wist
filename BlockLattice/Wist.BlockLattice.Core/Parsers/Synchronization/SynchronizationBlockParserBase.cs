@@ -13,8 +13,8 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 {
     public abstract class SynchronizationBlockParserBase : SyncLinkedBlockParserBase
     {
-        public SynchronizationBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationRepository proofOfWorkCalculationRepository) 
-            : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
+        public SynchronizationBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationRepository hashCalculationRepository) 
+            : base(identityKeyProvidersRegistry, hashCalculationRepository)
         {
         }
 

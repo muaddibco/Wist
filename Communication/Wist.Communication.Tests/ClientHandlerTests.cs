@@ -1,4 +1,4 @@
-﻿using CommonServiceLocator;
+﻿    using CommonServiceLocator;
 using Wist.Communication;
 using Wist.Communication.Interfaces;
 using NSubstitute;

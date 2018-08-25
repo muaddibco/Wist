@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.IO;
+using Wist.Core.ExtensionMethods;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
@@ -15,8 +16,8 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationConfirmedBlockParser : SynchronizationBlockParserBase
     {
-        public SynchronizationConfirmedBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationRepository proofOfWorkCalculationRepository) 
-            : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
+        public SynchronizationConfirmedBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationRepository hashCalculationRepository) 
+            : base(identityKeyProvidersRegistry, hashCalculationRepository)
         {
         }
 
@@ -35,8 +36,8 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 
                 for (int i = 0; i < numberOfSigners; i++)
                 {
-                    signers[i] = spanBody.Slice(3 + Globals.NODE_PUBLIC_KEY_SIZE * i, Globals.NODE_PUBLIC_KEY_SIZE).ToArray();
-                    signatures[i] = spanBody.Slice(3 + Globals.NODE_PUBLIC_KEY_SIZE * (i + 1) + Globals.SIGNATURE_SIZE * i, Globals.SIGNATURE_SIZE).ToArray();
+                    signers[i] = spanBody.Slice(3 + (Globals.NODE_PUBLIC_KEY_SIZE + Globals.SIGNATURE_SIZE)* i, Globals.NODE_PUBLIC_KEY_SIZE).ToArray();
+                    signatures[i] = spanBody.Slice(3 + (Globals.NODE_PUBLIC_KEY_SIZE + Globals.SIGNATURE_SIZE )* i + Globals.NODE_PUBLIC_KEY_SIZE, Globals.SIGNATURE_SIZE).ToArray();
                 }
 
                 synchronizationConfirmedBlock = new SynchronizationConfirmedBlock()
