@@ -78,7 +78,7 @@ namespace Wist.Node.Core.Registry
                     _transactionOrderByTransactionHash.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, int>());
                 }
 
-                IKey key = GetTransactionRegistryHashKey(transactionRegisterBlock);
+                IKey key = transactionRegisterBlock.GetTransactionRegistryHashKey(_cryptoService, _transactionHashKey);
 
                 if (!_transactionRegistryByTransactionHash[transactionRegisterBlock.SyncBlockHeight].ContainsKey(key))
                 {
@@ -164,20 +164,6 @@ namespace Wist.Node.Core.Registry
             }
 
             return items;
-        }
-
-        private IKey GetTransactionRegistryHashKey(TransactionRegisterBlock transactionRegisterBlock)
-        {
-            byte[] transactionHeightBytes = BitConverter.GetBytes(transactionRegisterBlock.BlockHeight);
-
-            byte[] senderAndHeightBytes = new byte[transactionRegisterBlock.Key.Length + transactionHeightBytes.Length];
-
-            Array.Copy(transactionRegisterBlock.Key.Value, senderAndHeightBytes, transactionRegisterBlock.Key.Length);
-            Array.Copy(transactionHeightBytes, 0, senderAndHeightBytes, transactionRegisterBlock.Key.Length, transactionHeightBytes.Length);
-
-            IKey key = _transactionHashKey.GetKey(_cryptoService.ComputeTransactionKey(senderAndHeightBytes));
-
-            return key;
         }
     }
 }

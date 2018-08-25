@@ -122,7 +122,7 @@ namespace Wist.Node.Core.Registry
             TransactionsShortBlock transactionsShortBlock = new TransactionsShortBlock
             {
                 Round = (byte)_registryGroupState.Round,
-                TransactionHeaderHashes = new SortedList<ushort, IKey>(transactionsFullBlock.TransactionHeaders.ToDictionary(i => i.Key, i => GetTransactionRegistryHashKey(i.Value)))
+                TransactionHeaderHashes = new SortedList<ushort, IKey>(transactionsFullBlock.TransactionHeaders.ToDictionary(i => i.Key, i => i.Value.GetTransactionRegistryHashKey(_cryptoService, _transactionHashKey)))
             };
 
             return transactionsShortBlock;
@@ -131,20 +131,6 @@ namespace Wist.Node.Core.Registry
         private void SendTransactionsShortBlock(TransactionsShortBlock transactionsShortBlock)
         {
 
-        }
-
-        private IKey GetTransactionRegistryHashKey(TransactionRegisterBlock transactionRegisterBlock)
-        {
-            byte[] transactionHeightBytes = BitConverter.GetBytes(transactionRegisterBlock.BlockHeight);
-
-            byte[] senderAndHeightBytes = new byte[transactionRegisterBlock.Key.Length + transactionHeightBytes.Length];
-
-            Array.Copy(transactionRegisterBlock.Key.Value, senderAndHeightBytes, transactionRegisterBlock.Key.Length);
-            Array.Copy(transactionHeightBytes, 0, senderAndHeightBytes, transactionRegisterBlock.Key.Length, transactionHeightBytes.Length);
-
-            IKey key = _transactionHashKey.GetKey(_cryptoService.ComputeTransactionKey(senderAndHeightBytes));
-
-            return key;
         }
     }
 }

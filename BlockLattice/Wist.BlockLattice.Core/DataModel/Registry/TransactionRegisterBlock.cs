@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Wist.BlockLattice.Core.Enums;
+using Wist.Core.Cryptography;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel.Registry
 {
@@ -31,6 +32,20 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
         public override int GetHashCode()
         {
             return PacketType.GetHashCode() ^ BlockType.GetHashCode() ^ TransactionHeader.GetHashCode(); 
+        }
+
+        public IKey GetTransactionRegistryHashKey(ICryptoService cryptoService, IIdentityKeyProvider transactionHashKey)
+        {
+            byte[] transactionHeightBytes = BitConverter.GetBytes(BlockHeight);
+
+            byte[] senderAndHeightBytes = new byte[Key.Length + transactionHeightBytes.Length];
+
+            Array.Copy(Key.Value, senderAndHeightBytes, Key.Length);
+            Array.Copy(transactionHeightBytes, 0, senderAndHeightBytes, Key.Length, transactionHeightBytes.Length);
+
+            IKey key = transactionHashKey.GetKey(cryptoService.ComputeTransactionKey(senderAndHeightBytes));
+
+            return key;
         }
     }
 }
