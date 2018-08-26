@@ -45,6 +45,7 @@ namespace Wist.Node.Core.Synchronization
 
         public void Initialize(CancellationToken ct)
         {
+            //TODO: need to move definition of communication service name to configuration file
             _communicationService = _communicationServicesRegistry.GetInstance("GenericUdp");
 
             Task.Factory.StartNew(() => {

@@ -9,6 +9,7 @@ using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Communication;
+using Wist.Core.Configuration;
 using Wist.Core.States;
 using Wist.Node.Core.Interfaces;
 
@@ -23,17 +24,19 @@ namespace Wist.Node.Core.Registry
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
         private readonly IRegistryMemPool _registryMemPool;
+        private readonly IConfigurationService _configurationService;
         private readonly INeighborhoodState _neighborhoodState;
         private IServerCommunicationService _communicationService;
         private  Timer _timer;
 
-        public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool)
+        public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService)
         {
             _registrationBlocks = new BlockingCollection<TransactionRegisterBlock>();
             _neighborhoodState = statesRepository.GetInstance<RegistryGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
             _registryMemPool = registryMemPool;
+            _configurationService = configurationService;
         }
 
         public string Name => NAME;
@@ -42,7 +45,7 @@ namespace Wist.Node.Core.Registry
 
         public void Initialize(CancellationToken ct)
         {
-            _communicationService = _communicationServicesRegistry.GetInstance("GenericUdp");
+            _communicationService = _communicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().UdpServiceName);
 
             Task.Factory.StartNew(() => {
                 ProcessBlocks(ct);
