@@ -61,7 +61,7 @@ namespace Wist.Node.Core
 
         private void InitializeCommunicationLayer()
         {
-            NodeConfiguration nodeConfiguration = (NodeConfiguration)_configurationService[NodeConfiguration.SECTION_NAME];
+            INodeConfiguration nodeConfiguration = _configurationService.Get<INodeConfiguration>();
 
             foreach (string communicationServiceName in nodeConfiguration.CommunicationServices)
             {
@@ -93,7 +93,7 @@ namespace Wist.Node.Core
 
         private void ObtainConfiguredModules()
         {
-            NodeConfiguration nodeConfiguration = (NodeConfiguration)_configurationService[NodeConfiguration.SECTION_NAME];
+            INodeConfiguration nodeConfiguration = _configurationService.Get<INodeConfiguration>();
 
             string[] moduleNames = nodeConfiguration.Modules;
             if (moduleNames != null)
@@ -115,7 +115,7 @@ namespace Wist.Node.Core
 
         internal void Start()
         {
-            NodeConfiguration nodeConfiguration = (NodeConfiguration)_configurationService[NodeConfiguration.SECTION_NAME];
+            INodeConfiguration nodeConfiguration = _configurationService.Get<INodeConfiguration>();
             foreach (string communicationServiceName in nodeConfiguration.CommunicationServices)
             {
                 CommunicationConfigurationBase communicationConfiguration = (CommunicationConfigurationBase)_configurationService[communicationServiceName];

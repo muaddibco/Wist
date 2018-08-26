@@ -5,7 +5,7 @@ using Wist.Core.Configuration;
 namespace Wist.Node.Core.Configuration
 {
     [RegisterExtension(typeof(IConfigurationSection), Lifetime = LifetimeManagement.Singleton)]
-    public class NodeConfiguration : ConfigurationSectionBase
+    public class NodeConfiguration : ConfigurationSectionBase, INodeConfiguration
     {
         public const string SECTION_NAME = "node";
 
