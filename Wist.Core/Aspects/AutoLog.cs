@@ -76,7 +76,7 @@ namespace Wist.Core.Aspects
             if (ServiceLocator.IsLocationProviderSet)
             {
                 _configurationService = ServiceLocator.Current.GetInstance<IConfigurationService>();
-                _measureTime = _configurationService.Get<LogConfiguration>()?.MeasureTime ?? false;
+                _measureTime = _configurationService.Get<ILogConfiguration>()?.MeasureTime ?? false;
             }
         }
 

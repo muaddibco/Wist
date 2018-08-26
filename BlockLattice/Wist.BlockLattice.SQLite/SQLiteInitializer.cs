@@ -9,11 +9,11 @@ namespace Wist.BlockLattice.SQLite
     [RegisterExtension(typeof(IInitializer), Lifetime = LifetimeManagement.Singleton)]
     public class SQLiteInitializer : InitializerBase
     {
-        private readonly SQLiteConfiguration _configuration;
+        private readonly ISQLiteConfiguration _configuration;
 
         public SQLiteInitializer(IConfigurationService configurationService)
         {
-            _configuration = configurationService.Get<SQLiteConfiguration>();
+            _configuration = configurationService.Get<ISQLiteConfiguration>();
         }
 
         protected override void InitializeInner()

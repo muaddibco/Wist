@@ -40,7 +40,7 @@ namespace Wist.Node.Core.Synchronization
         public void Initialize()
         {
             
-            _communicationService = _communicationServicesRegistry.GetInstance(_configurationService.Get<SynchronizationConfiguration>().CommunicationServiceName);
+            _communicationService = _communicationServicesRegistry.GetInstance(_configurationService.Get<ISynchronizationConfiguration>().CommunicationServiceName);
         }
 
         public void DeferredBroadcast()

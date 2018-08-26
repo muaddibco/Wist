@@ -26,7 +26,7 @@ namespace Wist.Core.Identity
                 }
             }
 
-            IdentityConfiguration identityConfiguration = configurationService.Get<IdentityConfiguration>();
+            IIdentityConfiguration identityConfiguration = configurationService.Get<IIdentityConfiguration>();
             string currentIdentityKeyProviderName = identityConfiguration?.Provider;
 
             if(string.IsNullOrEmpty(currentIdentityKeyProviderName))

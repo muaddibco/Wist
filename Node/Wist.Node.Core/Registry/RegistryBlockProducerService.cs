@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks.Dataflow;
 using System.Timers;
 using Wist.BlockLattice.Core.DataModel.Registry;
+using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Configuration;
 using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 using Wist.Core.Predicates;
@@ -25,17 +27,20 @@ namespace Wist.Node.Core.Registry
         private readonly IRegistryGroupState _registryGroupState;
         private readonly IIdentityKeyProvider _transactionHashKey;
         private readonly ICryptoService _cryptoService;
+        private readonly IConfigurationService _configurationService;
+        private readonly IServerCommunicationService _tcpCommunicationService;
+        private readonly IServerCommunicationService _udpCommunicationService;
         private Timer _timer;
         private IDisposable _syncContextUnsubscriber;
 
-        public RegistryBlockProducerService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService)
+        public RegistryBlockProducerService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, IServerCommunicationServicesRegistry serverCommunicationServicesRegistry)
         {
             _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
             _registryGroupState = statesRepository.GetInstance<RegistryGroupState>();
             _isBlockProducerPredicate = predicatesRepository.GetInstance("IsBlockProducer");
             _transactionHashKey = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
             _cryptoService = cryptoService;
-
+            _configurationService = configurationService;
             TransformBlock<IRegistryMemPool, SortedList<ushort, TransactionRegisterBlock>> deduplicateAndOrderTransactionRegisterBlocksBlock = new TransformBlock<IRegistryMemPool, SortedList<ushort, TransactionRegisterBlock>>((Func<IRegistryMemPool, SortedList<ushort, TransactionRegisterBlock>>)DeduplicateAndOrderTransactionRegisterBlocks);
             TransformBlock<SortedList<ushort, TransactionRegisterBlock>, TransactionsFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<ushort, TransactionRegisterBlock>, TransactionsFullBlock>((Func<SortedList<ushort, TransactionRegisterBlock>, TransactionsFullBlock>)ProduceTransactionsFullBlock);
             ActionBlock<TransactionsFullBlock> sendTransactionsFullBlock = new ActionBlock<TransactionsFullBlock>((Action<TransactionsFullBlock>)SendTransactionsFullBlock);
@@ -49,6 +54,8 @@ namespace Wist.Node.Core.Registry
 
             _transactionsRegistryProducingFlow = deduplicateAndOrderTransactionRegisterBlocksBlock;
             _registryMemPool = registryMemPool;
+            _tcpCommunicationService = serverCommunicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().TcpServiceName);
+            _udpCommunicationService = serverCommunicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().UdpServiceName);
         }
 
         public void Initialize()

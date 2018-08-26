@@ -37,7 +37,7 @@ namespace Wist.Core.Logging
                 {
                     if(!_isInitialized)
                     {
-                        ConfigureLog4Net(_configurationService.Get<LogConfiguration>()?.LogConfigurationFile);
+                        ConfigureLog4Net(_configurationService.Get<ILogConfiguration>()?.LogConfigurationFile);
 
                         _isInitialized = true;
                     }

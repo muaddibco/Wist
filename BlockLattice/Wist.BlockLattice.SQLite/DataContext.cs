@@ -11,10 +11,10 @@ namespace Wist.BlockLattice.SQLite
 {
     public class DataContext : DbContext
     {
-        private readonly SQLiteConfiguration _configuration;
+        private readonly ISQLiteConfiguration _configuration;
         private readonly ManualResetEventSlim _manualResetEventSlim = new ManualResetEventSlim(false);
 
-        public DataContext(SQLiteConfiguration configuration)
+        public DataContext(ISQLiteConfiguration configuration)
         {
             _configuration = configuration;
         }

@@ -42,7 +42,7 @@ namespace Wist.BlockLattice.SQLite
         {
             _cancellationTokenSource = new CancellationTokenSource();
             _configurationService = configurationService;
-            _dataContext = new DataContext(_configurationService.Get<SQLiteConfiguration>());
+            _dataContext = new DataContext(_configurationService.Get<ISQLiteConfiguration>());
             _dataContext.ChangeTracker.StateChanged += (s, e) =>
             {
                 AccountIdentity accountIdentity = e.Entry.Entity as AccountIdentity;
