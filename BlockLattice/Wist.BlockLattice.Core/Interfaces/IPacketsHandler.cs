@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Wist.Core.Architecture;
 
 namespace Wist.BlockLattice.Core.Interfaces
@@ -12,7 +13,7 @@ namespace Wist.BlockLattice.Core.Interfaces
     [ServiceContract]
     public interface IPacketsHandler
     {
-        void Initialize();
+        void Initialize(CancellationToken ct);
 
         /// <summary>
         /// Bytes being pushed to <see cref="IPacketsHandler"/> must form complete packet for following validation and processing
@@ -21,7 +22,5 @@ namespace Wist.BlockLattice.Core.Interfaces
         void Push(byte[] messagePacket);
 
         void Start();
-
-        void Stop();
     }
 }

@@ -30,10 +30,8 @@ namespace Wist.Simulation.Load
 
         public override string Name => nameof(SyncConfirmedSingleModule);
 
-        protected override void InitializeInner()
+        public override void Start()
         {
-            base.InitializeInner();
-
             ulong index = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
 
             string cmd = null;
@@ -65,9 +63,20 @@ namespace Wist.Simulation.Load
                     _loadCountersService.SentMessages.Increment();
                 }
 
+                if(_cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 Console.WriteLine("Block sent. Press <Enter> for next or type 'exit' and press <Enter> for exit...");
                 cmd = Console.ReadLine();
-            } while (cmd != "exit");
+            } while (!_cancellationToken.IsCancellationRequested && cmd != "exit");
+        }
+
+        protected override void InitializeInner()
+        {
+            base.InitializeInner();
+
         }
     }
 }

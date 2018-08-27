@@ -21,6 +21,10 @@ namespace Wist.Node.Core
 
         public override string Name => NAME;
 
+        public override void Start()
+        {
+        }
+
         protected override void InitializeInner()
         {
             IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(SynchronizationReceivingHandler.NAME);

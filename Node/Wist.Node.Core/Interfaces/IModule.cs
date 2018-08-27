@@ -16,5 +16,7 @@ namespace Wist.Node.Core.Interfaces
         string Name { get; }
 
         void Initialize(CancellationToken ct);
+
+        void Start();
     }
 }

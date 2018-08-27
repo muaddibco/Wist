@@ -36,10 +36,8 @@ namespace Wist.Simulation.Load
 
         public override string Name => nameof(TransactionRegistrationSingleModule);
 
-        protected override void InitializeInner()
+        public override void Start()
         {
-            base.InitializeInner();
-
             ulong index = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
             byte[] syncHash = _synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.HASH_SIZE];
             string cmd = null;
@@ -80,9 +78,20 @@ namespace Wist.Simulation.Load
 
                 _communicationService.PostMessage(_keyTarget, signatureSupportSerializer);
 
+                if(_cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 Console.WriteLine("Block sent. Press <Enter> for next or type 'exit' and press <Enter> for exit...");
                 cmd = Console.ReadLine();
-            } while (cmd != "exit");
+            } while (!_cancellationToken.IsCancellationRequested && cmd != "exit");
+        }
+
+        protected override void InitializeInner()
+        {
+            base.InitializeInner();
+
         }
     }
 }

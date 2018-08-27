@@ -22,7 +22,7 @@ namespace Wist.BlockLattice.Core.Handlers
         private readonly PacketHandlingFlow[] _handlingFlows;
         private readonly int _maxDegreeOfParallelism;
 
-        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationToken _cancellationToken;
 
         public bool IsInitialized { get; private set; }
 
@@ -42,10 +42,11 @@ namespace Wist.BlockLattice.Core.Handlers
             }
         }
 
-        public void Initialize()
+        public void Initialize(CancellationToken ct)
         {
-            if(!IsInitialized)
+            if (!IsInitialized)
             {
+                _cancellationToken = ct;
                 IsInitialized = true;
             }
         }
@@ -66,34 +67,20 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             _log.Info("PacketsHandler starting");
 
-            Stop();
-
-            _cancellationTokenSource = new CancellationTokenSource();
-
             Parallel.For(0, _maxDegreeOfParallelism, i => Parse(i));
 
             _log.Info("PacketsHandler started");
         }
 
-        public void Stop()
-        {
-            _log.Info("PacketsHandler stopping");
-            _cancellationTokenSource?.Cancel();
-            _cancellationTokenSource = null;
-            _log.Info("PacketsHandler stopped");
-        }
-
         private async Task Parse(int iteration)
         {
-            CancellationToken token = _cancellationTokenSource.Token;
-
             _log.Info($"Parse function #{iteration} starting");
 
             try
             {
                 _endToEndCountersService.ParallelParsers.Increment();
 
-                foreach (byte[] messagePacket in _messagePackets.GetConsumingEnumerable(_cancellationTokenSource.Token))
+                foreach (byte[] messagePacket in _messagePackets.GetConsumingEnumerable(_cancellationToken))
                 {
                     _endToEndCountersService.MessagesQueueSize.Decrement();
                     await _handlingFlows[iteration].PostMessage(messagePacket);

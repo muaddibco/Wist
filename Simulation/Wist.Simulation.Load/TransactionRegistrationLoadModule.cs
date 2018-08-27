@@ -44,10 +44,8 @@ namespace Wist.Simulation.Load
 
         public override string Name => nameof(TransactionRegistrationLoadModule);
 
-        protected override void InitializeInner()
+        public override void Start()
         {
-            base.InitializeInner();
-
             byte[] seedTarget = GetRandomSeed();
             byte[] targetKeyBytes = Ed25519.PublicKeyFromSeed(seedTarget);
             byte[] targetHash = CryptoHelper.ComputeHash(targetKeyBytes);
@@ -113,7 +111,13 @@ namespace Wist.Simulation.Load
 
                 _loadCountersService.SentMessages.Increment();
                 count++;
-            } while (true);
+            } while (!_cancellationToken.IsCancellationRequested);
+        }
+
+        protected override void InitializeInner()
+        {
+            base.InitializeInner();
+
         }
     }
 }

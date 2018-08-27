@@ -30,9 +30,8 @@ namespace Wist.Simulation.Load
 
         public override string Name => nameof(SyncConfirmedLoadModule);
 
-        protected override void InitializeInner()
+        public override void Start()
         {
-            base.InitializeInner();
 
             ulong index = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
 
@@ -62,7 +61,12 @@ namespace Wist.Simulation.Load
 
                     _loadCountersService.SentMessages.Increment();
                 }
-            } while (true);
+            } while (!_cancellationToken.IsCancellationRequested);
+        }
+
+        protected override void InitializeInner()
+        {
+            base.InitializeInner();
         }
     }
 }

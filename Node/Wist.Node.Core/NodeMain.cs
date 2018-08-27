@@ -32,20 +32,18 @@ namespace Wist.Node.Core
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IConfigurationService _configurationService;
         private readonly IModulesRepository _modulesRepository;
-        private readonly IRolesRegistry _rolesRegistry;
         private readonly IPacketsHandler _packetsHandler;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IRolesRegistry rolesRegistry, IPacketsHandler packetsHandler, IBlocksHandlersRegistry blocksProcessorFactory, ILoggerService loggerService)
+        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IPacketsHandler packetsHandler, IBlocksHandlersRegistry blocksProcessorFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _communicationServicesFactory = communicationServicesFactory;
             _communicationServicesRegistry = communicationServicesRegistry;
             _configurationService = configurationService;
             _modulesRepository = modulesRepository;
-            _rolesRegistry = rolesRegistry;
             _packetsHandler = packetsHandler;
             _cancellationTokenSource = new CancellationTokenSource();
         }
@@ -71,7 +69,7 @@ namespace Wist.Node.Core
                 _communicationServicesRegistry.RegisterInstance(serverCommunicationService, communicationConfiguration.CommunicationServiceName);
             }
 
-            _packetsHandler.Initialize();
+            _packetsHandler.Initialize(_cancellationTokenSource.Token);
         }
 
         private void InitializeModules(CancellationToken ct)
@@ -124,11 +122,9 @@ namespace Wist.Node.Core
 
             _packetsHandler.Start();
 
-            IEnumerable<IRole> roles = _rolesRegistry.GetBulkInstances();
-
-            foreach (IRole role in roles)
+            foreach (IModule module in _modulesRepository.GetBulkInstances())
             {
-                role.Start();
+                module.Start();
             }
         }
     }

@@ -38,5 +38,6 @@ namespace Wist.Node.Core.Roles
         }
 
         protected abstract void InitializeInner();
+        public abstract void Start();
     }
 }

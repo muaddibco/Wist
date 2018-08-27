@@ -20,6 +20,10 @@ namespace Wist.Node.Core.Registry
 
         public override string Name => NAME;
 
+        public override void Start()
+        {
+        }
+
         protected override void InitializeInner()
         {
             IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(TransactionsRegistryHandler.NAME);
