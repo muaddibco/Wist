@@ -7,6 +7,8 @@
         public const ushort Registry_TransactionRegister = 1;
         public const ushort Registry_TransactionFullBlock = 2;
         public const ushort Registry_TransactionShortBlock = 3;
+        public const ushort Registry_ConfidenceBlock = 4;
+        public const ushort Registry_ConfirmationBlock = 5;
 
         public const ushort Transaction_Genesis = 2;
         public const ushort Transaction_AcceptFunds = 3;

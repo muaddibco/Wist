@@ -8,5 +8,9 @@ namespace Wist.Node.Core.Registry
     public interface IRegistryGroupState : INeighborhoodState
     {
         int Round { get; set; }
+
+        void ToggleLastBlockConfirmationReceived();
+
+        void WaitLastBlockConfirmationReceived();
     }
 }

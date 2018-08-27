@@ -10,15 +10,16 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;
 using Wist.Core.Cryptography;
 using Wist.Core.Identity;
+using Wist.Core.PerformanceCounters;
 using Wist.Core.Predicates;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
-using Wist.Node.Core.Interfaces;
+using Wist.Node.Core.PerformanceCounters;
 
 namespace Wist.Node.Core.Registry
 {
-    [RegisterDefaultImplementation(typeof(IRegistryBlockProducerService), Lifetime = LifetimeManagement.Singleton)]
-    public class RegistryBlockProducerService : IRegistryBlockProducerService
+    [RegisterDefaultImplementation(typeof(ITransactionsRegistryService), Lifetime = LifetimeManagement.Singleton)]
+    public class TransactionsRegistryService : ITransactionsRegistryService
     {
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly IPredicate _isBlockProducerPredicate;
@@ -30,10 +31,11 @@ namespace Wist.Node.Core.Registry
         private readonly IConfigurationService _configurationService;
         private readonly IServerCommunicationService _tcpCommunicationService;
         private readonly IServerCommunicationService _udpCommunicationService;
+        private readonly NodeCountersService _nodeCountersService;
         private Timer _timer;
         private IDisposable _syncContextUnsubscriber;
 
-        public RegistryBlockProducerService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, IServerCommunicationServicesRegistry serverCommunicationServicesRegistry)
+        public TransactionsRegistryService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, IServerCommunicationServicesRegistry serverCommunicationServicesRegistry, IPerformanceCountersRepository performanceCountersRepository)
         {
             _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
             _registryGroupState = statesRepository.GetInstance<RegistryGroupState>();
@@ -41,6 +43,7 @@ namespace Wist.Node.Core.Registry
             _transactionHashKey = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
             _cryptoService = cryptoService;
             _configurationService = configurationService;
+
             TransformBlock<IRegistryMemPool, SortedList<ushort, TransactionRegisterBlock>> deduplicateAndOrderTransactionRegisterBlocksBlock = new TransformBlock<IRegistryMemPool, SortedList<ushort, TransactionRegisterBlock>>((Func<IRegistryMemPool, SortedList<ushort, TransactionRegisterBlock>>)DeduplicateAndOrderTransactionRegisterBlocks);
             TransformBlock<SortedList<ushort, TransactionRegisterBlock>, TransactionsFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<ushort, TransactionRegisterBlock>, TransactionsFullBlock>((Func<SortedList<ushort, TransactionRegisterBlock>, TransactionsFullBlock>)ProduceTransactionsFullBlock);
             ActionBlock<TransactionsFullBlock> sendTransactionsFullBlock = new ActionBlock<TransactionsFullBlock>((Action<TransactionsFullBlock>)SendTransactionsFullBlock);
@@ -53,9 +56,13 @@ namespace Wist.Node.Core.Registry
             produceTransactionsShortBlock.LinkTo(sendTransactionsShortBlock);
 
             _transactionsRegistryProducingFlow = deduplicateAndOrderTransactionRegisterBlocksBlock;
+
+
             _registryMemPool = registryMemPool;
             _tcpCommunicationService = serverCommunicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().TcpServiceName);
             _udpCommunicationService = serverCommunicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().UdpServiceName);
+
+            _nodeCountersService = performanceCountersRepository.GetInstance<NodeCountersService>();
         }
 
         public void Initialize()
@@ -80,8 +87,11 @@ namespace Wist.Node.Core.Registry
 
         private void _timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if(_isBlockProducerPredicate.Evaluate())
+            _registryGroupState.Round++;
+
+            if (_isBlockProducerPredicate.Evaluate())
             {
+                _registryGroupState.WaitLastBlockConfirmationReceived();
                 _transactionsRegistryProducingFlow.Post(_registryMemPool);
             }
         }
@@ -89,6 +99,9 @@ namespace Wist.Node.Core.Registry
         private void RecalculateProductionTimer()
         {
             StopTimer();
+
+            _registryGroupState.Round = 0;
+            _registryGroupState.ToggleLastBlockConfirmationReceived();
 
             _timer = new Timer(5000);
             _timer.Elapsed += _timer_Elapsed;
@@ -116,6 +129,9 @@ namespace Wist.Node.Core.Registry
                 Round = (byte)_registryGroupState.Round,
                 TransactionHeaders = transactionRegisterBlocks
             };
+
+            _nodeCountersService.RegistryBlockLastSize.RawValue = transactionRegisterBlocks.Count;
+            _nodeCountersService.RegistryBlockLastSize.NextSample();
 
             return transactionsFullBlock;
         }

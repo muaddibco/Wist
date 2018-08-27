@@ -1,6 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
@@ -20,23 +22,33 @@ namespace Wist.Node.Core.Registry
     {
         public const string NAME = "TransactionsRegistry";
 
+        private readonly ITargetBlock<TransactionsShortBlock> _transactionsRegistryConfidenceFlow;
+        private readonly ITargetBlock<TransactionsRegistryConfirmationBlock> _confirmationBlockFlow;
         private readonly BlockingCollection<TransactionRegisterBlock> _registrationBlocks;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
         private readonly IRegistryMemPool _registryMemPool;
         private readonly IConfigurationService _configurationService;
-        private readonly INeighborhoodState _neighborhoodState;
+        private readonly IRegistryGroupState _registryGroupState;
         private IServerCommunicationService _communicationService;
         private  Timer _timer;
 
         public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService)
         {
             _registrationBlocks = new BlockingCollection<TransactionRegisterBlock>();
-            _neighborhoodState = statesRepository.GetInstance<RegistryGroupState>();
+            _registryGroupState = statesRepository.GetInstance<RegistryGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
             _registryMemPool = registryMemPool;
             _configurationService = configurationService;
+
+            TransformBlock<TransactionsShortBlock, TransactionsRegistryConfidenceBlock> produceConfidenceBlock = new TransformBlock<TransactionsShortBlock, TransactionsRegistryConfidenceBlock>((Func<TransactionsShortBlock, TransactionsRegistryConfidenceBlock>)GetConfidence);
+            ActionBlock<TransactionsRegistryConfidenceBlock> sendConfidenceBlock = new ActionBlock<TransactionsRegistryConfidenceBlock>((Action<TransactionsRegistryConfidenceBlock>)SendConfidence);
+            produceConfidenceBlock.LinkTo(sendConfidenceBlock);
+            _transactionsRegistryConfidenceFlow = produceConfidenceBlock;
+
+            ActionBlock<TransactionsRegistryConfirmationBlock> confirmationProcessingBlock = new ActionBlock<TransactionsRegistryConfirmationBlock>((Action<TransactionsRegistryConfirmationBlock>)ProcessConfirmationBlock);
+            _confirmationBlockFlow = confirmationProcessingBlock;
         }
 
         public string Name => NAME;
@@ -60,6 +72,18 @@ namespace Wist.Node.Core.Registry
             {
                 _registrationBlocks.Add(transactionRegisterBlock);
             }
+
+            TransactionsShortBlock transactionsShortBlock = blockBase as TransactionsShortBlock;
+            if(transactionsShortBlock != null)
+            {
+                _transactionsRegistryConfidenceFlow.Post(transactionsShortBlock);
+            }
+
+            TransactionsRegistryConfirmationBlock confirmationBlock = blockBase as TransactionsRegistryConfirmationBlock;
+            if(confirmationBlock != null && ValidateConfirmationBlock(confirmationBlock))
+            {
+                _confirmationBlockFlow.Post(confirmationBlock);
+            }
         }
 
         #region Private Functions
@@ -80,7 +104,7 @@ namespace Wist.Node.Core.Registry
                 if (isNew)
                 {
                     IPacketProvider packetProvider = _rawPacketProvidersFactory.Create(transactionRegisterBlock);
-                    _communicationService.PostMessage(_neighborhoodState.GetAllNeighbors(), packetProvider);
+                    _communicationService.PostMessage(_registryGroupState.GetAllNeighbors(), packetProvider);
                 }
             }
         }
@@ -88,6 +112,31 @@ namespace Wist.Node.Core.Registry
         private void TimerElapsed(object o)
         {
 
+        }
+
+        private TransactionsRegistryConfidenceBlock GetConfidence(TransactionsShortBlock transactionsShortBlock)
+        {
+            TransactionsRegistryConfidenceBlock transactionsRegistryConfidenceBlock = new TransactionsRegistryConfidenceBlock();
+
+            return transactionsRegistryConfidenceBlock;
+        }
+
+        private void SendConfidence(TransactionsRegistryConfidenceBlock transactionsRegistryConfidenceBlock)
+        {
+
+        }
+
+        private bool ValidateConfirmationBlock(TransactionsRegistryConfirmationBlock confirmationBlock)
+        {
+            return true;
+        }
+
+        private void ProcessConfirmationBlock(TransactionsRegistryConfirmationBlock confirmationBlock)
+        {
+            _registryGroupState.ToggleLastBlockConfirmationReceived();
+
+            //TODO: obtain Transactions Registry Short block from MemPool by hash given in confirmationBlock
+            //TODO: clear MemPool from Transaction Headers of confirmed Short Block
         }
 
         #endregion PrivateFunctions

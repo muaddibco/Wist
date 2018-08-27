@@ -3,6 +3,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Configuration;
 using Wist.Core.States;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Synchronization;
@@ -21,22 +22,24 @@ namespace Wist.Node.Core.Roles
         private readonly INodeContext _nodeContext;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly ISynchronizationGroupParticipationService _synchronizationGroupParticipationService;
+        private readonly IConfigurationService _configurationService;
         private IServerCommunicationService _communicationService;
         private uint _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
-        public SyncMasterRole(IStatesRepository statesRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, ISynchronizationGroupParticipationService synchronizationGroupParticipationService)
+        public SyncMasterRole(IStatesRepository statesRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, ISynchronizationGroupParticipationService synchronizationGroupParticipationService, IConfigurationService configurationService)
         {
             _nodeContext = statesRepository.GetInstance<NodeContext>();
             _synchronizationGroupState = statesRepository.GetInstance<SynchronizationGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _synchronizationGroupParticipationService = synchronizationGroupParticipationService;
+            _configurationService = configurationService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
         }
 
         protected override void InitializeInner()
         {
-            _communicationService = _communicationServicesRegistry.GetInstance("GeneralTcp");
+            _communicationService = _communicationServicesRegistry.GetInstance(_configurationService.Get<ISynchronizationConfiguration>().CommunicationServiceName);
             _synchronizationGroupParticipationService.Initialize();
         }
 

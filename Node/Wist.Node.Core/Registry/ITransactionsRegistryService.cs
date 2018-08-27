@@ -1,9 +1,9 @@
 ﻿using Wist.Core.Architecture;
 
-namespace Wist.Node.Core.Interfaces
+namespace Wist.Node.Core.Registry
 {
     [ServiceContract]
-    public interface IRegistryBlockProducerService
+    public interface ITransactionsRegistryService
     {
         void Start();
 
