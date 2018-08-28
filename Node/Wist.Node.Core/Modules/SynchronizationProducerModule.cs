@@ -1,4 +1,5 @@
-﻿using Wist.Core.Architecture;
+﻿using Wist.BlockLattice.Core.Interfaces;
+using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Logging;
 using Wist.Node.Core.Interfaces;
@@ -10,10 +11,12 @@ namespace Wist.Node.Core.Roles
     public class SynchronizationProducerModule : ModuleBase
     {
         private readonly ISynchronizationGroupParticipationService _synchronizationGroupParticipationService;
+        private readonly IBlocksHandlersRegistry _blocksHandlersFactory;
 
-        public SynchronizationProducerModule(ILoggerService loggerService, ISynchronizationGroupParticipationService synchronizationGroupParticipationService) : base(loggerService)
+        public SynchronizationProducerModule(ILoggerService loggerService, ISynchronizationGroupParticipationService synchronizationGroupParticipationService, IBlocksHandlersRegistry blocksHandlersFactory) : base(loggerService)
         {
             _synchronizationGroupParticipationService = synchronizationGroupParticipationService;
+            _blocksHandlersFactory = blocksHandlersFactory;
         }
 
         public override string Name => nameof(SynchronizationProducerModule);
@@ -25,6 +28,10 @@ namespace Wist.Node.Core.Roles
 
         protected override void InitializeInner()
         {
+            IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(TransactionsRegistrationDecisionHandler.NAME);
+            _blocksHandlersFactory.RegisterInstance(blocksHandler);
+            blocksHandler.Initialize(_cancellationToken);
+
             _synchronizationGroupParticipationService.Initialize();
         }
     }
