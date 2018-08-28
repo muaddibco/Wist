@@ -10,6 +10,7 @@ using Wist.Core.ExtensionMethods;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.Core.Translators;
 using Wist.Core.Identity;
+using Wist.BlockLattice.Core.Serializers;
 
 namespace Wist.BlockLattice.SQLite.DataServices
 {

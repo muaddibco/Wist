@@ -1,15 +1,11 @@
-﻿using CommonServiceLocator;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reactive.Subjects;
-using System.Text;
 using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
-using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 using Wist.Core.States;
-using Wist.Core.Synchronization;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Model;
 
@@ -25,14 +21,10 @@ namespace Wist.Node.Core
         public NodeContext()
         {
             SyncGroupParticipants = new List<ConsensusGroupParticipant>();
-
-            //TODO: set PublicKey
-            ThisNode = new ConsensusGroupParticipant() { };
         }
 
         public IKey NodeKey { get; }
 
-        public ConsensusGroupParticipant ThisNode { get; }
         public List<ConsensusGroupParticipant> SyncGroupParticipants { get; }
 
         public ushort SyncGroupParticipantsCount => 21;

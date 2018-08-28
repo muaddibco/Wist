@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Wist.Core.Identity;
+﻿using Wist.Core.Identity;
 
 namespace Wist.Node.Core.Model
 {

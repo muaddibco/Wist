@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Wist.BlockLattice.Core.DataModel;
+﻿using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
 using Wist.Core.Communication;
 
-namespace Wist.BlockLattice.Core.Interfaces
+namespace Wist.BlockLattice.Core.Serializers
 {
     [ExtensionPoint]
     public interface ISignatureSupportSerializer : IPacketProvider

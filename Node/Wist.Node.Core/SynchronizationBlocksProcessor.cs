@@ -9,6 +9,7 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.BlockLattice.Core.Serializers;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Cryptography;
@@ -91,9 +92,6 @@ namespace Wist.Node.Core
                 _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, synchronizationConfirmedBlock.HashPrev, synchronizationConfirmedBlock.ReportedTime, DateTime.Now));
                 _synchronizationProducer.DeferredBroadcast();
             }
-
-            // if received ReadyForParticipationBlock and consensus on Synchronization not achieved yet so it is needed to involve joined participant into it. Otherwise it will be involved on the next loop.
-            ReadyForParticipationBlock readyForParticipationBlock = blockBase as ReadyForParticipationBlock;
         }
 
         public void RegisterCommunicationHub(IServerCommunicationService communicationHub)

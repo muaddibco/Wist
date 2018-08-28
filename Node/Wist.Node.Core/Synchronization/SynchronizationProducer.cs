@@ -2,8 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
-using Wist.BlockLattice.Core.Enums;
-using Wist.BlockLattice.Core.Interfaces;
+using Wist.BlockLattice.Core.Serializers;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
