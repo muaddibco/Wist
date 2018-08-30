@@ -44,7 +44,7 @@ namespace Wist.Node.Core.Tests
 
             identityKeyProvidersRegistry.GetInstance(null).ReturnsForAnyArgs(identityKeyProvider);
 
-            statesRepository.GetInstance<SynchronizationContext>().Returns(synchronizationContext);
+            statesRepository.GetInstance<ISynchronizationContext>().Returns(synchronizationContext);
 
             cryptoService.ComputeTransactionKey(null).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
 
@@ -96,7 +96,7 @@ namespace Wist.Node.Core.Tests
 
             identityKeyProvidersRegistry.GetInstance(null).ReturnsForAnyArgs(identityKeyProvider);
 
-            statesRepository.GetInstance<SynchronizationContext>().Returns(synchronizationContext);
+            statesRepository.GetInstance<ISynchronizationContext>().Returns(synchronizationContext);
 
             cryptoService.ComputeTransactionKey(null).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
 
@@ -158,7 +158,7 @@ namespace Wist.Node.Core.Tests
 
             identityKeyProvidersRegistry.GetInstance(null).ReturnsForAnyArgs(identityKeyProvider);
 
-            statesRepository.GetInstance<SynchronizationContext>().Returns(synchronizationContext);
+            statesRepository.GetInstance<ISynchronizationContext>().Returns(synchronizationContext);
 
             cryptoService.ComputeTransactionKey(null).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
 

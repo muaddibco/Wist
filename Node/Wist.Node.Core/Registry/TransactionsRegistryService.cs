@@ -37,8 +37,8 @@ namespace Wist.Node.Core.Registry
 
         public TransactionsRegistryService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, IServerCommunicationServicesRegistry serverCommunicationServicesRegistry, IPerformanceCountersRepository performanceCountersRepository)
         {
-            _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
-            _registryGroupState = statesRepository.GetInstance<RegistryGroupState>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
+            _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
             _isBlockProducerPredicate = predicatesRepository.GetInstance("IsBlockProducer");
             _transactionHashKey = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
             _cryptoService = cryptoService;

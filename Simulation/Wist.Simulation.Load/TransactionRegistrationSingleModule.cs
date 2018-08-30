@@ -31,7 +31,7 @@ namespace Wist.Simulation.Load
         public TransactionRegistrationSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationRepository proofOfWorkCalculationRepository, IHashCalculationRepository hashCalculationRepository)
             : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository, hashCalculationRepository)
         {
-            _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _proofOfWorkCalculation = proofOfWorkCalculationRepository.Create(Globals.POW_TYPE);
         }
 

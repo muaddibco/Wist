@@ -23,7 +23,7 @@ namespace Wist.Node.Core.Synchronization
 
         public SynchronizationConfirmedVerifier(IStatesRepository statesRepository, IHashCalculationRepository proofOfWorkCalculationRepository, ICryptoService cryptoService, ILoggerService loggerService) 
         {
-            _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
         }
 
         public PacketType PacketType => PacketType.Synchronization;

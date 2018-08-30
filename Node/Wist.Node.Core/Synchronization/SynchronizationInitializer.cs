@@ -22,7 +22,7 @@ namespace Wist.Node.Core.Synchronization
 
         public SynchronizationInitializer(IStatesRepository statesRepository, IChainDataServicesManager chainDataServicesManager, ILoggerService loggerService)
         {
-            _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _chainDataService = chainDataServicesManager.GetChainDataService(PacketType.Synchronization);
             _logger = loggerService.GetLogger(typeof(SynchronizationInitializer).Name);
         }

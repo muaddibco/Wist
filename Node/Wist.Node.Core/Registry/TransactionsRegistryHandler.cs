@@ -36,7 +36,7 @@ namespace Wist.Node.Core.Registry
         public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService)
         {
             _registrationBlocks = new BlockingCollection<TransactionRegisterBlock>();
-            _registryGroupState = statesRepository.GetInstance<RegistryGroupState>();
+            _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
             _registryMemPool = registryMemPool;

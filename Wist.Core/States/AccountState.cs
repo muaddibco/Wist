@@ -17,7 +17,7 @@ namespace Wist.Core.States
 
         public IKey AccountKey { get; private set; }
 
-        public string Name => nameof(AccountState);
+        public string Name => nameof(IAccountState);
 
         public void Initialize()
         {

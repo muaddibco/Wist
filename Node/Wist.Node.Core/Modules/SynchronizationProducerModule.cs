@@ -28,7 +28,7 @@ namespace Wist.Node.Core.Roles
 
         protected override void InitializeInner()
         {
-            IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(TransactionsRegistrationDecisionHandler.NAME);
+            IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(TransactionsRegistrySyncHandler.NAME);
             _blocksHandlersFactory.RegisterInstance(blocksHandler);
             blocksHandler.Initialize(_cancellationToken);
 

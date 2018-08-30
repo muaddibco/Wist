@@ -15,7 +15,7 @@ namespace Wist.Node.Core.Registry
             _registrationBlockConfirmationReceived = new AutoResetEvent(false); //TODO: need to be set to true in case when network is before bootstrap stage
         }
 
-        public const string NAME = nameof(RegistryGroupState);
+        public const string NAME = nameof(IRegistryGroupState);
 
         public override string Name => NAME;
 

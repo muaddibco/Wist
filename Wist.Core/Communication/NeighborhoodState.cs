@@ -10,7 +10,7 @@ namespace Wist.Core.Communication
     /// </summary>
     public class NeighborhoodState : NeighborhoodStateBase
     {
-        public const string NAME = nameof(NeighborhoodState);
+        public const string NAME = nameof(INeighborhoodState);
 
         public override string Name => NAME;
     }

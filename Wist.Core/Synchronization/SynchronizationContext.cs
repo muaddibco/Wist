@@ -27,7 +27,7 @@ namespace Wist.Core.Synchronization
 
         public SynchronizationDescriptor PrevBlockDescriptor { get; private set; }
 
-        public string Name => nameof(SynchronizationContext);
+        public string Name => nameof(ISynchronizationContext);
 
         /// <summary>
         /// Utility function that returns median value from provided array

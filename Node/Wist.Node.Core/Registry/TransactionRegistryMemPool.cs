@@ -63,7 +63,7 @@ namespace Wist.Node.Core.Registry
             _transactionsShortBlocks = new Dictionary<ulong, Dictionary<byte, HashSet<TransactionsShortBlock>>>();
             _transactionOrderByTransactionHash = new Dictionary<ulong, Dictionary<IKey, int>>();
             _cryptoService = cryptoService;
-            _synchronizationContext = statesRepository.GetInstance<SynchronizationContext>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
         }
         
         public bool EnqueueTransactionRegisterBlock(TransactionRegisterBlock transactionRegisterBlock)

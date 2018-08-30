@@ -29,9 +29,9 @@ namespace Wist.Node.Core.Synchronization
         public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService)
         {
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
-            _nodeContext = statesRepository.GetInstance<NodeContext>();
-            _synchronizationContext = statesRepository.GetInstance<Wist.Core.Synchronization.SynchronizationContext>();
-            _synchronizationGroupState = statesRepository.GetInstance<SynchronizationGroupState>();
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
+            _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _configurationService = configurationService;
         }

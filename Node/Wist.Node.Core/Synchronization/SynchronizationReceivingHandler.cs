@@ -31,8 +31,8 @@ namespace Wist.Node.Core.Synchronization
 
         public SynchronizationReceivingHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IChainDataServicesManager chainDataServicesManager)
         {
-            _synchronizationContext = statesRepository.GetInstance<Wist.Core.Synchronization.SynchronizationContext>();
-            _neighborhoodState = statesRepository.GetInstance<NeighborhoodState>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
+            _neighborhoodState = statesRepository.GetInstance<INeighborhoodState>();
             _synchronizationBlocks = new BlockingCollection<SynchronizationConfirmedBlock>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;

@@ -49,10 +49,10 @@ namespace Wist.Node.Core
 
         public SynchronizationBlocksProcessor(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry)
         {
-            _synchronizationContext = statesRepository.GetInstance<Wist.Core.Synchronization.SynchronizationContext>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationProducer = synchronizationProducer;
-            _nodeContext = statesRepository.GetInstance<NodeContext>();
-            _accountState = statesRepository.GetInstance<AccountState>();
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
+            _accountState = statesRepository.GetInstance<IAccountState>();
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _cryptoService = cryptoService;
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
