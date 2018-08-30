@@ -1,7 +1,7 @@
 ﻿using Wist.BlockLattice.Core.DataModel;
 using Wist.Core.Architecture;
 
-namespace Wist.BlockLattice.Core.Interfaces
+namespace Wist.BlockLattice.Core.Handlers
 {
     [ExtensionPoint]
     public interface ICoreVerifier

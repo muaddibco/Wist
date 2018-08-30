@@ -10,6 +10,7 @@ using Wist.Core.Logging;
 using Wist.Core.HashCalculations;
 using Wist.Core.PerformanceCounters;
 using Wist.BlockLattice.Core.PerformanceCounters;
+using Wist.BlockLattice.Core.Parsers;
 
 namespace Wist.BlockLattice.Core.Handlers
 {

@@ -14,6 +14,7 @@ using System.IO;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.PerformanceCounters;
 using Wist.Communication.PerformanceCounters;
+using Wist.BlockLattice.Core.Handlers;
 
 namespace Wist.Communication
 {

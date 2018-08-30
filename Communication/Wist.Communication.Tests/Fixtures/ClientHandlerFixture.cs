@@ -12,6 +12,7 @@ using Unity.ServiceLocation;
 using Xunit;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Tests.Core.Fixtures;
+using Wist.BlockLattice.Core.Handlers;
 
 namespace Wist.Communication.Tests.Fixtures
 {

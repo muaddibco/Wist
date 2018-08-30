@@ -7,6 +7,7 @@ using System.Threading.Tasks.Dataflow;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.BlockLattice.Core.Parsers;
 using Wist.BlockLattice.Core.PerformanceCounters;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.Logging;

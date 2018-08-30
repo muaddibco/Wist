@@ -1,6 +1,7 @@
 ﻿using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.BlockLattice.Core.Parsers;
 using Wist.BlockLattice.DataModel;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;

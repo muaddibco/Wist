@@ -11,6 +11,7 @@ using Wist.Communication.Tests.Fixtures;
 using Xunit;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Logging;
+using Wist.BlockLattice.Core.Handlers;
 
 namespace Wist.Communication.Tests
 {

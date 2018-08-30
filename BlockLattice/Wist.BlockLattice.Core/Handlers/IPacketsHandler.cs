@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using Wist.Core.Architecture;
 
-namespace Wist.BlockLattice.Core.Interfaces
+namespace Wist.BlockLattice.Core.Handlers
 {
     /// <summary>
     /// Service receives raw arrays of bytes representing all types of messages exchanges over network. 

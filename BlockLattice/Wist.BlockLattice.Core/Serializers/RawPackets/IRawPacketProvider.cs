@@ -2,7 +2,7 @@
 using Wist.Core.Architecture;
 using Wist.Core.Communication;
 
-namespace Wist.BlockLattice.Core.Interfaces
+namespace Wist.BlockLattice.Core.Serializers.RawPackets
 {
     [ExtensionPoint]
     public interface IRawPacketProvider : IPacketProvider

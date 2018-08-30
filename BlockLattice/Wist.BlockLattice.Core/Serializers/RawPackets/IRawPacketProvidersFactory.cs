@@ -2,7 +2,7 @@
 using Wist.Core;
 using Wist.Core.Architecture;
 
-namespace Wist.BlockLattice.Core.Interfaces
+namespace Wist.BlockLattice.Core.Serializers.RawPackets
 {
     [ServiceContract]
     public interface IRawPacketProvidersFactory : IFactory<IRawPacketProvider>

@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using log4net;
 using Wist.Core.Logging;
 using Wist.Core;
+using Wist.BlockLattice.Core.Handlers;
 
 namespace Wist.Node.Core
 {

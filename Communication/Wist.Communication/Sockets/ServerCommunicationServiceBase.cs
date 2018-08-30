@@ -9,6 +9,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Communication;
 using Wist.Core.Logging;
 using Wist.Core.Architecture;
+using Wist.BlockLattice.Core.Handlers;
 
 namespace Wist.Communication.Sockets
 {

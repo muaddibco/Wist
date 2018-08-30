@@ -14,6 +14,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Communication;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
+using Wist.BlockLattice.Core.Handlers;
 
 namespace Wist.Communication.Sockets
 {
