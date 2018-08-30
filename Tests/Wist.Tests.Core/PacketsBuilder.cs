@@ -11,23 +11,23 @@ namespace Wist.Tests.Core
 {
     public static class PacketsBuilder
     {
-        public static TransactionRegisterBlock GetTransactionRegisterBlock(ulong syncBlockHeight, uint nonce, byte[] powHash, ulong blockHeight, TransactionHeader transactionHeader, byte[] privateKey)
+        public static RegistryRegisterBlock GetTransactionRegisterBlock(ulong syncBlockHeight, uint nonce, byte[] powHash, ulong blockHeight, TransactionHeader transactionHeader, byte[] privateKey)
         {
             byte[] publicKey = Ed25519.PublicKeyFromSeed(privateKey);
-            TransactionRegisterBlock transactionRegisterBlock = new TransactionRegisterBlock
+            RegistryRegisterBlock transactionRegisterBlock = new RegistryRegisterBlock
             {
                 SyncBlockHeight = syncBlockHeight,
                 Nonce = nonce,
                 HashNonce = powHash??new byte[Globals.POW_HASH_SIZE],
                 BlockHeight = blockHeight,
                 TransactionHeader = transactionHeader,
-                Key = new Public32Key(publicKey)
+                Key = new Key32(publicKey)
             };
 
             return transactionRegisterBlock;
         }
 
-        public static TransactionsShortBlock GetTransactionsShortBlock(ulong syncBlockHeight, uint nonce, byte[] powHash, ulong blockHeight, byte round, IEnumerable<TransactionRegisterBlock> transactionRegisterBlocks, byte[] privateKey, ICryptoService cryptoService, IIdentityKeyProvider identityKeyProvider)
+        public static RegistryShortBlock GetTransactionsShortBlock(ulong syncBlockHeight, uint nonce, byte[] powHash, ulong blockHeight, byte round, IEnumerable<RegistryRegisterBlock> transactionRegisterBlocks, byte[] privateKey, ICryptoService cryptoService, IIdentityKeyProvider identityKeyProvider)
         {
             byte[] publicKey = Ed25519.PublicKeyFromSeed(privateKey);
 
@@ -39,15 +39,14 @@ namespace Wist.Tests.Core
                 transactionHeaders.Add(order++, item.GetTransactionRegistryHashKey(cryptoService, identityKeyProvider));
             }
 
-            TransactionsShortBlock transactionsShortBlock = new TransactionsShortBlock
+            RegistryShortBlock transactionsShortBlock = new RegistryShortBlock
             {
                 SyncBlockHeight = syncBlockHeight,
                 Nonce = nonce,
                 HashNonce = powHash ?? new byte[Globals.POW_HASH_SIZE],
                 BlockHeight = blockHeight,
-                Round = round,
                 TransactionHeaderHashes = transactionHeaders,
-                Key = new Public32Key(publicKey)
+                Key = new Key32(publicKey)
             };
 
             return transactionsShortBlock;

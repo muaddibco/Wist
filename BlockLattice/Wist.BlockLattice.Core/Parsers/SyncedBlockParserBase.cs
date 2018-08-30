@@ -8,9 +8,9 @@ namespace Wist.BlockLattice.Core.Parsers
 {
     public abstract class SyncedBlockParserBase : SignedBlockParserBase
     {
-        protected readonly IHashCalculationRepository _hashCalculationRepository;
+        protected readonly IHashCalculationsRepository _hashCalculationRepository;
 
-        public SyncedBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationRepository hashCalculationRepository)
+        public SyncedBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationRepository)
             : base(identityKeyProvidersRegistry)
         {
             _hashCalculationRepository = hashCalculationRepository;

@@ -28,7 +28,7 @@ namespace Wist.Simulation.Load
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly IHashCalculation _proofOfWorkCalculation;
 
-        public TransactionRegistrationSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationRepository proofOfWorkCalculationRepository, IHashCalculationRepository hashCalculationRepository)
+        public TransactionRegistrationSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationsRepository proofOfWorkCalculationRepository, IHashCalculationsRepository hashCalculationRepository)
             : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository, hashCalculationRepository)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
@@ -56,7 +56,7 @@ namespace Wist.Simulation.Load
 
             do
             {
-                TransactionRegisterBlock transactionRegisterBlock = new TransactionRegisterBlock
+                RegistryRegisterBlock transactionRegisterBlock = new RegistryRegisterBlock
                 {
                     SyncBlockHeight = index,
                     BlockHeight = 1,

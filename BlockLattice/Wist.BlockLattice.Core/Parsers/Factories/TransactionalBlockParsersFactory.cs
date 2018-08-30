@@ -10,7 +10,7 @@ namespace Wist.BlockLattice.Core.Parsers.Factories
     [RegisterExtension(typeof(IBlockParsersRepository), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionalBlockParsersFactory : BlockParsersRepositoryBase
     {
-        public TransactionalBlockParsersFactory(IBlockParser[] blockParsers, IHashCalculationRepository proofOfWorkCalculationRepository) : base(blockParsers)
+        public TransactionalBlockParsersFactory(IBlockParser[] blockParsers, IHashCalculationsRepository proofOfWorkCalculationRepository) : base(blockParsers)
         {
         }
 

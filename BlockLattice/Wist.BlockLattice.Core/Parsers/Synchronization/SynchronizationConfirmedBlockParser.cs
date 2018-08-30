@@ -16,7 +16,7 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationConfirmedBlockParser : SynchronizationBlockParserBase
     {
-        public SynchronizationConfirmedBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationRepository hashCalculationRepository) 
+        public SynchronizationConfirmedBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationRepository) 
             : base(identityKeyProvidersRegistry, hashCalculationRepository)
         {
         }

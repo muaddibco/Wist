@@ -9,10 +9,10 @@ using Wist.Core.Cryptography;
 namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
 {
     [RegisterExtension(typeof(ISignatureSupportSerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class TransactionRegisterBlockSerializer : SyncSupportSerializerBase<TransactionRegisterBlock>
+    public class RegistryRegisterBlockSerializer : SyncSupportSerializerBase<RegistryRegisterBlock>
     {
-        public TransactionRegisterBlockSerializer(ICryptoService cryptoService) 
-            : base(PacketType.Registry, BlockTypes.Registry_TransactionRegister, cryptoService)
+        public RegistryRegisterBlockSerializer(ICryptoService cryptoService) 
+            : base(PacketType.Registry, BlockTypes.Registry_Register, cryptoService)
         {
         }
 

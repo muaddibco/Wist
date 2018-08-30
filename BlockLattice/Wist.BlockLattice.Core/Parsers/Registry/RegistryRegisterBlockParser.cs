@@ -12,13 +12,13 @@ using Wist.Core.HashCalculations;
 namespace Wist.BlockLattice.Core.Parsers.Registry
 {
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.Singleton)]
-    public class TransactionRegisterBlockParser : SyncedBlockParserBase
+    public class RegistryRegisterBlockParser : SyncedBlockParserBase
     {
-        public TransactionRegisterBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationRepository proofOfWorkCalculationRepository) : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
+        public RegistryRegisterBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository proofOfWorkCalculationRepository) : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
         {
         }
 
-        public override ushort BlockType => BlockTypes.Registry_TransactionRegister;
+        public override ushort BlockType => BlockTypes.Registry_Register;
 
         public override PacketType PacketType => PacketType.Registry;
 
@@ -29,7 +29,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
             ulong referencedBlockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Slice(4));
             byte[] referencedBlockHash = spanBody.Slice(12, Globals.HASH_SIZE).ToArray();
             byte[] referencedTargetHash = spanBody.Slice(12 + Globals.HASH_SIZE, Globals.HASH_SIZE).ToArray();
-            TransactionRegisterBlock transactionRegisterBlock = new TransactionRegisterBlock
+            RegistryRegisterBlock transactionRegisterBlock = new RegistryRegisterBlock
             {
                 TransactionHeader = new TransactionHeader
                 {

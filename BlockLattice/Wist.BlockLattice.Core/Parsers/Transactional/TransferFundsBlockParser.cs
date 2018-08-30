@@ -15,7 +15,7 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.Singleton)]
     public class TransferFundsBlockParser : TransactionalBlockParserBase
     {
-        public TransferFundsBlockParser(IHashCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
+        public TransferFundsBlockParser(IHashCalculationsRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
             : base(proofOfWorkCalculationRepository, identityKeyProvidersRegistry)
         {
         }

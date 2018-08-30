@@ -4,29 +4,27 @@ using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel.Registry
 {
-    public class TransactionsShortBlock : RegistryBlockBase, IEqualityComparer<TransactionsShortBlock>
+    public class RegistryShortBlock : RegistryBlockBase, IEqualityComparer<RegistryShortBlock>
     {
-        public override ushort BlockType => BlockTypes.Registry_TransactionShortBlock;
+        public override ushort BlockType => BlockTypes.Registry_ShortBlock;
 
         public override ushort Version => 1;
 
-        public byte Round { get; set; }
-
         public SortedList<ushort, IKey> TransactionHeaderHashes { get; set; }
 
-        public bool Equals(TransactionsShortBlock x, TransactionsShortBlock y)
+        public bool Equals(RegistryShortBlock x, RegistryShortBlock y)
         {
             if(x != null && y != null)
             {
-                return x.SyncBlockHeight == y.SyncBlockHeight && x.Round == y.Round && x.Key.Equals(y.Key);
+                return x.SyncBlockHeight == y.SyncBlockHeight && x.BlockHeight == y.BlockHeight && x.Key.Equals(y.Key);
             }
 
             return x == null && y == null;
         }
 
-        public int GetHashCode(TransactionsShortBlock obj)
+        public int GetHashCode(RegistryShortBlock obj)
         {
-            int hash = obj.SyncBlockHeight.GetHashCode() ^ obj.Round.GetHashCode() ^ obj.Key.GetHashCode();
+            int hash = obj.SyncBlockHeight.GetHashCode() ^ obj.BlockHeight.GetHashCode() ^ obj.Key.GetHashCode();
 
             hash += hash << 13;
             hash ^= hash >> 7;

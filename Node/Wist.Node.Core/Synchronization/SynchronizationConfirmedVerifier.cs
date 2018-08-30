@@ -21,7 +21,7 @@ namespace Wist.Node.Core.Synchronization
     {
         private readonly ISynchronizationContext _synchronizationContext;
 
-        public SynchronizationConfirmedVerifier(IStatesRepository statesRepository, IHashCalculationRepository proofOfWorkCalculationRepository, ICryptoService cryptoService, ILoggerService loggerService) 
+        public SynchronizationConfirmedVerifier(IStatesRepository statesRepository, IHashCalculationsRepository proofOfWorkCalculationRepository, ICryptoService cryptoService, ILoggerService loggerService) 
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
         }

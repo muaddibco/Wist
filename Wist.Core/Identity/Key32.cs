@@ -3,16 +3,16 @@
 namespace Wist.Core.Identity
 {
     /// <summary>
-    /// Class represents Public Key with length of 32 bytes
+    /// Class represents Key with length of 32 bytes
     /// </summary>
-    public class Public32Key : IKey
+    public class Key32 : IKey
     {
-        public Public32Key()
+        public Key32()
         {
 
         }
 
-        public Public32Key(byte[] value)
+        public Key32(byte[] value)
         {
             Value = value;
         }
@@ -31,8 +31,8 @@ namespace Wist.Core.Identity
                 return true;
             }
 
-            Public32Key pk1 = x as Public32Key;
-            Public32Key pk2 = y as Public32Key;
+            Key32 pk1 = x as Key32;
+            Key32 pk2 = y as Key32;
 
             if(pk1 == null || pk2 == null)
             {
@@ -44,7 +44,7 @@ namespace Wist.Core.Identity
 
         public int GetHashCode(IKey obj)
         {
-            return ((Public32Key)obj).Value.GetHashCode32();
+            return ((Key32)obj).Value.GetHashCode32();
         }
 
         public override int GetHashCode() => Value.GetHashCode32();
@@ -53,7 +53,7 @@ namespace Wist.Core.Identity
 
         public override bool Equals(object obj)
         {
-            Public32Key pk = obj as Public32Key;
+            Key32 pk = obj as Key32;
 
             if(pk == null)
             {

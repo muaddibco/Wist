@@ -12,7 +12,7 @@ using Wist.Core.Cryptography;
 namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
 {
     [RegisterExtension(typeof(ISignatureSupportSerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class TransactionsRegistryShortBlockSerializer : SyncSupportSerializerBase<TransactionsShortBlock>
+    public class TransactionsRegistryShortBlockSerializer : SyncSupportSerializerBase<RegistryShortBlock>
     {
         public TransactionsRegistryShortBlockSerializer(PacketType packetType, ushort blockType, ICryptoService cryptoService) : base(packetType, blockType, cryptoService)
         {
@@ -22,7 +22,6 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
         {
             base.WriteBody(bw);
 
-            bw.Write(_block.Round);
             bw.Write((ushort)_block.TransactionHeaderHashes.Count);
 
             foreach (var item in _block.TransactionHeaderHashes)

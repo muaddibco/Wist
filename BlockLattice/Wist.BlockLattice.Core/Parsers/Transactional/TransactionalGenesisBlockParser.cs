@@ -15,9 +15,9 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
     public class TransactionalGenesisBlockParser : TransactionalBlockParserBase
     {
         private readonly IIdentityKeyProvider _identityKeyProvider;
-        private readonly IHashCalculationRepository _proofOfWorkCalculationRepository;
+        private readonly IHashCalculationsRepository _proofOfWorkCalculationRepository;
 
-        public TransactionalGenesisBlockParser(IHashCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
+        public TransactionalGenesisBlockParser(IHashCalculationsRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
             : base(proofOfWorkCalculationRepository, identityKeyProvidersRegistry)
         {
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();

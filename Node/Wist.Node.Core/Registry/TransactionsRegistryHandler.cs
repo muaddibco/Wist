@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Wist.BlockLattice.Core;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
@@ -13,6 +14,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Communication;
 using Wist.Core.Configuration;
+using Wist.Core.HashCalculations;
 using Wist.Core.States;
 using Wist.Node.Core.Interfaces;
 
@@ -23,32 +25,36 @@ namespace Wist.Node.Core.Registry
     {
         public const string NAME = "TransactionsRegistry";
 
-        private readonly ITargetBlock<TransactionsShortBlock> _transactionsRegistryConfidenceFlow;
-        private readonly ITargetBlock<TransactionsRegistryConfirmationBlock> _confirmationBlockFlow;
-        private readonly BlockingCollection<TransactionRegisterBlock> _registrationBlocks;
+        private readonly ITargetBlock<RegistryShortBlock> _transactionsRegistryConfidenceFlow;
+        private readonly ITargetBlock<RegistryConfirmationBlock> _confirmationBlockFlow;
+        private readonly BlockingCollection<RegistryRegisterBlock> _registrationBlocks;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
         private readonly IRegistryMemPool _registryMemPool;
         private readonly IConfigurationService _configurationService;
         private readonly IRegistryGroupState _registryGroupState;
+        private readonly IHashCalculation _defaulHashCalculation;
+        private readonly INodeContext _nodeContext;
         private IServerCommunicationService _communicationService;
         private  Timer _timer;
 
-        public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService)
+        public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, IHashCalculationsRepository hashCalculationRepository)
         {
-            _registrationBlocks = new BlockingCollection<TransactionRegisterBlock>();
+            _registrationBlocks = new BlockingCollection<RegistryRegisterBlock>();
             _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
             _registryMemPool = registryMemPool;
             _configurationService = configurationService;
+            _defaulHashCalculation = hashCalculationRepository.Create(Globals.DEFAULT_HASH);
 
-            TransformBlock<TransactionsShortBlock, TransactionsRegistryConfidenceBlock> produceConfidenceBlock = new TransformBlock<TransactionsShortBlock, TransactionsRegistryConfidenceBlock>((Func<TransactionsShortBlock, TransactionsRegistryConfidenceBlock>)GetConfidence);
-            ActionBlock<TransactionsRegistryConfidenceBlock> sendConfidenceBlock = new ActionBlock<TransactionsRegistryConfidenceBlock>((Action<TransactionsRegistryConfidenceBlock>)SendConfidence);
+            TransformBlock<RegistryShortBlock, RegistryConfidenceBlock> produceConfidenceBlock = new TransformBlock<RegistryShortBlock, RegistryConfidenceBlock>((Func<RegistryShortBlock, RegistryConfidenceBlock>)GetConfidence);
+            ActionBlock<RegistryConfidenceBlock> sendConfidenceBlock = new ActionBlock<RegistryConfidenceBlock>((Action<RegistryConfidenceBlock>)SendConfidence);
             produceConfidenceBlock.LinkTo(sendConfidenceBlock);
             _transactionsRegistryConfidenceFlow = produceConfidenceBlock;
 
-            ActionBlock<TransactionsRegistryConfirmationBlock> confirmationProcessingBlock = new ActionBlock<TransactionsRegistryConfirmationBlock>((Action<TransactionsRegistryConfirmationBlock>)ProcessConfirmationBlock);
+            ActionBlock<RegistryConfirmationBlock> confirmationProcessingBlock = new ActionBlock<RegistryConfirmationBlock>((Action<RegistryConfirmationBlock>)ProcessConfirmationBlock);
             _confirmationBlockFlow = confirmationProcessingBlock;
         }
 
@@ -67,20 +73,20 @@ namespace Wist.Node.Core.Registry
 
         public void ProcessBlock(BlockBase blockBase)
         {
-            TransactionRegisterBlock transactionRegisterBlock = blockBase as TransactionRegisterBlock;
+            RegistryRegisterBlock transactionRegisterBlock = blockBase as RegistryRegisterBlock;
 
             if(transactionRegisterBlock != null)
             {
                 _registrationBlocks.Add(transactionRegisterBlock);
             }
 
-            TransactionsShortBlock transactionsShortBlock = blockBase as TransactionsShortBlock;
+            RegistryShortBlock transactionsShortBlock = blockBase as RegistryShortBlock;
             if(transactionsShortBlock != null)
             {
                 _transactionsRegistryConfidenceFlow.Post(transactionsShortBlock);
             }
 
-            TransactionsRegistryConfirmationBlock confirmationBlock = blockBase as TransactionsRegistryConfirmationBlock;
+            RegistryConfirmationBlock confirmationBlock = blockBase as RegistryConfirmationBlock;
             if(confirmationBlock != null && ValidateConfirmationBlock(confirmationBlock))
             {
                 _confirmationBlockFlow.Post(confirmationBlock);
@@ -91,7 +97,7 @@ namespace Wist.Node.Core.Registry
 
         private void ProcessBlocks(CancellationToken ct)
         {
-            foreach (TransactionRegisterBlock transactionRegisterBlock in _registrationBlocks.GetConsumingEnumerable(ct))
+            foreach (RegistryRegisterBlock transactionRegisterBlock in _registrationBlocks.GetConsumingEnumerable(ct))
             {
                 if(_timer == null)
                 {
@@ -115,24 +121,32 @@ namespace Wist.Node.Core.Registry
 
         }
 
-        private TransactionsRegistryConfidenceBlock GetConfidence(TransactionsShortBlock transactionsShortBlock)
+        private RegistryConfidenceBlock GetConfidence(RegistryShortBlock transactionsShortBlock)
         {
-            TransactionsRegistryConfidenceBlock transactionsRegistryConfidenceBlock = new TransactionsRegistryConfidenceBlock();
+            int rate = _registryMemPool.GetConfidenceRate(transactionsShortBlock);
+
+            RegistryConfidenceBlock transactionsRegistryConfidenceBlock = new RegistryConfidenceBlock()
+            {
+                SyncBlockHeight = transactionsShortBlock.SyncBlockHeight,
+                BlockHeight = transactionsShortBlock.BlockHeight,
+                ReferencedBlockHash = _defaulHashCalculation.CalculateHash(transactionsShortBlock.BodyBytes),
+                Confidence = (ushort)rate
+            };
 
             return transactionsRegistryConfidenceBlock;
         }
 
-        private void SendConfidence(TransactionsRegistryConfidenceBlock transactionsRegistryConfidenceBlock)
+        private void SendConfidence(RegistryConfidenceBlock transactionsRegistryConfidenceBlock)
         {
 
         }
 
-        private bool ValidateConfirmationBlock(TransactionsRegistryConfirmationBlock confirmationBlock)
+        private bool ValidateConfirmationBlock(RegistryConfirmationBlock confirmationBlock)
         {
             return true;
         }
 
-        private void ProcessConfirmationBlock(TransactionsRegistryConfirmationBlock confirmationBlock)
+        private void ProcessConfirmationBlock(RegistryConfirmationBlock confirmationBlock)
         {
             _registryGroupState.ToggleLastBlockConfirmationReceived();
 

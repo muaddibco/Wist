@@ -32,7 +32,7 @@ namespace Wist.Simulation.Load
         protected IKey _key;
         protected IKey _keyTarget;
 
-        public LoadModuleBase(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IHashCalculationRepository hashCalculationRepository)
+        public LoadModuleBase(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IHashCalculationsRepository hashCalculationRepository)
             : base(loggerService)
         {
             _communicationService = clientCommunicationServiceRepository.GetInstance(nameof(TcpClientCommunicationService));

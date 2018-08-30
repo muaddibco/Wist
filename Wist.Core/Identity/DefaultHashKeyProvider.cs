@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
 namespace Wist.Core.Identity
 {
     [RegisterExtension(typeof(IIdentityKeyProvider), Lifetime = LifetimeManagement.Singleton)]
-    public class TransactionRegistryKeyProvider : IIdentityKeyProvider
+    public class DefaultHashKeyProvider : IIdentityKeyProvider
     {
-        public string Name => "TransactionRegistry";
+        public string Name => "DefaultHash";
 
-        public IEqualityComparer<IKey> GetComparer() => new Key16();
+        public IEqualityComparer<IKey> GetComparer() => new Key32();
 
         public IKey GetKey(byte[] keyBytes)
         {
@@ -19,12 +20,12 @@ namespace Wist.Core.Identity
                 throw new ArgumentNullException(nameof(keyBytes));
             }
 
-            if (keyBytes.Length != 16)
+            if (keyBytes.Length != 32)
             {
-                throw new ArgumentOutOfRangeException("The size of byte array must be 16 bytes");
+                throw new ArgumentOutOfRangeException("The size of byte array must be 32 bytes");
             }
 
-            return new Key16 { Value = keyBytes };
+            return new Key32 { Value = keyBytes };
         }
     }
 }

@@ -4,6 +4,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
 using Wist.Core.HashCalculations;
+using Wist.Core.Identity;
 
 namespace Wist.Crypto
 {
@@ -12,11 +13,15 @@ namespace Wist.Crypto
     {
         private byte[] _expandedPrivateKey;
         private readonly IHashCalculation _hashCalculation;
+        private readonly IIdentityKeyProvider _identityKeyProvider;
 
-        public CryptoServiceEd25519(IHashCalculationRepository hashCalculationRepository)
+        public CryptoServiceEd25519(IHashCalculationsRepository hashCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry)
         {
             _hashCalculation = hashCalculationRepository.Create(HashType.MurMur);
+            _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }
+
+        public IKey Key { get; private set; }
 
         public byte[] ComputeTransactionKey(byte[] bytes) => _hashCalculation.CalculateHash(bytes);
 
@@ -27,7 +32,10 @@ namespace Wist.Crypto
                 throw new ArgumentNullException(nameof(privateKey));
             }
 
-            _expandedPrivateKey = Ed25519.ExpandedPrivateKeyFromSeed(privateKey);
+            byte[] publicKey;
+            Ed25519.KeyPairFromSeed(out publicKey, out _expandedPrivateKey, privateKey);
+
+            Key = _identityKeyProvider.GetKey(publicKey);
         }
 
         public byte[] Sign(byte[] message)

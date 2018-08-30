@@ -6,8 +6,8 @@ using Wist.Core.Exceptions;
 
 namespace Wist.Core.HashCalculations
 {
-    [RegisterDefaultImplementation(typeof(IHashCalculationRepository), Lifetime = LifetimeManagement.Singleton)]
-    public class HashCalculationRepository : IHashCalculationRepository
+    [RegisterDefaultImplementation(typeof(IHashCalculationsRepository), Lifetime = LifetimeManagement.Singleton)]
+    public class HashCalculationRepository : IHashCalculationsRepository
     {
         private readonly Dictionary<HashType, Stack<IHashCalculation>> _hashCalculations;
         private readonly IApplicationContext _applicationContext;

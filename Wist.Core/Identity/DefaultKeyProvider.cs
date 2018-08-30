@@ -7,11 +7,11 @@ namespace Wist.Core.Identity
 {
 
     [RegisterExtension(typeof(IIdentityKeyProvider), Lifetime = LifetimeManagement.Singleton)]
-    public class EcdsaPublicKeyProvider : IIdentityKeyProvider
+    public class DefaultKeyProvider : IIdentityKeyProvider
     {
-        public string Name => "Ecdsa";
+        public string Name => "Default";
 
-        public IEqualityComparer<IKey> GetComparer() => new Public32Key();
+        public IEqualityComparer<IKey> GetComparer() => new Key32();
 
         public IKey GetKey(byte[] keyBytes)
         {
@@ -25,7 +25,7 @@ namespace Wist.Core.Identity
                 throw new ArgumentOutOfRangeException("The size of byte array must be 32 bytes");
             }
 
-            return new Public32Key { Value = keyBytes };
+            return new Key32 { Value = keyBytes };
         }
     }
 }

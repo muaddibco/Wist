@@ -15,5 +15,6 @@ namespace Wist.BlockLattice.Core
         public const byte NODE_PUBLIC_KEY_SIZE = 32;
         public const byte SIGNATURE_SIZE = 64;
         public const HashType POW_TYPE = HashType.Tiger4;
+        public const HashType DEFAULT_HASH = HashType.Keccak256;
     }
 }
