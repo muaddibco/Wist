@@ -106,10 +106,10 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
             WriteSyncHeader(_binaryWriter);
 
+            long pos = _memoryStream.Position;
+
             _binaryWriter.Write(_block.Version);
             _binaryWriter.Write(_block.BlockType);
-
-            long pos = _memoryStream.Position;
 
             WriteBody(_binaryWriter);
 
