@@ -2,6 +2,7 @@
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Logging;
+using Wist.Core.Shards;
 using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Roles;
 using Wist.Node.Core.Synchronization;
@@ -13,10 +14,12 @@ namespace Wist.Node.Core
     {
         public const string NAME = nameof(CommonModule);
         private readonly IBlocksHandlersRegistry _blocksHandlersFactory;
+        private readonly IShardsManager _shardsManager;
 
-        public CommonModule(ILoggerService loggerService, IBlocksHandlersRegistry blocksHandlersFactory) : base(loggerService)
+        public CommonModule(ILoggerService loggerService, IBlocksHandlersRegistry blocksHandlersFactory, IShardsManager shardsManager) : base(loggerService)
         {
             _blocksHandlersFactory = blocksHandlersFactory;
+            _shardsManager = shardsManager;
         }
 
         public override string Name => NAME;
@@ -30,6 +33,8 @@ namespace Wist.Node.Core
             IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(SynchronizationReceivingHandler.NAME);
             _blocksHandlersFactory.RegisterInstance(blocksHandler);
             blocksHandler.Initialize(_cancellationToken);
+
+            _shardsManager.Initialize(_cancellationToken);
         }
     }
 }

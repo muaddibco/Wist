@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Wist.BlockLattice.Core;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
@@ -12,6 +13,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Communication;
 using Wist.Core.Configuration;
+using Wist.Core.HashCalculations;
 using Wist.Core.States;
 using Wist.Node.Core.Interfaces;
 
@@ -30,17 +32,21 @@ namespace Wist.Node.Core.Registry
         private readonly IRegistryMemPool _registryMemPool;
         private readonly IConfigurationService _configurationService;
         private readonly IRegistryGroupState _registryGroupState;
+        private readonly IHashCalculation _defaulHashCalculation;
+        private readonly INodeContext _nodeContext;
         private IServerCommunicationService _communicationService;
         private  Timer _timer;
 
-        public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService)
+        public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, IHashCalculationsRepository hashCalculationRepository)
         {
             _registrationBlocks = new BlockingCollection<TransactionRegisterBlock>();
             _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
             _registryMemPool = registryMemPool;
             _configurationService = configurationService;
+            _defaulHashCalculation = hashCalculationRepository.Create(Globals.DEFAULT_HASH);
 
             TransformBlock<TransactionsShortBlock, TransactionsRegistryConfidenceBlock> produceConfidenceBlock = new TransformBlock<TransactionsShortBlock, TransactionsRegistryConfidenceBlock>((Func<TransactionsShortBlock, TransactionsRegistryConfidenceBlock>)GetConfidence);
             ActionBlock<TransactionsRegistryConfidenceBlock> sendConfidenceBlock = new ActionBlock<TransactionsRegistryConfidenceBlock>((Action<TransactionsRegistryConfidenceBlock>)SendConfidence);
@@ -116,7 +122,15 @@ namespace Wist.Node.Core.Registry
 
         private TransactionsRegistryConfidenceBlock GetConfidence(TransactionsShortBlock transactionsShortBlock)
         {
-            TransactionsRegistryConfidenceBlock transactionsRegistryConfidenceBlock = new TransactionsRegistryConfidenceBlock();
+            int rate = _registryMemPool.GetConfidenceRate(transactionsShortBlock);
+
+            TransactionsRegistryConfidenceBlock transactionsRegistryConfidenceBlock = new TransactionsRegistryConfidenceBlock()
+            {
+                SyncBlockHeight = transactionsShortBlock.SyncBlockHeight,
+                BlockHeight = transactionsShortBlock.BlockHeight,
+                ReferencedBlockHash = _defaulHashCalculation.CalculateHash(transactionsShortBlock.BodyBytes),
+                Confidence = (ushort)rate
+            };
 
             return transactionsRegistryConfidenceBlock;
         }

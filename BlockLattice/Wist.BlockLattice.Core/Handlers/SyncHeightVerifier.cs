@@ -21,7 +21,7 @@ namespace Wist.BlockLattice.Core.Handlers
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly IHashCalculation _proofOfWorkCalculation;
 
-        public SyncHeightVerifier(IStatesRepository statesRepository, IHashCalculationRepository proofOfWorkCalculationFactory, ILoggerService loggerService)
+        public SyncHeightVerifier(IStatesRepository statesRepository, IHashCalculationsRepository proofOfWorkCalculationFactory, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();

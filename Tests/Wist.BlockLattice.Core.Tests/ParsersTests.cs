@@ -23,10 +23,10 @@ namespace Wist.BlockLattice.Core.Tests
         {
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
-            IHashCalculationRepository hashCalculationRepository = Substitute.For<IHashCalculationRepository>();
+            IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
 
             identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Public32Key() { Value = c.Arg<byte[]>() });
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<byte[]>() });
 
             byte[] privateKey = BinaryBuilder.GetRandomSeed();
             byte signersCount = 10;

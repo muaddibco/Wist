@@ -2,7 +2,7 @@
 
 namespace Wist.Core.Identity
 {
-    public class TransactionRegistryKey : IKey
+    public class Key16 : IKey
     {
         /// <summary>
         /// Byte array of length of 16 bytes
@@ -18,8 +18,8 @@ namespace Wist.Core.Identity
                 return true;
             }
 
-            TransactionRegistryKey pk1 = x as TransactionRegistryKey;
-            TransactionRegistryKey pk2 = y as TransactionRegistryKey;
+            Key16 pk1 = x as Key16;
+            Key16 pk2 = y as Key16;
 
             if (pk1 == null || pk2 == null)
             {
@@ -31,7 +31,7 @@ namespace Wist.Core.Identity
 
         public int GetHashCode(IKey obj)
         {
-            return ((TransactionRegistryKey)obj).Value.GetHashCode16();
+            return ((Key16)obj).Value.GetHashCode16();
         }
 
         public override int GetHashCode() => Value.GetHashCode16();
@@ -40,7 +40,7 @@ namespace Wist.Core.Identity
 
         public override bool Equals(object obj)
         {
-            TransactionRegistryKey pk = obj as TransactionRegistryKey;
+            Key16 pk = obj as Key16;
 
             if (pk == null)
             {

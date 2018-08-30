@@ -3,7 +3,7 @@
 namespace Wist.Core.HashCalculations
 {
     [ServiceContract]
-    public interface IHashCalculationRepository : IFactory<IHashCalculation, HashType>
+    public interface IHashCalculationsRepository : IFactory<IHashCalculation, HashType>
     {
     }
 }

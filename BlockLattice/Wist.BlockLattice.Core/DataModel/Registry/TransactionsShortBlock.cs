@@ -10,8 +10,6 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public override ushort Version => 1;
 
-        public byte Round { get; set; }
-
         public SortedList<ushort, IKey> TransactionHeaderHashes { get; set; }
 
         public bool Equals(TransactionsShortBlock x, TransactionsShortBlock y)

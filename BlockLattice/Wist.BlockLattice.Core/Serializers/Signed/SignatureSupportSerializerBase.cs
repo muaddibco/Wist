@@ -49,31 +49,9 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
                 return null;
             }
 
-            _memoryStream.Seek(0, SeekOrigin.Begin);
-            _memoryStream.SetLength(0);
+            FillBodyAndRowBytes();
 
-            _binaryWriter.Write((ushort)PacketType);
-
-            WriteSyncHeader(_binaryWriter);
-
-            long pos = _memoryStream.Position;
-
-            _binaryWriter.Write(_block.Version);
-            _binaryWriter.Write(_block.BlockType);
-
-            WriteBody(_binaryWriter);
-
-            long bodyLength = _memoryStream.Position - pos;
-            _memoryStream.Seek(pos, SeekOrigin.Begin);
-
-            byte[] body = _binaryReader.ReadBytes((int)bodyLength);
-
-            byte[] signature = _cryptoService.Sign(body);
-
-            _binaryWriter.Write(signature);
-            _binaryWriter.Write(_block.Key.Value);
-
-            return _memoryStream.ToArray();
+            return _block.RawData;
         }
 
         public virtual void Initialize(SignedBlockBase signedBlockBase)
@@ -145,7 +123,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             byte[] signature = _cryptoService.Sign(body);
 
             _binaryWriter.Write(signature);
-            _binaryWriter.Write(_block.Key.Value);
+            _binaryWriter.Write(_cryptoService.Key.Value);
 
             _block.RawData = _memoryStream.ToArray();
         }

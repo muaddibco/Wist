@@ -17,7 +17,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
     public class TransactionsRegistryShortBlockParser : SyncedBlockParserBase
     {
         private readonly IIdentityKeyProvider _transactionHashKeyProvider;
-        public TransactionsRegistryShortBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationRepository proofOfWorkCalculationRepository) : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
+        public TransactionsRegistryShortBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository proofOfWorkCalculationRepository) : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
         {
             _transactionHashKeyProvider = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
         }

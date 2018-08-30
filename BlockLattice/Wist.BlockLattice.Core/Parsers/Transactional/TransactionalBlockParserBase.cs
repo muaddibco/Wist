@@ -12,9 +12,9 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 {
     public abstract class TransactionalBlockParserBase : SyncLinkedBlockParserBase
     {
-        private readonly IHashCalculationRepository _proofOfWorkCalculationRepository;
+        private readonly IHashCalculationsRepository _proofOfWorkCalculationRepository;
 
-        public TransactionalBlockParserBase(IHashCalculationRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
+        public TransactionalBlockParserBase(IHashCalculationsRepository proofOfWorkCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) 
             : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
         {
             _proofOfWorkCalculationRepository = proofOfWorkCalculationRepository;

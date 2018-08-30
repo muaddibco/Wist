@@ -126,7 +126,8 @@ namespace Wist.Node.Core.Registry
         {
             TransactionsFullBlock transactionsFullBlock = new TransactionsFullBlock
             {
-                Round = (byte)_registryGroupState.Round,
+                SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight??0,
+                BlockHeight = (ulong)_registryGroupState.Round,
                 TransactionHeaders = transactionRegisterBlocks
             };
 
@@ -144,7 +145,8 @@ namespace Wist.Node.Core.Registry
         {
             TransactionsShortBlock transactionsShortBlock = new TransactionsShortBlock
             {
-                Round = (byte)_registryGroupState.Round,
+                SyncBlockHeight = transactionsFullBlock.SyncBlockHeight,
+                BlockHeight = transactionsFullBlock.BlockHeight,
                 TransactionHeaderHashes = new SortedList<ushort, IKey>(transactionsFullBlock.TransactionHeaders.ToDictionary(i => i.Key, i => i.Value.GetTransactionRegistryHashKey(_cryptoService, _transactionHashKey)))
             };
 

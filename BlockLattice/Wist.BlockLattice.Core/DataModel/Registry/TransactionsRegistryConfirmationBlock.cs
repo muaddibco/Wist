@@ -12,8 +12,6 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public override ushort Version => 1;
 
-        public ushort Round { get; set; }
-
         public byte[] ReferencedBlockHash { get; set; }
 
         public class ConfidenceDescriptor

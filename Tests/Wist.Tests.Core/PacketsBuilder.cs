@@ -21,7 +21,7 @@ namespace Wist.Tests.Core
                 HashNonce = powHash??new byte[Globals.POW_HASH_SIZE],
                 BlockHeight = blockHeight,
                 TransactionHeader = transactionHeader,
-                Key = new Public32Key(publicKey)
+                Key = new Key32(publicKey)
             };
 
             return transactionRegisterBlock;
@@ -47,7 +47,7 @@ namespace Wist.Tests.Core
                 BlockHeight = blockHeight,
                 Round = round,
                 TransactionHeaderHashes = transactionHeaders,
-                Key = new Public32Key(publicKey)
+                Key = new Key32(publicKey)
             };
 
             return transactionsShortBlock;

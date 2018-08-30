@@ -31,7 +31,7 @@ namespace Wist.Node.Core.Tests
             ILoggerService loggerService = Substitute.For<ILoggerService>();
             IIdentityKeyProvider identityKeyProvider = new TransactionRegistryKeyProvider();
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
-            IHashCalculationRepository hashCalculationRepository = Substitute.For<IHashCalculationRepository>();
+            IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             SynchronizationContext synchronizationContext = new SynchronizationContext(loggerService);
             synchronizationContext.UpdateLastSyncBlockDescriptor(synchronizationDescriptor);
@@ -83,7 +83,7 @@ namespace Wist.Node.Core.Tests
             ILoggerService loggerService = Substitute.For<ILoggerService>();
             IIdentityKeyProvider identityKeyProvider = new TransactionRegistryKeyProvider();
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
-            IHashCalculationRepository hashCalculationRepository = Substitute.For<IHashCalculationRepository>();
+            IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             SynchronizationContext synchronizationContext = new SynchronizationContext(loggerService);
             synchronizationContext.UpdateLastSyncBlockDescriptor(synchronizationDescriptor);
@@ -145,7 +145,7 @@ namespace Wist.Node.Core.Tests
             ILoggerService loggerService = Substitute.For<ILoggerService>();
             IIdentityKeyProvider identityKeyProvider = new TransactionRegistryKeyProvider();
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
-            IHashCalculationRepository hashCalculationRepository = Substitute.For<IHashCalculationRepository>();
+            IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             SynchronizationContext synchronizationContext = new SynchronizationContext(loggerService);
             synchronizationContext.UpdateLastSyncBlockDescriptor(synchronizationDescriptor);

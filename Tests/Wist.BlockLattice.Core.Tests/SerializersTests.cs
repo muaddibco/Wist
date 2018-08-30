@@ -88,7 +88,7 @@ namespace Wist.BlockLattice.Core.Tests
                 Nonce = nonce,
                 HashNonce = powHash,
                 HashPrev = prevHash,
-                Key = new Public32Key() { Value = publicKey },
+                Key = new Key32() { Value = publicKey },
                 ReportedTime = expectedDateTime,
                 Round = round,
                 Signature = expectedSignature,
