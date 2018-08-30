@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Wist.BlockLattice.Core.DataModel;
+﻿using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
 using Wist.Core.Identity;
 
-namespace Wist.Node.Core.Interfaces
+namespace Wist.Node.Core.DPOS
 {
     [ExtensionPoint]
     public interface INodeDposProvider

@@ -1,5 +1,4 @@
-﻿using CommonServiceLocator;
-using Wist.Communication.Interfaces;
+﻿using Wist.Communication.Interfaces;
 using Wist.Communication.Sockets;
 using System;
 using System.Net;
@@ -7,13 +6,10 @@ using Wist.Core.Configuration;
 using Wist.BlockLattice.Core.Interfaces;
 using System.Threading;
 using Wist.Node.Core.Configuration;
-using Wist.Node.Core.Interfaces;
-using System.Collections;
 using System.Collections.Generic;
-using log4net;
 using Wist.Core.Logging;
-using Wist.Core;
 using Wist.BlockLattice.Core.Handlers;
+using Wist.Node.Core.Modules;
 
 namespace Wist.Node.Core
 {

@@ -3,7 +3,7 @@ using Wist.Core.Identity;
 using Wist.Core.States;
 using Wist.Node.Core.Model;
 
-namespace Wist.Node.Core.Interfaces
+namespace Wist.Node.Core
 {
     public interface INodeContext : IState
     {

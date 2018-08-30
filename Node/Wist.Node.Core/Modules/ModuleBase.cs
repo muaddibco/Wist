@@ -1,8 +1,7 @@
 ﻿using System.Threading;
 using Wist.Core.Logging;
-using Wist.Node.Core.Interfaces;
 
-namespace Wist.Node.Core.Roles
+namespace Wist.Node.Core.Modules
 {
     public abstract class ModuleBase : IModule
     {

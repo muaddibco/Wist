@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
-using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.DPOS
 {

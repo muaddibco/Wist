@@ -11,7 +11,7 @@ using Wist.Core.HashCalculations;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.Core.PerformanceCounters;
-using Wist.Node.Core.Roles;
+using Wist.Node.Core.Modules;
 using Wist.Simulation.Load.Configuration;
 using Wist.Simulation.Load.PerformanceCounters;
 

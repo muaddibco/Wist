@@ -1,18 +1,12 @@
-﻿using log4net;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
-using Wist.BlockLattice.Core.Enums;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Serializers;
 using Wist.Communication.Interfaces;
-using Wist.Communication.Sockets;
 using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
@@ -21,8 +15,7 @@ using Wist.Core.ExtensionMethods;
 using Wist.Core.Logging;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
-using Wist.Node.Core.Configuration;
-using Wist.Node.Core.Interfaces;
+using Wist.Node.Core.DPOS;
 
 namespace Wist.Node.Core.Synchronization
 {

@@ -2,8 +2,7 @@
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Logging;
-using Wist.Node.Core.Interfaces;
-using Wist.Node.Core.Roles;
+using Wist.Node.Core.Modules;
 
 namespace Wist.Node.Core.Registry
 {

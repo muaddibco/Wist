@@ -9,7 +9,6 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Identity;
-using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.DPOS
 {

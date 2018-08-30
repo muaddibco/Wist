@@ -1,12 +1,9 @@
 ﻿using CommonServiceLocator;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Node.Core.Exceptions;
-using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.ValidationOperations
 {

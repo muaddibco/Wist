@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Wist.Core.Architecture;
 
-namespace Wist.Node.Core.Interfaces
+namespace Wist.Node.Core.DPOS
 {
     /// <summary>
     /// Service for storing information about DPOS votes in memory. 

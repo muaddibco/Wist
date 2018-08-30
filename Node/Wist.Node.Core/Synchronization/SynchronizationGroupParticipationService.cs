@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Wist.BlockLattice.Core.Enums;
-using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
-using Wist.Node.Core.Interfaces;
+using Wist.Node.Core.DPOS;
 
 namespace Wist.Node.Core.Synchronization
 {

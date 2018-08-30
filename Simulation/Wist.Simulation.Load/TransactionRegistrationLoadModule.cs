@@ -16,8 +16,8 @@ using Wist.Core.PerformanceCounters;
 using Wist.Core.HashCalculations;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
-using Wist.Node.Core.Interfaces;
 using Wist.BlockLattice.Core.Serializers;
+using Wist.Node.Core.Modules;
 
 namespace Wist.Simulation.Load
 {

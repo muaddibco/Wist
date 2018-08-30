@@ -9,7 +9,6 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
-using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Synchronization
 {

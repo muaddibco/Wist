@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Wist.Node.Core.Exceptions;
-using Wist.Node.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using System.Collections.ObjectModel;
 
-namespace Wist.Node.Core.Roles
+namespace Wist.Node.Core.Modules
 {
     [RegisterDefaultImplementation(typeof(IModulesRepository), Lifetime = LifetimeManagement.Singleton)]
     public class ModulesRepository : IModulesRepository

@@ -6,7 +6,6 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Identity;
 using Wist.Core.States;
-using Wist.Node.Core.Interfaces;
 using Wist.Node.Core.Model;
 
 namespace Wist.Node.Core

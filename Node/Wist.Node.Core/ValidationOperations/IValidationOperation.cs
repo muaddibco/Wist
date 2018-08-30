@@ -3,7 +3,7 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
 
-namespace Wist.Node.Core.Interfaces
+namespace Wist.Node.Core.ValidationOperations
 {
     [ExtensionPoint]
     public interface IValidationOperation

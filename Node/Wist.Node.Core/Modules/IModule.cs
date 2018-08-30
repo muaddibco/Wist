@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Wist.Core.Architecture;
 using Wist.Core.Aspects;
 
-namespace Wist.Node.Core.Interfaces
+namespace Wist.Node.Core.Modules
 {
     [ExtensionPoint]
     public interface IModule

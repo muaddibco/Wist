@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wist.BlockLattice.Core.DataModel;
@@ -17,17 +16,16 @@ using Wist.Core.ExtensionMethods;
 using Wist.Core.Identity;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
-using Wist.Node.Core.Interfaces;
 
-namespace Wist.Node.Core
+namespace Wist.Node.Core.Synchronization
 {
     //TODO: features
     // need to implement logic with time limit for confirmation of retransmitted blocks, etc
     // what happens when consensus was not achieved
     [RegisterExtension(typeof(IBlocksHandler), Lifetime = Wist.Core.Architecture.Enums.LifetimeManagement.Singleton)]
-    public class SynchronizationBlocksProcessor : IBlocksHandler, IRequiresCommunicationHub
+    public class SynchronizationBlocksHandler : IBlocksHandler, IRequiresCommunicationHub
     {
-        public const string BLOCKS_PROCESSOR_NAME = "SynchronizationBlocksProcessor";
+        public const string BLOCKS_PROCESSOR_NAME = "SynchronizationBlocksHandler";
         public const ushort TARGET_CONSENSUS_SIZE = 21;
         public const ushort TARGET_CONSENSUS_LOW_LIMIT = 14;
 
@@ -47,7 +45,7 @@ namespace Wist.Node.Core
         private readonly BlockingCollection<SynchronizationBlockRetransmissionV1> _retransmittedBlocks;
         
 
-        public SynchronizationBlocksProcessor(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry)
+        public SynchronizationBlocksHandler(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationProducer = synchronizationProducer;

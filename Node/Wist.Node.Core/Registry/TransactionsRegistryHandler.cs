@@ -16,7 +16,6 @@ using Wist.Core.Communication;
 using Wist.Core.Configuration;
 using Wist.Core.HashCalculations;
 using Wist.Core.States;
-using Wist.Node.Core.Interfaces;
 
 namespace Wist.Node.Core.Registry
 {
