@@ -109,5 +109,20 @@ namespace Wist.BlockLattice.Core.Tests
             Assert.Equal(publicKey, block.Key.Value);
             Assert.Equal(expectedSignature, block.Signature);
         }
+
+        public void RegistryShortBlockParserTest()
+        {
+
+        }
+
+        public void RegistryFullBlockParserTest()
+        {
+
+        }
+
+        public void RegistryConfidenceBlockParserTest()
+        {
+
+        }
     }
 }

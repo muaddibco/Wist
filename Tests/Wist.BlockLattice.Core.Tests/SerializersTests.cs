@@ -115,5 +115,20 @@ namespace Wist.BlockLattice.Core.Tests
 
             Assert.Equal(expectedPacket, actualPacket);
         }
+
+        public void RegistryShortBlockSerializerTest()
+        {
+
+        }
+
+        public void RegistryFullBlockSerializerTest()
+        {
+
+        }
+
+        public void RegistryConfidenceBlockSerializerTest()
+        {
+
+        }
     }
 }
