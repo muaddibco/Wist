@@ -65,7 +65,7 @@ namespace Wist.BlockLattice.Core.Handlers
                 }
                 else
                 {
-                    bigInteger = new BigInteger(new byte[Globals.HASH_SIZE]);
+                    bigInteger = new BigInteger(new byte[Globals.DEFAULT_HASH_SIZE]);
                 }
 
                 bigInteger += nonce;
@@ -75,7 +75,7 @@ namespace Wist.BlockLattice.Core.Handlers
             {
                 if (_synchronizationContext.LastBlockDescriptor == null)
                 {
-                    baseHash = new byte[Globals.HASH_SIZE];
+                    baseHash = new byte[Globals.DEFAULT_HASH_SIZE];
                 }
                 else
                 {

@@ -70,7 +70,7 @@ namespace Wist.Simulation.Load
             //long elapsed = stopwatch1.ElapsedMilliseconds;
 
             ulong index = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
-            byte[] syncHash = _synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.HASH_SIZE];
+            byte[] syncHash = _synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE];
 
             BigInteger bigInteger = new BigInteger(syncHash);
             ulong nonce = 1234;
@@ -93,7 +93,7 @@ namespace Wist.Simulation.Load
                         ReferencedPacketType = PacketType.TransactionalChain,
                         ReferencedBlockType = BlockTypes.Transaction_Confirm,
                         ReferencedHeight = 1234,
-                        ReferencedBodyHash = new byte[Globals.HASH_SIZE],
+                        ReferencedBodyHash = new byte[Globals.DEFAULT_HASH_SIZE],
                         ReferencedTargetHash = targetHash
                     }
                 };

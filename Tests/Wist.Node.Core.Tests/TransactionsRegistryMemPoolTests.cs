@@ -25,7 +25,7 @@ namespace Wist.Node.Core.Tests
         [Fact]
         public void MemPool_AddedXUniqueTransactions_AllContained()
         {
-            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.HASH_SIZE], DateTime.Now, DateTime.Now);
+            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.DEFAULT_HASH_SIZE], DateTime.Now, DateTime.Now);
             IHash transactionKeyHash = HashFactory.Hash128.CreateMurmur3_128();
             ILogger logger = Substitute.For<ILogger>();
             ILoggerService loggerService = Substitute.For<ILoggerService>();
@@ -59,7 +59,7 @@ namespace Wist.Node.Core.Tests
             {
                 RegistryRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
                     synchronizationContext.LastBlockDescriptor.BlockHeight, 1, null, i,
-                    new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = i, ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.HASH_SIZE] },
+                    new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = i, ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.DEFAULT_HASH_SIZE] },
                     privateKey);
                 expectedBlocks.Add((ushort)i, transactionRegisterBlock);
                 transactionRegistryMemPool.EnqueueTransactionRegisterBlock(transactionRegisterBlock);
@@ -77,7 +77,7 @@ namespace Wist.Node.Core.Tests
         [Fact]
         public void MemPool_AddedNonUniqueTransactions_NotAllContained()
         {
-            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.HASH_SIZE], DateTime.Now, DateTime.Now);
+            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.DEFAULT_HASH_SIZE], DateTime.Now, DateTime.Now);
             IHash transactionKeyHash = HashFactory.Hash128.CreateMurmur3_128();
             ILogger logger = Substitute.For<ILogger>();
             ILoggerService loggerService = Substitute.For<ILoggerService>();
@@ -115,7 +115,7 @@ namespace Wist.Node.Core.Tests
             {
                 RegistryRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
                     synchronizationContext.LastBlockDescriptor.BlockHeight, 1, null, heights[i],
-                    new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = heights[i], ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.HASH_SIZE] },
+                    new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = heights[i], ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.DEFAULT_HASH_SIZE] },
                     privateKey);
 
                 if (!addedHeights.Contains(heights[i]))
@@ -139,7 +139,7 @@ namespace Wist.Node.Core.Tests
         [Fact]
         public void MemPool_ContainsXItems_ConfidenceLevelOnAll()
         {
-            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.HASH_SIZE], DateTime.Now, DateTime.Now);
+            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.DEFAULT_HASH_SIZE], DateTime.Now, DateTime.Now);
             IHash transactionKeyHash = HashFactory.Hash128.CreateMurmur3_128();
             ILogger logger = Substitute.For<ILogger>();
             ILoggerService loggerService = Substitute.For<ILoggerService>();
@@ -177,7 +177,7 @@ namespace Wist.Node.Core.Tests
             {
                 RegistryRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
                     synchronizationContext.LastBlockDescriptor.BlockHeight, 1, null, heights[i],
-                    new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = heights[i], ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.HASH_SIZE] },
+                    new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = heights[i], ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.DEFAULT_HASH_SIZE] },
                     privateKey);
 
                 if (!addedHeights.Contains(heights[i]))

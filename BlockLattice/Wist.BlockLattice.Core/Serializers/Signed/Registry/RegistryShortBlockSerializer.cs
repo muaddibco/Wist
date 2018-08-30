@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
@@ -12,9 +8,9 @@ using Wist.Core.Cryptography;
 namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
 {
     [RegisterExtension(typeof(ISignatureSupportSerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
-    public class TransactionsRegistryShortBlockSerializer : SyncSupportSerializerBase<RegistryShortBlock>
+    public class RegistryShortBlockSerializer : SyncSupportSerializerBase<RegistryShortBlock>
     {
-        public TransactionsRegistryShortBlockSerializer(PacketType packetType, ushort blockType, ICryptoService cryptoService) : base(packetType, blockType, cryptoService)
+        public RegistryShortBlockSerializer(PacketType packetType, ushort blockType, ICryptoService cryptoService) : base(packetType, blockType, cryptoService)
         {
         }
 

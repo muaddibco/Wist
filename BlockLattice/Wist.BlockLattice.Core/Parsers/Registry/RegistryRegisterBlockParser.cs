@@ -3,7 +3,6 @@ using System.Buffers.Binary;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Identity;
@@ -14,7 +13,8 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.Singleton)]
     public class RegistryRegisterBlockParser : SyncedBlockParserBase
     {
-        public RegistryRegisterBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository proofOfWorkCalculationRepository) : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
+        public RegistryRegisterBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository) 
+            : base(identityKeyProvidersRegistry, hashCalculationsRepository)
         {
         }
 
@@ -27,8 +27,8 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
             PacketType referencedPacketType = (PacketType)BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
             ushort referencedBlockType = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2));
             ulong referencedBlockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Slice(4));
-            byte[] referencedBlockHash = spanBody.Slice(12, Globals.HASH_SIZE).ToArray();
-            byte[] referencedTargetHash = spanBody.Slice(12 + Globals.HASH_SIZE, Globals.HASH_SIZE).ToArray();
+            byte[] referencedBlockHash = spanBody.Slice(12, Globals.DEFAULT_HASH_SIZE).ToArray();
+            byte[] referencedTargetHash = spanBody.Slice(12 + Globals.DEFAULT_HASH_SIZE, Globals.DEFAULT_HASH_SIZE).ToArray();
             RegistryRegisterBlock transactionRegisterBlock = new RegistryRegisterBlock
             {
                 TransactionHeader = new TransactionHeader
@@ -43,7 +43,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
             syncedBlockBase = transactionRegisterBlock;
 
-            return spanBody.Slice(12 + Globals.HASH_SIZE + Globals.HASH_SIZE);
+            return spanBody.Slice(12 + Globals.DEFAULT_HASH_SIZE + Globals.DEFAULT_HASH_SIZE);
         }
     }
 }

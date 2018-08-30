@@ -40,7 +40,7 @@ namespace Wist.Simulation.Load
         public override void Start()
         {
             ulong index = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
-            byte[] syncHash = _synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.HASH_SIZE];
+            byte[] syncHash = _synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE];
             string cmd = null;
 
             BigInteger bigInteger = new BigInteger(syncHash);
@@ -68,7 +68,7 @@ namespace Wist.Simulation.Load
                         ReferencedPacketType = PacketType.TransactionalChain,
                         ReferencedBlockType = BlockTypes.Transaction_Confirm,
                         ReferencedHeight = 1234,
-                        ReferencedBodyHash = new byte[Globals.HASH_SIZE],
+                        ReferencedBodyHash = new byte[Globals.DEFAULT_HASH_SIZE],
                         ReferencedTargetHash = targetHash
                     }
                 };

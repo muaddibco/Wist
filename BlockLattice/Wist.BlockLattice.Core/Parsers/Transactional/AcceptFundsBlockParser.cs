@@ -27,8 +27,8 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
             if (version == 1)
             {
-                byte[] origin = spanBody.Slice(0, Globals.HASH_SIZE).ToArray();
-                ulong funds = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Slice(Globals.HASH_SIZE));
+                byte[] origin = spanBody.Slice(0, Globals.DEFAULT_HASH_SIZE).ToArray();
+                ulong funds = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Slice(Globals.DEFAULT_HASH_SIZE));
 
                 block = new AcceptFundsBlockV1()
                 {
@@ -38,7 +38,7 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
                 transactionalBlockBase = block;
 
-                return spanBody.Slice(Globals.HASH_SIZE + 8);
+                return spanBody.Slice(Globals.DEFAULT_HASH_SIZE + 8);
             }
 
             throw new BlockVersionNotSupportedException(version, BlockType);

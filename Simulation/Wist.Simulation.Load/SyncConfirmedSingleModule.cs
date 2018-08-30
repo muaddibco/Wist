@@ -37,7 +37,7 @@ namespace Wist.Simulation.Load
 
             string cmd = null;
             byte[] prevHash = _synchronizationContext.LastBlockDescriptor?.Hash;
-            byte[] prevPowHash = _hashCalculation.CalculateHash(prevHash ?? new byte[Globals.HASH_SIZE]);
+            byte[] prevPowHash = _hashCalculation.CalculateHash(prevHash ?? new byte[Globals.DEFAULT_HASH_SIZE]);
             do
             {
                 unchecked
@@ -49,7 +49,7 @@ namespace Wist.Simulation.Load
                         Key = _key,
                         ReportedTime = DateTime.Now,
                         Round = 1,
-                        HashPrev = prevHash ?? new byte[Globals.HASH_SIZE],
+                        HashPrev = prevHash ?? new byte[Globals.DEFAULT_HASH_SIZE],
                         HashNonce = prevPowHash
                     };
 
