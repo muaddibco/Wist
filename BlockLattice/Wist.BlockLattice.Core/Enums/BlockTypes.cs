@@ -4,9 +4,9 @@
     {
         public const ushort Unknown = 0;
         public const ushort Genesis = 1;
-        public const ushort Registry_TransactionRegister = 1;
-        public const ushort Registry_TransactionFullBlock = 2;
-        public const ushort Registry_TransactionShortBlock = 3;
+        public const ushort Registry_Register = 1;
+        public const ushort Registry_FullBlock = 2;
+        public const ushort Registry_ShortBlock = 3;
         public const ushort Registry_ConfidenceBlock = 4;
         public const ushort Registry_ConfirmationBlock = 5;
 

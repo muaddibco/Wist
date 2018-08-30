@@ -72,7 +72,7 @@ namespace Wist.Node.Core.Synchronization
         {
             RegistryBlockBase registryBlock = blockBase as RegistryBlockBase;
 
-            if (registryBlock is TransactionsFullBlock || registryBlock is TransactionsRegistryConfidenceBlock)
+            if (registryBlock is RegistryFullBlock || registryBlock is RegistryConfidenceBlock)
             {
                 _registryBlocks.Add(registryBlock);
             }
@@ -89,8 +89,8 @@ namespace Wist.Node.Core.Synchronization
         {
             foreach (RegistryBlockBase registryBlock in _registryBlocks.GetConsumingEnumerable(ct))
             {
-                TransactionsFullBlock transactionsFullBlock = registryBlock as TransactionsFullBlock;
-                TransactionsRegistryConfidenceBlock transactionsRegistryConfidenceBlock = registryBlock as TransactionsRegistryConfidenceBlock;
+                RegistryFullBlock transactionsFullBlock = registryBlock as RegistryFullBlock;
+                RegistryConfidenceBlock transactionsRegistryConfidenceBlock = registryBlock as RegistryConfidenceBlock;
 
                 if(transactionsFullBlock != null)
                 {
@@ -143,11 +143,11 @@ namespace Wist.Node.Core.Synchronization
             {
                 RoundDescriptor roundDescriptor = _roundDescriptors[_round];
 
-                Dictionary<IKey, TransactionsFullBlock> keyToFullBlockMap = new Dictionary<IKey, TransactionsFullBlock>();
+                Dictionary<IKey, RegistryFullBlock> keyToFullBlockMap = new Dictionary<IKey, RegistryFullBlock>();
 
-                foreach (TransactionsFullBlock transactionsFullBlock in roundDescriptor.CandidateBlocks.Keys)
+                foreach (RegistryFullBlock transactionsFullBlock in roundDescriptor.CandidateBlocks.Keys)
                 {
-                    TransactionsShortBlock transactionsShortBlock = new TransactionsShortBlock
+                    RegistryShortBlock transactionsShortBlock = new RegistryShortBlock
                     {
                         SyncBlockHeight = transactionsFullBlock.SyncBlockHeight,
                         BlockHeight = transactionsFullBlock.BlockHeight,
@@ -167,12 +167,12 @@ namespace Wist.Node.Core.Synchronization
                     IKey key = _transactionHashKey.GetKey(confidenceBlock.ReferencedBlockHash);
                     if (keyToFullBlockMap.ContainsKey(key))
                     {
-                        TransactionsFullBlock transactionsFullBlock = keyToFullBlockMap[key];
+                        RegistryFullBlock transactionsFullBlock = keyToFullBlockMap[key];
                         roundDescriptor.CandidateBlocks[transactionsFullBlock] += confidenceBlock.Confidence;
                     }
                 }
 
-                TransactionsFullBlock transactionsFullBlockMostConfident = roundDescriptor.CandidateBlocks.OrderByDescending(kv => (double)kv.Value / (double)kv.Key.TransactionHeaders.Count).First().Key;
+                RegistryFullBlock transactionsFullBlockMostConfident = roundDescriptor.CandidateBlocks.OrderByDescending(kv => (double)kv.Value / (double)kv.Key.TransactionHeaders.Count).First().Key;
 
                 ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound(_round);
 
@@ -186,13 +186,13 @@ namespace Wist.Node.Core.Synchronization
         {
             public RoundDescriptor(Timer timer)
             {
-                CandidateBlocks = new Dictionary<TransactionsFullBlock, int>();
-                VotingBlocks = new HashSet<TransactionsRegistryConfidenceBlock>();
+                CandidateBlocks = new Dictionary<RegistryFullBlock, int>();
+                VotingBlocks = new HashSet<RegistryConfidenceBlock>();
                 Timer = timer;
             }
 
-            internal Dictionary<TransactionsFullBlock, int> CandidateBlocks { get; }
-            internal HashSet<TransactionsRegistryConfidenceBlock> VotingBlocks { get; }
+            internal Dictionary<RegistryFullBlock, int> CandidateBlocks { get; }
+            internal HashSet<RegistryConfidenceBlock> VotingBlocks { get; }
             internal Timer Timer { get; }
         }
     }

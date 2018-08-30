@@ -53,11 +53,11 @@ namespace Wist.Node.Core.Tests
             byte[] privateKey = BinaryBuilder.GetRandomSeed();
             ulong expectedCount = 10;
 
-            SortedList<ushort, TransactionRegisterBlock> expectedBlocks = new SortedList<ushort, TransactionRegisterBlock>();
+            SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
 
             for (ulong i = 0; i < expectedCount; i++)
             {
-                TransactionRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
+                RegistryRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
                     synchronizationContext.LastBlockDescriptor.BlockHeight, 1, null, i,
                     new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = i, ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.HASH_SIZE] },
                     privateKey);
@@ -65,7 +65,7 @@ namespace Wist.Node.Core.Tests
                 transactionRegistryMemPool.EnqueueTransactionRegisterBlock(transactionRegisterBlock);
             }
 
-            SortedList<ushort, TransactionRegisterBlock> actualBlocks = transactionRegistryMemPool.DequeueBulk(-1);
+            SortedList<ushort, RegistryRegisterBlock> actualBlocks = transactionRegistryMemPool.DequeueBulk(-1);
 
             Assert.Equal(expectedCount, (ushort)actualBlocks.Count);
             for (ushort i = 0; i < (ushort)expectedCount; i++)
@@ -104,7 +104,7 @@ namespace Wist.Node.Core.Tests
 
             byte[] privateKey = BinaryBuilder.GetRandomSeed();
 
-            SortedList<ushort, TransactionRegisterBlock> expectedBlocks = new SortedList<ushort, TransactionRegisterBlock>();
+            SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
 
             ulong[] heights = new ulong[] { 1, 2, 2, 5, 4, 3, 4, 3, 4, 5, 3};
 
@@ -113,7 +113,7 @@ namespace Wist.Node.Core.Tests
 
             for (ulong i = 0; i < (ulong)heights.Length; i++)
             {
-                TransactionRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
+                RegistryRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
                     synchronizationContext.LastBlockDescriptor.BlockHeight, 1, null, heights[i],
                     new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = heights[i], ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.HASH_SIZE] },
                     privateKey);
@@ -127,7 +127,7 @@ namespace Wist.Node.Core.Tests
                 transactionRegistryMemPool.EnqueueTransactionRegisterBlock(transactionRegisterBlock);
             }
 
-            SortedList<ushort, TransactionRegisterBlock> actualBlocks = transactionRegistryMemPool.DequeueBulk(-1);
+            SortedList<ushort, RegistryRegisterBlock> actualBlocks = transactionRegistryMemPool.DequeueBulk(-1);
 
             Assert.Equal(expectedBlocks.Count, actualBlocks.Count);
             for (ushort i = 0; i < (ushort)expectedBlocks.Count; i++)
@@ -166,7 +166,7 @@ namespace Wist.Node.Core.Tests
 
             byte[] privateKey = BinaryBuilder.GetRandomSeed();
 
-            SortedList<ushort, TransactionRegisterBlock> expectedBlocks = new SortedList<ushort, TransactionRegisterBlock>();
+            SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
 
             ulong[] heights = new ulong[] { 1, 2, 2, 5, 4, 3, 4, 3, 4, 5, 3 };
 
@@ -175,7 +175,7 @@ namespace Wist.Node.Core.Tests
 
             for (ulong i = 0; i < (ulong)heights.Length; i++)
             {
-                TransactionRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
+                RegistryRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
                     synchronizationContext.LastBlockDescriptor.BlockHeight, 1, null, heights[i],
                     new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = heights[i], ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.HASH_SIZE] },
                     privateKey);
@@ -189,8 +189,8 @@ namespace Wist.Node.Core.Tests
                 transactionRegistryMemPool.EnqueueTransactionRegisterBlock(transactionRegisterBlock);
             }
 
-            TransactionsShortBlock transactionsShortBlockAll = PacketsBuilder.GetTransactionsShortBlock(1, 1, null, 1, 1, expectedBlocks.Values, privateKey, cryptoService, identityKeyProvider);
-            TransactionsShortBlock transactionsShortBlockOneLess = PacketsBuilder.GetTransactionsShortBlock(1, 1, null, 1, 1, expectedBlocks.Values.Skip(1), privateKey, cryptoService, identityKeyProvider);
+            RegistryShortBlock transactionsShortBlockAll = PacketsBuilder.GetTransactionsShortBlock(1, 1, null, 1, 1, expectedBlocks.Values, privateKey, cryptoService, identityKeyProvider);
+            RegistryShortBlock transactionsShortBlockOneLess = PacketsBuilder.GetTransactionsShortBlock(1, 1, null, 1, 1, expectedBlocks.Values.Skip(1), privateKey, cryptoService, identityKeyProvider);
 
             int confidenceLevelAll = transactionRegistryMemPool.GetConfidenceRate(transactionsShortBlockAll);
             int confidenceLevelOneLess = transactionRegistryMemPool.GetConfidenceRate(transactionsShortBlockOneLess);

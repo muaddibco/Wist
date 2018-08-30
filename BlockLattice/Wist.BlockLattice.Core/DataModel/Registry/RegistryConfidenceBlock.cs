@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Wist.BlockLattice.Core.Enums;
+﻿using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Registry
 {
-    public class TransactionsRegistryConfidenceBlock : RegistryBlockBase
+    public class RegistryConfidenceBlock : RegistryBlockBase
     {
         public override ushort BlockType => BlockTypes.Registry_ConfidenceBlock;
 

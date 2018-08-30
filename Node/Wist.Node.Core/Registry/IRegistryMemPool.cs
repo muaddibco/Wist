@@ -7,10 +7,10 @@ namespace Wist.Node.Core.Registry
     [ServiceContract]
     public interface IRegistryMemPool
     {
-        bool EnqueueTransactionRegisterBlock(TransactionRegisterBlock transactionRegisterBlock);
-        bool EnqueueTransactionsShortBlock(TransactionsShortBlock transactionsShortBlock);
-        SortedList<ushort, TransactionRegisterBlock> DequeueBulk(int maxCount);
-        int GetConfidenceRate(TransactionsShortBlock transactionsShortBlock);
-        void ClearByConfirmed(TransactionsShortBlock transactionsShortBlock);
+        bool EnqueueTransactionRegisterBlock(RegistryRegisterBlock transactionRegisterBlock);
+        bool EnqueueTransactionsShortBlock(RegistryShortBlock transactionsShortBlock);
+        SortedList<ushort, RegistryRegisterBlock> DequeueBulk(int maxCount);
+        int GetConfidenceRate(RegistryShortBlock transactionsShortBlock);
+        void ClearByConfirmed(RegistryShortBlock transactionsShortBlock);
     }
 }

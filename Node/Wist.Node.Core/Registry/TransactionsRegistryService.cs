@@ -44,11 +44,11 @@ namespace Wist.Node.Core.Registry
             _cryptoService = cryptoService;
             _configurationService = configurationService;
 
-            TransformBlock<IRegistryMemPool, SortedList<ushort, TransactionRegisterBlock>> deduplicateAndOrderTransactionRegisterBlocksBlock = new TransformBlock<IRegistryMemPool, SortedList<ushort, TransactionRegisterBlock>>((Func<IRegistryMemPool, SortedList<ushort, TransactionRegisterBlock>>)DeduplicateAndOrderTransactionRegisterBlocks);
-            TransformBlock<SortedList<ushort, TransactionRegisterBlock>, TransactionsFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<ushort, TransactionRegisterBlock>, TransactionsFullBlock>((Func<SortedList<ushort, TransactionRegisterBlock>, TransactionsFullBlock>)ProduceTransactionsFullBlock);
-            ActionBlock<TransactionsFullBlock> sendTransactionsFullBlock = new ActionBlock<TransactionsFullBlock>((Action<TransactionsFullBlock>)SendTransactionsFullBlock);
-            TransformBlock<TransactionsFullBlock, TransactionsShortBlock> produceTransactionsShortBlock = new TransformBlock<TransactionsFullBlock, TransactionsShortBlock>((Func<TransactionsFullBlock, TransactionsShortBlock>)ProduceTransactionsShortBlock);
-            ActionBlock<TransactionsShortBlock> sendTransactionsShortBlock = new ActionBlock<TransactionsShortBlock>((Action<TransactionsShortBlock>)SendTransactionsShortBlock);
+            TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>> deduplicateAndOrderTransactionRegisterBlocksBlock = new TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>((Func<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>)DeduplicateAndOrderTransactionRegisterBlocks);
+            TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>((Func<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>)ProduceTransactionsFullBlock);
+            ActionBlock<RegistryFullBlock> sendTransactionsFullBlock = new ActionBlock<RegistryFullBlock>((Action<RegistryFullBlock>)SendTransactionsFullBlock);
+            TransformBlock<RegistryFullBlock, RegistryShortBlock> produceTransactionsShortBlock = new TransformBlock<RegistryFullBlock, RegistryShortBlock>((Func<RegistryFullBlock, RegistryShortBlock>)ProduceTransactionsShortBlock);
+            ActionBlock<RegistryShortBlock> sendTransactionsShortBlock = new ActionBlock<RegistryShortBlock>((Action<RegistryShortBlock>)SendTransactionsShortBlock);
 
             deduplicateAndOrderTransactionRegisterBlocksBlock.LinkTo(produceTransactionsFullBlock);
             produceTransactionsFullBlock.LinkTo(sendTransactionsFullBlock);
@@ -115,16 +115,16 @@ namespace Wist.Node.Core.Registry
             _timer?.Dispose();
         }
 
-        private SortedList<ushort, TransactionRegisterBlock> DeduplicateAndOrderTransactionRegisterBlocks(IRegistryMemPool memPool)
+        private SortedList<ushort, RegistryRegisterBlock> DeduplicateAndOrderTransactionRegisterBlocks(IRegistryMemPool memPool)
         {
-            SortedList<ushort, TransactionRegisterBlock> transactionRegisterBlocks = memPool.DequeueBulk(-1);
+            SortedList<ushort, RegistryRegisterBlock> transactionRegisterBlocks = memPool.DequeueBulk(-1);
 
             return transactionRegisterBlocks;
         }
 
-        private TransactionsFullBlock ProduceTransactionsFullBlock(SortedList<ushort, TransactionRegisterBlock> transactionRegisterBlocks)
+        private RegistryFullBlock ProduceTransactionsFullBlock(SortedList<ushort, RegistryRegisterBlock> transactionRegisterBlocks)
         {
-            TransactionsFullBlock transactionsFullBlock = new TransactionsFullBlock
+            RegistryFullBlock transactionsFullBlock = new RegistryFullBlock
             {
                 SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight??0,
                 BlockHeight = (ulong)_registryGroupState.Round,
@@ -137,13 +137,13 @@ namespace Wist.Node.Core.Registry
             return transactionsFullBlock;
         }
 
-        private void SendTransactionsFullBlock(TransactionsFullBlock transactionsFullBlock)
+        private void SendTransactionsFullBlock(RegistryFullBlock transactionsFullBlock)
         {
         }
 
-        private TransactionsShortBlock ProduceTransactionsShortBlock(TransactionsFullBlock transactionsFullBlock)
+        private RegistryShortBlock ProduceTransactionsShortBlock(RegistryFullBlock transactionsFullBlock)
         {
-            TransactionsShortBlock transactionsShortBlock = new TransactionsShortBlock
+            RegistryShortBlock transactionsShortBlock = new RegistryShortBlock
             {
                 SyncBlockHeight = transactionsFullBlock.SyncBlockHeight,
                 BlockHeight = transactionsFullBlock.BlockHeight,
@@ -153,7 +153,7 @@ namespace Wist.Node.Core.Registry
             return transactionsShortBlock;
         }
 
-        private void SendTransactionsShortBlock(TransactionsShortBlock transactionsShortBlock)
+        private void SendTransactionsShortBlock(RegistryShortBlock transactionsShortBlock)
         {
 
         }

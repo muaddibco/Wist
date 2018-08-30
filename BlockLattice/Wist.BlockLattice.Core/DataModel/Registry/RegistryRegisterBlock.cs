@@ -6,15 +6,15 @@ using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel.Registry
 {
-    public class TransactionRegisterBlock : RegistryBlockBase, IEqualityComparer<TransactionRegisterBlock>
+    public class RegistryRegisterBlock : RegistryBlockBase, IEqualityComparer<RegistryRegisterBlock>
     {
-        public override ushort BlockType => BlockTypes.Registry_TransactionRegister;
+        public override ushort BlockType => BlockTypes.Registry_Register;
 
         public override ushort Version => 1;
 
         public TransactionHeader TransactionHeader { get; set; }
 
-        public bool Equals(TransactionRegisterBlock x, TransactionRegisterBlock y)
+        public bool Equals(RegistryRegisterBlock x, RegistryRegisterBlock y)
         {
             if(x != null && y != null)
             {
@@ -24,7 +24,7 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
             return x == null && y == null;
         }
 
-        public int GetHashCode(TransactionRegisterBlock obj)
+        public int GetHashCode(RegistryRegisterBlock obj)
         {
             return obj.PacketType.GetHashCode() ^ obj.BlockType.GetHashCode() ^ obj.TransactionHeader.GetHashCode(); 
         }

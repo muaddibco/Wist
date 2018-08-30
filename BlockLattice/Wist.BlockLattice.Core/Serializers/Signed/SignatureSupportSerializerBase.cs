@@ -13,7 +13,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
         public const byte DLE = 0x10;
         public const byte STX = 0x02;
 
-        private Lazy<ISignatureSupportSerializersFactory> _serializersFactory;
+        protected Lazy<ISignatureSupportSerializersFactory> _serializersFactory;
 
         protected T _block;
         protected readonly ICryptoService _cryptoService;

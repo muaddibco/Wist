@@ -81,7 +81,7 @@ namespace Wist.Simulation.Load
             Stopwatch stopwatch = Stopwatch.StartNew();
             do
             {
-                TransactionRegisterBlock transactionRegisterBlock = new TransactionRegisterBlock
+                RegistryRegisterBlock transactionRegisterBlock = new RegistryRegisterBlock
                 {
                     SyncBlockHeight = index,
                     BlockHeight = count,

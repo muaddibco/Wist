@@ -14,25 +14,23 @@ using Wist.Core.Identity;
 namespace Wist.BlockLattice.Core.Parsers.Registry
 {
     [RegisterExtension(typeof(IBlockParser), Lifetime = LifetimeManagement.Singleton)]
-    public class TransactionsRegistryShortBlockParser : SyncedBlockParserBase
+    public class RegistryShortBlockParser : SyncedBlockParserBase
     {
         private readonly IIdentityKeyProvider _transactionHashKeyProvider;
-        public TransactionsRegistryShortBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository proofOfWorkCalculationRepository) : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
+        public RegistryShortBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository proofOfWorkCalculationRepository) : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
         {
             _transactionHashKeyProvider = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
         }
 
-        public override ushort BlockType => BlockTypes.Registry_TransactionShortBlock;
+        public override ushort BlockType => BlockTypes.Registry_ShortBlock;
 
         public override PacketType PacketType => PacketType.Registry;
 
         protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
         {
-            TransactionsShortBlock transactionsShortBlock = new TransactionsShortBlock();
-            byte round = spanBody[0];
-            ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(1));
+            RegistryShortBlock transactionsShortBlock = new RegistryShortBlock();
+            ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
 
-            transactionsShortBlock.Round = round;
             transactionsShortBlock.TransactionHeaderHashes = new SortedList<ushort, IKey>(itemsCount);
 
             for (int i = 0; i < itemsCount; i++)
