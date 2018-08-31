@@ -16,7 +16,7 @@
 	Version				: 2 bytes
 	Message Type		: 2 bytes
 	Block Height		: 8 bytes
-	Previous Hash		: 32 bytes
+	Previous Hash		: 32 bytes - [Optional, does not exist in some packet types, like Transactions Registry]
 	Body				: N bytes
 ===================================================================================================================================================================
 

@@ -297,7 +297,7 @@ namespace Wist.BlockLattice.Core.Tests
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
 
             byte[] expectedSignature;
-            ushort expectedCount = 10;
+            ushort expectedCount = 1000;
 
             SortedList<ushort, RegistryRegisterBlock> transactionHeaders = new SortedList<ushort, RegistryRegisterBlock>();
             for (ushort i = 0; i < expectedCount; i++)
