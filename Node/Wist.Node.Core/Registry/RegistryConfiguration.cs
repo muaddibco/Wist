@@ -12,7 +12,7 @@ namespace Wist.Node.Core.Registry
     {
         public const string SECTION_NAME = "registry";
 
-        public RegistryConfiguration(IApplicationContext applicationContext, string sectionName) : base(applicationContext, sectionName)
+        public RegistryConfiguration(IApplicationContext applicationContext) : base(applicationContext, SECTION_NAME)
         {
         }
 

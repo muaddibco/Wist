@@ -5,7 +5,7 @@ using Wist.Core.Configuration;
 namespace Wist.Core.Identity
 {
     [RegisterExtension(typeof(IConfigurationSection), Lifetime = LifetimeManagement.Singleton)]
-    public class IdentityConfiguration : ConfigurationSectionBase
+    public class IdentityConfiguration : ConfigurationSectionBase, IIdentityConfiguration
     {
         public const string SECTION_NAME = "identity";
 

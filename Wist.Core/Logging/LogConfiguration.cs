@@ -5,7 +5,7 @@ using Wist.Core.Configuration;
 namespace Wist.Core.Logging
 {
     [RegisterExtension(typeof(IConfigurationSection), Lifetime = LifetimeManagement.Singleton)]
-    public class LogConfiguration : ConfigurationSectionBase
+    public class LogConfiguration : ConfigurationSectionBase, ILogConfiguration
     {
         public const string SECTION_NAME = "logging";
 

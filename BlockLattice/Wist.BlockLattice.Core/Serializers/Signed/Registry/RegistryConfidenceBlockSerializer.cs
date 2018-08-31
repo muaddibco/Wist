@@ -10,7 +10,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
     [RegisterExtension(typeof(ISignatureSupportSerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class RegistryConfidenceBlockSerializer : SyncSupportSerializerBase<RegistryConfidenceBlock>
     {
-        public RegistryConfidenceBlockSerializer(PacketType packetType, ushort blockType, ICryptoService cryptoService) : base(packetType, blockType, cryptoService)
+        public RegistryConfidenceBlockSerializer(ICryptoService cryptoService) : base(PacketType.Registry, BlockTypes.Registry_ConfidenceBlock, cryptoService)
         {
         }
 

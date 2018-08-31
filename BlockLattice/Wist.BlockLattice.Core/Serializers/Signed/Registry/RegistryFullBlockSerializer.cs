@@ -12,7 +12,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
     {
         private readonly RegistryRegisterBlockSerializer _transactionRegisterBlockSerializer;
 
-        public RegistryFullBlockSerializer(PacketType packetType, ushort blockType, ICryptoService cryptoService) : base(packetType, blockType, cryptoService)
+        public RegistryFullBlockSerializer(ICryptoService cryptoService) : base(PacketType.Registry, BlockTypes.Registry_FullBlock, cryptoService)
         {
             _transactionRegisterBlockSerializer = new RegistryRegisterBlockSerializer(cryptoService);
         }
