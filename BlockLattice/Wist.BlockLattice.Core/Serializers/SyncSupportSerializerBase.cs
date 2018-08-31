@@ -22,7 +22,7 @@ namespace Wist.BlockLattice.Core.Serializers
         {
             bw.Write(_block.SyncBlockHeight);
             bw.Write(_block.Nonce);
-            bw.Write(_block.HashNonce);
+            bw.Write(_block.PowHash);
         }
     }
 }

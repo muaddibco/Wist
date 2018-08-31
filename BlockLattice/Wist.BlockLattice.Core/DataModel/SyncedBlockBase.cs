@@ -16,6 +16,6 @@ namespace Wist.BlockLattice.Core.DataModel
         /// <summary>
         /// 24 byte value of hash of sum of Hash of referenced Sync Block Content and Nonce
         /// </summary>
-        public byte[] HashNonce { get; set; }
+        public byte[] PowHash { get; set; }
     }
 }

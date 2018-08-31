@@ -44,7 +44,7 @@ namespace Wist.BlockLattice.Core.Parsers
 
             syncedBlockBase.SyncBlockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanHeader);
             syncedBlockBase.Nonce = BinaryPrimitives.ReadUInt32LittleEndian(spanHeader.Slice(8));
-            syncedBlockBase.HashNonce = spanHeader.Slice(12, Globals.POW_HASH_SIZE).ToArray();
+            syncedBlockBase.PowHash = spanHeader.Slice(12, Globals.POW_HASH_SIZE).ToArray();
 
             return spanHeader.Slice(12 + Globals.POW_HASH_SIZE);
         }

@@ -18,7 +18,7 @@ namespace Wist.Tests.Core
             {
                 SyncBlockHeight = syncBlockHeight,
                 Nonce = nonce,
-                HashNonce = powHash??new byte[Globals.POW_HASH_SIZE],
+                PowHash = powHash??new byte[Globals.POW_HASH_SIZE],
                 BlockHeight = blockHeight,
                 TransactionHeader = transactionHeader,
                 Key = new Key32(publicKey)
@@ -43,7 +43,7 @@ namespace Wist.Tests.Core
             {
                 SyncBlockHeight = syncBlockHeight,
                 Nonce = nonce,
-                HashNonce = powHash ?? new byte[Globals.POW_HASH_SIZE],
+                PowHash = powHash ?? new byte[Globals.POW_HASH_SIZE],
                 BlockHeight = blockHeight,
                 TransactionHeaderHashes = transactionHeaders,
                 Key = new Key32(publicKey)

@@ -48,7 +48,7 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             ulong syncBlockHeight = syncedBlockBase.SyncBlockHeight;
             uint nonce = syncedBlockBase.Nonce;
-            byte[] powHash = syncedBlockBase.HashNonce;
+            byte[] powHash = syncedBlockBase.PowHash;
             byte[] baseHash;
 
             if (syncedBlockBase.PacketType != PacketType.Synchronization)

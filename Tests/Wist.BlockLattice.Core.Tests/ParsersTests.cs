@@ -45,7 +45,7 @@ namespace Wist.BlockLattice.Core.Tests
             DateTime expectedDateTime = DateTime.Now;
 
             byte[] powHash = BinaryBuilder.GetPowHash(1234);
-            byte[] prevHash = BinaryBuilder.GetPrevHash(1234);
+            byte[] prevHash = BinaryBuilder.GetDefaultHash(1234);
 
             for (int i = 0; i < signersCount; i++)
             {
@@ -93,7 +93,7 @@ namespace Wist.BlockLattice.Core.Tests
             string packetActualString = block.RawData.ToHexString();
             Assert.Equal(syncBlockHeight, block.SyncBlockHeight);
             Assert.Equal(nonce, block.Nonce);
-            Assert.Equal(powHash, block.HashNonce);
+            Assert.Equal(powHash, block.PowHash);
             Assert.Equal(version, block.Version);
             Assert.Equal(blockHeight, block.BlockHeight);
             Assert.Equal(prevHash, block.HashPrev);

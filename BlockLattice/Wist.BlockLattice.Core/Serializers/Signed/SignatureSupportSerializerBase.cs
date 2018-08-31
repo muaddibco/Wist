@@ -125,6 +125,8 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             _binaryWriter.Write(signature);
             _binaryWriter.Write(_cryptoService.Key.Value);
 
+            _block.Signature = signature;
+            _block.Key = _cryptoService.Key;
             _block.RawData = _memoryStream.ToArray();
         }
 

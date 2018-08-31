@@ -50,7 +50,7 @@ namespace Wist.Simulation.Load
                         ReportedTime = DateTime.Now,
                         Round = 1,
                         HashPrev = prevHash ?? new byte[Globals.DEFAULT_HASH_SIZE],
-                        HashNonce = prevHash ?? new byte[Globals.DEFAULT_HASH_SIZE]
+                        PowHash = prevHash ?? new byte[Globals.DEFAULT_HASH_SIZE]
                     };
 
                     ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);

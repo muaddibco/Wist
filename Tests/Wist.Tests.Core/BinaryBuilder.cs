@@ -38,7 +38,10 @@ namespace Wist.Tests.Core
                     bw.Write(version);
                     bw.Write(blockType);
                     bw.Write(blockHeight);
-                    bw.Write(prevHash);
+                    if (prevHash != null)
+                    {
+                        bw.Write(prevHash);
+                    }
                     bw.Write(body);
                 }
 
@@ -82,6 +85,22 @@ namespace Wist.Tests.Core
             return seed;
         }
 
+        public static byte[] GetRandomPublicKey()
+        {
+            byte[] seed = GetRandomSeed();
+
+            return Ed25519.PublicKeyFromSeed(seed);
+        }
+
+        public static byte[] GetTransactionKeyHash(int forValue = 0)
+        {
+            IHash hash = HashLib.HashFactory.Hash128.CreateMurmur3_128();
+            byte[] originBytes = BitConverter.GetBytes(forValue);
+            byte[] hashBytes = hash.ComputeBytes(originBytes).GetBytes();
+
+            return hashBytes;
+        }
+
         public static byte[] GetPowHash(int forValue = 0)
         {
             IHash hash = HashLib.HashFactory.Crypto.CreateTiger_4_192();
@@ -91,11 +110,19 @@ namespace Wist.Tests.Core
             return powHash;
         }
 
-        public static byte[] GetPrevHash(int forValue = 0)
+        public static byte[] GetDefaultHash(int forValue = 0)
         {
             IHash hash = HashLib.HashFactory.Crypto.CreateSHA256();
             byte[] hashOrigin = BitConverter.GetBytes(forValue);
             byte[] hashBytes = hash.ComputeBytes(hashOrigin).GetBytes();
+
+            return hashBytes;
+        }
+
+        public static byte[] GetDefaultHash(byte[] bytes)
+        {
+            IHash hash = HashLib.HashFactory.Crypto.CreateSHA256();
+            byte[] hashBytes = hash.ComputeBytes(bytes).GetBytes();
 
             return hashBytes;
         }

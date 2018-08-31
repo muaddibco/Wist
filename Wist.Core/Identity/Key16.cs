@@ -4,6 +4,16 @@ namespace Wist.Core.Identity
 {
     public class Key16 : IKey
     {
+        public Key16()
+        {
+
+        }
+
+        public Key16(byte[] value)
+        {
+            Value = value;
+        }
+
         /// <summary>
         /// Byte array of length of 16 bytes
         /// </summary>

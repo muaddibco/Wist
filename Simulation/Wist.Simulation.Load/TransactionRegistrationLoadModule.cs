@@ -87,7 +87,7 @@ namespace Wist.Simulation.Load
                     BlockHeight = count,
                     Key = _key,
                     Nonce = 1234,
-                    HashNonce = powHash,
+                    PowHash = powHash,
                     TransactionHeader = new TransactionHeader
                     {
                         ReferencedPacketType = PacketType.TransactionalChain,
