@@ -29,6 +29,8 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
                 _transactionRegisterBlockSerializer.Initialize(item.Value);
                 bw.Write(_transactionRegisterBlockSerializer.GetBytes());
             }
+
+            bw.Write(_block.ShortBlockHash);
         }
     }
 }

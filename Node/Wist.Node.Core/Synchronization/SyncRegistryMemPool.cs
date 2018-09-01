@@ -35,7 +35,7 @@ namespace Wist.Node.Core.Synchronization
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _cryptoService = cryptoService;
             _defaultTransactionHashCalculation = hashCalculationsRepository.Create(Globals.DEFAULT_HASH);
-            _transactionHashKey = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
+            _transactionHashKey = identityKeyProvidersRegistry.GetInstance("DefaultHash");
         }
 
         public void AddCandidateBlock(RegistryFullBlock transactionsFullBlock)
@@ -49,15 +49,15 @@ namespace Wist.Node.Core.Synchronization
 
                 if (!_roundDescriptors.ContainsKey(_round))
                 {
-                    RoundDescriptor roundDescriptor = new RoundDescriptor(new Timer(new TimerCallback(RoundEndedHandler), null, 3000, Timeout.Infinite)) { Round = _round };
-                    roundDescriptor.CandidateBlocks.Add(transactionsFullBlock, 0);
+                    RoundDescriptor roundDescriptor = new RoundDescriptor(new Timer(new TimerCallback(RoundEndedHandler), null, 3000, Timeout.Infinite), _transactionHashKey) { Round = _round };
+                    roundDescriptor.AddFullBlock(transactionsFullBlock);
                     _roundDescriptors.Add(_round, roundDescriptor);
                 }
                 else
                 {
                     if (!_roundDescriptors[_round].IsFinished)
                     {
-                        _roundDescriptors[_round].CandidateBlocks.Add(transactionsFullBlock, 0);
+                        _roundDescriptors[_round].AddFullBlock(transactionsFullBlock);
                     }
                 }
             }
@@ -74,7 +74,7 @@ namespace Wist.Node.Core.Synchronization
 
                 if (!_roundDescriptors.ContainsKey(_round))
                 {
-                    RoundDescriptor roundDescriptor = new RoundDescriptor(new Timer(new TimerCallback(RoundEndedHandler), null, 3000, Timeout.Infinite));
+                    RoundDescriptor roundDescriptor = new RoundDescriptor(new Timer(new TimerCallback(RoundEndedHandler), null, 3000, Timeout.Infinite), _transactionHashKey);
                     roundDescriptor.VotingBlocks.Add(confidenceBlock);
                     _roundDescriptors.Add(_round, roundDescriptor);
                 }
@@ -105,45 +105,17 @@ namespace Wist.Node.Core.Synchronization
         {
             RoundDescriptor roundDescriptor = _roundDescriptors[_round];
 
-            Dictionary<IKey, RegistryFullBlock> keyToFullBlockMap = new Dictionary<IKey, RegistryFullBlock>();
-
-            foreach (RegistryFullBlock transactionsFullBlock in roundDescriptor.CandidateBlocks.Keys)
-            {
-                IKey key = GetTransactionKeyForFullBlock(transactionsFullBlock);
-                keyToFullBlockMap.Add(key, transactionsFullBlock);
-            }
-
             foreach (var confidenceBlock in roundDescriptor.VotingBlocks)
             {
                 IKey key = _transactionHashKey.GetKey(confidenceBlock.ReferencedBlockHash);
-                if (keyToFullBlockMap.ContainsKey(key))
+                if (roundDescriptor.CandidateVotes.ContainsKey(key))
                 {
-                    RegistryFullBlock transactionsFullBlock = keyToFullBlockMap[key];
-                    roundDescriptor.CandidateBlocks[transactionsFullBlock] += confidenceBlock.Confidence;
+                    roundDescriptor.CandidateVotes[key] += confidenceBlock.Confidence;
                 }
             }
 
-            transactionsFullBlockMostConfident = roundDescriptor.CandidateBlocks.OrderByDescending(kv => (double)kv.Value / (double)kv.Key.TransactionHeaders.Count).First().Key;
-            mostConfidentKey = GetTransactionKeyForFullBlock(transactionsFullBlockMostConfident);
-        }
-
-        private IKey GetTransactionKeyForFullBlock(RegistryFullBlock transactionsFullBlock)
-        {
-            RegistryShortBlock transactionsShortBlock = new RegistryShortBlock
-            {
-                SyncBlockHeight = transactionsFullBlock.SyncBlockHeight,
-                BlockHeight = transactionsFullBlock.BlockHeight,
-                Nonce = 0,
-                PowHash = new byte[Globals.POW_HASH_SIZE],
-                TransactionHeaderHashes = new SortedList<ushort, IKey>(transactionsFullBlock.TransactionHeaders.ToDictionary(i => i.Key, i => i.Value.GetTransactionRegistryHashKey(_cryptoService, _transactionHashKey)))
-            };
-
-            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionsShortBlock);
-            signatureSupportSerializer.FillBodyAndRowBytes();
-
-            byte[] hash = _defaultTransactionHashCalculation.CalculateHash(transactionsShortBlock.BodyBytes);
-            IKey key = _transactionHashKey.GetKey(hash);
-            return key;
+            mostConfidentKey = roundDescriptor.CandidateVotes.OrderByDescending(kv => (double)kv.Value / (double)roundDescriptor.CandidateBlocks[kv.Key].TransactionHeaders.Count).First().Key;
+            transactionsFullBlockMostConfident = roundDescriptor.CandidateBlocks[mostConfidentKey];
         }
 
         #region Private Functions

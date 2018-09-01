@@ -48,13 +48,13 @@ namespace Wist.Node.Core.Registry
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>> deduplicateAndOrderTransactionRegisterBlocksBlock = new TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>((Func<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>)DeduplicateAndOrderTransactionRegisterBlocks);
             TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>((Func<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>)ProduceTransactionsFullBlock);
-            ActionBlock<RegistryFullBlock> sendTransactionsFullBlock = new ActionBlock<RegistryFullBlock>((Action<RegistryFullBlock>)SendTransactionsFullBlock);
-            TransformBlock<RegistryFullBlock, RegistryShortBlock> produceTransactionsShortBlock = new TransformBlock<RegistryFullBlock, RegistryShortBlock>((Func<RegistryFullBlock, RegistryShortBlock>)ProduceTransactionsShortBlock);
-            ActionBlock<RegistryShortBlock> sendTransactionsShortBlock = new ActionBlock<RegistryShortBlock>((Action<RegistryShortBlock>)SendTransactionsShortBlock);
+            ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>> sendTransactionsFullBlock = new ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>>((Action<Tuple<RegistryFullBlock, RegistryShortBlock>>)SendTransactionsFullBlock);
+            TransformBlock<RegistryFullBlock, Tuple<RegistryFullBlock, RegistryShortBlock>> produceTransactionsShortBlock = new TransformBlock<RegistryFullBlock, Tuple<RegistryFullBlock, RegistryShortBlock>>((Func<RegistryFullBlock, Tuple<RegistryFullBlock, RegistryShortBlock>>)ProduceTransactionsShortBlock);
+            ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>> sendTransactionsShortBlock = new ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>>((Action<Tuple<RegistryFullBlock, RegistryShortBlock>>)SendTransactionsShortBlock);
 
             deduplicateAndOrderTransactionRegisterBlocksBlock.LinkTo(produceTransactionsFullBlock);
-            produceTransactionsFullBlock.LinkTo(sendTransactionsFullBlock);
             produceTransactionsFullBlock.LinkTo(produceTransactionsShortBlock);
+            produceTransactionsShortBlock.LinkTo(sendTransactionsFullBlock);
             produceTransactionsShortBlock.LinkTo(sendTransactionsShortBlock);
 
             _transactionsRegistryProducingFlow = deduplicateAndOrderTransactionRegisterBlocksBlock;
@@ -139,13 +139,14 @@ namespace Wist.Node.Core.Registry
             return transactionsFullBlock;
         }
 
-        private void SendTransactionsFullBlock(RegistryFullBlock transactionsFullBlock)
+        private void SendTransactionsFullBlock(Tuple<RegistryFullBlock, RegistryShortBlock> tuple)
         {
+            RegistryFullBlock transactionsFullBlock = tuple.Item1;
             ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionsFullBlock);
             _tcpCommunicationService.PostMessage(_registryGroupState.SyncLayerNode, signatureSupportSerializer);
         }
 
-        private RegistryShortBlock ProduceTransactionsShortBlock(RegistryFullBlock transactionsFullBlock)
+        private Tuple<RegistryFullBlock, RegistryShortBlock> ProduceTransactionsShortBlock(RegistryFullBlock transactionsFullBlock)
         {
             RegistryShortBlock transactionsShortBlock = new RegistryShortBlock
             {
@@ -153,12 +154,14 @@ namespace Wist.Node.Core.Registry
                 BlockHeight = transactionsFullBlock.BlockHeight,
                 TransactionHeaderHashes = new SortedList<ushort, IKey>(transactionsFullBlock.TransactionHeaders.ToDictionary(i => i.Key, i => i.Value.GetTransactionRegistryHashKey(_cryptoService, _transactionHashKey)))
             };
+            Tuple<RegistryFullBlock, RegistryShortBlock> tuple = new Tuple<RegistryFullBlock, RegistryShortBlock>(transactionsFullBlock, transactionsShortBlock);
 
-            return transactionsShortBlock;
+            return tuple;
         }
 
-        private void SendTransactionsShortBlock(RegistryShortBlock transactionsShortBlock)
+        private void SendTransactionsShortBlock(Tuple<RegistryFullBlock, RegistryShortBlock> tuple)
         {
+            RegistryShortBlock transactionsShortBlock = tuple.Item2;
             ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionsShortBlock);
             _tcpCommunicationService.PostMessage(_registryGroupState.GetAllNeighbors(), signatureSupportSerializer);
         }

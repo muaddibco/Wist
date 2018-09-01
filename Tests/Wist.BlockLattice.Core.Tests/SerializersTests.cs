@@ -335,6 +335,8 @@ namespace Wist.BlockLattice.Core.Tests
                         bw.Write(order);
                         bw.Write(transactionHeaders[order].RawData);
                     }
+
+                    bw.Write(BinaryBuilder.GetDefaultHash(1111));
                 }
 
                 body = ms.ToArray();
@@ -352,7 +354,8 @@ namespace Wist.BlockLattice.Core.Tests
                 Nonce = nonce,
                 PowHash = powHash,
                 BlockHeight = blockHeight,
-                TransactionHeaders = transactionHeaders
+                TransactionHeaders = transactionHeaders,
+                ShortBlockHash = BinaryBuilder.GetDefaultHash(1111)
             };
 
             RegistryFullBlockSerializer serializer = new RegistryFullBlockSerializer(cryptoService);

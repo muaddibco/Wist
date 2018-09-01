@@ -52,7 +52,7 @@ namespace Wist.Node.Core.Tests
 
             hashCalculationsRepository.Create(HashType.Keccak256).Returns(hashCalculationDefault);
 
-            identityKeyProvidersRegistry.GetInstance(null).Returns(new TransactionRegistryKeyProvider());
+            identityKeyProvidersRegistry.GetInstance("DefaultHash").Returns(new DefaultHashKeyProvider());
 
             SyncRegistryMemPool syncRegistryMemPool = new SyncRegistryMemPool(signatureSupportSerializersFactory, hashCalculationsRepository, identityKeyProvidersRegistry, cryptoService);
             syncRegistryMemPool.SetRound((byte)blockHeight);
@@ -61,21 +61,8 @@ namespace Wist.Node.Core.Tests
             {
                 ICryptoService cryptoService1 = GetRandomCryptoService();
                 ushort expectedCount = 1000;
+
                 SortedList<ushort, RegistryRegisterBlock> transactionHeaders = GetTransactionHeaders(syncBlockHeight, blockHeight, nonce, expectedCount);
-
-                RegistryFullBlock registryFullBlock = new RegistryFullBlock
-                {
-                    SyncBlockHeight = syncBlockHeight,
-                    BlockHeight = blockHeight,
-                    Nonce = nonce,
-                    PowHash = powHash,
-                    TransactionHeaders = transactionHeaders
-                };
-
-                RegistryFullBlockSerializer serializer = new RegistryFullBlockSerializer(cryptoService1);
-                serializer.Initialize(registryFullBlock);
-                serializer.FillBodyAndRowBytes();
-
                 SortedList<ushort, IKey> transactionHeaderKeys = GetTransactionHeaderKeys(hashCalculationTransactionKey, transactionHeaders);
 
                 RegistryShortBlock registryShortBlock = new RegistryShortBlock
@@ -90,6 +77,20 @@ namespace Wist.Node.Core.Tests
                 RegistryShortBlockSerializer registryShortBlockSerializer = new RegistryShortBlockSerializer(cryptoService1);
                 registryShortBlockSerializer.Initialize(registryShortBlock);
                 registryShortBlockSerializer.FillBodyAndRowBytes();
+
+                RegistryFullBlock registryFullBlock = new RegistryFullBlock
+                {
+                    SyncBlockHeight = syncBlockHeight,
+                    BlockHeight = blockHeight,
+                    Nonce = nonce,
+                    PowHash = powHash,
+                    TransactionHeaders = transactionHeaders,
+                    ShortBlockHash = hashCalculationDefault.CalculateHash(registryShortBlock.BodyBytes)
+                };
+
+                RegistryFullBlockSerializer serializer = new RegistryFullBlockSerializer(cryptoService1);
+                serializer.Initialize(registryFullBlock);
+                serializer.FillBodyAndRowBytes();
 
                 registryFullBlocks.Add(registryFullBlock);
                 registryShortBlocks.Add(registryShortBlock);
@@ -142,6 +143,8 @@ namespace Wist.Node.Core.Tests
             RegistryFullBlock actualFullBlock;
             IKey actualMostConfidentKey;
             syncRegistryMemPool.GetMostConfidentFullBlock(out actualFullBlock, out actualMostConfidentKey);
+
+            Assert.Equal(expectedMostConfidentKey, actualMostConfidentKey);
         }
 
         private static SortedList<ushort, IKey> GetTransactionHeaderKeys(IHashCalculation hashCalculationTransactionKey, SortedList<ushort, RegistryRegisterBlock> transactionHeaders)

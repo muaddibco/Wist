@@ -44,9 +44,11 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
                 transactionsFullBlock.TransactionHeaders.Add(order, registryRegisterBlock);
             }
 
+            transactionsFullBlock.ShortBlockHash = spanBody.Slice(2 + itemsCount * (registryRegisterPacketSize + 2), Globals.DEFAULT_HASH_SIZE).ToArray();
+
             syncedBlockBase = transactionsFullBlock;
 
-            return spanBody.Slice(2 + itemsCount * (registryRegisterPacketSize + 2));
+            return spanBody.Slice(2 + itemsCount * (registryRegisterPacketSize + 2) + Globals.DEFAULT_HASH_SIZE);
         }
     }
 }
