@@ -142,7 +142,9 @@ namespace Wist.Node.Core.Tests
             IKey expectedMostConfidentKey = votesPerShortBlockKey.OrderByDescending(kv => kv.Value).Select(kv => kv.Key).First();
             RegistryFullBlock actualFullBlock;
             IKey actualMostConfidentKey;
-            syncRegistryMemPool.GetMostConfidentFullBlock(out actualFullBlock, out actualMostConfidentKey);
+            actualFullBlock = syncRegistryMemPool.GetMostConfidentFullBlock();
+
+            actualMostConfidentKey = new Key32(actualFullBlock.ShortBlockHash);
 
             Assert.Equal(expectedMostConfidentKey, actualMostConfidentKey);
         }

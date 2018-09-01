@@ -107,17 +107,13 @@ namespace Wist.Node.Core.Synchronization
 
         private void RoundEndedHandler(RoundDescriptor roundDescriptor)
         {
-            RegistryFullBlock transactionsFullBlockMostConfident;
-            IKey mostConfidentKey;
-            _syncRegistryMemPool.GetMostConfidentFullBlock(out transactionsFullBlockMostConfident, out mostConfidentKey);
-
-            byte[] hashOfMostConfidentFullBlock = _defaultTransactionHashCalculation.CalculateHash(transactionsFullBlockMostConfident.BodyBytes);
+            RegistryFullBlock transactionsFullBlockMostConfident = _syncRegistryMemPool.GetMostConfidentFullBlock();
 
             RegistryConfirmationBlock registryConfirmationBlock = new RegistryConfirmationBlock
             {
                 SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0,
                 BlockHeight = roundDescriptor.Round,
-                ReferencedBlockHash = hashOfMostConfidentFullBlock
+                ReferencedBlockHash = transactionsFullBlockMostConfident.ShortBlockHash
             };
 
             ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound(roundDescriptor.Round);

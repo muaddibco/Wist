@@ -19,6 +19,6 @@ namespace Wist.Node.Core.Synchronization
 
         void SetRound(byte round);
 
-        void GetMostConfidentFullBlock(out RegistryFullBlock transactionsFullBlockMostConfident, out IKey mostConfidentKey);
+        RegistryFullBlock GetMostConfidentFullBlock();
     }
 }

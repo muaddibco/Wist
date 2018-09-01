@@ -101,7 +101,7 @@ namespace Wist.Node.Core.Synchronization
             }
         }
 
-        public void GetMostConfidentFullBlock(out RegistryFullBlock transactionsFullBlockMostConfident, out IKey mostConfidentKey)
+        public RegistryFullBlock GetMostConfidentFullBlock()
         {
             RoundDescriptor roundDescriptor = _roundDescriptors[_round];
 
@@ -114,8 +114,10 @@ namespace Wist.Node.Core.Synchronization
                 }
             }
 
-            mostConfidentKey = roundDescriptor.CandidateVotes.OrderByDescending(kv => (double)kv.Value / (double)roundDescriptor.CandidateBlocks[kv.Key].TransactionHeaders.Count).First().Key;
-            transactionsFullBlockMostConfident = roundDescriptor.CandidateBlocks[mostConfidentKey];
+            IKey mostConfidentKey = roundDescriptor.CandidateVotes.OrderByDescending(kv => (double)kv.Value / (double)roundDescriptor.CandidateBlocks[kv.Key].TransactionHeaders.Count).First().Key;
+            RegistryFullBlock transactionsFullBlockMostConfident = roundDescriptor.CandidateBlocks[mostConfidentKey];
+
+            return transactionsFullBlockMostConfident;
         }
 
         #region Private Functions
