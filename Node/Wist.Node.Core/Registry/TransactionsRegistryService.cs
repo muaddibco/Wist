@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks.Dataflow;
 using System.Timers;
 using Wist.BlockLattice.Core.DataModel.Registry;
+using Wist.BlockLattice.Core.Serializers;
 using Wist.Communication.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
@@ -29,13 +30,14 @@ namespace Wist.Node.Core.Registry
         private readonly IIdentityKeyProvider _transactionHashKey;
         private readonly ICryptoService _cryptoService;
         private readonly IConfigurationService _configurationService;
+        private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly IServerCommunicationService _tcpCommunicationService;
         private readonly IServerCommunicationService _udpCommunicationService;
         private readonly NodeCountersService _nodeCountersService;
         private Timer _timer;
         private IDisposable _syncContextUnsubscriber;
 
-        public TransactionsRegistryService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, IServerCommunicationServicesRegistry serverCommunicationServicesRegistry, IPerformanceCountersRepository performanceCountersRepository)
+        public TransactionsRegistryService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, IServerCommunicationServicesRegistry serverCommunicationServicesRegistry, IPerformanceCountersRepository performanceCountersRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
@@ -43,7 +45,7 @@ namespace Wist.Node.Core.Registry
             _transactionHashKey = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
             _cryptoService = cryptoService;
             _configurationService = configurationService;
-
+            _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>> deduplicateAndOrderTransactionRegisterBlocksBlock = new TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>((Func<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>)DeduplicateAndOrderTransactionRegisterBlocks);
             TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>((Func<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>)ProduceTransactionsFullBlock);
             ActionBlock<RegistryFullBlock> sendTransactionsFullBlock = new ActionBlock<RegistryFullBlock>((Action<RegistryFullBlock>)SendTransactionsFullBlock);
@@ -139,6 +141,8 @@ namespace Wist.Node.Core.Registry
 
         private void SendTransactionsFullBlock(RegistryFullBlock transactionsFullBlock)
         {
+            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionsFullBlock);
+            _tcpCommunicationService.PostMessage(_registryGroupState.SyncLayerNode, signatureSupportSerializer);
         }
 
         private RegistryShortBlock ProduceTransactionsShortBlock(RegistryFullBlock transactionsFullBlock)
@@ -155,7 +159,8 @@ namespace Wist.Node.Core.Registry
 
         private void SendTransactionsShortBlock(RegistryShortBlock transactionsShortBlock)
         {
-
+            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionsShortBlock);
+            _tcpCommunicationService.PostMessage(_registryGroupState.GetAllNeighbors(), signatureSupportSerializer);
         }
     }
 }

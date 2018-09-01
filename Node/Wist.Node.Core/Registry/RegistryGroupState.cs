@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Identity;
 using Wist.Core.States;
 
 namespace Wist.Node.Core.Registry
@@ -20,6 +21,8 @@ namespace Wist.Node.Core.Registry
         public override string Name => NAME;
 
         public int Round { get; set; }
+
+        public IKey SyncLayerNode { get; set; }
 
         public void ToggleLastBlockConfirmationReceived() => _registrationBlockConfirmationReceived.Set();
         public void WaitLastBlockConfirmationReceived() => _registrationBlockConfirmationReceived.WaitOne();

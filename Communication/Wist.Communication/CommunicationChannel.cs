@@ -123,6 +123,7 @@ namespace Wist.Communication
             _offsetSend = _socketSendAsyncEventArgs.Offset;
         }
 
+        //TODO: need to ascertain that this is really needed, looks weird
         public void RegisterExtendedValidation(Func<ICommunicationChannel, IPEndPoint, int, bool> onReceivedExtendedValidation)
         {
             _onReceivedExtendedValidation = onReceivedExtendedValidation;

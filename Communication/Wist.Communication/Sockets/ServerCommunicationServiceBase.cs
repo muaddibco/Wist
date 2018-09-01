@@ -71,6 +71,7 @@ namespace Wist.Communication.Sockets
             StartAccept();
         }
 
+        //TODO: need to ascertain that this functionality is really needed because it looks very weird
         public void RegisterOnReceivedExtendedValidation(Func<ICommunicationChannel, IPEndPoint, int, bool> onReceiveExtendedValidation)
         {
             foreach (ICommunicationChannel communicationChannel in _communicationChannelsPool)

@@ -149,6 +149,8 @@ namespace Wist.Node.Core.Registry
         {
             _registryGroupState.ToggleLastBlockConfirmationReceived();
 
+            
+
             //TODO: obtain Transactions Registry Short block from MemPool by hash given in confirmationBlock
             //TODO: clear MemPool from Transaction Headers of confirmed Short Block
         }

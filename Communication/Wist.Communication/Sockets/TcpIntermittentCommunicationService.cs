@@ -16,6 +16,9 @@ using Wist.Core.Logging;
 
 namespace Wist.Communication.Sockets
 {
+    /// <summary>
+    /// Seems such type of Communication Service will be used at Storage Level only
+    /// </summary>
     [RegisterExtension(typeof(IServerCommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class TcpIntermittentCommunicationService : TcpCommunicationService
     {

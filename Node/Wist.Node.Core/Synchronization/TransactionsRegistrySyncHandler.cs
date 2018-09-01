@@ -29,11 +29,9 @@ namespace Wist.Node.Core.Synchronization
     {
         public const string NAME = "TransactionsRegistrySync";
 
-        private readonly Dictionary<byte, RoundDescriptor> _roundDescriptors;
         private readonly BlockingCollection<RegistryBlockBase> _registryBlocks;
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly IDisposable _syncContextChangedUnsibsciber;
-        private readonly object _syncRound = new object();
         private readonly ISyncShardsManager _syncShardsManager;
         private readonly IIdentityKeyProvider _transactionHashKey;
         private readonly ICryptoService _cryptoService;
@@ -41,13 +39,12 @@ namespace Wist.Node.Core.Synchronization
         private readonly IHashCalculation _defaultTransactionHashCalculation;
         private readonly ISyncRegistryNeighborhoodState _syncRegistryNeighborhoodState;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
+        private readonly ISyncRegistryMemPool _syncRegistryMemPool;
         private IServerCommunicationService _communicationService;
         private CancellationToken _cancellationToken;
-        private byte _round;
 
-        public TransactionsRegistrySyncHandler(IStatesRepository statesRepository, ISyncShardsManager syncShardsManager, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, IServerCommunicationServicesRegistry communicationServicesRegistry)
+        public TransactionsRegistrySyncHandler(IStatesRepository statesRepository, ISyncShardsManager syncShardsManager, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, ISyncRegistryMemPool syncRegistryMemPool)
         {
-            _roundDescriptors = new Dictionary<byte, RoundDescriptor>();
             _registryBlocks = new BlockingCollection<RegistryBlockBase>();
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _syncRegistryNeighborhoodState = statesRepository.GetInstance<ISyncRegistryNeighborhoodState>();
@@ -58,6 +55,7 @@ namespace Wist.Node.Core.Synchronization
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _defaultTransactionHashCalculation = hashCalculationsRepository.Create(Globals.DEFAULT_HASH);
             _communicationServicesRegistry = communicationServicesRegistry;
+            _syncRegistryMemPool = syncRegistryMemPool;
         }
 
         public string Name => NAME;
@@ -89,135 +87,47 @@ namespace Wist.Node.Core.Synchronization
 
         private void SynchronizationStateChanged(string propName)
         {
-            _round = 0;
+            _syncRegistryMemPool.SetRound(0);
         }
 
         private void ProcessBlocks(CancellationToken ct)
         {
             foreach (RegistryBlockBase registryBlock in _registryBlocks.GetConsumingEnumerable(ct))
             {
-                RegistryFullBlock transactionsFullBlock = registryBlock as RegistryFullBlock;
-                RegistryConfidenceBlock transactionsRegistryConfidenceBlock = registryBlock as RegistryConfidenceBlock;
-
-                if(transactionsFullBlock != null)
+                if (registryBlock is RegistryFullBlock transactionsFullBlock)
                 {
-                    lock(_syncRound)
-                    {
-                        if(transactionsFullBlock.BlockHeight != _round)
-                        {
-                            continue;
-                        }
-
-                        if(!_roundDescriptors.ContainsKey(_round))
-                        {
-                            RoundDescriptor roundDescriptor = new RoundDescriptor(new Timer(new TimerCallback(RoundEndedHandler), null, 3000, Timeout.Infinite));
-                            roundDescriptor.CandidateBlocks.Add(transactionsFullBlock, 0);
-                            _roundDescriptors.Add(_round, roundDescriptor);
-                        }
-                        else
-                        {
-                            _roundDescriptors[_round].CandidateBlocks.Add(transactionsFullBlock, 0);
-                        }
-                    }
+                    _syncRegistryMemPool.AddCandidateBlock(transactionsFullBlock);
                 }
-                else if(transactionsRegistryConfidenceBlock != null)
+                else if (registryBlock is RegistryConfidenceBlock transactionsRegistryConfidenceBlock)
                 {
-                    lock(_syncRound)
-                    {
-                        if(transactionsRegistryConfidenceBlock.BlockHeight != _round)
-                        {
-                            continue;
-                        }
-
-                        if (!_roundDescriptors.ContainsKey(_round))
-                        {
-                            RoundDescriptor roundDescriptor = new RoundDescriptor(new Timer(new TimerCallback(RoundEndedHandler), null, 3000, Timeout.Infinite));
-                            roundDescriptor.VotingBlocks.Add(transactionsRegistryConfidenceBlock);
-                            _roundDescriptors.Add(_round, roundDescriptor);
-                        }
-                        else
-                        {
-                            _roundDescriptors[_round].VotingBlocks.Add(transactionsRegistryConfidenceBlock);
-                        }
-                    }
+                    _syncRegistryMemPool.AddVotingBlock(transactionsRegistryConfidenceBlock);
                 }
             }
         }
 
-        private void RoundEndedHandler(object state)
+        private void RoundEndedHandler(RoundDescriptor roundDescriptor)
         {
-            lock(_syncRound)
+            RegistryFullBlock transactionsFullBlockMostConfident;
+            IKey mostConfidentKey;
+            _syncRegistryMemPool.GetMostConfidentFullBlock(out transactionsFullBlockMostConfident, out mostConfidentKey);
+
+            byte[] hashOfMostConfidentFullBlock = _defaultTransactionHashCalculation.CalculateHash(transactionsFullBlockMostConfident.BodyBytes);
+
+            RegistryConfirmationBlock registryConfirmationBlock = new RegistryConfirmationBlock
             {
-                RegistryFullBlock transactionsFullBlockMostConfident = GetMostConfidentFullBlock();
-                byte[] hashOfMostConfidentFullBlock = _defaultTransactionHashCalculation.CalculateHash(transactionsFullBlockMostConfident.BodyBytes);
+                SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0,
+                BlockHeight = roundDescriptor.Round,
+                ReferencedBlockHash = hashOfMostConfidentFullBlock
+            };
 
-                RegistryConfirmationBlock registryConfirmationBlock = new RegistryConfirmationBlock
-                {
-                    SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight??0,
-                    BlockHeight = _round,
-                    ReferencedBlockHash = hashOfMostConfidentFullBlock
-                };
+            ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound(roundDescriptor.Round);
+            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(registryConfirmationBlock);
 
-                ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound(_round);
-                ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(registryConfirmationBlock);
+            _communicationService.PostMessage(_syncRegistryNeighborhoodState.GetAllNeighbors(), signatureSupportSerializer);
 
-                _communicationService.PostMessage(_syncRegistryNeighborhoodState.GetAllNeighbors(), signatureSupportSerializer);
-
-                //TODO: transactionsFullBlockMostConfident must be sent to Storage level and combined with other most confident full blocks from other shards
-            }
-        }
-
-        private RegistryFullBlock GetMostConfidentFullBlock()
-        {
-            RoundDescriptor roundDescriptor = _roundDescriptors[_round];
-
-            Dictionary<IKey, RegistryFullBlock> keyToFullBlockMap = new Dictionary<IKey, RegistryFullBlock>();
-
-            foreach (RegistryFullBlock transactionsFullBlock in roundDescriptor.CandidateBlocks.Keys)
-            {
-                RegistryShortBlock transactionsShortBlock = new RegistryShortBlock
-                {
-                    SyncBlockHeight = transactionsFullBlock.SyncBlockHeight,
-                    BlockHeight = transactionsFullBlock.BlockHeight,
-                    TransactionHeaderHashes = new SortedList<ushort, IKey>(transactionsFullBlock.TransactionHeaders.ToDictionary(i => i.Key, i => i.Value.GetTransactionRegistryHashKey(_cryptoService, _transactionHashKey)))
-                };
-
-                ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionsShortBlock);
-                signatureSupportSerializer.FillBodyAndRowBytes();
-
-                byte[] hash = _defaultTransactionHashCalculation.CalculateHash(transactionsShortBlock.BodyBytes);
-                IKey key = _transactionHashKey.GetKey(hash);
-                keyToFullBlockMap.Add(key, transactionsFullBlock);
-            }
-
-            foreach (var confidenceBlock in roundDescriptor.VotingBlocks)
-            {
-                IKey key = _transactionHashKey.GetKey(confidenceBlock.ReferencedBlockHash);
-                if (keyToFullBlockMap.ContainsKey(key))
-                {
-                    RegistryFullBlock transactionsFullBlock = keyToFullBlockMap[key];
-                    roundDescriptor.CandidateBlocks[transactionsFullBlock] += confidenceBlock.Confidence;
-                }
-            }
-
-            RegistryFullBlock transactionsFullBlockMostConfident = roundDescriptor.CandidateBlocks.OrderByDescending(kv => (double)kv.Value / (double)kv.Key.TransactionHeaders.Count).First().Key;
-            return transactionsFullBlockMostConfident;
+            //TODO: transactionsFullBlockMostConfident must be sent to Storage level and combined with other most confident full blocks from other shards
         }
 
         #endregion Private Functions
-
-        internal class RoundDescriptor
-        {
-            public RoundDescriptor(Timer timer)
-            {
-                CandidateBlocks = new Dictionary<RegistryFullBlock, int>();
-                VotingBlocks = new HashSet<RegistryConfidenceBlock>();
-                Timer = timer;
-            }
-
-            internal Dictionary<RegistryFullBlock, int> CandidateBlocks { get; }
-            internal HashSet<RegistryConfidenceBlock> VotingBlocks { get; }
-            internal Timer Timer { get; }
-        }
     }
 }
