@@ -35,8 +35,8 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
             for (int i = 0; i < itemsCount; i++)
             {
-                ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(3 + i * (Globals.POW_HASH_SIZE + 2)));
-                byte[] hashKey = spanBody.Slice(2 + i * (Globals.POW_HASH_SIZE + 2) + 2, Globals.POW_HASH_SIZE).ToArray();
+                ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2 + i * (Globals.TRANSACTION_KEY_HASH_SIZE + 2)));
+                byte[] hashKey = spanBody.Slice(2 + i * (Globals.TRANSACTION_KEY_HASH_SIZE + 2) + 2, Globals.TRANSACTION_KEY_HASH_SIZE).ToArray();
 
                 IKey key = _transactionHashKeyProvider.GetKey(hashKey);
 
@@ -45,7 +45,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
             syncedBlockBase = transactionsShortBlock;
 
-            return spanBody.Slice(2 + itemsCount * (Globals.POW_HASH_SIZE + 2));
+            return spanBody.Slice(2 + itemsCount * (Globals.TRANSACTION_KEY_HASH_SIZE + 2));
         }
     }
 }

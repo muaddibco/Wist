@@ -36,7 +36,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
             for (int i = 0; i < itemsCount; i++)
             {
-                ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(3 + i * (Globals.POW_HASH_SIZE + 2)));
+                ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2 + i * (registryRegisterPacketSize + 2)));
                 byte[] registryRegisterPacket = spanBody.Slice(2 + i * (registryRegisterPacketSize + 2) + 2, registryRegisterPacketSize).ToArray();
 
                 RegistryRegisterBlock registryRegisterBlock = (RegistryRegisterBlock)_registryRegisterBlockParser.Parse(registryRegisterPacket);
