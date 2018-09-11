@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
 using Wist.Core;
 using Wist.Core.Architecture;
@@ -15,6 +14,7 @@ using Wist.Core.Communication;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.BlockLattice.Core.Handlers;
+using Wist.Communication.Topology;
 
 namespace Wist.Communication.Sockets
 {

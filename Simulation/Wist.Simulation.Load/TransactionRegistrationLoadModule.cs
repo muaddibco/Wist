@@ -85,7 +85,7 @@ namespace Wist.Simulation.Load
                 {
                     SyncBlockHeight = index,
                     BlockHeight = count,
-                    Key = _key,
+                    Signer = _key,
                     Nonce = 1234,
                     PowHash = powHash,
                     TransactionHeader = new TransactionHeader

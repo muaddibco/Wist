@@ -42,7 +42,7 @@ namespace Wist.Node.Core.Registry
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
             _isBlockProducerPredicate = predicatesRepository.GetInstance("IsBlockProducer");
-            _transactionHashKey = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
+            _transactionHashKey = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
             _cryptoService = cryptoService;
             _configurationService = configurationService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;

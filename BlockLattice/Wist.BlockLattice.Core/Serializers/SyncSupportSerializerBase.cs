@@ -3,13 +3,15 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Serializers.Signed;
 using Wist.Core.Cryptography;
+using Wist.Core.HashCalculations;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.Serializers
 {
     public abstract class SyncSupportSerializerBase<T> : SignatureSupportSerializerBase<T> where T : SyncedBlockBase
     {
-        public SyncSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService) 
-            : base(packetType, blockType, cryptoService)
+        public SyncSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository) 
+            : base(packetType, blockType, cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository)
         {
         }
 

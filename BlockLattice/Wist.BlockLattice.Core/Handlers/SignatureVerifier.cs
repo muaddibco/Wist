@@ -25,7 +25,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
             byte[] messageBody = signedBlockBase.BodyBytes;
             byte[] signature = signedBlockBase.Signature;
-            byte[] publickKey = signedBlockBase.Key.Value;
+            byte[] publickKey = signedBlockBase.Signer.Value;
 
             if (!VerifySignature(messageBody, signature, publickKey))
             {

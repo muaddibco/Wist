@@ -38,7 +38,7 @@ namespace Wist.Node.Core.DPOS
             IEnumerable<TransactionalGenesisBlock> genesisBlocks = _chainDataService.GetAllLastBlocksByType<TransactionalGenesisBlock>();
             //IEnumerable<TransactionalBlockBaseV1> transactionalBlocks = _chainDataService.GetAllLastBlocksByType<TransactionalBlockBaseV1>();
 
-            _dposDescriptors = genesisBlocks.ToDictionary(g => g.Key, g => new DposDescriptor { SourceIdentity = g.Key, TargetIdentity = g.NodeDpos, Votes = 1 });
+            _dposDescriptors = genesisBlocks.ToDictionary(g => g.Signer, g => new DposDescriptor { SourceIdentity = g.Signer, TargetIdentity = g.NodeDpos, Votes = 1 });
             _votesForCandidates = _dposDescriptors.GroupBy(d => d.Value.TargetIdentity).ToDictionary(g => g.Key, g => g.Select(v => v.Value).ToList());
             //genesisBlocks.GroupBy(b => b.NodeDpos).ToDictionary(g => g.Key, g => new DposDescriptor {SourceIdentity = g.Key, TargetIdentity =  g.Sum(b => transactionalBlocks.FirstOrDefault(t => t.Key == b.Key)?.UptodateFunds??0)
         }

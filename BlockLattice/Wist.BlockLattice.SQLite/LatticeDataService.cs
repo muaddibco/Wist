@@ -20,6 +20,7 @@ using Wist.Core.Models;
 using Wist.Core.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using Wist.BlockLattice.Core.DataModel.Nodes;
 
 namespace Wist.BlockLattice.SQLite
 {
@@ -30,7 +31,7 @@ namespace Wist.BlockLattice.SQLite
         
         private static LatticeDataService _instance = null;
         private Dictionary<IKey, AccountIdentity> _keyIdentityMap;
-        private Dictionary<IKey, Node> _keyToNodeMap;
+        private Dictionary<IKey, DataModel.Node> _keyToNodeMap;
         private readonly IIdentityKeyProvider _identityKeyProvider;
 
         private readonly DataContext _dataContext;
@@ -147,18 +148,18 @@ namespace Wist.BlockLattice.SQLite
 
         #region Nodes
 
-        public bool AddNode(IKey key, string ipAddressExpression = null)
+        public bool AddNode(IKey key, NodeRole nodeRole, string ipAddressExpression = null)
         {
             IPAddress ipAddress;
             if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out ipAddress))
             {
-                return AddNode(key, ipAddress);
+                return AddNode(key, nodeRole, ipAddress);
             }
 
             return false;
         }
 
-        public bool AddNode(IKey key, IPAddress ipAddress)
+        public bool AddNode(IKey key, NodeRole nodeRole, IPAddress ipAddress)
         {
             AccountIdentity accountIdentity = GetAccountIdentity(key);
 
@@ -173,12 +174,12 @@ namespace Wist.BlockLattice.SQLite
             {
                 lock (_sync)
                 {
-                    Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
+                    DataModel.Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
 
                     if (node == null)
                     {
 
-                        node = new Node { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes() };
+                        node = new DataModel.Node { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes() };
                         _dataContext.Nodes.Add(node);
                         _keyToNodeMap.Add(key, node);
                         return true;
@@ -209,12 +210,12 @@ namespace Wist.BlockLattice.SQLite
             {
                 lock (_sync)
                 {
-                    Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
+                    DataModel.Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
 
                     if (node != null)
                     {
                         node.IPAddress = ipAddress.GetAddressBytes();
-                        _dataContext.Update<Node>(node);
+                        _dataContext.Update<DataModel.Node>(node);
                         _keyToNodeMap[key].IPAddress = ipAddress.GetAddressBytes();
                         return true;
                     }
@@ -242,12 +243,12 @@ namespace Wist.BlockLattice.SQLite
             return IPAddress.None;
         }
 
-        public IEnumerable<Node> GetAllNodes()
+        public IEnumerable<DataModel.Node> GetAllNodes()
         {
             return _keyToNodeMap.Values;
         }
 
-        public Node GetNode(IKey key)
+        public DataModel.Node GetNode(IKey key)
         {
             if(_keyToNodeMap.ContainsKey(key))
             {

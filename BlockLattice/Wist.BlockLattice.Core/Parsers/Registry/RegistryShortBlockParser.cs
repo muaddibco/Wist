@@ -19,7 +19,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
         private readonly IIdentityKeyProvider _transactionHashKeyProvider;
         public RegistryShortBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository proofOfWorkCalculationRepository) : base(identityKeyProvidersRegistry, proofOfWorkCalculationRepository)
         {
-            _transactionHashKeyProvider = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
+            _transactionHashKeyProvider = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
         }
 
         public override ushort BlockType => BlockTypes.Registry_ShortBlock;

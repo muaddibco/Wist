@@ -5,14 +5,16 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
+using Wist.Core.HashCalculations;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.Serializers.Signed.Synchronization
 {
     [RegisterExtension(typeof(ISignatureSupportSerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class SynchronizationConfirmedBlockSerializer : SyncLinkedSupportSerializerBase<SynchronizationConfirmedBlock>
     {
-        public SynchronizationConfirmedBlockSerializer(ICryptoService cryptoService) 
-            : base(PacketType.Synchronization, BlockTypes.Synchronization_ConfirmedBlock, cryptoService)
+        public SynchronizationConfirmedBlockSerializer(ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository) 
+            : base(PacketType.Synchronization, BlockTypes.Synchronization_ConfirmedBlock, cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository)
         {
         }
 

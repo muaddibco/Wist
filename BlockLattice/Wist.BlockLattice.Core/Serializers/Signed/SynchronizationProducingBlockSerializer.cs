@@ -9,6 +9,8 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
+using Wist.Core.HashCalculations;
+using Wist.Core.Identity;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 
@@ -19,8 +21,8 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
     public class SynchronizationProducingBlockSerializer : SignatureSupportSerializerBase<SynchronizationProducingBlock>
     {
 
-        public SynchronizationProducingBlockSerializer(ICryptoService cryptoService) 
-            : base(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock, cryptoService)
+        public SynchronizationProducingBlockSerializer(ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository) 
+            : base(PacketType.Synchronization, BlockTypes.Synchronization_TimeSyncProducingBlock, cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository)
         {
         }
 

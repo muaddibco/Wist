@@ -38,10 +38,10 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
         {
             byte[] transactionHeightBytes = BitConverter.GetBytes(BlockHeight);
 
-            byte[] senderAndHeightBytes = new byte[Key.Length + transactionHeightBytes.Length];
+            byte[] senderAndHeightBytes = new byte[Signer.Length + transactionHeightBytes.Length];
 
-            Array.Copy(Key.Value, senderAndHeightBytes, Key.Length);
-            Array.Copy(transactionHeightBytes, 0, senderAndHeightBytes, Key.Length, transactionHeightBytes.Length);
+            Array.Copy(Signer.Value, senderAndHeightBytes, Signer.Length);
+            Array.Copy(transactionHeightBytes, 0, senderAndHeightBytes, Signer.Length, transactionHeightBytes.Length);
 
             IKey key = transactionHashKey.GetKey(cryptoService.ComputeTransactionKey(senderAndHeightBytes));
 

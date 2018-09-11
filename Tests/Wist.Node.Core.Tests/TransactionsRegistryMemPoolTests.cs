@@ -94,7 +94,7 @@ namespace Wist.Node.Core.Tests
             logger.WhenForAnyArgs(l => l.Info(null)).DoNotCallBase();
             loggerService.GetLogger(null).Returns(logger);
 
-            identityKeyProvidersRegistry.GetInstance(null).ReturnsForAnyArgs(identityKeyProvider);
+            identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().ReturnsForAnyArgs(identityKeyProvider);
 
             statesRepository.GetInstance<ISynchronizationContext>().Returns(synchronizationContext);
 
@@ -156,7 +156,7 @@ namespace Wist.Node.Core.Tests
             logger.WhenForAnyArgs(l => l.Info(null)).DoNotCallBase();
             loggerService.GetLogger(null).Returns(logger);
 
-            identityKeyProvidersRegistry.GetInstance(null).ReturnsForAnyArgs(identityKeyProvider);
+            identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().ReturnsForAnyArgs(identityKeyProvider);
 
             statesRepository.GetInstance<ISynchronizationContext>().Returns(synchronizationContext);
 

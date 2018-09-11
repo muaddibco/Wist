@@ -10,11 +10,11 @@ namespace Wist.BlockLattice.Core.Parsers
 {
     public abstract class SignedBlockParserBase : BlockParserBase
     {
-        protected readonly IIdentityKeyProvider _identityKeyProvider;
+        protected readonly IIdentityKeyProvider _signerIdentityKeyProvider;
 
-        public SignedBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base()
+        public SignedBlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry) : base(identityKeyProvidersRegistry)
         {
-            _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
+            _signerIdentityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }
 
         protected override BlockBase ParseBlockBase(ushort version, Span<byte> spanBody)
@@ -23,7 +23,7 @@ namespace Wist.BlockLattice.Core.Parsers
             Span<byte> spanPostBody = ParseSigned(version, spanBody, out signedBlockBase);
 
             signedBlockBase.Signature = spanPostBody.Slice(0, Globals.SIGNATURE_SIZE).ToArray();
-            signedBlockBase.Key = _identityKeyProvider.GetKey(spanPostBody.Slice(Globals.SIGNATURE_SIZE, Globals.NODE_PUBLIC_KEY_SIZE).ToArray());
+            signedBlockBase.Signer = _signerIdentityKeyProvider.GetKey(spanPostBody.Slice(Globals.SIGNATURE_SIZE, Globals.NODE_PUBLIC_KEY_SIZE).ToArray());
 
             return signedBlockBase;
         }

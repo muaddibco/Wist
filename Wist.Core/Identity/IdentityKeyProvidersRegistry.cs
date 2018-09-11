@@ -11,6 +11,8 @@ namespace Wist.Core.Identity
     [RegisterDefaultImplementation(typeof(IIdentityKeyProvidersRegistry), Lifetime = LifetimeManagement.Singleton)]
     public class IdentityKeyProvidersRegistry : IIdentityKeyProvidersRegistry
     {
+        public static string TRANSACTIONS_IDENTITY_KEY_PROVIDER_NAME = "TransactionRegistry";
+
         private readonly Dictionary<string, IIdentityKeyProvider> _identityKeyProviders;
         private readonly IIdentityKeyProvider _currentIdentityKeyProvider;
 
@@ -60,6 +62,11 @@ namespace Wist.Core.Identity
             }
 
             return _identityKeyProviders[key];
+        }
+
+        public IIdentityKeyProvider GetTransactionsIdenityKeyProvider()
+        {
+            return GetInstance(TRANSACTIONS_IDENTITY_KEY_PROVIDER_NAME);
         }
     }
 }

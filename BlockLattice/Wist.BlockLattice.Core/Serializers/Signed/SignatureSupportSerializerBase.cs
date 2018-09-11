@@ -5,6 +5,8 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Cryptography;
+using Wist.Core.HashCalculations;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.Serializers.Signed
 {
@@ -17,17 +19,21 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
         protected T _block;
         protected readonly ICryptoService _cryptoService;
+        protected readonly IIdentityKeyProvider _transactionKeyIdentityKeyProvider;
+        protected readonly IHashCalculation _transactionKeyHashCalculation;
 
         protected readonly MemoryStream _memoryStream;
         protected readonly BinaryWriter _binaryWriter;
         protected readonly BinaryReader _binaryReader;
 
-
+        private bool _bytesFilled;
         private bool _disposed = false; // To detect redundant calls
 
-        public SignatureSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService)
+        public SignatureSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository)
         {
             _cryptoService = cryptoService;
+            _transactionKeyIdentityKeyProvider = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
+            _transactionKeyHashCalculation = hashCalculationsRepository.Create(HashType.MurMur);
 
             PacketType = packetType;
             BlockType = blockType;
@@ -56,6 +62,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
         public virtual void Initialize(SignedBlockBase signedBlockBase)
         {
+            _bytesFilled = false;
             _disposed = false;
             _block = signedBlockBase as T;
         }
@@ -94,7 +101,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
         public void FillBodyAndRowBytes()
         {
-            if (_block == null)
+            if (_block == null || _bytesFilled)
             {
                 return;
             }
@@ -126,8 +133,23 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             _binaryWriter.Write(_cryptoService.Key.Value);
 
             _block.Signature = signature;
-            _block.Key = _cryptoService.Key;
+            _block.Signer = _cryptoService.Key;
             _block.RawData = _memoryStream.ToArray();
+
+            _block.Key = _transactionKeyIdentityKeyProvider.GetKey(_transactionKeyHashCalculation.CalculateHash(_block.RawData));
+            _bytesFilled = true;
+        }
+
+        public IKey GetKey()
+        {
+            if (_block == null)
+            {
+                return null;
+            }
+
+            FillBodyAndRowBytes();
+
+            return _block.Key;
         }
 
         ~SignatureSupportSerializerBase()

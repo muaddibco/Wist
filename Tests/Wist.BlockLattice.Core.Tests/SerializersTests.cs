@@ -16,6 +16,8 @@ using System.IO;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Serializers.Signed.Registry;
 using System.Diagnostics;
+using Wist.Core.HashCalculations;
+using Wist.Crypto.HashCalculations;
 
 namespace Wist.BlockLattice.Core.Tests
 {
@@ -93,7 +95,7 @@ namespace Wist.BlockLattice.Core.Tests
                 Nonce = nonce,
                 PowHash = powHash,
                 HashPrev = prevHash,
-                Key = new Key32() { Value = publicKey },
+                Signer = new Key32() { Value = publicKey },
                 ReportedTime = expectedDateTime,
                 Round = round,
                 Signature = expectedSignature,
@@ -113,7 +115,15 @@ namespace Wist.BlockLattice.Core.Tests
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
 
-            SynchronizationConfirmedBlockSerializer serializer = new SynchronizationConfirmedBlockSerializer(cryptoService);
+            IIdentityKeyProvider transactionIdentityKeyProvider = Substitute.For<IIdentityKeyProvider>();
+            transactionIdentityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            IIdentityKeyProvidersRegistry transactionIdentityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
+            transactionIdentityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(transactionIdentityKeyProvider);
+
+            IHashCalculationsRepository transactionHashCalculationsRepository = Substitute.For<IHashCalculationsRepository>();
+            transactionHashCalculationsRepository.Create(HashType.MurMur).Returns(new MurMurHashCalculation());
+
+            SynchronizationConfirmedBlockSerializer serializer = new SynchronizationConfirmedBlockSerializer(cryptoService, transactionIdentityKeyProvidersRegistry, transactionHashCalculationsRepository);
             serializer.Initialize(block);
 
             byte[] actualPacket = serializer.GetBytes();
@@ -186,7 +196,15 @@ namespace Wist.BlockLattice.Core.Tests
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
 
-            RegistryRegisterBlockSerializer serializer = new RegistryRegisterBlockSerializer(cryptoService);
+            IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
+            identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProvider);
+
+            IHashCalculationsRepository hashCalculationsRepository = Substitute.For<IHashCalculationsRepository>();
+            hashCalculationsRepository.Create(HashType.MurMur).Returns(new MurMurHashCalculation());
+
+            RegistryRegisterBlockSerializer serializer = new RegistryRegisterBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository);
             serializer.Initialize(block);
 
             byte[] actualPacket = serializer.GetBytes();
@@ -258,7 +276,15 @@ namespace Wist.BlockLattice.Core.Tests
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
 
-            RegistryShortBlockSerializer serializer = new RegistryShortBlockSerializer(cryptoService);
+            IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
+            identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProvider);
+
+            IHashCalculationsRepository hashCalculationsRepository = Substitute.For<IHashCalculationsRepository>();
+            hashCalculationsRepository.Create(HashType.MurMur).Returns(new MurMurHashCalculation());
+
+            RegistryShortBlockSerializer serializer = new RegistryShortBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository);
             serializer.Initialize(block);
 
             byte[] actualPacket = serializer.GetBytes();
@@ -317,7 +343,16 @@ namespace Wist.BlockLattice.Core.Tests
                         ReferencedTargetHash = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
                     }
                 };
-                RegistryRegisterBlockSerializer serializer1 = new RegistryRegisterBlockSerializer(cryptoService);
+
+                IIdentityKeyProvider transactionIdentityKeyProvider = Substitute.For<IIdentityKeyProvider>();
+                transactionIdentityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+                IIdentityKeyProvidersRegistry transactionIdentityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
+                transactionIdentityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(transactionIdentityKeyProvider);
+
+                IHashCalculationsRepository transactionHashCalculationsRepository = Substitute.For<IHashCalculationsRepository>();
+                transactionHashCalculationsRepository.Create(HashType.MurMur).Returns(new MurMurHashCalculation());
+
+                RegistryRegisterBlockSerializer serializer1 = new RegistryRegisterBlockSerializer(cryptoService, transactionIdentityKeyProvidersRegistry, transactionHashCalculationsRepository);
                 serializer1.Initialize(registryRegisterBlock);
                 serializer1.FillBodyAndRowBytes();
 
@@ -358,7 +393,15 @@ namespace Wist.BlockLattice.Core.Tests
                 ShortBlockHash = BinaryBuilder.GetDefaultHash(1111)
             };
 
-            RegistryFullBlockSerializer serializer = new RegistryFullBlockSerializer(cryptoService);
+            IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
+            identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProvider);
+
+            IHashCalculationsRepository hashCalculationsRepository = Substitute.For<IHashCalculationsRepository>();
+            hashCalculationsRepository.Create(HashType.MurMur).Returns(new MurMurHashCalculation());
+
+            RegistryFullBlockSerializer serializer = new RegistryFullBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository);
             serializer.Initialize(block);
 
             byte[] actualPacket = serializer.GetBytes();
@@ -422,7 +465,15 @@ namespace Wist.BlockLattice.Core.Tests
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
 
-            RegistryConfidenceBlockSerializer serializer = new RegistryConfidenceBlockSerializer(cryptoService);
+            IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
+            identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProvider);
+
+            IHashCalculationsRepository hashCalculationsRepository = Substitute.For<IHashCalculationsRepository>();
+            hashCalculationsRepository.Create(HashType.MurMur).Returns(new MurMurHashCalculation());
+
+            RegistryConfidenceBlockSerializer serializer = new RegistryConfidenceBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository);
             serializer.Initialize(block);
 
             byte[] actualPacket = serializer.GetBytes();

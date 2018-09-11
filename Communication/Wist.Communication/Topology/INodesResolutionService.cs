@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using Wist.BlockLattice.Core.DataModel;
+using Wist.BlockLattice.Core.Serializers;
 using Wist.Core.Architecture;
+using Wist.Core.Communication;
 using Wist.Core.Identity;
 
-namespace Wist.Core.Communication
+namespace Wist.Communication.Topology
 {
     [ServiceContract]
     public interface INodesResolutionService
@@ -15,5 +18,7 @@ namespace Wist.Core.Communication
         void UpdateBulkNodes(IEnumerable<NodeAddress> nodeAddresses);
 
         IPAddress ResolveNodeAddress(IKey key);
+
+        IEnumerable<IKey> GetStorageNodeKeys(ITransactionKeyProvider transactionKeyProvider);
     }
 }

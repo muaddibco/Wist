@@ -46,7 +46,7 @@ namespace Wist.Simulation.Load
                     {
                         SyncBlockHeight = index,
                         BlockHeight = (ulong)++index,
-                        Key = _key,
+                        Signer = _key,
                         ReportedTime = DateTime.Now,
                         Round = 1,
                         HashPrev = prevHash ?? new byte[Globals.DEFAULT_HASH_SIZE],

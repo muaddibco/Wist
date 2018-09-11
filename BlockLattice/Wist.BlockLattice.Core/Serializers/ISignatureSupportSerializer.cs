@@ -6,7 +6,7 @@ using Wist.Core.Communication;
 namespace Wist.BlockLattice.Core.Serializers
 {
     [ExtensionPoint]
-    public interface ISignatureSupportSerializer : IPacketProvider
+    public interface ISignatureSupportSerializer : IPacketProvider, ITransactionKeyProvider
     {
         PacketType PacketType { get; }
 

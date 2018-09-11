@@ -13,6 +13,7 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Serializers;
 using Wist.Communication.Interfaces;
+using Wist.Communication.Topology;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
@@ -40,22 +41,24 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISyncRegistryNeighborhoodState _syncRegistryNeighborhoodState;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly ISyncRegistryMemPool _syncRegistryMemPool;
+        private readonly INodesResolutionService _nodesResolutionService;
         private IServerCommunicationService _communicationService;
         private CancellationToken _cancellationToken;
 
-        public TransactionsRegistrySyncHandler(IStatesRepository statesRepository, ISyncShardsManager syncShardsManager, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, ISyncRegistryMemPool syncRegistryMemPool)
+        public TransactionsRegistrySyncHandler(IStatesRepository statesRepository, ISyncShardsManager syncShardsManager, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, ISyncRegistryMemPool syncRegistryMemPool, INodesResolutionService nodesResolutionService)
         {
             _registryBlocks = new BlockingCollection<RegistryBlockBase>();
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _syncRegistryNeighborhoodState = statesRepository.GetInstance<ISyncRegistryNeighborhoodState>();
             _syncContextChangedUnsibsciber = _synchronizationContext.SubscribeOnStateChange(new ActionBlock<string>((Action<string>)SynchronizationStateChanged));
             _syncShardsManager = syncShardsManager;
-            _transactionHashKey = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
+            _transactionHashKey = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
             _cryptoService = cryptoService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _defaultTransactionHashCalculation = hashCalculationsRepository.Create(Globals.DEFAULT_HASH);
             _communicationServicesRegistry = communicationServicesRegistry;
             _syncRegistryMemPool = syncRegistryMemPool;
+            _nodesResolutionService = nodesResolutionService;
         }
 
         public string Name => NAME;
@@ -121,6 +124,8 @@ namespace Wist.Node.Core.Synchronization
 
             _communicationService.PostMessage(_syncRegistryNeighborhoodState.GetAllNeighbors(), signatureSupportSerializer);
 
+            IEnumerable<IKey> storageLayerKeys = _nodesResolutionService.GetStorageNodeKeys(signatureSupportSerializer);
+            _communicationService.PostMessage(storageLayerKeys, signatureSupportSerializer);
             //TODO: transactionsFullBlockMostConfident must be sent to Storage level and combined with other most confident full blocks from other shards
         }
 

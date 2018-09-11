@@ -24,7 +24,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public void Add(Node item)
         {
-            LatticeDataService.Instance.AddNode(item.Key, item.IPAddress);
+            LatticeDataService.Instance.AddNode(item.Key, item.NodeRole, item.IPAddress);
         }
 
         public Node Get(IKey key)

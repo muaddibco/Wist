@@ -111,7 +111,7 @@ namespace Wist.BlockLattice.Core.Tests
                 Assert.Equal(expectedSignerSignatures[i], block.Signatures[i]);
             }
 
-            Assert.Equal(publicKey, block.Key.Value);
+            Assert.Equal(publicKey, block.Signer.Value);
             Assert.Equal(expectedSignature, block.Signature);
         }
 
@@ -182,7 +182,7 @@ namespace Wist.BlockLattice.Core.Tests
             Assert.Equal(expectedReferencedBodyHash, block.TransactionHeader.ReferencedBodyHash);
             Assert.Equal(expectedTarget, block.TransactionHeader.ReferencedTargetHash);
 
-            Assert.Equal(publicKey, block.Key.Value);
+            Assert.Equal(publicKey, block.Signer.Value);
             Assert.Equal(expectedSignature, block.Signature);
         }
 
@@ -195,7 +195,7 @@ namespace Wist.BlockLattice.Core.Tests
             IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
 
             identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
-            identityKeyProvidersRegistry.GetInstance("TransactionRegistry").Returns(transactionHashKeyProvider);
+            identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(transactionHashKeyProvider);
             identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<byte[]>() });
             transactionHashKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16() { Value = c.Arg<byte[]>() });
 
@@ -259,7 +259,7 @@ namespace Wist.BlockLattice.Core.Tests
                 Assert.Equal(item.Value, block.TransactionHeaderHashes[item.Key]);
             }
 
-            Assert.Equal(publicKey, block.Key.Value);
+            Assert.Equal(publicKey, block.Signer.Value);
             Assert.Equal(expectedSignature, block.Signature);
         }
 
@@ -318,7 +318,7 @@ namespace Wist.BlockLattice.Core.Tests
                     }
                 };
 
-                RegistryRegisterBlockSerializer serializer1 = new RegistryRegisterBlockSerializer(cryptoService);
+                RegistryRegisterBlockSerializer serializer1 = new RegistryRegisterBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationRepository);
                 serializer1.Initialize(registryRegisterBlock);
                 serializer1.FillBodyAndRowBytes();
 
@@ -374,12 +374,12 @@ namespace Wist.BlockLattice.Core.Tests
                 Assert.Equal(item.Value.TransactionHeader.ReferencedBodyHash, block.TransactionHeaders[item.Key].TransactionHeader.ReferencedBodyHash);
                 Assert.Equal(item.Value.TransactionHeader.ReferencedTargetHash, block.TransactionHeaders[item.Key].TransactionHeader.ReferencedTargetHash);
                 Assert.Equal(item.Value.Signature, block.TransactionHeaders[item.Key].Signature);
-                Assert.Equal(item.Value.Key, block.TransactionHeaders[item.Key].Key);
+                Assert.Equal(item.Value.Signer, block.TransactionHeaders[item.Key].Signer);
             }
 
             Assert.Equal(expectedShortBlockHash, block.ShortBlockHash);
 
-            Assert.Equal(publicKey, block.Key.Value);
+            Assert.Equal(publicKey, block.Signer.Value);
             Assert.Equal(expectedSignature, block.Signature);
         }
 
@@ -441,7 +441,7 @@ namespace Wist.BlockLattice.Core.Tests
             Assert.Equal(expectedConfidence, block.Confidence);
             Assert.Equal(expectedReferencedBodyHash, block.ReferencedBlockHash);
 
-            Assert.Equal(publicKey, block.Key.Value);
+            Assert.Equal(publicKey, block.Signer.Value);
             Assert.Equal(expectedSignature, block.Signature);
         }
     }

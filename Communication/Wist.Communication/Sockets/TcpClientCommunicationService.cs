@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Text;
+﻿using System.Net.Sockets;
 using Wist.BlockLattice.Core.Handlers;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Communication.Interfaces;
+using Wist.Communication.Topology;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
-using Wist.Core.Communication;
-using Wist.Core.Identity;
 using Wist.Core.Logging;
 
 namespace Wist.Communication.Sockets

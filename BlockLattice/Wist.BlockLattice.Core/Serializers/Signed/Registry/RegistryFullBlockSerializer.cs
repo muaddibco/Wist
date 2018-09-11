@@ -4,6 +4,8 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
+using Wist.Core.HashCalculations;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
 {
@@ -12,9 +14,10 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
     {
         private readonly RegistryRegisterBlockSerializer _transactionRegisterBlockSerializer;
 
-        public RegistryFullBlockSerializer(ICryptoService cryptoService) : base(PacketType.Registry, BlockTypes.Registry_FullBlock, cryptoService)
+        public RegistryFullBlockSerializer(ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository) 
+            : base(PacketType.Registry, BlockTypes.Registry_FullBlock, cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository)
         {
-            _transactionRegisterBlockSerializer = new RegistryRegisterBlockSerializer(cryptoService);
+            _transactionRegisterBlockSerializer = new RegistryRegisterBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository);
         }
 
         protected override void WriteBody(BinaryWriter bw)

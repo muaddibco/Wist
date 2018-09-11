@@ -38,21 +38,27 @@ namespace Wist.Node.Core.Tests
             IHashCalculation hashCalculationTransactionKey = new MurMurHashCalculation();
 
             IHashCalculation hashCalculationDefault = new Keccak256HashCalculation();
+            IHashCalculation hashCalculationMurMur = new MurMurHashCalculation();
             ISignatureSupportSerializersFactory signatureSupportSerializersFactory = Substitute.For<ISignatureSupportSerializersFactory>();
             IHashCalculationsRepository hashCalculationsRepository = Substitute.For<IHashCalculationsRepository>();
+            IIdentityKeyProvider identityKeyProviderTransactionKey = Substitute.For<IIdentityKeyProvider>();
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
             ICryptoService cryptoService = GetRandomCryptoService();
 
+            identityKeyProviderTransactionKey.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+
+            identityKeyProvidersRegistry.GetInstance("DefaultHash").Returns(new DefaultHashKeyProvider());
+            identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProviderTransactionKey);
+
+            hashCalculationsRepository.Create(HashType.Keccak256).Returns(hashCalculationDefault);
+            hashCalculationsRepository.Create(HashType.MurMur).Returns(hashCalculationMurMur);
+
             signatureSupportSerializersFactory.Create(null).ReturnsForAnyArgs(c =>
             {
-                RegistryShortBlockSerializer registryShortBlockSerializer = new RegistryShortBlockSerializer(cryptoService);
+                RegistryShortBlockSerializer registryShortBlockSerializer = new RegistryShortBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository);
                 registryShortBlockSerializer.Initialize(c.Arg<SignedBlockBase>());
                 return registryShortBlockSerializer;
             });
-
-            hashCalculationsRepository.Create(HashType.Keccak256).Returns(hashCalculationDefault);
-
-            identityKeyProvidersRegistry.GetInstance("DefaultHash").Returns(new DefaultHashKeyProvider());
 
             SyncRegistryMemPool syncRegistryMemPool = new SyncRegistryMemPool(signatureSupportSerializersFactory, hashCalculationsRepository, identityKeyProvidersRegistry, cryptoService);
             syncRegistryMemPool.SetRound((byte)blockHeight);
@@ -74,7 +80,7 @@ namespace Wist.Node.Core.Tests
                     TransactionHeaderHashes = transactionHeaderKeys
                 };
 
-                RegistryShortBlockSerializer registryShortBlockSerializer = new RegistryShortBlockSerializer(cryptoService1);
+                RegistryShortBlockSerializer registryShortBlockSerializer = new RegistryShortBlockSerializer(cryptoService1, identityKeyProvidersRegistry, hashCalculationsRepository);
                 registryShortBlockSerializer.Initialize(registryShortBlock);
                 registryShortBlockSerializer.FillBodyAndRowBytes();
 
@@ -88,7 +94,7 @@ namespace Wist.Node.Core.Tests
                     ShortBlockHash = hashCalculationDefault.CalculateHash(registryShortBlock.BodyBytes)
                 };
 
-                RegistryFullBlockSerializer serializer = new RegistryFullBlockSerializer(cryptoService1);
+                RegistryFullBlockSerializer serializer = new RegistryFullBlockSerializer(cryptoService1, identityKeyProvidersRegistry, hashCalculationsRepository);
                 serializer.Initialize(registryFullBlock);
                 serializer.FillBodyAndRowBytes();
 
@@ -131,7 +137,7 @@ namespace Wist.Node.Core.Tests
                         Confidence = (ushort)vote
                     };
 
-                    RegistryConfidenceBlockSerializer registryConfidenceBlockSerializer = new RegistryConfidenceBlockSerializer(cryptoService2);
+                    RegistryConfidenceBlockSerializer registryConfidenceBlockSerializer = new RegistryConfidenceBlockSerializer(cryptoService2, identityKeyProvidersRegistry, hashCalculationsRepository);
                     registryConfidenceBlockSerializer.Initialize(registryConfidenceBlock);
                     registryConfidenceBlockSerializer.FillBodyAndRowBytes();
 
@@ -192,7 +198,15 @@ namespace Wist.Node.Core.Tests
 
                 ICryptoService cryptoService = GetRandomCryptoService();
 
-                RegistryRegisterBlockSerializer serializer1 = new RegistryRegisterBlockSerializer(cryptoService);
+                IIdentityKeyProvider transactionIdentityKeyProvider = Substitute.For<IIdentityKeyProvider>();
+                transactionIdentityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+                IIdentityKeyProvidersRegistry transactionIdentityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
+                transactionIdentityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(transactionIdentityKeyProvider);
+
+                IHashCalculationsRepository transactionHashCalculationsRepository = Substitute.For<IHashCalculationsRepository>();
+                transactionHashCalculationsRepository.Create(HashType.MurMur).Returns(new MurMurHashCalculation());
+
+                RegistryRegisterBlockSerializer serializer1 = new RegistryRegisterBlockSerializer(cryptoService, transactionIdentityKeyProvidersRegistry, transactionHashCalculationsRepository);
                 serializer1.Initialize(registryRegisterBlock);
                 serializer1.FillBodyAndRowBytes();
 

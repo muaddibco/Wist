@@ -16,7 +16,7 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
         {
             if(x != null && y != null)
             {
-                return x.SyncBlockHeight == y.SyncBlockHeight && x.BlockHeight == y.BlockHeight && x.Key.Equals(y.Key);
+                return x.SyncBlockHeight == y.SyncBlockHeight && x.BlockHeight == y.BlockHeight && x.Signer.Equals(y.Signer);
             }
 
             return x == null && y == null;
@@ -24,7 +24,7 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public int GetHashCode(RegistryShortBlock obj)
         {
-            int hash = obj.SyncBlockHeight.GetHashCode() ^ obj.BlockHeight.GetHashCode() ^ obj.Key.GetHashCode();
+            int hash = obj.SyncBlockHeight.GetHashCode() ^ obj.BlockHeight.GetHashCode() ^ obj.Signer.GetHashCode();
 
             hash += hash << 13;
             hash ^= hash >> 7;

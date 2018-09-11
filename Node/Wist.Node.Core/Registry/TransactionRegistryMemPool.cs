@@ -55,7 +55,7 @@ namespace Wist.Node.Core.Registry
             };
             _timer.Start();
 
-            _transactionHashKey = identityKeyProvidersRegistry.GetInstance("TransactionRegistry");
+            _transactionHashKey = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
             _logger = loggerService.GetLogger(nameof(TransactionRegistryMemPool));
             _transactionsCounters = new Dictionary<ulong, int>();
             _transactionRegisterBlocksOrdered = new Dictionary<ulong, SortedDictionary<int, RegistryRegisterBlock>>();

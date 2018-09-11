@@ -156,7 +156,7 @@ namespace Wist.Node.Core.Synchronization
                     _synchronizationBlocksByHeight[retransmittedBlock.BlockHeight].Add(publicKey, new List<SynchronizationBlockRetransmissionV1>());
                 }
 
-                if(!_synchronizationBlocksByHeight[retransmittedBlock.BlockHeight][publicKey].Any(s => s.Key.Equals(retransmittedBlock.Key)))
+                if(!_synchronizationBlocksByHeight[retransmittedBlock.BlockHeight][publicKey].Any(s => s.Signer.Equals(retransmittedBlock.Signer)))
                 {
                     _synchronizationBlocksByHeight[retransmittedBlock.BlockHeight][publicKey].Add(retransmittedBlock);
                 }
@@ -215,9 +215,9 @@ namespace Wist.Node.Core.Synchronization
                 BlockHeight = synchronizationBlockV1.BlockHeight,
                 ReportedTime = synchronizationBlockV1.ReportedTime,
                 OffsetSinceLastMedian = (ushort)(DateTime.Now - _synchronizationContext.LastBlockDescriptor.UpdateTime).TotalSeconds,
-                ConfirmationPublicKey = synchronizationBlockV1.Key.Value,
+                ConfirmationPublicKey = synchronizationBlockV1.Signer.Value,
                 ConfirmationSignature = synchronizationBlockV1.Signature,
-                Key = _accountState.AccountKey
+                Signer = _accountState.AccountKey
             };
 
             //TODO: refactor

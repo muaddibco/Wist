@@ -21,7 +21,7 @@ namespace Wist.Tests.Core
                 PowHash = powHash??new byte[Globals.POW_HASH_SIZE],
                 BlockHeight = blockHeight,
                 TransactionHeader = transactionHeader,
-                Key = new Key32(publicKey)
+                Signer = new Key32(publicKey)
             };
 
             return transactionRegisterBlock;
@@ -46,7 +46,7 @@ namespace Wist.Tests.Core
                 PowHash = powHash ?? new byte[Globals.POW_HASH_SIZE],
                 BlockHeight = blockHeight,
                 TransactionHeaderHashes = transactionHeaders,
-                Key = new Key32(publicKey)
+                Signer = new Key32(publicKey)
             };
 
             return transactionsShortBlock;

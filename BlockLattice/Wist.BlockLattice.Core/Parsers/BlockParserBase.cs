@@ -6,12 +6,15 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.HashCalculations;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.Parsers
 {
     public abstract class BlockParserBase : IBlockParser
     {
-        public BlockParserBase()
+        protected readonly IIdentityKeyProvider _entityIdentityKeyProvider;
+
+        public BlockParserBase(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry)
         {
         }
 

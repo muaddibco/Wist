@@ -4,13 +4,16 @@ using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
+using Wist.Core.HashCalculations;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
 {
     [RegisterExtension(typeof(ISignatureSupportSerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class RegistryConfidenceBlockSerializer : SyncSupportSerializerBase<RegistryConfidenceBlock>
     {
-        public RegistryConfidenceBlockSerializer(ICryptoService cryptoService) : base(PacketType.Registry, BlockTypes.Registry_ConfidenceBlock, cryptoService)
+        public RegistryConfidenceBlockSerializer(ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository) 
+            : base(PacketType.Registry, BlockTypes.Registry_ConfidenceBlock, cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository)
         {
         }
 
