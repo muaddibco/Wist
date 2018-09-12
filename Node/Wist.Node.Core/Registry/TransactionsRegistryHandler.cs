@@ -122,7 +122,7 @@ namespace Wist.Node.Core.Registry
 
         private RegistryConfidenceBlock GetConfidence(RegistryShortBlock transactionsShortBlock)
         {
-            int rate = _registryMemPool.GetConfidenceRate(transactionsShortBlock);
+            int rate = _registryMemPool.GetConfidenceMask(transactionsShortBlock);
 
             RegistryConfidenceBlock transactionsRegistryConfidenceBlock = new RegistryConfidenceBlock()
             {

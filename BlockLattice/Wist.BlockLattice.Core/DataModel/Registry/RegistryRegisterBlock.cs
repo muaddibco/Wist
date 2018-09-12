@@ -34,7 +34,7 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
             return PacketType.GetHashCode() ^ BlockType.GetHashCode() ^ TransactionHeader.GetHashCode(); 
         }
 
-        public IKey GetTransactionRegistryHashKey(ICryptoService cryptoService, IIdentityKeyProvider transactionHashKey)
+        public IKey GetTransactionRegistryHashKey(ICryptoService cryptoService, IIdentityKeyProvider transactionHashKey, bool twiceHashed)
         {
             byte[] transactionHeightBytes = BitConverter.GetBytes(BlockHeight);
 
@@ -43,7 +43,7 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
             Array.Copy(Signer.Value, senderAndHeightBytes, Signer.Length);
             Array.Copy(transactionHeightBytes, 0, senderAndHeightBytes, Signer.Length, transactionHeightBytes.Length);
 
-            IKey key = transactionHashKey.GetKey(cryptoService.ComputeTransactionKey(senderAndHeightBytes));
+            IKey key = transactionHashKey.GetKey(cryptoService.ComputeTransactionKey(cryptoService.ComputeTransactionKey(senderAndHeightBytes)));
 
             return key;
         }

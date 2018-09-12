@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Timers;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
+using Wist.Core.ExtensionMethods;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.Core.States;
@@ -112,13 +115,31 @@ namespace Wist.Node.Core.Registry
             }
         }
 
-        public int GetConfidenceRate(RegistryShortBlock transactionsShortBlock)
+        public byte[] GetConfidenceMask(RegistryShortBlock transactionsShortBlock, out byte[] bitMask)
         {
             lock(_sync)
             {
-                Dictionary<IKey, RegistryRegisterBlock> mutualValues = _transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight].Where(kvp => transactionsShortBlock.TransactionHeaderHashes.Values.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                bool[] bools = transactionsShortBlock.TransactionHeaderHashes.Select(kvp => _transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight].ContainsKey(kvp.Value)).ToArray();
+                BitArray bitArray = bools.ToBitArray();
 
-                return mutualValues.Count;
+                bitMask = new byte[bitArray.Length / 8 + ((bitArray.Length % 8 > 0) ? 1 : 0)];
+
+                bitArray.CopyTo(bitMask, 0);
+
+                BigInteger bigIntegerSum = new BigInteger();
+                int i = 0;
+                foreach (var key in transactionsShortBlock.TransactionHeaderHashes.Keys)
+                {
+                    if(bools[i++])
+                    {
+                        BigInteger bigInteger = new BigInteger(_transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight][transactionsShortBlock.TransactionHeaderHashes[key]]);
+                        bigIntegerSum += bigInteger;
+                    }
+                }
+
+                //Dictionary<IKey, RegistryRegisterBlock> mutualValues = _transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight].Where(kvp => transactionsShortBlock.TransactionHeaderHashes.Values.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                return bigIntegerSum.ToByteArray().Take(16).ToArray();
             }
         }
 

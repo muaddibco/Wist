@@ -192,11 +192,12 @@ namespace Wist.Node.Core.Tests
             RegistryShortBlock transactionsShortBlockAll = PacketsBuilder.GetTransactionsShortBlock(1, 1, null, 1, 1, expectedBlocks.Values, privateKey, cryptoService, identityKeyProvider);
             RegistryShortBlock transactionsShortBlockOneLess = PacketsBuilder.GetTransactionsShortBlock(1, 1, null, 1, 1, expectedBlocks.Values.Skip(1), privateKey, cryptoService, identityKeyProvider);
 
-            int confidenceLevelAll = transactionRegistryMemPool.GetConfidenceRate(transactionsShortBlockAll);
-            int confidenceLevelOneLess = transactionRegistryMemPool.GetConfidenceRate(transactionsShortBlockOneLess);
+            byte[] bitMaskAll, bitMaskOneLess;
+            byte[] confidenceProofAll = transactionRegistryMemPool.GetConfidenceMask(transactionsShortBlockAll, out bitMaskAll);
+            byte[] confidenceProofOneLess = transactionRegistryMemPool.GetConfidenceMask(transactionsShortBlockOneLess, out bitMaskOneLess);
 
-            Assert.Equal(expectedBlocks.Count, confidenceLevelAll);
-            Assert.Equal(expectedBlocks.Count - 1, confidenceLevelOneLess);
+            Assert.Equal(expectedBlocks.Count, confidenceProofAll);
+            Assert.Equal(expectedBlocks.Count - 1, confidenceProofOneLess);
         }
     }
 }
