@@ -110,7 +110,8 @@ namespace Wist.Node.Core.Synchronization
                 IKey key = _transactionHashKey.GetKey(confidenceBlock.ReferencedBlockHash);
                 if (roundDescriptor.CandidateVotes.ContainsKey(key))
                 {
-                    roundDescriptor.CandidateVotes[key] += confidenceBlock.Confidence;
+                    long sum = GetConfidence(confidenceBlock.BitMask);
+                    roundDescriptor.CandidateVotes[key] += (int)sum;
                 }
             }
 
@@ -120,7 +121,46 @@ namespace Wist.Node.Core.Synchronization
             return transactionsFullBlockMostConfident;
         }
 
+        private static long GetConfidence(byte[] bitMask)
+        {
+            long sum = 0;
+            byte[] numBytes = new byte[8];
+            for (int i = 0; i < bitMask.Length; i += 8)
+            {
+                long num;
+                if (bitMask.Length - i < 8)
+                {
+                    numBytes[0] = 0;
+                    numBytes[1] = 0;
+                    numBytes[2] = 0;
+                    numBytes[3] = 0;
+                    numBytes[4] = 0;
+                    numBytes[5] = 0;
+                    numBytes[6] = 0;
+                    numBytes[7] = 0;
+
+                    Array.Copy(bitMask, i, numBytes, 0, bitMask.Length - i);
+                    num = BitConverter.ToInt64(numBytes, 0);
+                }
+                else
+                {
+                    num = BitConverter.ToInt64(bitMask, i);
+                }
+
+                sum += NumberOfSetBits(num);
+            }
+
+            return sum;
+        }
+
         #region Private Functions
+
+        private static long NumberOfSetBits(long i)
+        {
+            i = i - ((i >> 1) & 0x5555555555555555);
+            i = (i & 0x3333333333333333) + ((i >> 2) & 0x3333333333333333);
+            return (((i + (i >> 4)) & 0xF0F0F0F0F0F0F0F) * 0x101010101010101) >> 56;
+        }
 
         private void RoundEndedHandler(object state)
         {

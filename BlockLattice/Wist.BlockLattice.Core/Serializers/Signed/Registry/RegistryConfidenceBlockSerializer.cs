@@ -21,7 +21,9 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
         {
             base.WriteBody(bw);
 
-            bw.Write(_block.Confidence);
+            bw.Write((ushort)_block.BitMask.Length);
+            bw.Write(_block.BitMask);
+            bw.Write(_block.ConfidenceProof);
             bw.Write(_block.ReferencedBlockHash);
         }
     }

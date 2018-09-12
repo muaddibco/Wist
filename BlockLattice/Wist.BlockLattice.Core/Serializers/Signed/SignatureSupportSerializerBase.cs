@@ -136,7 +136,8 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             _block.Signer = _cryptoService.Key;
             _block.RawData = _memoryStream.ToArray();
 
-            _block.Key = _transactionKeyIdentityKeyProvider.GetKey(_transactionKeyHashCalculation.CalculateHash(_block.RawData));
+            byte[] hash = _transactionKeyHashCalculation.CalculateHash(_block.RawData);
+            _block.Key = _transactionKeyIdentityKeyProvider.GetKey(hash);
             _bytesFilled = true;
         }
 

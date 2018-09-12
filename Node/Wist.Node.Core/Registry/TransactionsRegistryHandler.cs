@@ -122,14 +122,16 @@ namespace Wist.Node.Core.Registry
 
         private RegistryConfidenceBlock GetConfidence(RegistryShortBlock transactionsShortBlock)
         {
-            int rate = _registryMemPool.GetConfidenceMask(transactionsShortBlock);
+            byte[] bitMask;
+            byte[] proof = _registryMemPool.GetConfidenceMask(transactionsShortBlock, out bitMask);
 
             RegistryConfidenceBlock transactionsRegistryConfidenceBlock = new RegistryConfidenceBlock()
             {
                 SyncBlockHeight = transactionsShortBlock.SyncBlockHeight,
                 BlockHeight = transactionsShortBlock.BlockHeight,
                 ReferencedBlockHash = _defaulHashCalculation.CalculateHash(transactionsShortBlock.BodyBytes),
-                Confidence = (ushort)rate
+                BitMask = bitMask,
+                ConfidenceProof = proof
             };
 
             return transactionsRegistryConfidenceBlock;

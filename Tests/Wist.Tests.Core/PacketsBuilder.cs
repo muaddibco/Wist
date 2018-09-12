@@ -6,6 +6,7 @@ using Wist.BlockLattice.Core;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.Core.Cryptography;
 using Wist.Core.Identity;
+using Wist.Node.Core.Registry;
 
 namespace Wist.Tests.Core
 {
@@ -27,7 +28,7 @@ namespace Wist.Tests.Core
             return transactionRegisterBlock;
         }
 
-        public static RegistryShortBlock GetTransactionsShortBlock(ulong syncBlockHeight, uint nonce, byte[] powHash, ulong blockHeight, byte round, IEnumerable<RegistryRegisterBlock> transactionRegisterBlocks, byte[] privateKey, ICryptoService cryptoService, IIdentityKeyProvider identityKeyProvider)
+        public static RegistryShortBlock GetTransactionsShortBlock(ulong syncBlockHeight, uint nonce, byte[] powHash, ulong blockHeight, byte round, IEnumerable<RegistryRegisterBlock> transactionRegisterBlocks, byte[] privateKey, ITransactionsRegistryHelper transactionsRegistryHelper)
         {
             byte[] publicKey = Ed25519.PublicKeyFromSeed(privateKey);
 
@@ -36,7 +37,7 @@ namespace Wist.Tests.Core
             ushort order = 0;
             foreach (var item in transactionRegisterBlocks)
             {
-                transactionHeaders.Add(order++, item.GetTransactionRegistryHashKey(cryptoService, identityKeyProvider));
+                transactionHeaders.Add(order++, transactionsRegistryHelper.GetTransactionRegistryTwiceHashedKey(item));
             }
 
             RegistryShortBlock transactionsShortBlock = new RegistryShortBlock

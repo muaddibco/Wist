@@ -31,13 +31,14 @@ namespace Wist.Node.Core.Registry
         private readonly ICryptoService _cryptoService;
         private readonly IConfigurationService _configurationService;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
+        private readonly ITransactionsRegistryHelper _transactionsRegistryHelper;
         private readonly IServerCommunicationService _tcpCommunicationService;
         private readonly IServerCommunicationService _udpCommunicationService;
         private readonly NodeCountersService _nodeCountersService;
         private Timer _timer;
         private IDisposable _syncContextUnsubscriber;
 
-        public TransactionsRegistryService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, IServerCommunicationServicesRegistry serverCommunicationServicesRegistry, IPerformanceCountersRepository performanceCountersRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
+        public TransactionsRegistryService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, IServerCommunicationServicesRegistry serverCommunicationServicesRegistry, IPerformanceCountersRepository performanceCountersRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ITransactionsRegistryHelper transactionsRegistryHelper)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
@@ -46,6 +47,7 @@ namespace Wist.Node.Core.Registry
             _cryptoService = cryptoService;
             _configurationService = configurationService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
+            _transactionsRegistryHelper = transactionsRegistryHelper;
             TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>> deduplicateAndOrderTransactionRegisterBlocksBlock = new TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>((Func<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>)DeduplicateAndOrderTransactionRegisterBlocks);
             TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>((Func<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>)ProduceTransactionsFullBlock);
             ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>> sendTransactionsFullBlock = new ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>>((Action<Tuple<RegistryFullBlock, RegistryShortBlock>>)SendTransactionsFullBlock);
@@ -152,7 +154,7 @@ namespace Wist.Node.Core.Registry
             {
                 SyncBlockHeight = transactionsFullBlock.SyncBlockHeight,
                 BlockHeight = transactionsFullBlock.BlockHeight,
-                TransactionHeaderHashes = new SortedList<ushort, IKey>(transactionsFullBlock.TransactionHeaders.ToDictionary(i => i.Key, i => i.Value.GetTransactionRegistryHashKey(_cryptoService, _transactionHashKey)))
+                TransactionHeaderHashes = new SortedList<ushort, IKey>(transactionsFullBlock.TransactionHeaders.ToDictionary(i => i.Key, i => _transactionsRegistryHelper.GetTransactionRegistryTwiceHashedKey(i.Value)))
             };
             Tuple<RegistryFullBlock, RegistryShortBlock> tuple = new Tuple<RegistryFullBlock, RegistryShortBlock>(transactionsFullBlock, transactionsShortBlock);
 

@@ -8,7 +8,9 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public override ushort Version => 1;
 
-        public ushort Confidence { get; set; }
+        public byte[] BitMask { get; set; }
+
+        public byte[] ConfidenceProof { get; set; }
 
         public byte[] ReferencedBlockHash { get; set; }
     }

@@ -18,6 +18,7 @@ using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.Core.Cryptography;
 using System.Collections.Generic;
 using Wist.BlockLattice.Core.Serializers.Signed.Registry;
+using System.Linq;
 
 namespace Wist.BlockLattice.Core.Tests
 {
@@ -400,7 +401,10 @@ namespace Wist.BlockLattice.Core.Tests
             ulong blockHeight = 9;
             byte[] prevHash = null;
 
-            ushort expectedConfidence = 123;
+            Random randNum = new Random();
+            ushort bitMaskLength = 375;
+            byte[] bitMask = Enumerable.Repeat(0, bitMaskLength).Select(i => (byte)randNum.Next(0, 255)).ToArray();
+            byte[] expectedProof = Enumerable.Repeat(0, 16).Select(i => (byte)randNum.Next(0, 255)).ToArray();
             byte[] expectedReferencedBodyHash = BinaryBuilder.GetDefaultHash(473826643);
 
             byte[] body;
@@ -416,7 +420,9 @@ namespace Wist.BlockLattice.Core.Tests
             {
                 using (BinaryWriter bw = new BinaryWriter(ms))
                 {
-                    bw.Write(expectedConfidence);
+                    bw.Write((ushort)bitMask.Length);
+                    bw.Write(bitMask);
+                    bw.Write(expectedProof);
                     bw.Write(expectedReferencedBodyHash);
                 }
 
@@ -438,7 +444,8 @@ namespace Wist.BlockLattice.Core.Tests
             Assert.Equal(version, block.Version);
             Assert.Equal(blockHeight, block.BlockHeight);
 
-            Assert.Equal(expectedConfidence, block.Confidence);
+            Assert.Equal(bitMask, block.BitMask);
+            Assert.Equal(expectedProof, block.ConfidenceProof);
             Assert.Equal(expectedReferencedBodyHash, block.ReferencedBlockHash);
 
             Assert.Equal(publicKey, block.Signer.Value);

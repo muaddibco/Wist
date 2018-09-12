@@ -116,15 +116,18 @@ namespace Wist.Node.Core.Tests
                 foreach (var registryShortBlock in registryShortBlocks)
                 {
                     byte[] hashBytes = hashCalculationDefault.CalculateHash(registryShortBlock.BodyBytes);
-                    int vote = random.Next(1, registryShortBlock.TransactionHeaderHashes.Count);
+                    Random randNum = new Random();
+                    byte[] bitMask = Enumerable.Repeat(0, registryShortBlock.TransactionHeaderHashes.Count).Select(j => (byte)randNum.Next(0, 255)).ToArray();
+                    byte[] expectedProof = Enumerable.Repeat(0, 16).Select(j => (byte)randNum.Next(0, 255)).ToArray();
                     IKey shortBlockKey = new Key32(hashBytes);
+                    long vote = GetConfidence(bitMask);
                     if(!votesPerShortBlockKey.ContainsKey(shortBlockKey))
                     {
-                        votesPerShortBlockKey.Add(shortBlockKey, vote);
+                        votesPerShortBlockKey.Add(shortBlockKey, (ushort)vote);
                     }
                     else
                     {
-                        votesPerShortBlockKey[shortBlockKey] += vote;
+                        votesPerShortBlockKey[shortBlockKey] += (ushort)vote;
                     }
 
                     RegistryConfidenceBlock registryConfidenceBlock = new RegistryConfidenceBlock
@@ -134,7 +137,8 @@ namespace Wist.Node.Core.Tests
                         Nonce = nonce,
                         PowHash = powHash,
                         ReferencedBlockHash = hashBytes,
-                        Confidence = (ushort)vote
+                        BitMask = bitMask,
+                        ConfidenceProof = expectedProof
                     };
 
                     RegistryConfidenceBlockSerializer registryConfidenceBlockSerializer = new RegistryConfidenceBlockSerializer(cryptoService2, identityKeyProvidersRegistry, hashCalculationsRepository);
@@ -226,6 +230,45 @@ namespace Wist.Node.Core.Tests
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
             return cryptoService;
+        }
+
+        private static long GetConfidence(byte[] bitMask)
+        {
+            long sum = 0;
+            byte[] numBytes = new byte[8];
+            for (int i = 0; i < bitMask.Length; i += 8)
+            {
+                long num;
+                if (bitMask.Length - i < 8)
+                {
+                    numBytes[0] = 0;
+                    numBytes[1] = 0;
+                    numBytes[2] = 0;
+                    numBytes[3] = 0;
+                    numBytes[4] = 0;
+                    numBytes[5] = 0;
+                    numBytes[6] = 0;
+                    numBytes[7] = 0;
+
+                    Array.Copy(bitMask, i, numBytes, 0, bitMask.Length - i);
+                    num = BitConverter.ToInt64(numBytes, 0);
+                }
+                else
+                {
+                    num = BitConverter.ToInt64(bitMask, i);
+                }
+
+                sum += NumberOfSetBits(num);
+            }
+
+            return sum;
+        }
+
+        private static long NumberOfSetBits(long i)
+        {
+            i = i - ((i >> 1) & 0x5555555555555555);
+            i = (i & 0x3333333333333333) + ((i >> 2) & 0x3333333333333333);
+            return (((i + (i >> 4)) & 0xF0F0F0F0F0F0F0F) * 0x101010101010101) >> 56;
         }
     }
 }
