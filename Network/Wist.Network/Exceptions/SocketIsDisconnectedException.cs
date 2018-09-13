@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
-using Wist.Communication.Properties;
+using Wist.Network.Properties;
 
-namespace Wist.Communication.Exceptions
+namespace Wist.Network.Exceptions
 {
 
     [Serializable]

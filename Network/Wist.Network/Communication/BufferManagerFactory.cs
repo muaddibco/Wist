@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using Unity;
-using Wist.Communication.Interfaces;
+using Wist.Network.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
-namespace Wist.Communication.Sockets
+namespace Wist.Network.Communication
 {
     [RegisterDefaultImplementation(typeof(IBufferManagerFactory), Lifetime = LifetimeManagement.Singleton)]
     public class BufferManagerFactory : IBufferManagerFactory

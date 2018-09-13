@@ -1,18 +1,18 @@
 using CommonServiceLocator;
-using Wist.Communication.Interfaces;
-using Wist.Communication.Sockets;
+using Wist.Network.Interfaces;
+using Wist.Network.Communication;
 using NSubstitute;
 using System;
 using System.Net;
 using System.Net.Sockets;
 using Unity;
-using Wist.Communication.Tests.Fixtures;
+using Wist.Network.Tests.Fixtures;
 using Xunit;
 using Xunit.Sdk;
 using Wist.Core.Logging;
 using Wist.Core.Architecture;
 
-namespace Wist.Communication.Tests
+namespace Wist.Network.Tests
 {
     public class CommunicationHubTests : IClassFixture<DependencyInjectionFixture>
     {

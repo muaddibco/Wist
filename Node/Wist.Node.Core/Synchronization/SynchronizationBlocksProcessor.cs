@@ -9,7 +9,7 @@ using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Serializers;
-using Wist.Communication.Interfaces;
+using Wist.Network.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Cryptography;
 using Wist.Core.ExtensionMethods;

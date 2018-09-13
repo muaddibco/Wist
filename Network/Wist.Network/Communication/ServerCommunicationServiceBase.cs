@@ -1,4 +1,4 @@
-﻿using Wist.Communication.Interfaces;
+﻿using Wist.Network.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +8,9 @@ using System.Threading;
 using Wist.Core.Logging;
 using Wist.Core.Architecture;
 using Wist.BlockLattice.Core.Handlers;
-using Wist.Communication.Topology;
+using Wist.Network.Topology;
 
-namespace Wist.Communication.Sockets
+namespace Wist.Network.Communication
 {
     public abstract class ServerCommunicationServiceBase : CommunicationServiceBase, IServerCommunicationService
     {

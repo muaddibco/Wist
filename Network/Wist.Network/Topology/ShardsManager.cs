@@ -11,7 +11,7 @@ using Wist.Core.Shards;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 
-namespace Wist.Communication.Topology
+namespace Wist.Network.Topology
 {
     [RegisterDefaultImplementation(typeof(IShardsManager), Lifetime = LifetimeManagement.Singleton)]
     public class ShardsManager : IShardsManager

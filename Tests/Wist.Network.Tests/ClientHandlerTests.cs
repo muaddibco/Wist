@@ -1,14 +1,15 @@
-﻿using Wist.Communication.Interfaces;
+﻿using Wist.Network.Interfaces;
 using NSubstitute;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Wist.Communication.Tests.Fixtures;
+using Wist.Network.Tests.Fixtures;
 using Xunit;
 using Wist.Core.Logging;
 using Wist.BlockLattice.Core.Handlers;
+using Wist.Network.Communication;
 
-namespace Wist.Communication.Tests
+namespace Wist.Network.Tests
 {
     public class ClientHandlerTests : IClassFixture<DependencyInjectionFixture>
     {

@@ -1,12 +1,10 @@
-﻿using CommonServiceLocator;
-using System;
-using System.Collections.Generic;
-using Wist.Communication.Exceptions;
-using Wist.Communication.Interfaces;
+﻿using System.Collections.Generic;
+using Wist.Network.Exceptions;
+using Wist.Network.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
-namespace Wist.Communication
+namespace Wist.Network.Communication
 {
     [RegisterDefaultImplementation(typeof(IServerCommunicationServicesRepository), Lifetime = LifetimeManagement.Singleton)]
     public class ServerCommunicationServicesRepository : IServerCommunicationServicesRepository

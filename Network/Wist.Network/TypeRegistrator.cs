@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Wist.Core.Architecture;
 
-namespace Wist.Communication
+namespace Wist.Network
 {
     public class TypeRegistrator : TypeRegistratorBase
     {

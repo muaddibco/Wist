@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Wist.Communication.Sockets
+namespace Wist.Network.Communication
 {
     public class SocketSettings
     {

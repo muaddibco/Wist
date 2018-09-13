@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Wist.Communication.Interfaces
+namespace Wist.Network.Interfaces
 {
     public interface IRequiresCommunicationHub
     {

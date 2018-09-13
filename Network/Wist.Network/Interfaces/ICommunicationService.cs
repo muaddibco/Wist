@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Wist.Communication.Sockets;
+using Wist.Network.Communication;
 using Wist.Core.Architecture;
 using Wist.Core.Communication;
 using Wist.Core.Identity;
 
-namespace Wist.Communication.Interfaces
+namespace Wist.Network.Interfaces
 {
     [ExtensionPoint]
     public interface ICommunicationService

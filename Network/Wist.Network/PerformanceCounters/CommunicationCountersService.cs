@@ -5,7 +5,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.PerformanceCounters;
 
-namespace Wist.Communication.PerformanceCounters
+namespace Wist.Network.PerformanceCounters
 {
     [PerfCounterCategory("Wist Communication Measurements")]
     [RegisterExtension(typeof(IPerformanceCountersCategoryBase), Lifetime = LifetimeManagement.Singleton)]

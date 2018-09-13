@@ -5,7 +5,7 @@ using System.Threading.Tasks.Dataflow;
 using System.Timers;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Serializers;
-using Wist.Communication.Interfaces;
+using Wist.Network.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;

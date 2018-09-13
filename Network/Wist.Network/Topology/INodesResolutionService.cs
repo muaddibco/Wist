@@ -6,7 +6,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Communication;
 using Wist.Core.Identity;
 
-namespace Wist.Communication.Topology
+namespace Wist.Network.Topology
 {
     [ServiceContract]
     public interface INodesResolutionService

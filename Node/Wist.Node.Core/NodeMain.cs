@@ -1,5 +1,5 @@
-﻿using Wist.Communication.Interfaces;
-using Wist.Communication.Sockets;
+﻿using Wist.Network.Interfaces;
+using Wist.Network.Communication;
 using System;
 using System.Net;
 using Wist.Core.Configuration;

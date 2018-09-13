@@ -4,7 +4,7 @@ using System.Text;
 using Wist.Core;
 using Wist.Core.Architecture;
 
-namespace Wist.Communication.Interfaces
+namespace Wist.Network.Interfaces
 {
     [ServiceContract]
     public interface IServerCommunicationServicesRepository : IRepository<IServerCommunicationService, string>

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Wist.Communication.Exceptions;
-using Wist.Communication.Interfaces;
+﻿using System.Collections.Generic;
+using Wist.Network.Exceptions;
+using Wist.Network.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
-namespace Wist.Communication
+namespace Wist.Network.Communication
 {
 
     [RegisterDefaultImplementation(typeof(IClientCommunicationServiceRepository), Lifetime = LifetimeManagement.Singleton)]

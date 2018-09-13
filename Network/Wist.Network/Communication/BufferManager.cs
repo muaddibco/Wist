@@ -1,4 +1,4 @@
-﻿using Wist.Communication.Interfaces;
+﻿using Wist.Network.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
@@ -6,7 +6,7 @@ using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
-namespace Wist.Communication.Sockets
+namespace Wist.Network.Communication
 {
     /// <summary>
     /// This class creates a single large buffer which can be divided up 

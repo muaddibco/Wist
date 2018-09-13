@@ -8,7 +8,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Communication;
 
-namespace Wist.Communication.Interfaces
+namespace Wist.Network.Interfaces
 {
     [ServiceContract]
     public interface ICommunicationChannel : IDisposable

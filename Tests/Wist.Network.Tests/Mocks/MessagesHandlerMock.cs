@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Wist.Communication.Tests.Mocks
+namespace Wist.Network.Tests.Mocks
 {
     public class MessagesHandlerMock
     {

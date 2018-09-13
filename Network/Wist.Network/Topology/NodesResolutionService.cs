@@ -10,7 +10,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Communication;
 using Wist.Core.Identity;
 
-namespace Wist.Communication.Topology
+namespace Wist.Network.Topology
 {
     [RegisterDefaultImplementation(typeof(INodesResolutionService), Lifetime = Wist.Core.Architecture.Enums.LifetimeManagement.Singleton)]
     public class NodesResolutionService : INodesResolutionService

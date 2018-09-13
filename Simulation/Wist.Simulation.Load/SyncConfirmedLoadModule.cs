@@ -3,7 +3,7 @@ using Wist.BlockLattice.Core;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Serializers;
-using Wist.Communication.Interfaces;
+using Wist.Network.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;

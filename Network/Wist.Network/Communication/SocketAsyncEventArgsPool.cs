@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace Wist.Communication.Sockets
+namespace Wist.Network.Communication
 {
     ///<summary>Represents a collection of reusable SocketAsyncEventArgs objects.</summary>
     internal class SocketAsyncEventArgsPool

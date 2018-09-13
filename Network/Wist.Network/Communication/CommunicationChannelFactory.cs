@@ -1,9 +1,9 @@
 ﻿using Unity;
-using Wist.Communication.Interfaces;
+using Wist.Network.Interfaces;
 using System.Collections.Generic;
 using Wist.Core.Architecture;
 
-namespace Wist.Communication
+namespace Wist.Network.Communication
 {
     public class CommunicationChannelFactory : ICommunicationChannelFactory
     {

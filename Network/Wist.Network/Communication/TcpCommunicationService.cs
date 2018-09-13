@@ -4,14 +4,14 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using Wist.BlockLattice.Core.Handlers;
-using Wist.Communication.Interfaces;
-using Wist.Communication.Topology;
+using Wist.Network.Interfaces;
+using Wist.Network.Topology;
 using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Logging;
 
-namespace Wist.Communication.Sockets
+namespace Wist.Network.Communication
 {
     [RegisterExtension(typeof(IServerCommunicationService), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class TcpCommunicationService : ServerCommunicationServiceBase

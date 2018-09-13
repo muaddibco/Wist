@@ -1,22 +1,20 @@
-﻿using Wist.Communication.Interfaces;
+﻿using Wist.Network.Interfaces;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Logging;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using System.IO;
 using Wist.Core.ExtensionMethods;
 using Wist.Core.PerformanceCounters;
-using Wist.Communication.PerformanceCounters;
+using Wist.Network.PerformanceCounters;
 using Wist.BlockLattice.Core.Handlers;
 
-namespace Wist.Communication
+namespace Wist.Network.Communication
 {
     [RegisterDefaultImplementation(typeof(ICommunicationChannel), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class CommunicationChannel : ICommunicationChannel

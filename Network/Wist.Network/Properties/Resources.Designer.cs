@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Wist.Communication.Properties {
+namespace Wist.Network.Properties {
     using System;
     
     

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using Wist.Communication.Interfaces;
+using Wist.Network.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
-namespace Wist.Communication
+namespace Wist.Network.Communication
 {
     [RegisterDefaultImplementation(typeof(IServerCommunicationServicesRegistry), Lifetime = LifetimeManagement.Singleton)]
     public class ServerCommunicationServicesRegistry : IServerCommunicationServicesRegistry

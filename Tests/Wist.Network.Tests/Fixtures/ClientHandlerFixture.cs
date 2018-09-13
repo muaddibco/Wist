@@ -1,7 +1,7 @@
 ﻿using CommonServiceLocator;
-using Wist.Communication;
-using Wist.Communication.Interfaces;
-using Wist.Communication.Sockets;
+using Wist.Network;
+using Wist.Network.Interfaces;
+using Wist.Network.Communication;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ using Wist.BlockLattice.Core.Interfaces;
 using Wist.Tests.Core.Fixtures;
 using Wist.BlockLattice.Core.Handlers;
 
-namespace Wist.Communication.Tests.Fixtures
+namespace Wist.Network.Tests.Fixtures
 {
     public class DependencyInjectionFixture : DependencyInjectionSupportFixture
     {
