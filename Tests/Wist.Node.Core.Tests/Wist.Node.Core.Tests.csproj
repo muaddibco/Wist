@@ -24,7 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj" />
     <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj" />
-    <ProjectReference Include="..\..\Communication\Wist.Communication\Wist.Communication.csproj" />
+    <ProjectReference Include="..\..\Network\Wist.Network\Wist.Network.csproj" />
     <ProjectReference Include="..\..\Crypto\Chaos.NaCl\Chaos.NaCl.csproj" />
     <ProjectReference Include="..\..\Crypto\HashLib\CoreHashLib\CoreHashLib.csproj" />
     <ProjectReference Include="..\..\Crypto\Wist.Crypto\Wist.Crypto.csproj" />

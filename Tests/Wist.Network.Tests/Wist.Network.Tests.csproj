@@ -24,8 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tests\Wist.Tests.Core\Wist.Tests.Core.csproj" />
-    <ProjectReference Include="..\Wist.Core\Wist.Core.csproj" />
+    <ProjectReference Include="..\Wist.Tests.Core\Wist.Tests.Core.csproj" />
+    <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
+    <ProjectReference Include="..\..\Network\Wist.Network\Wist.Network.csproj" />
   </ItemGroup>
 
 </Project>

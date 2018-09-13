@@ -29,7 +29,7 @@
     <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Communication\Wist.Communication\Wist.Communication.csproj">
+    <ProjectReference Include="..\..\Network\Wist.Network\Wist.Network.csproj">
       <Private>true</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj">

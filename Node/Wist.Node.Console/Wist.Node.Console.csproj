@@ -273,9 +273,9 @@
       <Project>{d3e3b9b5-54a4-4f30-bcc3-121ffc182402}</Project>
       <Name>Wist.BlockLattice.SQLite</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Communication\Wist.Communication\Wist.Communication.csproj">
+    <ProjectReference Include="..\..\Network\Wist.Network\Wist.Network.csproj">
       <Project>{871f2ff0-b4f1-41f7-89fb-5a9207cda75b}</Project>
-      <Name>Wist.Communication</Name>
+      <Name>Wist.Network</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Crypto\Wist.Crypto\Wist.Crypto.csproj">
       <Project>{78dcdbfc-7fb0-4783-b172-c6043d6aa9dc}</Project>

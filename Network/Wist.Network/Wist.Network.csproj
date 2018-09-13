@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>Wist.Communication</AssemblyName>
-    <RootNamespace>Wist.Communication</RootNamespace>
+    <AssemblyName>Wist.Network</AssemblyName>
+    <RootNamespace>Wist.Network</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -24,10 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Tests\Wist.Tests.Core\Wist.Tests.Core.csproj" />
-    <ProjectReference Include="..\..\Wist.Core.Tests\Wist.Core.Tests.csproj" />
+    <ProjectReference Include="..\Wist.Tests.Core\Wist.Tests.Core.csproj" />
     <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
-    <ProjectReference Include="..\Wist.Communication\Wist.Communication.csproj" />
   </ItemGroup>
 
 </Project>

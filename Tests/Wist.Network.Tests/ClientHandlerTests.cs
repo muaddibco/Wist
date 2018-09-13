@@ -1,15 +1,10 @@
-﻿    using CommonServiceLocator;
-using Wist.Communication;
-using Wist.Communication.Interfaces;
+﻿using Wist.Communication.Interfaces;
 using NSubstitute;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Wist.Communication.Tests.Fixtures;
 using Xunit;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Logging;
 using Wist.BlockLattice.Core.Handlers;
 
