@@ -13,6 +13,7 @@ namespace Wist.Common.Communication
     /// *****************************************************************/
     /// </classDetails>
     /// <summary>
+    /// bla bla
     /// </summary>
     public class RestfulClient : IRestfulClient
     {
