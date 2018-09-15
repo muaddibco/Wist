@@ -1,14 +1,11 @@
 ﻿using Chaos.NaCl;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using Wist.BlockLattice.Core;
 using Wist.BlockLattice.Core.DataModel.Registry;
-using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 using Wist.Node.Core.Registry;
 
-namespace Wist.Tests.Core
+namespace Wist.Node.Core.Tests
 {
     public static class PacketsBuilder
     {

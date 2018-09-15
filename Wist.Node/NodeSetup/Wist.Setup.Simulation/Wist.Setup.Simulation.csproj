@@ -5,13 +5,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0D039CB4-4FF9-4BC6-8BB3-DB6DD790F960}</ProjectGuid>
+    <ProjectGuid>{08445408-D672-4899-93A6-40AF6CFEC8EC}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Wist.Setup</RootNamespace>
-    <AssemblyName>Wist.Setup</AssemblyName>
+    <RootNamespace>Wist.Setup.Simulation</RootNamespace>
+    <AssemblyName>Wist.Setup.Simulation</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
@@ -150,9 +151,6 @@
     <Reference Include="System.Reactive, Version=4.1.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Reactive.4.1.0\lib\net46\System.Reactive.dll</HintPath>
     </Reference>
-    <Reference Include="System.Reactive.Linq, Version=3.0.3000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Reactive.Linq.4.1.0\lib\net46\System.Reactive.Linq.dll</HintPath>
-    </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Runtime.CompilerServices.Unsafe.4.5.1\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
@@ -213,45 +211,34 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SetupBootstrapper.cs" />
+    <Compile Include="SetupSimulation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj">
+    <ProjectReference Include="..\..\..\Wist.Common\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj">
       <Project>{a88ce212-6ee8-4f77-a5fc-6e4d02a91f6a}</Project>
       <Name>Wist.BlockLattice.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj">
+    <ProjectReference Include="..\..\..\Wist.Common\BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj">
       <Project>{c00d10b5-3641-487f-9cbd-f7e8a0890112}</Project>
       <Name>Wist.BlockLattice.DataModel</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.SQLite\Wist.BlockLattice.SQLite.csproj">
+    <ProjectReference Include="..\..\..\Wist.Common\BlockLattice\Wist.BlockLattice.SQLite\Wist.BlockLattice.SQLite.csproj">
       <Project>{d3e3b9b5-54a4-4f30-bcc3-121ffc182402}</Project>
       <Name>Wist.BlockLattice.SQLite</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Network\Wist.Network\Wist.Network.csproj">
-      <Project>{871f2ff0-b4f1-41f7-89fb-5a9207cda75b}</Project>
-      <Name>Wist.Network</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Crypto\Chaos.NaCl\Chaos.NaCl.csproj">
+    <ProjectReference Include="..\..\..\Wist.Common\Crypto\Chaos.NaCl\Chaos.NaCl.csproj">
       <Project>{d50f9107-fc2e-44df-abad-510cc70e2e54}</Project>
       <Name>Chaos.NaCl</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Crypto\HashLib\CoreHashLib\CoreHashLib.csproj">
-      <Project>{9d352643-dcf0-408f-9a11-65dc1d110e83}</Project>
-      <Name>CoreHashLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Crypto\Wist.Crypto\Wist.Crypto.csproj">
+    <ProjectReference Include="..\..\..\Wist.Common\Crypto\Wist.Crypto\Wist.Crypto.csproj">
       <Project>{78dcdbfc-7fb0-4783-b172-c6043d6aa9dc}</Project>
       <Name>Wist.Crypto</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Node\Wist.Node.Core\Wist.Node.Core.csproj">
-      <Project>{79953fdf-c430-474c-802f-a7edc3fd2b7e}</Project>
-      <Name>Wist.Node.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj">
+    <ProjectReference Include="..\..\..\Wist.Common\Wist.Core\Wist.Core.csproj">
       <Project>{ec7e5756-c2f6-40a7-8f5b-c8740df3a5a9}</Project>
       <Name>Wist.Core</Name>
     </ProjectReference>

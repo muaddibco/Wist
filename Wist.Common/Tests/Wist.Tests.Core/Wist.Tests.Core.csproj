@@ -27,7 +27,6 @@
     <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj" />
     <ProjectReference Include="..\..\Crypto\Chaos.NaCl\Chaos.NaCl.csproj" />
     <ProjectReference Include="..\..\Crypto\HashLib\CoreHashLib\CoreHashLib.csproj" />
-    <ProjectReference Include="..\..\Node\Wist.Node.Core\Wist.Node.Core.csproj" />
     <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
   </ItemGroup>
 

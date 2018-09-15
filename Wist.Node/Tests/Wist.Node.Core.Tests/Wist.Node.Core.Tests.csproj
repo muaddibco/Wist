@@ -22,15 +22,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj" />
-    <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj" />
-    <ProjectReference Include="..\..\Network\Wist.Network\Wist.Network.csproj" />
-    <ProjectReference Include="..\..\Crypto\Chaos.NaCl\Chaos.NaCl.csproj" />
-    <ProjectReference Include="..\..\Crypto\HashLib\CoreHashLib\CoreHashLib.csproj" />
-    <ProjectReference Include="..\..\Crypto\Wist.Crypto\Wist.Crypto.csproj" />
+    <ProjectReference Include="..\..\..\Wist.Common\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj" />
+    <ProjectReference Include="..\..\..\Wist.Common\BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj" />
+    <ProjectReference Include="..\..\..\Wist.Common\Network\Wist.Network\Wist.Network.csproj" />
+    <ProjectReference Include="..\..\..\Wist.Common\Crypto\Chaos.NaCl\Chaos.NaCl.csproj" />
+    <ProjectReference Include="..\..\..\Wist.Common\Crypto\HashLib\CoreHashLib\CoreHashLib.csproj" />
+    <ProjectReference Include="..\..\..\Wist.Common\Crypto\Wist.Crypto\Wist.Crypto.csproj" />
     <ProjectReference Include="..\..\Node\Wist.Node.Core\Wist.Node.Core.csproj" />
-    <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
-    <ProjectReference Include="..\Wist.Tests.Core\Wist.Tests.Core.csproj" />
+    <ProjectReference Include="..\..\..\Wist.Common\Wist.Core\Wist.Core.csproj" />
+    <ProjectReference Include="..\..\..\Wist.Common\Tests\Wist.Tests.Core\Wist.Tests.Core.csproj" />
   </ItemGroup>
 
 </Project>

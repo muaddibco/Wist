@@ -22,13 +22,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj">
+    <ProjectReference Include="..\..\..\Wist.Common\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj">
       <Private>true</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj">
+    <ProjectReference Include="..\..\..\Wist.Common\BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj">
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
+    <ProjectReference Include="..\..\..\Wist.Common\Wist.Core\Wist.Core.csproj" />
     <ProjectReference Include="..\Wist.Node.Core\Wist.Node.Core.csproj" />
   </ItemGroup>
 

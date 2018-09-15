@@ -5,29 +5,29 @@ VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Network", "Network", "{8A23DE96-663C-4F8A-AD76-93A8A1F09EBE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Network", "Network\Wist.Network\Wist.Network.csproj", "{871F2FF0-B4F1-41F7-89FB-5A9207CDA75B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Network", "..\Wist.Common\Network\Wist.Network\Wist.Network.csproj", "{871F2FF0-B4F1-41F7-89FB-5A9207CDA75B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Core", "Wist.Core\Wist.Core.csproj", "{EC7E5756-C2F6-40A7-8F5B-C8740DF3A5A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Core", "..\Wist.Common\Wist.Core\Wist.Core.csproj", "{EC7E5756-C2F6-40A7-8F5B-C8740DF3A5A9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Network.Tests", "Tests\Wist.Network.Tests\Wist.Network.Tests.csproj", "{501D0FB4-B73C-475D-80F5-1F00BA459FAC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Network.Tests", "..\Wist.Common\Tests\Wist.Network.Tests\Wist.Network.Tests.csproj", "{501D0FB4-B73C-475D-80F5-1F00BA459FAC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Core.Tests", "Tests\Wist.Core.Tests\Wist.Core.Tests.csproj", "{E4742514-9B5D-4463-BDEB-D035621C528C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Core.Tests", "..\Wist.Common\Tests\Wist.Core.Tests\Wist.Core.Tests.csproj", "{E4742514-9B5D-4463-BDEB-D035621C528C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Crypto", "Crypto", "{1E89ACFB-CB40-4666-8246-5378DC3EB058}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chaos.NaCl", "Crypto\Chaos.NaCl\Chaos.NaCl.csproj", "{D50F9107-FC2E-44DF-ABAD-510CC70E2E54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chaos.NaCl", "..\Wist.Common\Crypto\Chaos.NaCl\Chaos.NaCl.csproj", "{D50F9107-FC2E-44DF-ABAD-510CC70E2E54}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BlockLattice", "BlockLattice", "{7EAABD3F-EDFD-4E08-B9AC-4F28F17C3CD6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.Core", "BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj", "{A88CE212-6EE8-4F77-A5FC-6E4D02A91F6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.Core", "..\Wist.Common\BlockLattice\Wist.BlockLattice.Core\Wist.BlockLattice.Core.csproj", "{A88CE212-6EE8-4F77-A5FC-6E4D02A91F6A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Node", "Node", "{FC085ED7-E813-480A-A197-5ECE13BBF9DB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Node.Core", "Node\Wist.Node.Core\Wist.Node.Core.csproj", "{79953FDF-C430-474C-802F-A7EDC3FD2B7E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.SQLite", "BlockLattice\Wist.BlockLattice.SQLite\Wist.BlockLattice.SQLite.csproj", "{D3E3B9B5-54A4-4F30-BCC3-121FFC182402}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.SQLite", "..\Wist.Common\BlockLattice\Wist.BlockLattice.SQLite\Wist.BlockLattice.SQLite.csproj", "{D3E3B9B5-54A4-4F30-BCC3-121FFC182402}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.DataModel", "BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj", "{C00D10B5-3641-487F-9CBD-F7E8A0890112}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.DataModel", "..\Wist.Common\BlockLattice\Wist.BlockLattice.DataModel\Wist.BlockLattice.DataModel.csproj", "{C00D10B5-3641-487F-9CBD-F7E8A0890112}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Node", "Node\Wist.Node\Wist.Node.csproj", "{8F9EB526-5E94-47FC-9FDA-A8D743CA2B1E}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -40,15 +40,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Node", "Node\Wist.Node
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A80B47B4-9389-4348-8645-FFC17974D5EF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Tests.Core", "Tests\Wist.Tests.Core\Wist.Tests.Core.csproj", "{59DB939E-42CA-4995-A03B-30B71925887D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Tests.Core", "..\Wist.Common\Tests\Wist.Tests.Core\Wist.Tests.Core.csproj", "{59DB939E-42CA-4995-A03B-30B71925887D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.Core.Tests", "Tests\Wist.BlockLattice.Core.Tests\Wist.BlockLattice.Core.Tests.csproj", "{D858400A-F1C0-4ACC-AAC6-64CFA3917A2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.BlockLattice.Core.Tests", "..\Wist.Common\Tests\Wist.BlockLattice.Core.Tests\Wist.BlockLattice.Core.Tests.csproj", "{D858400A-F1C0-4ACC-AAC6-64CFA3917A2E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Crypto", "Crypto\Wist.Crypto\Wist.Crypto.csproj", "{78DCDBFC-7FB0-4783-B172-C6043D6AA9DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Crypto", "..\Wist.Common\Crypto\Wist.Crypto\Wist.Crypto.csproj", "{78DCDBFC-7FB0-4783-B172-C6043D6AA9DC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Node.Console", "Node\Wist.Node.Console\Wist.Node.Console.csproj", "{17FF27D9-81E6-4E26-96F6-6F2E24BE1066}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreHashLib", "Crypto\HashLib\CoreHashLib\CoreHashLib.csproj", "{9D352643-DCF0-408F-9A11-65DC1D110E83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoreHashLib", "..\Wist.Common\Crypto\HashLib\CoreHashLib\CoreHashLib.csproj", "{9D352643-DCF0-408F-9A11-65DC1D110E83}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".Snippets", ".Snippets", "{12533244-EA2E-4DC9-8EA3-D46E5D95DEB6}"
 	ProjectSection(SolutionItems) = preProject
