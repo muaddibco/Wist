@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Wist.Common\Wist.Common.csproj" />
+    <ProjectReference Include="..\..\..\Wist.Client\Wist.Client.Common\Wist.Client.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WistWallet.iOS", "WistWalle
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WistWallet.Base", "WistWallet\WistWallet.Base\WistWallet.Base.csproj", "{1CCF0276-5D8D-4B93-BC79-F0C812A3E7BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Common", "Wist.Common\Wist.Common.csproj", "{610C84A3-39CA-448B-8DD6-A8A416E6EEA2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Common", "..\Wist.Client\Wist.Client.Common\Wist.Client.Common.csproj", "{610C84A3-39CA-448B-8DD6-A8A416E6EEA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
