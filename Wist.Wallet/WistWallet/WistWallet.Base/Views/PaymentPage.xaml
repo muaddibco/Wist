@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="WistWallet.Base.Views.PaymentPage"
+             BindingContext="{Binding PaymentViewModel, Source={StaticResource Locator}}">
+    <ContentPage.Content>
+        <StackLayout>
+            
+            <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
+                <Label Text="{Binding LabelTitle}"/>
+            </StackLayout>
+            
+            <!--Selected sum input-->
+            <StackLayout Orientation="Horizontal">
+                <Label Text="{Binding LabelSelectedSum}"/>
+                <Entry Text="{Binding SelectedSum}" WidthRequest="100"/>
+            </StackLayout>
+            <!--==================-->
+
+            <!--Selected currency -->
+            <StackLayout Orientation="Horizontal">
+                <Label Text="{Binding LabelSelectedCurrency}"/>
+                <Picker ItemsSource="{Binding ListCurrency}" WidthRequest="100"/>
+            </StackLayout>
+            <!--==================-->
+            
+            <!--Selected target user-->
+            <StackLayout Orientation="Horizontal">
+                <Label Text="{Binding LabelTargetUser}"/>
+                <Label Text="{Binding SelectedUser}"/>
+            </StackLayout>
+            <!--==================-->
+
+            <!--    Button pay     -->
+            <Button Text="{Binding LabelPay}" Command="{Binding SendPayment}" />
+            <!--==================-->
+
+
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
