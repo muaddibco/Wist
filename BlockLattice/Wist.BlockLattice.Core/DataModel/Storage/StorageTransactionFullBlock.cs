@@ -8,6 +8,6 @@ namespace Wist.BlockLattice.Core.DataModel.Storage
 
         public override ushort Version => 1;
 
-        public BlockBase Transaction { get; set; }
+        public byte[] Transaction { get; set; }
     }
 }
