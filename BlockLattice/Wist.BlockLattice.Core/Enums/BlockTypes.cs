@@ -22,5 +22,7 @@
         public const ushort Synchronization_ReadyToParticipateBlock = 3;
         public const ushort Synchronization_MedianApproval = 4;
         public const ushort Synchronization_ConfirmedBlock = ushort.MaxValue;
+
+        public const ushort Storage_TransactionFull = 1;
     }
 }

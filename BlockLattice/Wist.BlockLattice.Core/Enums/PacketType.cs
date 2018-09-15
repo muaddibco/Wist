@@ -5,6 +5,7 @@
         Registry = 0,
         AccountChain = 1,
         TransactionalChain = 2,
+        Storage = 3,
         Synchronization = ushort.MaxValue
     }
 }
