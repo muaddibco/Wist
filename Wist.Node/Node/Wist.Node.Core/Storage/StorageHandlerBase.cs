@@ -18,8 +18,7 @@ using Wist.Node.Core.Registry;
 
 namespace Wist.Node.Core.Storage
 {
-    [RegisterExtension(typeof(IBlocksHandler), Lifetime = LifetimeManagement.Singleton)]
-    public class StorageHandler : IBlocksHandler
+    public abstract class StorageHandlerBase : IBlocksHandler
     {
         public const string NAME = "Storage";
 
@@ -29,7 +28,7 @@ namespace Wist.Node.Core.Storage
         private ActionBlock<StorageTransactionFullBlock> _storeFullBlock;
         private CancellationToken _cancellationToken;
 
-        public StorageHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, IHashCalculationsRepository hashCalculationRepository)
+        public StorageHandlerBase(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, IHashCalculationsRepository hashCalculationRepository)
         {
             _nodeContext = statesRepository.GetInstance<INodeContext>();
             _communicationServicesRegistry = communicationServicesRegistry;

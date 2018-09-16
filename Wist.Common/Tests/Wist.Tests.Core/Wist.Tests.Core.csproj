@@ -9,10 +9,10 @@
   <ItemGroup>
     <PackageReference Include="CommonServiceLocator" Version="2.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
-    <PackageReference Include="PostSharp" Version="6.0.26" />
+    <PackageReference Include="PostSharp" Version="6.0.27" />
     <PackageReference Include="System.Memory" Version="4.5.1" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.9.0" />
-    <PackageReference Include="Unity" Version="5.8.8" />
+    <PackageReference Include="Unity" Version="5.8.11" />
     <PackageReference Include="Unity.ServiceLocation" Version="2.1.2" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0">
