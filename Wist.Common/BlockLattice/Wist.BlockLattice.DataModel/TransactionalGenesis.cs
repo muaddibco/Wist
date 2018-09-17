@@ -18,10 +18,6 @@ namespace Wist.BlockLattice.DataModel
 
         public AccountIdentity Identity { get; set; }
 
-        public ushort Version { get; set; }
-
         public byte[] BlockContent { get; set; }
-
-        public virtual ICollection<TransactionalGenesisModification> GenesisModifications { get; set; }
     }
 }

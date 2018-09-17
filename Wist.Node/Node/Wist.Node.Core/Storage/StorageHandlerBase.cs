@@ -20,47 +20,38 @@ namespace Wist.Node.Core.Storage
 {
     public abstract class StorageHandlerBase : IBlocksHandler
     {
-        public const string NAME = "Storage";
-
         private readonly INodeContext _nodeContext;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
-
-        private ActionBlock<StorageTransactionFullBlock> _storeFullBlock;
+        private readonly IChainDataServicesManager _chainDataServicesManager;
+        private ActionBlock<BlockBase> _storeFullBlock;
         private CancellationToken _cancellationToken;
 
-        public StorageHandlerBase(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, IHashCalculationsRepository hashCalculationRepository)
+        public StorageHandlerBase(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, IHashCalculationsRepository hashCalculationRepository, IChainDataServicesManager chainDataServicesManager)
         {
             _nodeContext = statesRepository.GetInstance<INodeContext>();
             _communicationServicesRegistry = communicationServicesRegistry;
+            _chainDataServicesManager = chainDataServicesManager;
         }
 
-        public string Name => NAME;
+        public abstract string Name { get; }
 
-        public PacketType PacketType => PacketType.Storage;
+        public abstract PacketType PacketType { get; }
 
         public void Initialize(CancellationToken ct)
         {
             _cancellationToken = ct;
-            _storeFullBlock = new ActionBlock<StorageTransactionFullBlock>((Action<StorageTransactionFullBlock>)StoreFullBlock, new ExecutionDataflowBlockOptions { CancellationToken = _cancellationToken });
+            _storeFullBlock = new ActionBlock<BlockBase>((Action<BlockBase>)StoreFullBlock, new ExecutionDataflowBlockOptions { CancellationToken = _cancellationToken });
         }
 
         public void ProcessBlock(BlockBase blockBase)
         {
-            StorageBlockBase storageBlockBase = blockBase as StorageBlockBase;
-
-            if (storageBlockBase == null)
-            {
-                return;
-            }
-
-            StorageTransactionFullBlock storageTransactionFullBlock = blockBase as StorageTransactionFullBlock;
-
-            _storeFullBlock.Post(storageTransactionFullBlock);
+            _storeFullBlock.Post(blockBase);
         }
 
-        private void StoreFullBlock(StorageTransactionFullBlock storageTransactionFullBlock)
+        private void StoreFullBlock(BlockBase blockBase)
         {
-
+            IChainDataService chainDataService = _chainDataServicesManager.GetChainDataService(blockBase.PacketType);
+            chainDataService.Add(blockBase);
         }
     }
 }
