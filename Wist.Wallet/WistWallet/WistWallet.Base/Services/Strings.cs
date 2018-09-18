@@ -17,11 +17,11 @@
         //                                 MEMBERS
         //============================================================================
         public static string HowMuch => "How much money do you want to transfer?";
-        public static string PaymentTitle => "Payment Page";
+        public static string PaymentTitle => "Payment";
+        public static string VoteTitle => "Vote";
         public static string SelectedSum => "Selected sum";
         public static string SelectedCurrency => "Currency";
         public static string TargetUser => "Target user";
         public static string Pay => "Pay";
-
     }
 }

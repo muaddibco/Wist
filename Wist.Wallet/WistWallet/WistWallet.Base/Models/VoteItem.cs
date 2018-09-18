@@ -6,17 +6,15 @@
     /// 
     ///  Author       : Ami
     ///       
-    ///  Date         : 9/15/2018 7:18:09 PM      
+    ///  Date         : 9/15/2018 10:59:16 PM      
     /// *****************************************************************/
     /// </classDetails>
     /// <summary>
     /// </summary>
-    public enum Currency
+    public class VoteItem
     {
-        Wist,
-        UsDollar,
-        AuDollar,
-        Euro,
-        NIS
+        public string Label { get; set; }
+
+        public bool IsSelected { get; set; }
     }
 }

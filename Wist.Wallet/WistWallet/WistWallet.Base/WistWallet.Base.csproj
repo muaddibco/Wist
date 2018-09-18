@@ -5,20 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Views.rar" />
+    <None Remove="WistWallet.Base.rar" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommonServiceLocator" Version="2.0.4" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="2.1.0" />
     <PackageReference Include="MvvmLight" Version="5.4.1.1" />
     <PackageReference Include="MvvmLightLibs" Version="5.4.1.1" />
-    <PackageReference Include="Xamarin.Forms" Version="3.0.0.446417" />  
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Wist.Client\Wist.Client.Common\Wist.Client.Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Views\PaymentPage.xaml">
-      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
-    </EmbeddedResource>
+    <PackageReference Include="Xamarin.Forms" Version="3.1.0.697729" />  
   </ItemGroup>
 </Project>

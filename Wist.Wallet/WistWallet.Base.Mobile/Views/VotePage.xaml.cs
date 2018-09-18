@@ -1,12 +1,12 @@
 ﻿using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
-namespace WistWallet.Base.Views
+namespace WistWallet.Base.Mobile.Views
 {
 	[XamlCompilation(XamlCompilationOptions.Compile)]
-	public partial class AboutPage : ContentPage
+	public partial class VotePage : ContentPage
 	{
-		public AboutPage ()
+        public VotePage ()
 		{
 			InitializeComponent ();
 		}

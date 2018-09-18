@@ -31,6 +31,8 @@ namespace WistWallet.Base.ViewModels
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
             SimpleIoc.Default.Register<IPaymentViewModel, PaymentViewModel>();
+
+            SimpleIoc.Default.Register<IVoteViewModel, VoteViewModel>();
         }
 
         //============================================================================
@@ -40,6 +42,7 @@ namespace WistWallet.Base.ViewModels
         #region ============ PUBLIC FUNCTIONS =============  
 
         public IPaymentViewModel PaymentViewModel => ServiceLocator.Current.GetInstance<IPaymentViewModel>();
+        public IVoteViewModel VotePaymentViewModel => ServiceLocator.Current.GetInstance<IVoteViewModel>();
 
         #endregion
 

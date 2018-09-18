@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Input;
-using WistWallet.Base.Interfaces;
-using WistWallet.Base.Models;
-using WistWallet.Base.Services;
-using Xamarin.Forms;
+﻿using WistWallet.Base.Interfaces;
 
 namespace WistWallet.Base.ViewModels
 {
@@ -15,37 +8,26 @@ namespace WistWallet.Base.ViewModels
     /// 
     ///  Author       : Ami
     ///       
-    ///  Date         : 9/15/2018 1:41:15 PM      
+    ///  Date         : 9/15/2018 10:57:18 PM      
     /// *****************************************************************/
     /// </classDetails>
     /// <summary>
     /// </summary>
-    public class PaymentViewModel : BaseViewModel, IPaymentViewModel
+    public class VoteViewModel : BaseViewModel, IVoteViewModel
     {
         //============================================================================
         //                                 MEMBERS
         //============================================================================
 
-        public string LabelTitle => Strings.PaymentTitle;
-        public string LabelSelectedCurrency => Strings.SelectedCurrency;
-        public string LabelSelectedSum => Strings.SelectedSum;
-        public string LabelTargetUser => Strings.TargetUser;
-        public string LabelPay => Strings.Pay;
-
-        public Currency SelectedCurrency { get; set; }
-        public uint SelectedSum { get; set; }
-        public string SelectedUser { get; set; }
-        public ICollection<string> ListCurrency => Enum.GetNames(typeof(Currency)).ToList();
+        //public TYPE Type { get; set; }
 
         //============================================================================
         //                                  C'TOR
         //============================================================================
 
-        public PaymentViewModel()
+        public VoteViewModel()
         {
-            SelectedSum = 0;
 
-            SelectedCurrency = Currency.UsDollar;
         }
 
         //============================================================================
@@ -54,11 +36,6 @@ namespace WistWallet.Base.ViewModels
 
         #region ============ PUBLIC FUNCTIONS =============  
 
-        public ICommand SendPaymentCommand => 
-            new Command(() =>
-        {
-
-        });
 
         #endregion
 

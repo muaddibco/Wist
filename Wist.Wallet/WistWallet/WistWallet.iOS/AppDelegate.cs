@@ -1,6 +1,6 @@
 ﻿using Foundation;
 using UIKit;
-using WistWallet.Base;
+using WistWallet.Base.Mobile;
 
 namespace WistWallet.iOS
 {

@@ -16,9 +16,9 @@ namespace WistWallet.Base.Models
     /// </summary>
     public class Identity
     {
-        public Guid PrivateKey { get; set; }
+        public byte[] PrivateKey { get; set; }
 
-        public Guid PublicKey { get; set; }
+        public byte[] PublicKey { get; set; }
 
         public string WalletName { get; set; }
 

@@ -131,12 +131,12 @@
     <Reference Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Xamarin.Forms" Version="3.0.0.446417" />
+    <PackageReference Include="Xamarin.Forms" Version="3.1.0.697729" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WistWallet.Base\WistWallet.Base.csproj">
-      <Project>{1ccf0276-5d8d-4b93-bc79-f0c812a3e7bb}</Project>
-      <Name>WistWallet.Base</Name>
+    <ProjectReference Include="..\..\WistWallet.Base.Mobile\WistWallet.Base.Mobile.csproj">
+      <Project>{7f815941-2000-41c6-8cf2-808e9781e670}</Project>
+      <Name>WistWallet.Base.Mobile</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />

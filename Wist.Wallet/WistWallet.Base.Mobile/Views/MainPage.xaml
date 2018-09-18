@@ -1,10 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <TabbedPage xmlns="http://xamarin.com/schemas/2014/forms"
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-            xmlns:views="clr-namespace:WistWallet.Base.Views"
-            xmlns:services="clr-namespace:WistWallet.Base.Services"
-            x:Class="WistWallet.Base.Views.MainPage">
+            xmlns:views="clr-namespace:WistWallet.Base.Mobile.Views"
+            xmlns:services="clr-namespace:WistWallet.Base.Mobile.Services"
+            x:Class="WistWallet.Base.Mobile.Views.MainPage">
     <TabbedPage.Children>
+        
+        <!--       PAYMENT PAGE       -->
+        <!--==========================-->
         <NavigationPage Title="{x:Static services:Strings.PaymentTitle}">
             <NavigationPage.Icon>
                 <OnPlatform x:TypeArguments="FileImageSource">
@@ -12,11 +15,25 @@
                 </OnPlatform>
             </NavigationPage.Icon>
             <x:Arguments>
-                <!--<views:ItemsPage />-->
                 <views:PaymentPage/>
             </x:Arguments>
         </NavigationPage>
-        
+
+        <!--        VOTING PAGE       -->
+        <!--==========================-->
+        <NavigationPage Title="{x:Static services:Strings.VoteTitle}">
+            <NavigationPage.Icon>
+                <OnPlatform x:TypeArguments="FileImageSource">
+                    <On Platform="iOS" Value="tab_about.png"/>
+                </OnPlatform>
+            </NavigationPage.Icon>
+            <x:Arguments>
+                <!--<views:VotePage />-->
+            </x:Arguments>
+        </NavigationPage>
+
+        <!--        ABOUT PAGE        -->
+        <!--==========================--><!--
         <NavigationPage Title="About">
             <NavigationPage.Icon>
                 <OnPlatform x:TypeArguments="FileImageSource">
@@ -26,6 +43,6 @@
             <x:Arguments>
                 <views:AboutPage />
             </x:Arguments>
-        </NavigationPage>
+        </NavigationPage>-->
     </TabbedPage.Children>
 </TabbedPage>

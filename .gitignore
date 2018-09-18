@@ -3,3 +3,17 @@
 ################################################################################
 
 /Wist.Core.Tests
+/Wist.Core
+/Wist.Client/Wist.Client.Common/obj
+/Tests
+/Simulation/Wist.Simulation.Load
+/packages
+/obj/Docker
+/NodeSetup
+/Node
+/Network/Wist.Network
+/Crypto
+/Communication
+/BlockLattice
+/Bin/Debug
+/.vs

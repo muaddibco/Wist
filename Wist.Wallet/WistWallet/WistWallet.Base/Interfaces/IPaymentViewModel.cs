@@ -1,4 +1,5 @@
-﻿using WistWallet.Base.Models;
+﻿using System.Windows.Input;
+using WistWallet.Base.Models;
 
 namespace WistWallet.Base.Interfaces
 {
@@ -10,6 +11,8 @@ namespace WistWallet.Base.Interfaces
 
         uint SelectedSum { get; set; }
 
-        void SendPayment();
+        string SelectedUser { get; set; }
+
+        ICommand SendPaymentCommand { get; }
     }
 }
