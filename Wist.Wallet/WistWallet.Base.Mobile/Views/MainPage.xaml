@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <TabbedPage xmlns="http://xamarin.com/schemas/2014/forms"
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+            xmlns:services="clr-namespace:WistWallet.Base.Services;assembly=WistWallet.Base"
             xmlns:views="clr-namespace:WistWallet.Base.Mobile.Views"
-            xmlns:services="clr-namespace:WistWallet.Base.Mobile.Services"
             x:Class="WistWallet.Base.Mobile.Views.MainPage">
     <TabbedPage.Children>
         
