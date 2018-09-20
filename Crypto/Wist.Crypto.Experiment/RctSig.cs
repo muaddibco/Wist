@@ -15,18 +15,23 @@ namespace Wist.Crypto.Experiment
     //if it's representing a public ctkey, then "dest" = P the address, mask = C the commitment
     public struct CtKey
     {
-        byte[] dest;
-        byte[] mask; //C here if public
+        public Key dest;
+        public Key mask; //C here if public
     };
 
     public class CtKeyList : List<CtKey>
     {
-
+        public void Init(int size)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                Add(new CtKey());
+            }
+        }
     }
 
     public class CtKeyMatrix : List<CtKeyList>
     {
-
     }
 
     public class Key
@@ -183,6 +188,14 @@ namespace Wist.Crypto.Experiment
         private List<EcdhTuple> _ecdhInfo;
         private CtKeyList _outPk;
 
+        public RctSigBase()
+        {
+            MixRing = new CtKeyMatrix();
+            PseudoOuts = new List<byte[]>();
+            EcdhInfo = new List<EcdhTuple>();
+            OutPk = new CtKeyList();
+        }
+
         public Key Message { get => _message; set => _message = value; }
         public CtKeyMatrix MixRing { get => _mixRing; set => _mixRing = value; }
         public List<byte[]> PseudoOuts { get => _pseudoOuts; set => _pseudoOuts = value; }
@@ -204,6 +217,12 @@ namespace Wist.Crypto.Experiment
     public class RctSig : RctSigBase
     {
         private RctSigPrunable _p;
+
+        public RctSig()
+            : base()
+        {
+            P = new RctSigPrunable();
+        }
 
         public RctSigPrunable P { get => _p; set => _p = value; }
     };

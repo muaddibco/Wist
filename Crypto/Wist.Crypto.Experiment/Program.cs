@@ -107,7 +107,7 @@ namespace Wist.Crypto.Experiment
 
             Key c = new Key();
             Key mask = new Key();
-            RangeSig rangeSig = GetRangeSig(ref c, ref mask, 10);
+            RangeSig rangeSig = GetRangeSig(c, mask, 10);
 
             GroupElementP3 asset1_P3 = GetAsset(1);
             GroupElementP3 asset2_P3 = GetAsset(2);
@@ -287,6 +287,77 @@ namespace Wist.Crypto.Experiment
 
         #region Confidential Ring Signatures
 
+        //RingCT protocol
+        //genRct: 
+        //   creates an rctSig with all data necessary to verify the rangeProofs and that the signer owns one of the
+        //   columns that are claimed as inputs, and that the sum of inputs  = sum of outputs.
+        //   Also contains masked "amount" and "mask" so the receiver can see how much they received
+        //verRct:
+        //   verifies that all signatures (rangeProogs, MG sig, sum inputs = outputs) are correct
+        //decodeRct: (c.f. https://eprint.iacr.org/2015/1098 section 5.1.1)
+        //   uses the attached ecdh info to find the amounts represented by each output commitment 
+        //   must know the destination private key to find the correct amount, else will return a random number
+        //   Note: For txn fees, the last index in the amounts vector should contain that
+        //   Thus the amounts vector will be "one" longer than the destinations vectort
+        RctSig GenerateRct(Key message, CtKeyList inSk, KeysList destinations, List<ulong> amounts, CtKeyMatrix mixRing, KeysList amount_keys, int index, ref CtKeyList outSk)
+        {
+            if (amounts.Count != destinations.Count || amounts.Count != destinations.Count + 1)
+            {
+                throw new ArgumentException(nameof(amounts), $"Different number of {nameof(amounts)}/{nameof(destinations)}");
+            }
+
+            if (amount_keys.Count != destinations.Count)
+            {
+                throw new ArgumentException(nameof(amount_keys), $"Different number of {nameof(amount_keys)}/{nameof(destinations)}");
+            }
+
+            if (index >= mixRing.Count)
+            {
+                throw new ArgumentException(nameof(index), $"Bad {nameof(index)} into {nameof(mixRing)}");
+            }
+
+            for (int n = 0; n < mixRing.Count; ++n)
+            {
+                if (mixRing[n].Count != inSk.Count)
+                {
+                    throw new ArgumentException(nameof(mixRing), $"Bad {nameof(mixRing)} size");
+                }
+            }
+
+            KeysList masks = new KeysList(); //sk mask..
+            RctSig rv = new RctSig
+            {
+                Message = message
+            };
+
+            for (int k = 0; k < destinations.Count; k++)
+            {
+                rv.OutPk.Add(new CtKey());
+                rv.P.RangeSigs.Add(new RangeSig());
+                rv.EcdhInfo.Add(new EcdhTuple());
+                masks.Add(new Key());
+                outSk.Add(new CtKey());
+            }
+
+            int i = 0;
+            for (i = 0; i < destinations.Count; i++)
+            {
+                //add destination to sig
+                Array.Copy(destinations[i].Bytes, 0, rv.OutPk[i].dest.Bytes, 0, destinations[i].Bytes.Length);
+                //compute range proof
+                rv.P.RangeSigs[i] = GetRangeSig(rv.OutPk[i].mask, outSk[i].mask, amounts[i]);
+                //mask amount and mask
+                Array.Copy(outSk[i].mask.Bytes, 0, rv.EcdhInfo[i].Mask, 0, outSk[i].mask.Bytes.Length);
+
+                rv.EcdhInfo[i].Amount = BitConverter.GetBytes(amounts[i]);
+                EcdhEncode(rv.EcdhInfo[i], amount_keys[i]);
+            }
+
+            rv.MixRing = mixRing;
+            rv.P.MGs.Add(ProveRctMG(get_pre_mlsag_hash(rv), rv.MixRing, inSk, outSk, rv.OutPk, index));
+            return rv;
+        }
+
         //GetRangeSig and verRange
         //GetRangeSig gives C, and mask such that \sumCi = C
         //   c.f. https://eprint.iacr.org/2015/1098 section 5.1
@@ -294,8 +365,18 @@ namespace Wist.Crypto.Experiment
         //   thus this proves that "amount" is in [0, 2^64]
         //   mask is a such that C = aG + bH, and b = amount
         //verRange verifies that \sum Ci = C and that each Ci is a commitment to 0 or 2^i
-        private static RangeSig GetRangeSig(ref Key c, ref Key mask, ulong amount)
+        private static RangeSig GetRangeSig(Key c, Key mask, ulong amount)
         {
+            if (c == null)
+            {
+                throw new ArgumentNullException(nameof(c));
+            }
+
+            if (mask == null)
+            {
+                throw new ArgumentNullException(nameof(mask));
+            }
+
             Array.Clear(mask.Bytes, 0, mask.Bytes.Length);
             Array.Copy(I.Bytes, 0, c.Bytes, 0, I.Bytes.Length);
             BitArray bits = GetAmountBits(amount);
@@ -307,18 +388,125 @@ namespace Wist.Crypto.Experiment
                 ai.Keys[i].Bytes = GetRandomSeed();
                 if (bits[i])
                 {
-                    ScalarmulBaseAddKeys(ref sig.Ci.Keys[i], ai.Keys[i], H2.Keys[i]);
+                    ScalarmulBaseAddKeys(sig.Ci.Keys[i], ai.Keys[i], H2.Keys[i]);
                 }
                 else
                 {
-                    ScalarmultBase(ref sig.Ci.Keys[i], ai.Keys[i]);
+                    ScalarmultBase(sig.Ci.Keys[i], ai.Keys[i]);
                 }
-                SubKeys(ref CiH.Keys[i], sig.Ci.Keys[i], H2.Keys[i]);
+                SubKeys(CiH.Keys[i], sig.Ci.Keys[i], H2.Keys[i]);
                 ScalarOperations.sc_add(mask.Bytes, mask.Bytes, ai.Keys[i].Bytes);
-                AddKeys(ref c, c, sig.Ci.Keys[i]);
+                AddKeys(c, c, sig.Ci.Keys[i]);
             }
             sig.Asig = GenBorromean(ai, sig.Ci, CiH, bits);
             return sig;
+        }
+
+        //Ring-ct MG sigs
+        //Prove: 
+        //   c.f. https://eprint.iacr.org/2015/1098 section 4. definition 10. 
+        //   This does the MG sig on the "dest" part of the given key matrix, and 
+        //   the last row is the sum of input commitments from that column - sum output commitments
+        //   this shows that sum inputs = sum outputs
+        //Ver:    
+        //   verifies the above sig is created correctly
+        private static MgSig ProveRctMG(Key message, CtKeyMatrix pubs, CtKeyList inSk, CtKeyList outSk, CtKeyList outPk, int index)
+        {
+            //setup vars
+            int cols = pubs.Count;
+            if (cols == 0)
+            {
+                throw new ArgumentException(nameof(pubs), $"Empty {nameof(pubs)}");
+            }
+            int rows = pubs[0].Count;
+            if (rows == 0)
+            {
+                throw new ArgumentException(nameof(pubs), $"Empty {nameof(pubs)}");
+            }
+            for (int k = 1; k < cols; k++)
+            {
+                if (pubs[k].Count != rows)
+                {
+                    throw new ArgumentException(nameof(pubs), $"{nameof(pubs)} is not rectangular");
+                }
+            }
+
+            if (inSk.Count != rows)
+            {
+                throw new ArgumentException(nameof(inSk), $"Bad {nameof(inSk)} size");
+            }
+
+            if (outSk.Count != outPk.Count)
+            {
+                throw new ArgumentException(nameof(outSk), $"Bad {nameof(outSk)}/{nameof(outPk)} size");
+            }
+
+            KeysList sk = new KeysList();
+            for (int k = 0; k < rows + 1; k++)
+            {
+                sk.Add(new Key());
+            }
+
+            KeysList tmp = new KeysList();
+            for (int k = 0; k < rows + 1; k++)
+            {
+                Key key = new Key();
+                Array.Copy(I.Bytes, 0, key.Bytes, 0, I.Bytes.Length);
+                tmp.Add(key);
+            }
+
+            KeysMatrix M = new KeysMatrix();
+            //create the matrix to mg sig
+            for (int i = 0; i < cols; i++)
+            {
+                KeysList keys = new KeysList();
+                for (int j = 0; j < rows + 1; j++)
+                {
+                    Key key = new Key();
+                    keys.Add(key);
+
+                    if (j == rows)
+                    {
+                        Array.Copy(I.Bytes, 0, key.Bytes, 0, I.Bytes.Length);
+                    }
+                }
+                for (int j = 0; j < rows; j++)
+                {
+                    M[i][j] = pubs[i][j].dest;
+                    ScalarmulBaseAddKeys(M[i][rows], M[i][rows], pubs[i][j].mask); //add input commitments in last row
+                }
+            }
+
+            Array.Clear(sk[rows].Bytes, 0, sk[rows].Bytes.Length);
+            for (int j = 0; j < rows; j++)
+            {
+                Array.Copy(inSk[j].dest.Bytes, 0, sk[j].Bytes, 0, inSk[j].dest.Bytes.Length);
+                ScalarOperations.sc_add(sk[rows].Bytes, sk[rows].Bytes, inSk[j].mask.Bytes); //add masks in last row
+            }
+
+            for (int i = 0; i < cols; i++)
+            {
+                for (int j = 0; j < outPk.Count; j++)
+                {
+                    SubKeys(M[i][rows], M[i][rows], outPk[j].mask); //subtract output Ci's in last row
+                }
+
+                ////subtract txn fee output in last row
+                ////SubKeys(M[i][rows], M[i][rows], txnFeeKey);
+            }
+
+            for (int j = 0; j < outPk.Count; j++)
+            {
+                ScalarOperations.sc_sub(sk[rows].Bytes, sk[rows].Bytes, outSk[j].mask.Bytes); //subtract output masks in last row..
+            }
+
+            MgSig result = MLSAG_Gen(message, M, sk, index, rows);
+            for (int i = 0; i < sk.Count; i++)
+            {
+                Array.Clear(sk[i].Bytes, 0, sk[i].Bytes.Length);
+            }
+
+            return result;
         }
 
         #endregion
@@ -338,13 +526,13 @@ namespace Wist.Crypto.Experiment
                 naught = indices[ii] ? 1 : 0;
                 prime = ((indices[ii] ? 1 : 0) + 1) % 2;
                 alpha.Keys[ii].Bytes = GetRandomSeed();
-                ScalarmultBase(ref L[naught].Keys[ii], alpha.Keys[ii]);
+                ScalarmultBase(L[naught].Keys[ii], alpha.Keys[ii]);
                 if (naught == 0)
                 {
 
                     bb.S1.Keys[ii].Bytes = GetRandomSeed();
                     c.Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(L[naught].Keys[ii].Bytes).GetBytes();
-                    ScalarmulBaseAddKeys2(ref L[prime].Keys[ii], bb.S1.Keys[ii], c, P2.Keys[ii]);
+                    ScalarmulBaseAddKeys2(L[prime].Keys[ii], bb.S1.Keys[ii], c, P2.Keys[ii]);
                 }
             }
             byte[] buf = new byte[64 * 32];
@@ -363,7 +551,7 @@ namespace Wist.Crypto.Experiment
                 else
                 {
                     bb.S0.Keys[jj].Bytes = GetRandomSeed();
-                    ScalarmulBaseAddKeys2(ref LL, bb.S0.Keys[jj], bb.Ee, P1.Keys[jj]); //different L0
+                    ScalarmulBaseAddKeys2(LL, bb.S0.Keys[jj], bb.Ee, P1.Keys[jj]); //different L0
                     cc.Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(LL.Bytes).GetBytes();
                     ScalarOperations.sc_mulsub(bb.S1.Keys[jj].Bytes, x.Keys[jj].Bytes, cc.Bytes, alpha.Keys[jj].Bytes);
                 }
@@ -420,16 +608,15 @@ namespace Wist.Crypto.Experiment
 
         #region MLSAG
 
-
         //Multilayered Spontaneous Anonymous Group Signatures (MLSAG signatures)
-        //This is a just slghtly more efficient version than the ones described below
+        //This is a just slightly more efficient version than the ones described below
         //(will be explained in more detail in Ring Multisig paper
-        //These are aka MG signatutes in earlier drafts of the ring ct paper
+        //These are aka MG signatures in earlier drafts of the ring ct paper
         // c.f. https://eprint.iacr.org/2015/1098 section 2. 
         // Gen creates a signature which proves that for some column in the keymatrix "pk"
         //   the signer knows a secret key for each row in that column
         // Ver verifies that the MG sig was created correctly        
-        private static MgSig MLSAG_Gen(Key message, KeysMatrix pk, KeysList xx, Key mscout, int index, int dsRows)
+        private static MgSig MLSAG_Gen(Key message, KeysMatrix pk, KeysList xx, int index, int dsRows)
         {
             MgSig rv = new MgSig();
             int cols = pk.Count;
@@ -553,16 +740,16 @@ namespace Wist.Crypto.Experiment
                 Array.Clear(c.Bytes, 0, 32);
                 for (j = 0; j < dsRows; j++)
                 {
-                    ScalarmulBaseAddKeys2(ref L, rv.SS[i][j], c_old, pk[i][j]);
+                    ScalarmulBaseAddKeys2(L, rv.SS[i][j], c_old, pk[i][j]);
                     Hi = HashToPoint(pk[i][j]);
-                    ScalarmulBaseAddKeys3(ref R, rv.SS[i][j], Hi, c_old, Ip[j]);
+                    ScalarmulBaseAddKeys3(R, rv.SS[i][j], Hi, c_old, Ip[j]);
                     toHash[3 * j + 1] = pk[i][j];
                     toHash[3 * j + 2] = L;
                     toHash[3 * j + 3] = R;
                 }
                 for (j = dsRows, ii = 0; j < rows; j++, ii++)
                 {
-                    ScalarmulBaseAddKeys2(ref L, rv.SS[i][j], c_old, pk[i][j]);
+                    ScalarmulBaseAddKeys2(L, rv.SS[i][j], c_old, pk[i][j]);
                     toHash[ndsRows + 2 * ii + 1] = pk[i][j];
                     toHash[ndsRows + 2 * ii + 2] = L;
                 }
@@ -575,9 +762,81 @@ namespace Wist.Crypto.Experiment
                     Array.Copy(c_old.Bytes, 0, rv.CC.Bytes, 0, c_old.Bytes.Length);
                 }
             }
-            Mlsag_Sign(ref c, xx, alpha, rows, dsRows, rv.SS[index]);
-            mscout = c;
+            Mlsag_Sign(c, xx, alpha, rows, dsRows, rv.SS[index]);
             return rv;
+        }
+
+        private static bool Mlsag_Prepare(Key H, Key xx, out Key a, out Key aG, Key aHP, Key II)
+        {
+            SkpkGen(out a, out aG);
+            ScalarmultKey(aHP, H, a);
+            ScalarmultKey(II, H, xx);
+            return true;
+        }
+
+        private static bool Mlsag_Prepare(out Key a, out Key aG)
+        {
+            SkpkGen(out a, out aG);
+            return true;
+        }
+
+        private static bool Mlsag_Sign(Key c, KeysList xx, KeysList alpha, int rows, int dsRows, KeysList ss)
+        {
+            if (c == null)
+            {
+                throw new ArgumentNullException(nameof(c));
+            }
+
+            if (xx == null)
+            {
+                throw new ArgumentNullException(nameof(xx));
+            }
+
+            if (alpha == null)
+            {
+                throw new ArgumentNullException(nameof(alpha));
+            }
+
+            if (dsRows > rows)
+            {
+                throw new ArgumentException(nameof(dsRows), $"{nameof(dsRows)} greater than {nameof(rows)}");
+            }
+
+            if (xx.Count != rows)
+            {
+                throw new ArgumentException(nameof(xx), $"{nameof(xx)} size does not match {nameof(rows)}");
+            }
+
+            if (alpha.Count != rows)
+            {
+                throw new ArgumentException(nameof(alpha), $"{nameof(alpha)} size does not match {nameof(rows)}");
+            }
+
+            if (ss.Count != rows)
+            {
+                throw new ArgumentException(nameof(ss), $"{nameof(ss)} size does not match {nameof(rows)}");
+            }
+
+            for (int j = 0; j < rows; j++)
+            {
+                ScalarOperations.sc_mulsub(ss[j].Bytes, c.Bytes, xx[j].Bytes, alpha[j].Bytes);
+            }
+
+            return true;
+        }
+
+        private static bool Mlsag_Hash(KeysList toHash, out Key c_old)
+        {
+            byte[] buf = new byte[toHash.Count * 32];
+            for (int i = 0; i < toHash.Count; i++)
+            {
+                Array.Copy(toHash[i].Bytes, 0, buf, i * 32, 32);
+            }
+            c_old = new Key
+            {
+                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes()
+            };
+            return true;
         }
 
         #endregion MLSAG
@@ -586,20 +845,59 @@ namespace Wist.Crypto.Experiment
 
         //addKeys1
         //aGB = aG + B where a is a scalar, G is the basepoint, and B is a point
-        private static void ScalarmulBaseAddKeys(ref Key aGB, Key a, Key B)
+        private static void ScalarmulBaseAddKeys(Key aGB, Key a, Key B)
         {
-            GroupElementP3 agP3;
+            if (aGB == null)
+            {
+                throw new ArgumentNullException(nameof(aGB));
+            }
+
+            if (a == null)
+            {
+                throw new ArgumentNullException(nameof(a));
+            }
+
+            if (B == null)
+            {
+                throw new ArgumentNullException(nameof(B));
+            }
+
             Key agKey = new Key();
-            GroupOperations.ge_scalarmult_base(out agP3, a.Bytes, 0);
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 agP3, a.Bytes, 0);
             GroupOperations.ge_p3_tobytes(agKey.Bytes, 0, ref agP3);
-            AddKeys(ref aGB, agKey, B);
+            AddKeys(aGB, agKey, B);
         }
 
         //addKeys3
         //aAbB = a*A + b*B where a, b are scalars, A, B are curve points
         //B must be input after applying "precomp"
-        private static void ScalarmulBaseAddKeys3(ref Key aAbB, Key a, Key A, Key b, GroupElementCached[] B)
+        private static void ScalarmulBaseAddKeys3(Key aAbB, Key a, Key A, Key b, GroupElementCached[] B)
         {
+            if (aAbB == null)
+            {
+                throw new ArgumentNullException(nameof(aAbB));
+            }
+
+            if (a == null)
+            {
+                throw new ArgumentNullException(nameof(a));
+            }
+
+            if (A == null)
+            {
+                throw new ArgumentNullException(nameof(A));
+            }
+
+            if (b == null)
+            {
+                throw new ArgumentNullException(nameof(b));
+            }
+
+            if (B == null)
+            {
+                throw new ArgumentNullException(nameof(B));
+            }
+
             if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 A2, A.Bytes, 0) != 0)
             {
                 throw new ArgumentException(nameof(A));
@@ -609,10 +907,30 @@ namespace Wist.Crypto.Experiment
             GroupOperations.ge_tobytes(aAbB.Bytes, 0, ref rv);
         }
 
-    //addKeys2
-    //aGbB = aG + bB where a, b are scalars, G is the basepoint and B is a point
-    private static void ScalarmulBaseAddKeys2(ref Key aGbB, Key a, Key b, Key bPoint)
+        //addKeys2
+        //aGbB = aG + bB where a, b are scalars, G is the basepoint and B is a point
+        private static void ScalarmulBaseAddKeys2(Key aGbB, Key a, Key b, Key bPoint)
         {
+            if (aGbB == null)
+            {
+                throw new ArgumentNullException(nameof(aGbB));
+            }
+
+            if (a == null)
+            {
+                throw new ArgumentNullException(nameof(a));
+            }
+
+            if (b == null)
+            {
+                throw new ArgumentNullException(nameof(b));
+            }
+
+            if (bPoint == null)
+            {
+                throw new ArgumentNullException(nameof(bPoint));
+            }
+
             GroupElementP2 rv;
             GroupElementP3 bPointP3;
             if (GroupOperations.ge_frombytes_negate_vartime(out bPointP3, bPoint.Bytes, 0) != 0)
@@ -624,14 +942,28 @@ namespace Wist.Crypto.Experiment
         }
 
         //for curve points: AB = A + B
-        private static void AddKeys(ref Key ab, Key a, Key b)
+        private static void AddKeys(Key ab, Key a, Key b)
         {
-            GroupElementP3 aP3, bP3;
-            if (GroupOperations.ge_frombytes_negate_vartime(out aP3, a.Bytes, 0) != 0)
+            if (ab == null)
+            {
+                throw new ArgumentNullException(nameof(ab));
+            }
+
+            if (a == null)
+            {
+                throw new ArgumentNullException(nameof(a));
+            }
+
+            if (b == null)
+            {
+                throw new ArgumentNullException(nameof(b));
+            }
+
+            if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 aP3, a.Bytes, 0) != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(a), $"Failed to convert to {nameof(GroupElementP3)}");
             }
-            if (GroupOperations.ge_frombytes_negate_vartime(out bP3, b.Bytes, 0) != 0)
+            if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 bP3, b.Bytes, 0) != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(b), $"Failed to convert to {nameof(GroupElementP3)}");
             }
@@ -649,8 +981,18 @@ namespace Wist.Crypto.Experiment
         }
 
         //does a * G where a is a scalar and G is the curve basepoint
-        private static void ScalarmultBase(ref Key aG, Key a)
+        private static void ScalarmultBase(Key aG, Key a)
         {
+            if (aG == null)
+            {
+                throw new ArgumentNullException(nameof(aG));
+            }
+
+            if (a == null)
+            {
+                throw new ArgumentNullException(nameof(a));
+            }
+
             GroupElementP3 point;
             Array.Copy(a.Bytes, 0, aG.Bytes, 0, a.Bytes.Length);
             ScalarOperations.sc_reduce32(aG.Bytes);
@@ -688,14 +1030,28 @@ namespace Wist.Crypto.Experiment
 
         //subtract Keys (subtracts curve points)
         //AB = A - B where A, B are curve points
-        private static void SubKeys(ref Key ab, Key a, Key b)
+        private static void SubKeys(Key ab, Key a, Key b)
         {
-            GroupElementP3 bP3, aP3;
-            if (GroupOperations.ge_frombytes_negate_vartime(out aP3, a.Bytes, 0) != 0)
+            if (ab == null)
+            {
+                throw new ArgumentNullException(nameof(ab));
+            }
+
+            if (a == null)
+            {
+                throw new ArgumentNullException(nameof(a));
+            }
+
+            if (b == null)
+            {
+                throw new ArgumentNullException(nameof(b));
+            }
+
+            if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 aP3, a.Bytes, 0) != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(a), $"Failed to convert to {nameof(GroupElementP3)}");
             }
-            if (GroupOperations.ge_frombytes_negate_vartime(out bP3, b.Bytes, 0) != 0)
+            if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 bP3, b.Bytes, 0) != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(b), $"Failed to convert to {nameof(GroupElementP3)}");
             }
@@ -729,54 +1085,14 @@ namespace Wist.Crypto.Experiment
 
         #endregion Curve Additions / Subtractions / Multiplications
 
-        private static bool Mlsag_Prepare(Key H, Key xx, out Key a, out Key aG, Key aHP, Key II)
-        {
-            SkpkGen(out a, out aG);
-            ScalarmultKey(aHP, H, a);
-            ScalarmultKey(II, H, xx);
-            return true;
-        }
-
-        private static bool Mlsag_Prepare(out Key a, out Key aG)
-        {
-            SkpkGen(out a, out aG);
-            return true;
-        }
-
-        private static bool Mlsag_Sign(ref Key c, KeysList xx, KeysList alpha, int rows, int dsRows, KeysList ss)
-        {
-            //TODO: uncomment checks
-            //    CHECK_AND_ASSERT_THROW_MES(dsRows<=rows, "dsRows greater than rows");
-            //CHECK_AND_ASSERT_THROW_MES(xx.size() == rows, "xx size does not match rows");
-            //CHECK_AND_ASSERT_THROW_MES(alpha.size() == rows, "alpha size does not match rows");
-            //CHECK_AND_ASSERT_THROW_MES(ss.size() == rows, "ss size does not match rows");
-            for (int j = 0; j < rows; j++) {
-                ScalarOperations.sc_mulsub(ss[j].Bytes, c.Bytes, xx[j].Bytes, alpha[j].Bytes);
-            }
-            return true;
-        }
-
-private static bool Mlsag_Hash(KeysList toHash, out Key c_old) {
-            byte[] buf = new byte[toHash.Count * 32];
-            for (int i = 0; i < toHash.Count; i++)
-            {
-                Array.Copy(toHash[i].Bytes, 0, buf, i * 32, 32);
-            }
-            c_old = new Key
-            {
-                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes()
-            };
-            return true;
-        }
-
-    //generates a random secret and corresponding public key
-    private static void SkpkGen(out Key sk, out Key pk)
+        //generates a random secret and corresponding public key
+        private static void SkpkGen(out Key sk, out Key pk)
         {
             sk = new Key();
             sk.Bytes = GetRandomSeed();
 
             pk = new Key();
-            ScalarmultBase(ref pk, sk);
+            ScalarmultBase(pk, sk);
         }
 
         private static Key HashToPoint(Key hh)
@@ -814,6 +1130,104 @@ private static bool Mlsag_Hash(KeysList toHash, out Key c_old) {
                 throw new ArgumentException(nameof(B));
             }
             GroupOperations.ge_dsm_precomp(rv, ref B2);
+        }
+
+        //Elliptic Curve Diffie Helman: encodes and decodes the amount b and mask a
+        // where C= aG + bH
+        private static void EcdhEncode(EcdhTuple unmasked, Key sharedSec)
+        {
+            if (sharedSec == null)
+            {
+                throw new ArgumentNullException(nameof(sharedSec));
+            }
+
+            Key sharedSec1 = new Key
+            {
+                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sharedSec.Bytes).GetBytes()
+            };
+
+            Key sharedSec2 = new Key
+            {
+                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sharedSec1.Bytes).GetBytes()
+            };
+
+            //encode
+            ScalarOperations.sc_add(unmasked.Mask, unmasked.Mask, sharedSec1.Bytes);
+            ScalarOperations.sc_add(unmasked.Amount, unmasked.Amount, sharedSec2.Bytes);
+        }
+
+        private static void EcdhDecode(EcdhTuple masked, Key sharedSec)
+        {
+            if (sharedSec == null)
+            {
+                throw new ArgumentNullException(nameof(sharedSec));
+            }
+
+            Key sharedSec1 = new Key
+            {
+                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sharedSec.Bytes).GetBytes()
+            };
+
+            Key sharedSec2 = new Key
+            {
+                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sharedSec1.Bytes).GetBytes()
+            };
+
+            //decode
+            ScalarOperations.sc_sub(masked.Mask, masked.Mask, sharedSec1.Bytes);
+            ScalarOperations.sc_sub(masked.Amount, masked.Amount, sharedSec2.Bytes);
+        }
+
+        private static Key FastHash(KeysList keys)
+        {
+            byte[] buf = new byte[keys.Count * 32];
+            int i = 0;
+            foreach (Key key in keys)
+            {
+                Array.Copy(key.Bytes, 0, buf, 32 * i++, 32);
+            }
+
+            Key res = new Key
+            {
+                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes()
+            };
+
+            return res;
+        }
+
+        private static Key get_pre_mlsag_hash(RctSig rv)
+        {
+            KeysList hashes = new KeysList();
+            hashes.Add(rv.Message);
+            Key prehash;
+
+            //TODO: Code below serializes content of RctSig and creates hash based on it. Must be implemented in real working environment
+            //byte[] h;
+            //std::stringstream ss;
+            //binary_archive<true> ba(ss);
+            //CHECK_AND_ASSERT_THROW_MES(!rv.mixRing.empty(), "Empty mixRing");
+            //int inputs = rv.MixRing[0].Count;
+            //int outputs = rv.EcdhInfo.Count;
+            //CHECK_AND_ASSERT_THROW_MES(const_cast<rctSig&>(rv).serialize_rctsig_base(ba, inputs, outputs),            "Failed to serialize rctSigBase");
+            //cryptonote::get_blob_hash(ss.str(), h);
+            //hashes.push_back(hash2rct(h));
+
+            KeysList kv = new KeysList();
+
+            foreach (RangeSig r in rv.P.RangeSigs)
+            {
+                for (int n = 0; n < 64; ++n)
+                    kv.Add(r.Asig.S0.Keys[n]);
+                for (int n = 0; n < 64; ++n)
+                    kv.Add(r.Asig.S1.Keys[n]);
+                kv.Add(r.Asig.Ee);
+                for (int n = 0; n < 64; ++n)
+                    kv.Add(r.Ci.Keys[n]);
+            }
+
+            hashes.Add(FastHash(kv));
+            prehash = FastHash(hashes);
+            return prehash;
         }
     }
 }
