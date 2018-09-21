@@ -726,6 +726,7 @@ namespace Wist.Crypto.Experiment
             }
 
             MgSig result = MLSAG_Gen(message, M, sk, index, rows);
+
             for (int i = 0; i < sk.Count; i++)
             {
                 Array.Clear(sk[i].Bytes, 0, sk[i].Bytes.Length);
@@ -902,9 +903,9 @@ namespace Wist.Crypto.Experiment
         // Gen creates a signature which proves that for some column in the keymatrix "pk"
         //   the signer knows a secret key for each row in that column
         // Ver verifies that the MG sig was created correctly        
-        private static MgSig MLSAG_Gen(Key message, KeysMatrix pk, KeysList xx, int index, int dsRows)
+        private static MgSig MLSAG_Gen(Key message, KeysMatrix pk, KeysList sk, int index, int dsRows)
         {
-            MgSig rv = new MgSig();
+            MgSig mgSig = new MgSig();
             int cols = pk.Count;
             if (cols < 2)
             {
@@ -927,9 +928,9 @@ namespace Wist.Crypto.Experiment
                 }
             }
 
-            if (xx.Count != rows)
+            if (sk.Count != rows)
             {
-                throw new ArgumentException(nameof(xx), $"Bad {nameof(xx)} size");
+                throw new ArgumentException(nameof(sk), $"Bad {nameof(sk)} size");
             }
 
             if (dsRows > rows)
@@ -938,17 +939,17 @@ namespace Wist.Crypto.Experiment
             }
 
             int i = 0, j = 0, ii = 0;
-            Key c = new Key(), c_old = new Key(), L = new Key(), R = new Key(), Hi = new Key();
+            Key c = new Key(), c_old = new Key(), L = new Key(), R = new Key();
             List<GroupElementCached[]> Ip = new List<GroupElementCached[]>(dsRows);
             for (int k = 0; k < dsRows; k++)
             {
                 Ip.Add(new GroupElementCached[8]);
             }
 
-            rv.II = new KeysList();
+            mgSig.II = new KeysList();
             for (int k = 0; k < dsRows; k++)
             {
-                rv.II.Add(new Key());
+                mgSig.II.Add(new Key());
             }
 
             KeysList alpha = new KeysList();
@@ -963,7 +964,7 @@ namespace Wist.Crypto.Experiment
                 aG.Add(new Key());
             }
 
-            rv.SS = new KeysMatrix();
+            mgSig.SS = new KeysMatrix();
             for (int k = 0; k < cols; k++)
             {
                 KeysList keys = new KeysList();
@@ -971,7 +972,7 @@ namespace Wist.Crypto.Experiment
                 {
                     keys.Add(new Key());
                 }
-                rv.SS.Add(keys);
+                mgSig.SS.Add(keys);
             }
 
             KeysList aHP = new KeysList();
@@ -991,13 +992,13 @@ namespace Wist.Crypto.Experiment
             for (i = 0; i < dsRows; i++)
             {
                 toHash[3 * i + 1] = pk[index][i];
-                Hi = HashToPoint(pk[index][i]);
-                Mlsag_Prepare(Hi, xx[i], out Key alphaI, out Key aGi, aHP[i], rv.II[i]);
-                alpha[i] = alphaI;
-                aG[i] = aGi;
+                Key Hi = HashToPoint(pk[index][i]);
+                Mlsag_Prepare(Hi, sk[i], out Key alphaI, out Key aGi, aHP[i], mgSig.II[i]);
+                alpha[i] = alphaI; // alphaI - generated secret key
+                aG[i] = aGi; // aGi - generated public key from alphaI
                 toHash[3 * i + 2] = aG[i];
                 toHash[3 * i + 3] = aHP[i];
-                Precomp(Ip[i], rv.II[i]);
+                Precomp(Ip[i], mgSig.II[i]);
             }
             int ndsRows = 3 * dsRows; //non Double Spendable Rows (see identity chains paper)
             for (i = dsRows, ii = 0; i < rows; i++, ii++)
@@ -1014,28 +1015,28 @@ namespace Wist.Crypto.Experiment
             i = (index + 1) % cols;
             if (i == 0)
             {
-                Array.Copy(c_old.Bytes, 0, rv.CC.Bytes, 0, c_old.Bytes.Length);
+                Array.Copy(c_old.Bytes, 0, mgSig.CC.Bytes, 0, c_old.Bytes.Length);
             }
 
             while (i != index)
             {
                 for (int k = 0; k < rows; k++)
                 {
-                    rv.SS[i].Add(new Key { Bytes = GetRandomSeed() });
+                    mgSig.SS[i].Add(new Key { Bytes = GetRandomSeed() });
                 }
                 Array.Clear(c.Bytes, 0, 32);
                 for (j = 0; j < dsRows; j++)
                 {
-                    ScalarmulBaseAddKeys2(L, rv.SS[i][j], c_old, pk[i][j]);
-                    Hi = HashToPoint(pk[i][j]);
-                    ScalarmulBaseAddKeys3(R, rv.SS[i][j], Hi, c_old, Ip[j]);
+                    ScalarmulBaseAddKeys2(L, mgSig.SS[i][j], c_old, pk[i][j]);
+                    Key Hi = HashToPoint(pk[i][j]);
+                    ScalarmulBaseAddKeys3(R, mgSig.SS[i][j], Hi, c_old, Ip[j]);
                     toHash[3 * j + 1] = pk[i][j];
                     toHash[3 * j + 2] = L;
                     toHash[3 * j + 3] = R;
                 }
                 for (j = dsRows, ii = 0; j < rows; j++, ii++)
                 {
-                    ScalarmulBaseAddKeys2(L, rv.SS[i][j], c_old, pk[i][j]);
+                    ScalarmulBaseAddKeys2(L, mgSig.SS[i][j], c_old, pk[i][j]);
                     toHash[ndsRows + 2 * ii + 1] = pk[i][j];
                     toHash[ndsRows + 2 * ii + 2] = L;
                 }
@@ -1045,11 +1046,11 @@ namespace Wist.Crypto.Experiment
 
                 if (i == 0)
                 {
-                    Array.Copy(c_old.Bytes, 0, rv.CC.Bytes, 0, c_old.Bytes.Length);
+                    Array.Copy(c_old.Bytes, 0, mgSig.CC.Bytes, 0, c_old.Bytes.Length);
                 }
             }
-            Mlsag_Sign(c, xx, alpha, rows, dsRows, rv.SS[index]);
-            return rv;
+            Mlsag_Sign(c, sk, alpha, rows, dsRows, mgSig.SS[index]);
+            return mgSig;
         }
 
         //Multilayered Spontaneous Anonymous Group Signatures (MLSAG signatures)

@@ -26,7 +26,7 @@ namespace Wist.Crypto.Experiment
 
         /// <summary>
         /// if it's  representing a private ctkey then "mask" contains "a" (blinding factor) where "C = aG + bH" is CT pedersen commitment and b is the amount; 
-        /// if it's representing a public ctkey, then "mask" = C the commitment;
+        /// if it's representing a public ctkey, then "mask" is "C" - the commitment;
         /// </summary>
         public Key Mask { get => _mask; set => _mask = value; }
     };

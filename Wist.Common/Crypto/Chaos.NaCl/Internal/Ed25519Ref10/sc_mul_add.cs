@@ -657,6 +657,16 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
             }
         }
 
+        /*
+        Input:
+          a[0]+256*a[1]+...+256^31*a[31] = a
+          b[0]+256*b[1]+...+256^31*b[31] = b
+          c[0]+256*c[1]+...+256^31*c[31] = c
+
+        Output:
+          s[0]+256*s[1]+...+256^31*s[31] = (c-ab) mod l
+          where l = 2^252 + 27742317777372353535851937790883648493.
+        */
         public static void sc_mulsub(byte[] s, byte[] a, byte[] b, byte[] c)
         {
             Int64 a0 = 2097151 & load_3(a, 0);
