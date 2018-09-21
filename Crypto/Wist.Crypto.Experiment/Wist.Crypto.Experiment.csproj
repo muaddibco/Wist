@@ -36,6 +36,9 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Memory">
+      <HintPath>..\..\..\..\..\..\..\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.1.0\ref\netcoreapp2.1\System.Memory.dll</HintPath>
+    </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -60,6 +63,10 @@
     <ProjectReference Include="..\..\Wist.Common\Crypto\HashLib\CoreHashLib\CoreHashLib.csproj">
       <Project>{9d352643-dcf0-408f-9a11-65dc1d110e83}</Project>
       <Name>CoreHashLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Wist.Common\Wist.Core\Wist.Core.csproj">
+      <Project>{ec7e5756-c2f6-40a7-8f5b-c8740df3a5a9}</Project>
+      <Name>Wist.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

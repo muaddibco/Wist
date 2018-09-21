@@ -15,8 +15,11 @@ namespace Wist.Crypto.Experiment
     //if it's representing a public ctkey, then "dest" = P the address, mask = C the commitment
     public struct CtKey
     {
-        public Key dest;
-        public Key mask; //C here if public
+        private Key _dest;
+        private Key _mask; //C here if public
+
+        public Key Dest { get => _dest; set => _dest = value; }
+        public Key Mask { get => _mask; set => _mask = value; }
     };
 
     public class CtKeyList : List<CtKey>

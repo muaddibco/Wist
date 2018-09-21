@@ -1,4 +1,5 @@
-﻿using Chaos.NaCl;
+﻿using Wist.Core.ExtensionMethods;
+using Chaos.NaCl;
 using Chaos.NaCl.Internal.Ed25519Ref10;
 using System;
 using System.Collections;
@@ -8,12 +9,16 @@ using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Buffers.Binary;
 
 namespace Wist.Crypto.Experiment
 {
     class Program
     {
         public static Key I = new Key { Bytes = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
+
+        public static Key H = new Key{ Bytes = new byte[] { 0x8b, 0x65, 0x59, 0x70, 0x15, 0x37, 0x99, 0xaf, 0x2a, 0xea, 0xdc, 0x9f, 0xf1, 0xad, 0xd0, 0xea, 0x6c, 0x72, 0x51, 0xd5, 0x41, 0x54, 0xcf, 0xa9, 0x2c, 0x17, 0x3a, 0x0d, 0xd3, 0x9c, 0x1f, 0x94 } };
+
         //H2 contains 2^i H in each index, i.e. H, 2H, 4H, 8H, ...
         //This is used for the range proofG
         //You can regenerate this by running python2 Test.py HPow2 in the MiniNero repo
@@ -299,7 +304,7 @@ namespace Wist.Crypto.Experiment
         //   must know the destination private key to find the correct amount, else will return a random number
         //   Note: For txn fees, the last index in the amounts vector should contain that
         //   Thus the amounts vector will be "one" longer than the destinations vectort
-        RctSig GenerateRct(Key message, CtKeyList inSk, KeysList destinations, List<ulong> amounts, CtKeyMatrix mixRing, KeysList amount_keys, int index, ref CtKeyList outSk)
+        private static RctSig GenerateRct(Key message, CtKeyList inSk, KeysList destinations, List<ulong> amounts, CtKeyMatrix mixRing, KeysList amount_keys, int index, ref CtKeyList outSk)
         {
             if (amounts.Count != destinations.Count || amounts.Count != destinations.Count + 1)
             {
@@ -343,11 +348,11 @@ namespace Wist.Crypto.Experiment
             for (i = 0; i < destinations.Count; i++)
             {
                 //add destination to sig
-                Array.Copy(destinations[i].Bytes, 0, rv.OutPk[i].dest.Bytes, 0, destinations[i].Bytes.Length);
+                Array.Copy(destinations[i].Bytes, 0, rv.OutPk[i].Dest.Bytes, 0, destinations[i].Bytes.Length);
                 //compute range proof
-                rv.P.RangeSigs[i] = GetRangeSig(rv.OutPk[i].mask, outSk[i].mask, amounts[i]);
+                rv.P.RangeSigs[i] = GetRangeSig(rv.OutPk[i].Mask, outSk[i].Mask, amounts[i]);
                 //mask amount and mask
-                Array.Copy(outSk[i].mask.Bytes, 0, rv.EcdhInfo[i].Mask, 0, outSk[i].mask.Bytes.Length);
+                Array.Copy(outSk[i].Mask.Bytes, 0, rv.EcdhInfo[i].Mask, 0, outSk[i].Mask.Bytes.Length);
 
                 rv.EcdhInfo[i].Amount = BitConverter.GetBytes(amounts[i]);
                 EcdhEncode(rv.EcdhInfo[i], amount_keys[i]);
@@ -358,14 +363,146 @@ namespace Wist.Crypto.Experiment
             return rv;
         }
 
-        //GetRangeSig and verRange
-        //GetRangeSig gives C, and mask such that \sumCi = C
-        //   c.f. https://eprint.iacr.org/2015/1098 section 5.1
-        //   and Ci is a commitment to either 0 or 2^i, i=0,...,63
-        //   thus this proves that "amount" is in [0, 2^64]
-        //   mask is a such that C = aG + bH, and b = amount
-        //verRange verifies that \sum Ci = C and that each Ci is a commitment to 0 or 2^i
-        private static RangeSig GetRangeSig(Key c, Key mask, ulong amount)
+        //RingCT protocol
+        //genRct: 
+        //   creates an rctSig with all data necessary to verify the rangeProofs and that the signer owns one of the
+        //   columns that are claimed as inputs, and that the sum of inputs  = sum of outputs.
+        //   Also contains masked "amount" and "mask" so the receiver can see how much they received
+        //verRct:
+        //   verifies that all signatures (rangeProogs, MG sig, sum inputs = outputs) are correct
+        //decodeRct: (c.f. https://eprint.iacr.org/2015/1098 section 5.1.1)
+        //   uses the attached ecdh info to find the amounts represented by each output commitment 
+        //   must know the destination private key to find the correct amount, else will return a random number    
+        private static ulong DecodeRct(RctSig rv, Key sk, int i, ref Key mask)
+        {
+            if (i >= rv.EcdhInfo.Count)
+            {
+                throw new ArgumentException(nameof(i), "Bad index");
+            }
+
+            if (rv.OutPk.Count != rv.EcdhInfo.Count)
+            {
+                throw new ArgumentException(nameof(rv), $"Mismatched sizes of {nameof(rv.OutPk)} and {nameof(rv.EcdhInfo)}");
+            }
+
+            //mask amount and mask
+            EcdhTuple ecdh_info = rv.EcdhInfo[i];
+            EcdhDecode(ecdh_info, sk);
+            mask.Bytes = ecdh_info.Mask;
+            Key amount = new Key
+            {
+                Bytes = ecdh_info.Amount
+            };
+
+            Key C = rv.OutPk[i].Mask;
+
+            Key Ctmp = new Key();
+            if (ScalarOperations.sc_check(mask.Bytes) != 0)
+            {
+                throw new Exception("warning, bad ECDH mask");
+            }
+
+            if (ScalarOperations.sc_check(amount.Bytes) != 0)
+            {
+                throw new Exception("warning, bad ECDH amount");
+            }
+
+            ScalarmulBaseAddKeys2(Ctmp, mask, amount, H);
+            if (!EqualKeys(C, Ctmp))
+            {
+                throw new Exception("warning, amount decoded incorrectly, will be unable to spend");
+            }
+
+            ulong res = BitConverter.ToUInt64(amount.Bytes, 0);
+
+            return res;
+        }
+
+        private static ulong DecodeRct(RctSig rv, Key sk, int i)
+        {
+            Key mask = new Key();
+            return DecodeRct(rv, sk, i, ref mask);
+        }
+
+        //RingCT protocol
+        //genRct: 
+        //   creates an rctSig with all data necessary to verify the rangeProofs and that the signer owns one of the
+        //   columns that are claimed as inputs, and that the sum of inputs  = sum of outputs.
+        //   Also contains masked "amount" and "mask" so the receiver can see how much they received
+        //verRct:
+        //   verifies that all signatures (rangeProogs, MG sig, sum inputs = outputs) are correct
+        //decodeRct: (c.f. https://eprint.iacr.org/2015/1098 section 5.1.1)
+        //   uses the attached ecdh info to find the amounts represented by each output commitment 
+        //   must know the destination private key to find the correct amount, else will return a random number    
+        private static bool VerRct(RctSig rv, bool semantics)
+        {
+            if (semantics)
+            {
+                if (rv.OutPk.Count != rv.P.RangeSigs.Count)
+                {
+                    throw new ArgumentException(nameof(rv), $"Mismatched sizes of {nameof(rv.OutPk)} and {rv.P.RangeSigs}");
+                }
+
+                if (rv.OutPk.Count == rv.EcdhInfo.Count)
+                {
+                    throw new ArgumentException(nameof(rv), $"Mismatched sizes of {nameof(rv.OutPk)} and {nameof(rv.EcdhInfo)}");
+                }
+
+                if (rv.P.MGs.Count != 1)
+                {
+                    throw new ArgumentException(nameof(rv), $"full rctSig has not one MG");
+                }
+            }
+
+            // some rct ops can throw
+            try
+            {
+                if (semantics)
+                {
+                    bool[] results = new bool[rv.OutPk.Count];
+
+                    for (int i = 0; i < rv.OutPk.Count; i++)
+                    {
+                        results[i] = VerifyRangeSig(rv.OutPk[i].Mask, rv.P.RangeSigs[i]);
+                    }
+
+                    for (int i = 0; i < results.Length; ++i)
+                    {
+                        if (!results[i])
+                        {
+                            //LOG_PRINT_L1("Range proof verified failed for proof " << i);
+                            return false;
+                        }
+                    }
+                }
+
+                if (!semantics)
+                {
+                    bool mgVerd = VerRctMG(rv.P.MGs[0], rv.MixRing, rv.OutPk, get_pre_mlsag_hash(rv));
+                    if (!mgVerd)
+                    {
+                        //LOG_PRINT_L1("MG signature verification failed");
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch
+            {
+                //LOG_PRINT_L1("Error in verRct: " << e.what());
+                return false;
+            }
+        }
+
+    //GetRangeSig and verRange
+    //GetRangeSig gives C, and mask such that \sumCi = C
+    //   c.f. https://eprint.iacr.org/2015/1098 section 5.1
+    //   and Ci is a commitment to either 0 or 2^i, i=0,...,63
+    //   thus this proves that "amount" is in [0, 2^64]
+    //   mask is a such that C = aG + bH, and b = amount
+    //verRange verifies that \sum Ci = C and that each Ci is a commitment to 0 or 2^i
+    private static RangeSig GetRangeSig(Key c, Key mask, ulong amount)
         {
             if (c == null)
             {
@@ -400,6 +537,59 @@ namespace Wist.Crypto.Experiment
             }
             sig.Asig = GenBorromean(ai, sig.Ci, CiH, bits);
             return sig;
+        }
+
+        //proveRange and verRange
+        //proveRange gives C, and mask such that \sumCi = C
+        //   c.f. https://eprint.iacr.org/2015/1098 section 5.1
+        //   and Ci is a commitment to either 0 or 2^i, i=0,...,63
+        //   thus this proves that "amount" is in [0, 2^64]
+        //   mask is a such that C = aG + bH, and b = amount
+        //verRange verifies that \sum Ci = C and that each Ci is a commitment to 0 or 2^i
+        private static bool VerifyRangeSig(Key C, RangeSig rangeSig)
+        {
+            try
+            {
+                GroupElementP3[] CiH = new GroupElementP3[64], asCi = new GroupElementP3[64];
+                int i = 0;
+                GroupElementP3 Ctmp_p3 = LookupTables.ge_p3_identity;
+                for (i = 0; i < 64; i++)
+                {
+                    // faster equivalent of:
+                    // subKeys(CiH[i], as.Ci[i], H2[i]);
+                    // addKeys(Ctmp, Ctmp, as.Ci[i]);
+                    GroupElementCached cached;
+                    GroupElementP3 p3;
+                    GroupElementP1P1 p1;
+                    if (GroupOperations.ge_frombytes_negate_vartime(out p3, H2.Keys[i].Bytes, 0) != 0)
+                    {
+                        throw new Exception("point conv failed");
+                    }
+                    GroupOperations.ge_p3_to_cached(out cached, ref p3);
+                    if (GroupOperations.ge_frombytes_negate_vartime(out asCi[i], rangeSig.Ci.Keys[i].Bytes, 0) != 0)
+                    {
+                        throw new Exception("point conv failed");
+                    }
+
+                    GroupOperations.ge_sub(out p1, ref asCi[i], ref cached);
+                    GroupOperations.ge_p3_to_cached(out cached, ref asCi[i]);
+                    GroupOperations.ge_p1p1_to_p3(out CiH[i], ref p1);
+                    GroupOperations.ge_add(out p1, ref Ctmp_p3, ref cached);
+                    GroupOperations.ge_p1p1_to_p3(out Ctmp_p3, ref p1);
+                }
+                Key Ctmp = new Key();
+                GroupOperations.ge_p3_tobytes(Ctmp.Bytes, 0, ref Ctmp_p3);
+                if (!EqualKeys(C, Ctmp))
+                    return false;
+                if (!VerifyBorromean(rangeSig.Asig, asCi, CiH))
+                    return false;
+                return true;
+            }
+            // we can get deep throws from ge_frombytes_vartime if input isn't valid
+            catch
+            {
+                return false;
+            }
         }
 
         //Ring-ct MG sigs
@@ -472,23 +662,23 @@ namespace Wist.Crypto.Experiment
                 }
                 for (int j = 0; j < rows; j++)
                 {
-                    M[i][j] = pubs[i][j].dest;
-                    ScalarmulBaseAddKeys(M[i][rows], M[i][rows], pubs[i][j].mask); //add input commitments in last row
+                    M[i][j] = pubs[i][j].Dest;
+                    ScalarmulBaseAddKeys(M[i][rows], M[i][rows], pubs[i][j].Mask); //add input commitments in last row
                 }
             }
 
             Array.Clear(sk[rows].Bytes, 0, sk[rows].Bytes.Length);
             for (int j = 0; j < rows; j++)
             {
-                Array.Copy(inSk[j].dest.Bytes, 0, sk[j].Bytes, 0, inSk[j].dest.Bytes.Length);
-                ScalarOperations.sc_add(sk[rows].Bytes, sk[rows].Bytes, inSk[j].mask.Bytes); //add masks in last row
+                Array.Copy(inSk[j].Dest.Bytes, 0, sk[j].Bytes, 0, inSk[j].Dest.Bytes.Length);
+                ScalarOperations.sc_add(sk[rows].Bytes, sk[rows].Bytes, inSk[j].Mask.Bytes); //add masks in last row
             }
 
             for (int i = 0; i < cols; i++)
             {
                 for (int j = 0; j < outPk.Count; j++)
                 {
-                    SubKeys(M[i][rows], M[i][rows], outPk[j].mask); //subtract output Ci's in last row
+                    SubKeys(M[i][rows], M[i][rows], outPk[j].Mask); //subtract output Ci's in last row
                 }
 
                 ////subtract txn fee output in last row
@@ -497,7 +687,7 @@ namespace Wist.Crypto.Experiment
 
             for (int j = 0; j < outPk.Count; j++)
             {
-                ScalarOperations.sc_sub(sk[rows].Bytes, sk[rows].Bytes, outSk[j].mask.Bytes); //subtract output masks in last row..
+                ScalarOperations.sc_sub(sk[rows].Bytes, sk[rows].Bytes, outSk[j].Mask.Bytes); //subtract output masks in last row..
             }
 
             MgSig result = MLSAG_Gen(message, M, sk, index, rows);
@@ -507,6 +697,67 @@ namespace Wist.Crypto.Experiment
             }
 
             return result;
+        }
+
+        //Ring-ct MG sigs
+        //Prove: 
+        //   c.f. https://eprint.iacr.org/2015/1098 section 4. definition 10. 
+        //   This does the MG sig on the "dest" part of the given key matrix, and 
+        //   the last row is the sum of input commitments from that column - sum output commitments
+        //   this shows that sum inputs = sum outputs
+        //Ver:    
+        //   verifies the above sig is created corretly
+        private static bool VerRctMG(MgSig mg, CtKeyMatrix pubs, CtKeyList outPk, Key message)
+        {
+            //setup vars
+            int cols = pubs.Count;
+            if (cols == 0)
+            {
+                throw new ArgumentException(nameof(pubs), $"Empty {nameof(pubs)}");
+            }
+            int rows = pubs[0].Count;
+            if (rows == 0)
+            {
+                throw new ArgumentException(nameof(pubs), $"Empty {nameof(pubs)}");
+            }
+            for (int k = 1; k < cols; k++)
+            {
+                if (pubs[k].Count != rows)
+                {
+                    throw new ArgumentException(nameof(pubs), $"{nameof(pubs)} is not rectangular");
+                }
+            }
+
+            KeysList tmp = new KeysList();
+            for (int k = 0; k < rows + 1; k++)
+            {
+                Key key = new Key();
+                Array.Copy(I.Bytes, 0, key.Bytes, 0, I.Bytes.Length);
+                tmp.Add(key);
+            }
+
+
+            KeysMatrix M = new KeysMatrix();
+            //create the matrix to mg sig
+            for (int j = 0; j < rows; j++)
+            {
+                M.Add(new KeysList());
+                for (int i = 0; i < cols; i++)
+                {
+                    M[i].Add(new Key());
+                    M[i][j] = pubs[i][j].Dest;
+                    ScalarmulBaseAddKeys(M[i][rows], M[i][rows], pubs[i][j].Mask); //add Ci in last row
+                }
+            }
+            for (int i = 0; i < cols; i++)
+            {
+                for (int j = 0; j < outPk.Count; j++)
+                {
+                    SubKeys(M[i][rows], M[i][rows], outPk[j].Mask); //subtract output Ci's in last row
+                }
+            }
+
+            return MLSAG_Ver(message, M, mg, rows);
         }
 
         #endregion
@@ -764,6 +1015,131 @@ namespace Wist.Crypto.Experiment
             }
             Mlsag_Sign(c, xx, alpha, rows, dsRows, rv.SS[index]);
             return rv;
+        }
+
+        //Multilayered Spontaneous Anonymous Group Signatures (MLSAG signatures)
+        //This is a just slghtly more efficient version than the ones described below
+        //(will be explained in more detail in Ring Multisig paper
+        //These are aka MG signatutes in earlier drafts of the ring ct paper
+        // c.f. https://eprint.iacr.org/2015/1098 section 2. 
+        // Gen creates a signature which proves that for some column in the keymatrix "pk"
+        //   the signer knows a secret key for each row in that column
+        // Ver verifies that the MG sig was created correctly            
+        private static bool MLSAG_Ver(Key message, KeysMatrix pk, MgSig rv, int dsRows)
+        {
+
+            int cols = pk.Count;
+            if (cols <= 1)
+            {
+                throw new ArgumentException(nameof(pk), $"Error! What is c if {nameof(cols)} = 1!");
+            }
+
+            int rows = pk[0].Count;
+            if (rows == 0)
+            {
+                throw new ArgumentException(nameof(pk), $"Empty {nameof(pk)}");
+            }
+
+            for (int k = 1; k < cols; ++k)
+            {
+                if (pk[k].Count != rows)
+                {
+                    throw new ArgumentException(nameof(pk), $"{nameof(pk)} is not rectangular");
+                }
+            }
+
+            if (rv.II.Count != dsRows)
+            {
+                throw new ArgumentException(nameof(rv), $"Bad {rv.II} size");
+            }
+
+            if (rv.SS.Count != cols)
+            {
+                throw new ArgumentException(nameof(rv), $"Bad {rv.SS} size");
+            }
+
+            for (int k = 0; k < cols; ++k)
+            {
+                if (rv.SS[k].Count != rows)
+                {
+                    throw new ArgumentException(nameof(rv), $"{rv.SS} is not rectangular");
+                }
+            }
+            if (dsRows > rows)
+            {
+                throw new ArgumentException(nameof(dsRows), $"Bad {nameof(dsRows)} value");
+            }
+
+            for (int i = 0; i < rv.SS.Count; ++i)
+            {
+                for (int j = 0; j < rv.SS[i].Count; ++j)
+                {
+                    if (ScalarOperations.sc_check(rv.SS[i][j].Bytes) != 0)
+                    {
+                        throw new ArgumentException(nameof(rv.SS), $"Bad {rv.SS} slot");
+                    }
+                }
+            }
+
+            if (ScalarOperations.sc_check(rv.CC.Bytes) != 0)
+            {
+                throw new ArgumentException(nameof(rv.CC), $"Bad {nameof(rv.CC)}");
+            }
+
+            Key c = new Key(), L = new Key(), R = new Key(), Hi = new Key();
+            Key c_old = new Key();
+            Array.Copy(rv.CC.Bytes, 0, c_old.Bytes, 0, rv.CC.Bytes.Length);
+            List<GroupElementCached[]> Ip = new List<GroupElementCached[]>();
+            for (int i = 0; i < dsRows; i++)
+            {
+                Ip.Add(new GroupElementCached[8]);
+                for (int j = 0; j < 8; j++)
+                {
+                    Ip[i][j] = new GroupElementCached();
+                }
+            }
+            for (int i = 0; i < dsRows; i++)
+            {
+                Precomp(Ip[i], rv.II[i]);
+            }
+            int ndsRows = 3 * dsRows; //non Double Spendable Rows (see identity chains paper
+            int toHashSize = 1 + 3 * dsRows + 2 * (rows - dsRows);
+            KeysList toHash = new KeysList();
+            for (int k = 0; k < toHashSize; k++)
+            {
+                toHash.Add(new Key());
+            }
+
+            toHash[0] = message;
+            int i1 = 0;
+            while (i1 < cols)
+            {
+                Array.Clear(c.Bytes, 0, c.Bytes.Length);
+                for (int j = 0; j < dsRows; j++)
+                {
+                    ScalarmulBaseAddKeys2(L, rv.SS[i1][j], c_old, pk[i1][j]);
+                    Hi = HashToPoint(pk[i1][j]);
+                    if (Hi.Bytes.Equals32(I.Bytes))
+                    {
+                        throw new Exception("Data hashed to point at infinity");
+                    }
+                    ScalarmulBaseAddKeys3(R, rv.SS[i1][j], Hi, c_old, Ip[j]);
+                    toHash[3 * j + 1] = pk[i1][j];
+                    toHash[3 * j + 2] = L;
+                    toHash[3 * j + 3] = R;
+                }
+                for (int j = dsRows, ii = 0; j < rows; j++, ii++)
+                {
+                    ScalarmulBaseAddKeys2(L, rv.SS[i1][j], c_old, pk[i1][j]);
+                    toHash[ndsRows + 2 * ii + 1] = pk[i1][j];
+                    toHash[ndsRows + 2 * ii + 2] = L;
+                }
+                c = FastHash(toHash);
+                Array.Copy(c.Bytes, 0, c_old.Bytes, 0, c.Bytes.Length);
+                i1++;
+            }
+            ScalarOperations.sc_sub(c.Bytes, c_old.Bytes, rv.CC.Bytes);
+            return ScalarOperations.sc_isnonzero(c.Bytes) == 0;
         }
 
         private static bool Mlsag_Prepare(Key H, Key xx, out Key a, out Key aG, Key aHP, Key II)
@@ -1088,8 +1464,10 @@ namespace Wist.Crypto.Experiment
         //generates a random secret and corresponding public key
         private static void SkpkGen(out Key sk, out Key pk)
         {
-            sk = new Key();
-            sk.Bytes = GetRandomSeed();
+            sk = new Key
+            {
+                Bytes = GetRandomSeed()
+            };
 
             pk = new Key();
             ScalarmultBase(pk, sk);
