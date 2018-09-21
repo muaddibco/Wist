@@ -304,6 +304,18 @@ namespace Wist.Crypto.Experiment
         //   must know the destination private key to find the correct amount, else will return a random number
         //   Note: For txn fees, the last index in the amounts vector should contain that
         //   Thus the amounts vector will be "one" longer than the destinations vectort
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message">????</param>
+        /// <param name="inSk">collection of pairs of secrect keys and blinding factors of all inputs used for transaction</param>
+        /// <param name="destinations">public keys of destinations</param>
+        /// <param name="amounts">amounts per destination</param>
+        /// <param name="mixRing">collection of collections of pairs of public key and Pedersen Commitment used for inputs where index of real collection of pairs designated by argument "index"</param>
+        /// <param name="amount_keys">shared secret of corresponding destinations, i.e. multiplication of private key of sender with a public key of a receiver</param>
+        /// <param name="index">index of real input collection of pairs of Public Key and Pedersen Commitment of inputs</param>
+        /// <param name="outSk">collection of pairs of secrect keys and blinding factors of all outputs used for transaction</param>
+        /// <returns></returns>
         private static RctSig GenerateRct(Key message, CtKeyList inSk, KeysList destinations, List<ulong> amounts, CtKeyMatrix mixRing, KeysList amount_keys, int index, ref CtKeyList outSk)
         {
             if (amounts.Count != destinations.Count || amounts.Count != destinations.Count + 1)
@@ -495,14 +507,25 @@ namespace Wist.Crypto.Experiment
             }
         }
 
-    //GetRangeSig and verRange
-    //GetRangeSig gives C, and mask such that \sumCi = C
-    //   c.f. https://eprint.iacr.org/2015/1098 section 5.1
-    //   and Ci is a commitment to either 0 or 2^i, i=0,...,63
-    //   thus this proves that "amount" is in [0, 2^64]
-    //   mask is a such that C = aG + bH, and b = amount
-    //verRange verifies that \sum Ci = C and that each Ci is a commitment to 0 or 2^i
-    private static RangeSig GetRangeSig(Key c, Key mask, ulong amount)
+        //GetRangeSig and verRange
+        //GetRangeSig gives C, and mask such that \sumCi = C
+        //   c.f. https://eprint.iacr.org/2015/1098 section 5.1
+        //   and Ci is a commitment to either 0 or 2^i, i=0,...,63
+        //   thus this proves that "amount" is in [0, 2^64]
+        //   mask is a such that C = aG + bH, and b = amount
+        //verRange verifies that \sum Ci = C and that each Ci is a commitment to 0 or 2^i
+        /// <summary>
+        /// gives C, and mask such that \sumCi = C
+        ///  c.f. https://eprint.iacr.org/2015/1098 section 5.1
+        ///   and Ci is a commitment to either 0 or 2^i, i=0,...,63
+        ///   thus this proves that "amount" is in [0, 2^64]
+        ///   mask is a such that C = aG + bH, and b = amount
+        /// </summary>
+        /// <param name="c">An output that will hold Pedersen Commitment associated with the certain amount</param>
+        /// <param name="mask">will hold the blinding factor value used in the calculation of this Pedersen Commitment</param>
+        /// <param name="amount">is the output amount for which the Pedersen Commitment will be calculated</param>
+        /// <returns></returns>
+        private static RangeSig GetRangeSig(Key c, Key mask, ulong amount)
         {
             if (c == null)
             {
@@ -600,6 +623,16 @@ namespace Wist.Crypto.Experiment
         //   this shows that sum inputs = sum outputs
         //Ver:    
         //   verifies the above sig is created correctly
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="pubs">collection of collections of pairs of public key and Pedersen Commitment used for inputs where index of real collection of pairs designated by argument "index"</param>
+        /// <param name="inSk">collection of pairs of secrect keys and blinding factors of all inputs used for transaction</param>
+        /// <param name="outSk">collection of pairs of secrect keys and blinding factors of all outputs used for transaction</param>
+        /// <param name="outPk">collection of pairs of public keys of receiver and pedersen commitments of amount sent to him</param>
+        /// <param name="index"></param>
+        /// <returns></returns>
         private static MgSig ProveRctMG(Key message, CtKeyMatrix pubs, CtKeyList inSk, CtKeyList outSk, CtKeyList outPk, int index)
         {
             //setup vars
@@ -608,11 +641,13 @@ namespace Wist.Crypto.Experiment
             {
                 throw new ArgumentException(nameof(pubs), $"Empty {nameof(pubs)}");
             }
+
             int rows = pubs[0].Count;
             if (rows == 0)
             {
                 throw new ArgumentException(nameof(pubs), $"Empty {nameof(pubs)}");
             }
+
             for (int k = 1; k < cols; k++)
             {
                 if (pubs[k].Count != rows)
@@ -671,7 +706,7 @@ namespace Wist.Crypto.Experiment
             for (int j = 0; j < rows; j++)
             {
                 Array.Copy(inSk[j].Dest.Bytes, 0, sk[j].Bytes, 0, inSk[j].Dest.Bytes.Length);
-                ScalarOperations.sc_add(sk[rows].Bytes, sk[rows].Bytes, inSk[j].Mask.Bytes); //add masks in last row
+                ScalarOperations.sc_add(sk[rows].Bytes, sk[rows].Bytes, inSk[j].Mask.Bytes); //add blinding factor in last row
             }
 
             for (int i = 0; i < cols; i++)
@@ -1201,14 +1236,14 @@ namespace Wist.Crypto.Experiment
             return true;
         }
 
-        private static bool Mlsag_Hash(KeysList toHash, out Key c_old)
+        private static bool Mlsag_Hash(KeysList toHash, out Key hash)
         {
             byte[] buf = new byte[toHash.Count * 32];
             for (int i = 0; i < toHash.Count; i++)
             {
                 Array.Copy(toHash[i].Bytes, 0, buf, i * 32, 32);
             }
-            c_old = new Key
+            hash = new Key
             {
                 Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes()
             };
@@ -1575,8 +1610,10 @@ namespace Wist.Crypto.Experiment
 
         private static Key get_pre_mlsag_hash(RctSig rv)
         {
-            KeysList hashes = new KeysList();
-            hashes.Add(rv.Message);
+            KeysList hashes = new KeysList
+            {
+                rv.Message
+            };
             Key prehash;
 
             //TODO: Code below serializes content of RctSig and creates hash based on it. Must be implemented in real working environment

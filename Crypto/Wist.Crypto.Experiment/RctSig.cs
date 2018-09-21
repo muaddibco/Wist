@@ -18,7 +18,16 @@ namespace Wist.Crypto.Experiment
         private Key _dest;
         private Key _mask; //C here if public
 
+        /// <summary>
+        /// if it's  representing a private ctkey then "dest" contains the secret key of the address; 
+        /// if it's representing a public ctkey, then "dest" = P the address; 
+        /// </summary>
         public Key Dest { get => _dest; set => _dest = value; }
+
+        /// <summary>
+        /// if it's  representing a private ctkey then "mask" contains "a" (blinding factor) where "C = aG + bH" is CT pedersen commitment and b is the amount; 
+        /// if it's representing a public ctkey, then "mask" = C the commitment;
+        /// </summary>
         public Key Mask { get => _mask; set => _mask = value; }
     };
 
@@ -158,11 +167,16 @@ namespace Wist.Crypto.Experiment
     {
         private KeysMatrix _ss;
         private Key _cc;
+
         private KeysList _ii;
 
         public KeysMatrix SS { get => _ss; set => _ss = value; }
         public Key CC { get => _cc; set => _cc = value; }
-        public KeysList II { get => _ii; set => _ii = value; }
+
+        /// <summary>
+        /// this field is not serialized because it can be reconstructed 
+        /// </summary>
+        internal KeysList II { get => _ii; set => _ii = value; }
     };
 
     //data for passing the amount to the receiver secretly
@@ -210,11 +224,11 @@ namespace Wist.Crypto.Experiment
     {
         private List<RangeSig> _rangeSigs;
         private List<MgSig> _mgs; // simple rct has N, full has 1
-        private KeysList _pseudoOuts; //C - for simple rct
+        //private KeysList _pseudoOuts; //C - for simple rct
 
         public List<RangeSig> RangeSigs { get => _rangeSigs; set => _rangeSigs = value; }
         public List<MgSig> MGs { get => _mgs; set => _mgs = value; }
-        public KeysList PseudoOuts { get => _pseudoOuts; set => _pseudoOuts = value; }
+        //public KeysList PseudoOuts { get => _pseudoOuts; set => _pseudoOuts = value; }
     };
 
     public class RctSig : RctSigBase
