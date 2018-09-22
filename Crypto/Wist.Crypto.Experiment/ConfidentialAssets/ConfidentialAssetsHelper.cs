@@ -13,6 +13,8 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 {
     public static class ConfidentialAssetsHelper
     {
+        #region Ring Signatures 
+
         // Inputs:
         //
         // 1. `msg`: the 32-byte string to be signed.
@@ -29,7 +31,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="j">index of public key that its secret key is provided in argument "sk"</param>
         /// <param name="sk">secret key for public key with index j</param>
         /// <returns></returns>
-        public static RingSignature CreateRingSignature(byte[] msg, byte[][] pks, ulong j, byte[] sk)
+        public static RingSignature CreateRingSignature(byte[] msg, byte[][] pks, int j, byte[] sk)
         {
             RingSignature ringSignature = null;
 
@@ -104,7 +106,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 ScalarOperations.sc_reduce(nonce);
 
                 // 4. Calculate the initial e-value, let `i = j+1 mod n`:
-                ulong i = (j + 1L) % n;
+                ulong i = ((ulong)j + 1L) % n;
 
                 // 4.1. Calculate `R[i]` as the point `k*G`.
                 GroupElementP3 Ri;
@@ -117,11 +119,13 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 byte[] Rienc = new byte[32];
                 GroupOperations.ge_p3_tobytes(Rienc, 0, ref Ri);
                 IHash hash = HashLib.HashFactory.Crypto.CreateSHA512();
+                hash.Initialize();
                 hash.TransformBytes(Rienc);
                 hash.TransformBytes(msg);
                 hash.TransformULong(i);
+                hash.TransformByte(wj);
 
-                byte[] ei = hash.ComputeByte(wj).GetBytes();
+                byte[] ei = hash.TransformFinal().GetBytes();
                 if (i == 0)
                 {
                     e0[0] = ei;
@@ -135,7 +139,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 for (ulong step = 1; step < n; step++)
                 {
                     // 5.1. Let `i = (j + step) mod n`.
-                    i = (j + step) % n;
+                    i = ((ulong)j + step) % n;
 
                     // 5.2. Set the forged s-value `s[i] = r[step-1]`
                     ringSignature.S[i] = new byte[32];
@@ -163,8 +167,9 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                     hash.TransformBytes(Ri1);
                     hash.TransformBytes(msg);
                     hash.TransformULong(i1);
+                    hash.TransformByte(wi);
 
-                    ei = hash.ComputeByte(wi).GetBytes();
+                    ei = hash.TransformFinal().GetBytes();
                     if (i1 == 0)
                     {
                         e0[0] = ei;
@@ -235,14 +240,115 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 // 4. Calculate `e[i+1] = SHA3-512(R[i+1] || msg || i+1)` where `i+1` is encoded as a 64-bit little-endian integer.
                 // 5. Interpret `e[i+1]` as a little-endian integer reduced modulo subgroup order `L`.
                 IHash hash = HashFactory.Crypto.CreateSHA512();
+                hash.Initialize();
                 hash.TransformBytes(R);
                 hash.TransformBytes(msg);
                 hash.TransformULong((i + 1) % n);
-                e = hash.ComputeByte(w).GetBytes();
+                hash.TransformByte(w);
+                e = hash.TransformFinal().GetBytes();
             }
 
             return e.Equals32(ringSignature.E);
         }
+
+        #endregion Ring Signatures
+
+        #region Range Proofs
+
+        public static byte[] CalcAssetRangeProofMsg(byte[] assetCommitment, EncryptedAssetID encryptedAssetID, byte[][] candidateAssetCommitments)
+        {
+            IHash hash = HashFactory.Crypto.CreateSHA256();
+            hash.Initialize();
+            hash.TransformByte(0x55);
+            hash.TransformBytes(assetCommitment);
+            foreach (byte[] candidate in candidateAssetCommitments)
+            {
+                hash.TransformBytes(candidate);
+            }
+            hash.TransformBytes(encryptedAssetID.AssetId);
+            hash.TransformBytes(encryptedAssetID.BlindingFactor);
+
+            byte[] msg = hash.TransformFinal().GetBytes();
+
+            return msg;
+        }
+
+        // Calculate the set of public keys for the ring signature from the set of input asset ID commitments: `P[i] = H’ - H[i]`.
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assetCommitment"></param>
+        /// <param name="candidateAssetCommitments"></param>
+        /// <returns>array of 32 byte array representing point on EC</returns>
+        public static byte[][] CalcAssetRangeProofPubkeys(byte[] assetCommitment, byte[][] candidateAssetCommitments)
+        {
+            byte[][] pubKeys = new byte[candidateAssetCommitments.Length][];
+
+            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
+
+            int index = 0;
+            foreach (byte[] candidateAssetCommitment in candidateAssetCommitments)
+            {
+                GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 candidateAssetCommitmentP3, candidateAssetCommitment, 0);
+
+                GroupOperations.ge_p3_to_cached(out GroupElementCached candidateAssetCommitmentCached, ref candidateAssetCommitmentP3);
+                GroupOperations.ge_sub(out GroupElementP1P1 pubKeyP1P1, ref assetCommitmentP3, ref candidateAssetCommitmentCached);
+
+                GroupOperations.ge_p1p1_to_p3(out GroupElementP3 pubKeyP3, ref pubKeyP1P1);
+
+                pubKeys[index] = new byte[32];
+                GroupOperations.ge_p3_tobytes(pubKeys[index], 0, ref pubKeyP3);
+            }
+
+            return pubKeys;
+        }
+
+        /// <summary>
+        /// Calculates blinding factor that will be used for creating blinded Asset Commitment that will be set in output
+        /// </summary>
+        /// <param name="cprev">Previous Asset Commitment - one that is used as input for transaction</param>
+        /// <param name="assetEncryptionKey">Asset Encryption Key is key that is passed to recipient</param>
+        /// <returns></returns>
+        public static byte[] ComputeDifferentialBlindingFactor(byte[] cprev, byte[] assetEncryptionKey)
+        {
+            IHash hash = HashFactory.Crypto.CreateSHA512();
+            hash.Initialize();
+            hash.TransformBytes(cprev);
+            hash.TransformBytes(assetEncryptionKey);
+
+            byte[] hashValue = hash.TransformFinal().GetBytes();
+            ScalarOperations.sc_reduce(hashValue);
+            return hashValue;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assetCommitment">Asset Commitment being sent to recipient</param>
+        /// <param name="encryptedAssetID">Encrypted Asset Id being sent to recipient</param>
+        /// <param name="candidateAssetCommitments"></param>
+        /// <param name="j">index of input commitment among all input commitments that belong to sender and transferred to recipient</param>
+        /// <param name="blindingFactor">Blinding factor used for creation Asset Commitment being sent to recipient</param>
+        /// <returns></returns>
+        public static AssetRangeProof CreateAssetRangeProof(byte[] assetCommitment, EncryptedAssetID encryptedAssetID, byte[][] candidateAssetCommitments, int j, byte[] blindingFactor)
+        {
+            byte[] msg = CalcAssetRangeProofMsg(assetCommitment, encryptedAssetID, candidateAssetCommitments);
+            byte[][] pubkeys = CalcAssetRangeProofPubkeys(assetCommitment, candidateAssetCommitments);
+
+            RingSignature ringSignature = CreateRingSignature(msg, pubkeys, j, blindingFactor);
+
+            AssetRangeProof assetRangeProof = new AssetRangeProof
+            {
+                H = candidateAssetCommitments,
+                Rs = ringSignature
+            };
+
+            return assetRangeProof;
+        }
+
+        #endregion Range Proofs
+
+        #region Private Functions
 
         //aGbB = aG + bB where a, b are scalars, G is the basepoint and B is a point
         private static void ScalarmulBaseAddKeys2(byte[] aGbB, byte[] a, byte[] b, byte[] bPoint)
@@ -276,5 +382,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             GroupOperations.ge_double_scalarmult_vartime(out rv, a, ref bPointP3, b);
             GroupOperations.ge_tobytes(aGbB, 0, ref rv);
         }
+
+        #endregion Private Functions
     }
 }
