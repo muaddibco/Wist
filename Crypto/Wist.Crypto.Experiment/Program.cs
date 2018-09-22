@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Buffers.Binary;
+using Org.BouncyCastle.Crypto.Digests;
 
 namespace Wist.Crypto.Experiment
 {
