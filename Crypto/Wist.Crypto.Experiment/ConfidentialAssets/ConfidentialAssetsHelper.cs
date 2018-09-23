@@ -348,6 +348,134 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
         #endregion Range Proofs
 
+        #region Commitment Functions
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assetId">32-byte code of asset</param>
+        /// <returns></returns>
+        public static byte[] CreateNonblindedAssetCommitment(byte[] assetId)
+        {
+            if (assetId == null)
+            {
+                throw new ArgumentNullException(nameof(assetId));
+            }
+
+            if(assetId.Length != 32)
+            {
+                throw new ArgumentOutOfRangeException(nameof(assetId));
+            }
+        
+            byte[] assetIdCommitment = new byte[32];
+            ulong counter = 0;
+            bool succeeded = false;
+            do
+            {
+                IHash hash = HashFactory.Crypto.CreateSHA256();
+                hash.Initialize();
+                hash.TransformBytes(assetId);
+                hash.TransformULong(counter);
+
+                byte[] hashValue = hash.TransformFinal().GetBytes();
+
+                succeeded = GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 p3, hashValue, 0) == 0;
+
+                GroupOperations.ge_p3_to_p2(out GroupElementP2 p2, ref p3);
+
+                GroupOperations.ge_mul8(out GroupElementP1P1 p1P1, ref p2);
+
+                GroupOperations.ge_p1p1_to_p3(out p3, ref p1P1);
+
+                GroupOperations.ge_p3_tobytes(assetIdCommitment, 0, ref p3);
+            } while (!succeeded);
+
+            return assetIdCommitment;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assetCommitment">either non blinded asset commitment in case when asset is just issued 
+        /// or previous asset commitment in case when it was received from another transaction output</param>
+        /// <param name="prevBlindingFactor">either <see cref="ScalarOperations.zero"/> in case when asset is just issued or blinding factor from previous transaction</param>
+        /// <param name="assetEncryptionKey">32-byte encryption key used for encrypting</param>
+        /// <param name="newBlindingFactor">output parameter that will hold 32-byte value of blinding factor used for blinding asset</param>
+        /// <returns></returns>
+        public static byte[] CreateBlindedAssetCommitment(byte[] assetCommitment, byte[] prevBlindingFactor, byte[] assetEncryptionKey, out byte[] newBlindingFactor)
+        {
+            newBlindingFactor = ComputeDifferentialBlindingFactor(prevBlindingFactor, assetEncryptionKey);
+            byte[] assetCommitmentBlinded = BlindAssetCommitment(assetCommitment, newBlindingFactor);
+
+            return assetCommitmentBlinded;
+        }
+
+        public static byte[] BlindAssetCommitment(byte[] assetCommitment, byte[] blindingFactor)
+        {
+            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, blindingFactor, 0);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached assetCommitmentCached, ref assetCommitmentP3);
+            GroupOperations.ge_add(out GroupElementP1P1 assetCommitmentP1P1, ref p3, ref assetCommitmentCached);
+            GroupOperations.ge_p1p1_to_p3(out assetCommitmentP3, ref assetCommitmentP1P1);
+
+            byte[] assetCommitmentBlinded = new byte[32];
+            GroupOperations.ge_p3_tobytes(assetCommitmentBlinded, 0, ref assetCommitmentP3);
+
+            return assetCommitmentBlinded;
+        }
+
+        public static byte[] CreateNonblindedValueCommitment(byte[] assetCommitment, ulong value)
+        {
+            byte[] valueScalar = new byte[32];
+            byte[] valueBytes = BitConverter.GetBytes(value);
+            Array.Copy(valueBytes, 0, valueScalar, 0, valueBytes.Length);
+
+            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached assetCommitmentCached, ref assetCommitmentP3);
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, ScalarOperations.zero, 0);
+            GroupOperations.ge_add(out GroupElementP1P1 assetCommitmentP1P1, ref p3, ref assetCommitmentCached);
+            GroupOperations.ge_p1p1_to_p3(out assetCommitmentP3, ref assetCommitmentP1P1);
+
+            byte[] valueCommitment = new byte[32];
+            GroupOperations.ge_p3_tobytes(valueCommitment, 0, ref assetCommitmentP3);
+
+            return valueCommitment;
+        }
+
+        public static byte[] CreateBlindedValueCommitmentFromBlindingFactor(byte[] assetCommitment, ulong value, byte[] blindingFactor)
+        {
+            byte[] valueScalar = new byte[32];
+            byte[] valueBytes = BitConverter.GetBytes(value);
+            Array.Copy(valueBytes, 0, valueScalar, 0, valueBytes.Length);
+
+            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached assetCommitmentCached, ref assetCommitmentP3);
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, blindingFactor, 0);
+            GroupOperations.ge_add(out GroupElementP1P1 assetCommitmentP1P1, ref p3, ref assetCommitmentCached);
+            GroupOperations.ge_p1p1_to_p3(out assetCommitmentP3, ref assetCommitmentP1P1);
+
+            byte[] valueCommitment = new byte[32];
+            GroupOperations.ge_p3_tobytes(valueCommitment, 0, ref assetCommitmentP3);
+
+            return valueCommitment;
+        }
+
+        public static byte[] CreateBlindedValueCommitment(byte[] assetCommitment, ulong value, byte[] valueEncryptionKey, out byte[] valueBlindingFactor)
+        {
+            IHash hash = HashFactory.Crypto.CreateSHA512();
+            hash.Initialize();
+            hash.TransformByte(0xBF);
+            hash.TransformBytes(valueEncryptionKey);
+            valueBlindingFactor = hash.TransformFinal().GetBytes();
+            ScalarOperations.sc_reduce(valueBlindingFactor);
+
+            byte[] blindedValueCommitment = CreateBlindedValueCommitmentFromBlindingFactor(assetCommitment, value, valueBlindingFactor);
+
+            return blindedValueCommitment;
+        }
+
+        #endregion Commitment Functions
+
         #region Private Functions
 
         //aGbB = aG + bB where a, b are scalars, G is the basepoint and B is a point
