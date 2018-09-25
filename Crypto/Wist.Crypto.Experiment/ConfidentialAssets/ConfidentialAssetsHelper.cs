@@ -31,7 +31,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="j">index of public key that its secret key is provided in argument "sk"</param>
         /// <param name="sk">secret key for public key with index j</param>
         /// <returns></returns>
-        public static RingSignature CreateRingSignature(byte[] msg, byte[][] pks, int j, byte[] sk)
+        internal static RingSignature CreateRingSignature(byte[] msg, GroupElementP3[] pks, int j, byte[] sk)
         {
             RingSignature ringSignature = null;
 
@@ -56,14 +56,6 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 return ringSignature;
             }
 
-            string msgS = msg.ToHexString();
-            List<string> pksS = new List<string>(pks.Length);
-
-            foreach (byte[] pk in pks)
-            {
-                pksS.Add(pk.ToHexString());
-            }
-
             ulong n = (ulong)pks.Length;
             ringSignature = new RingSignature((int)n);
 
@@ -83,9 +75,9 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 shakeDigest.BlockUpdate(msg, 0, msg.Length);
                 shakeDigest.BlockUpdate(sk, 0, sk.Length);
                 shakeDigest.BlockUpdate(BitConverter.GetBytes((ulong)j), 0, 8);
-                foreach (byte[] pk in pks)
+                foreach (GroupElementP3 pk in pks)
                 {
-                    shakeDigest.BlockUpdate(pk, 0, pk.Length);
+                    shakeDigest.BlockUpdate(EncodePoint(pk), 0, 32);
                 }
 
                 for (int m = 0; m < (int)n - 1; m++)
@@ -116,7 +108,10 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 byte[] Rienc = new byte[32];
                 GroupOperations.ge_p3_tobytes(Rienc, 0, ref Ri);
 
+                GroupOperations.ge_frombytes(out GroupElementP3 testP3, Rienc, 0);
+
                 byte[] ei = ComputeE(Rienc, msg, i, wj);
+                //ei = StringToByteArray("fa0a00c10f5a7ebabaf71f72091dcd9443d6b74a1225ea68cacf5631ba734301");
                 if (i == 0)
                 {
                     e0[0] = new byte[32];
@@ -152,9 +147,9 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                     // 5.6. Calculate `R[i’] = z[i]*G - e[i]*P[i]` and encode it as a 32-byte public key.
                     byte[] Ri1 = new byte[32];
                     GroupOperations.ge_scalarmult_base(out GroupElementP3 zG_P3, z, 0);
-                    GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 pk_P3, pks[i], 0);
-                    GroupOperations.ge_scalarmult_p3(out GroupElementP3 pke_P3, ei, ref pk_P3);
-                    GroupOperations.ge_p3_to_cached(out GroupElementCached pke_cached, ref pke_P3);
+                    //GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 pk_P3, pks[i], 0);
+                    //GroupOperations.ge_scalarmult_p3(out GroupElementP3 pke_P3, ei, ref pk_P3);
+                    GroupOperations.ge_p3_to_cached(out GroupElementCached pke_cached, ref pks[i]);
                     GroupOperations.ge_sub(out GroupElementP1P1 rP1P1, ref zG_P3, ref pke_cached);
                     GroupOperations.ge_p1p1_to_p3(out GroupElementP3 rP3, ref rP1P1);
                     GroupOperations.ge_p3_tobytes(Ri1, 0, ref rP3);
@@ -204,19 +199,11 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return ringSignature;
         }
 
-        public static bool VerifyRingSignature(RingSignature ringSignature, byte[] msg, byte[][] pks)
+        internal static bool VerifyRingSignature(RingSignature ringSignature, byte[] msg, GroupElementP3[] pks)
         {
             if(ringSignature.S.Length != pks.Length)
             {
                 throw new ArgumentException($"ring size {ringSignature.S.Length} does not equal number of pubkeys {pks.Length}");
-            }
-
-            string msgS = msg.ToHexString();
-            List<string> pksS = new List<string>(pks.Length);
-
-            foreach (byte[] pk in pks)
-            {
-                pksS.Add(pk.ToHexString());
             }
 
             // 1. For each `i` from `0` to `n-1`:
@@ -235,13 +222,20 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
                 // 3. Calculate `R[i+1] = z[i]*G - e[i]*P[i]` and encode it as a 32-byte public key.
                 byte[] R = new byte[32];
-                GroupOperations.ge_scalarmult_base(out GroupElementP3 zG_P3, z, 0);
-                GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 pk_P3, pks[i], 0);
-                GroupOperations.ge_scalarmult_p3(out GroupElementP3 pke_P3, e, ref pk_P3);
-                GroupOperations.ge_p3_to_cached(out GroupElementCached pke_cached, ref pke_P3);
-                GroupOperations.ge_sub(out GroupElementP1P1 rP1P1, ref zG_P3, ref pke_cached);
-                GroupOperations.ge_p1p1_to_p3(out GroupElementP3 rP3, ref rP1P1);
-                GroupOperations.ge_p3_tobytes(R, 0, ref rP3);
+                //GroupOperations.ge_scalarmult_base(out GroupElementP3 zG_P3, z, 0);
+                //GroupOperations.ge_scalarmult_p3(out GroupElementP3 pke_P3, e, ref pks[i]);
+                //GroupOperations.ge_p3_to_cached(out GroupElementCached pke_cached, ref pke_P3);
+                //GroupOperations.ge_sub(out GroupElementP1P1 rP1P1, ref zG_P3, ref pke_cached);
+                //GroupOperations.ge_p1p1_to_p3(out GroupElementP3 rP3, ref rP1P1);
+                //GroupOperations.ge_p3_tobytes(R, 0, ref rP3);
+                byte[] s = new byte[32];
+                ScalarOperations.sc_muladd(s, ScalarOperations.negone, e, ScalarOperations.zero);
+                GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 p2, s, ref pks[i], z);
+                byte[] p2bytes = new byte[32];
+                GroupOperations.ge_tobytes(p2bytes, 0, ref p2);
+                GroupOperations.ge_frombytes(out GroupElementP3 p3, p2bytes, 0);
+
+                GroupOperations.ge_p3_tobytes(R, 0, ref p3);
 
                 // 4. Calculate `e[i+1] = SHA3-512(R[i+1] || msg || i+1)` where `i+1` is encoded as a 64-bit little-endian integer.
                 // 5. Interpret `e[i+1]` as a little-endian integer reduced modulo subgroup order `L`.
@@ -280,9 +274,9 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="assetCommitment"></param>
         /// <param name="candidateAssetCommitments"></param>
         /// <returns>array of 32 byte array representing point on EC</returns>
-        public static byte[][] CalcAssetRangeProofPubkeys(byte[] assetCommitment, byte[][] candidateAssetCommitments)
+        internal static GroupElementP3[] CalcAssetRangeProofPubkeys(byte[] assetCommitment, byte[][] candidateAssetCommitments)
         {
-            byte[][] pubKeys = new byte[candidateAssetCommitments.Length][];
+            GroupElementP3[] pubKeys = new GroupElementP3[candidateAssetCommitments.Length];
 
             GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
 
@@ -295,9 +289,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 GroupOperations.ge_sub(out GroupElementP1P1 pubKeyP1P1, ref assetCommitmentP3, ref candidateAssetCommitmentCached);
 
                 GroupOperations.ge_p1p1_to_p3(out GroupElementP3 pubKeyP3, ref pubKeyP1P1);
-
-                pubKeys[index] = new byte[32];
-                GroupOperations.ge_p3_tobytes(pubKeys[index++], 0, ref pubKeyP3);
+                pubKeys[index++] = pubKeyP3;
             }
 
             return pubKeys;
@@ -329,10 +321,10 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="j">index of input commitment among all input commitments that belong to sender and transferred to recipient</param>
         /// <param name="blindingFactor">Blinding factor used for creation Asset Commitment being sent to recipient</param>
         /// <returns></returns>
-        public static AssetRangeProof CreateAssetRangeProof(byte[] assetCommitment, EncryptedAssetID encryptedAssetID, byte[][] candidateAssetCommitments, int j, byte[] blindingFactor)
+        internal static AssetRangeProof CreateAssetRangeProof(byte[] assetCommitment, EncryptedAssetID encryptedAssetID, byte[][] candidateAssetCommitments, int j, byte[] blindingFactor)
         {
             byte[] msg = CalcAssetRangeProofMsg(assetCommitment, encryptedAssetID, candidateAssetCommitments);
-            byte[][] pubkeys = CalcAssetRangeProofPubkeys(assetCommitment, candidateAssetCommitments);
+            GroupElementP3[] pubkeys = CalcAssetRangeProofPubkeys(assetCommitment, candidateAssetCommitments);
 
             RingSignature ringSignature = CreateRingSignature(msg, pubkeys, j, blindingFactor);
 
@@ -349,7 +341,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         {
             byte[] msg = CalcAssetRangeProofMsg(assetCommitment, encryptedAssetID, assetRangeProof.H);
 
-            byte[][] pubkeys = CalcAssetRangeProofPubkeys(assetCommitment, assetRangeProof.H);
+            GroupElementP3[] pubkeys = CalcAssetRangeProofPubkeys(assetCommitment, assetRangeProof.H);
 
             bool res = VerifyRingSignature(assetRangeProof.Rs, msg, pubkeys);
 
@@ -700,6 +692,22 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             byte[] res = new byte[32];
             Array.Copy(hash, 0, res, 0, 32);
             return res;
+        }
+
+        private static byte[] EncodePoint(GroupElementP3 p3)
+        {
+            byte[] res = new byte[32];
+            GroupOperations.ge_p3_tobytes(res, 0, ref p3);
+
+            return res;
+        }
+
+        public static byte[] StringToByteArray(string s)
+        {
+            return Enumerable.Range(0, s.Length)
+                     .Where(x => x % 2 == 0)
+                     .Select(x => Convert.ToByte(s.Substring(x, 2), 16))
+                     .ToArray();
         }
 
         #endregion Private Functions

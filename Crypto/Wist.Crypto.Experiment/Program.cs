@@ -115,17 +115,18 @@ namespace Wist.Crypto.Experiment
             // 10. Create asset range proof
             // 11. Produce asset descriptor
             byte[] sbytes = Encoding.ASCII.GetBytes("attack at dawn");
-            byte[] tempHash = HashFactory.Crypto.SHA3.CreateBlake256().ComputeBytes(sbytes).GetBytes();
+            byte[] tempHash = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sbytes).GetBytes();
 
             byte[] msg = new byte[] { 193, 222, 123, 49, 108, 175, 213, 232, 128, 114, 199, 60, 226, 220, 117, 65, 100, 159, 13, 194, 216, 126, 93, 35, 116, 173, 235, 165, 38, 84, 212, 68 };
             byte[] sk1 = new byte[] { 246, 184, 86, 53, 187, 51, 80, 143, 98, 224, 82, 139, 168, 34, 131, 77, 204, 201, 70, 229, 10, 204, 229, 179, 233, 164, 163, 45, 94, 201, 206, 6 };
             byte[] sk2 = GetRandomSeed();
             byte[][] pks = new byte[1][];
-            pks[0] = MultiplyBasePoint(sk1);
+            GroupElementP3[] pks1 = new GroupElementP3[1];
+            pks1[0] = MultiplyBasePoint(sk1);
             //pks[1] = MultiplyBasePoint(sk2);
 
-            RingSignature rs = ConfidentialAssetsHelper.CreateRingSignature(msg, pks, 0, sk1);
-            bool res1 = ConfidentialAssetsHelper.VerifyRingSignature(rs, msg, pks);
+            RingSignature rs = ConfidentialAssetsHelper.CreateRingSignature(msg, pks1, 0, sk1);
+            bool res1 = ConfidentialAssetsHelper.VerifyRingSignature(rs, msg, pks1);
 
             int totalAssets = 1;
             int transferredAssetIndex = 0;
@@ -1738,12 +1739,10 @@ namespace Wist.Crypto.Experiment
             return prehash;
         }
 
-        private static byte[] MultiplyBasePoint(byte[] k)
+        private static GroupElementP3 MultiplyBasePoint(byte[] k)
         {
             GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, k, 0);
-            byte[] res = new byte[32];
-            GroupOperations.ge_p3_tobytes(res, 0, ref p3);
-            return res;
+            return p3;
         }
     }
 }
