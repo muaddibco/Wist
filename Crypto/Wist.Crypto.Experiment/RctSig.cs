@@ -158,6 +158,10 @@ namespace Wist.Crypto.Experiment
         }
 
         public BoroSig Asig { get => _asig; set => _asig = value; }
+
+        /// <summary>
+        /// Commitment per each bit
+        /// </summary>
         public Key64 Ci { get => _ci; set => _ci = value; }
     };
 

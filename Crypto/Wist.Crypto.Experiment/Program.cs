@@ -11,6 +11,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Buffers.Binary;
 using Org.BouncyCastle.Crypto.Digests;
+using Wist.Crypto.Experiment.ConfidentialAssets;
+using HashLib;
 
 namespace Wist.Crypto.Experiment
 {
@@ -101,6 +103,73 @@ namespace Wist.Crypto.Experiment
 
         static void Main(string[] args)
         {
+            // 1. There is "record encryption key" - seems some random 32 byte array
+            // 2. There is number of asset commitments from previous transaction where one of them is commitment of asset being transferred now
+            // 3. Derive intermediate encryption key
+            // 4. Derive asset encryption key
+            // 5. Derive value encryption key - omit for now, assume value is always equals 1
+            // 6. Create non blinded asset commitment
+            // 7. Find index of asset commitment being transferred among all previous commitments
+            // 8. Create blinded asset commitment
+            // 9. Encrypt asset id
+            // 10. Create asset range proof
+            // 11. Produce asset descriptor
+            byte[] sbytes = Encoding.ASCII.GetBytes("attack at dawn");
+            byte[] tempHash = HashFactory.Crypto.SHA3.CreateBlake256().ComputeBytes(sbytes).GetBytes();
+
+            byte[] msg = new byte[] { 193, 222, 123, 49, 108, 175, 213, 232, 128, 114, 199, 60, 226, 220, 117, 65, 100, 159, 13, 194, 216, 126, 93, 35, 116, 173, 235, 165, 38, 84, 212, 68 };
+            byte[] sk1 = new byte[] { 246, 184, 86, 53, 187, 51, 80, 143, 98, 224, 82, 139, 168, 34, 131, 77, 204, 201, 70, 229, 10, 204, 229, 179, 233, 164, 163, 45, 94, 201, 206, 6 };
+            byte[] sk2 = GetRandomSeed();
+            byte[][] pks = new byte[1][];
+            pks[0] = MultiplyBasePoint(sk1);
+            //pks[1] = MultiplyBasePoint(sk2);
+
+            RingSignature rs = ConfidentialAssetsHelper.CreateRingSignature(msg, pks, 0, sk1);
+            bool res1 = ConfidentialAssetsHelper.VerifyRingSignature(rs, msg, pks);
+
+            int totalAssets = 1;
+            int transferredAssetIndex = 0;
+            byte[][] assetIds = new byte[totalAssets][];
+
+            for (int i = 0; i < totalAssets; i++)
+            {
+                assetIds[i] = GetRandomSeed();
+            }
+
+            byte[][] nonBlindedAssetCommitments = new byte[totalAssets][];
+
+            for (int i = 0; i < totalAssets; i++)
+            {
+                nonBlindedAssetCommitments[i] = ConfidentialAssetsHelper.CreateNonblindedAssetCommitment(assetIds[i]);
+            }
+
+            byte[][] blindingFactors = new byte[totalAssets][];
+            for (int i = 0; i < totalAssets; i++)
+            {
+                blindingFactors[i] = GetRandomSeed();
+            }
+
+            byte[][] blindedAssetCommitments = new byte[totalAssets][];
+            for (int i = 0; i < totalAssets; i++)
+            {
+                blindedAssetCommitments[i] = ConfidentialAssetsHelper.BlindAssetCommitment(nonBlindedAssetCommitments[i], blindingFactors[i]);
+            }
+
+            byte[] recordEncryptionKey = GetRandomSeed();
+            byte[] iek = ConfidentialAssetsHelper.DeriveIntermediateKey(recordEncryptionKey);
+            byte[] aek = ConfidentialAssetsHelper.DeriveAssetKey(iek);
+
+            byte[] newBlindedAssetCommitment = ConfidentialAssetsHelper.CreateBlindedAssetCommitment(blindedAssetCommitments[transferredAssetIndex], blindingFactors[transferredAssetIndex], aek, out byte[] newBlindingFactor);
+            EncryptedAssetID encryptedAssetID = ConfidentialAssetsHelper.EncryptAssetId(assetIds[transferredAssetIndex], newBlindedAssetCommitment, newBlindingFactor, aek);
+            AssetRangeProof assetRangeProof = ConfidentialAssetsHelper.CreateAssetRangeProof(newBlindedAssetCommitment, encryptedAssetID, blindedAssetCommitments, transferredAssetIndex, newBlindingFactor);
+
+            bool res = ConfidentialAssetsHelper.VerifyAssetRangeProof(assetRangeProof, newBlindedAssetCommitment, encryptedAssetID);
+
+
+
+
+
+            return;
             // Confidential Transaction Commitment:
             // c = x*G + b*H = X + B
             // c = x*G + a*I = X + A
@@ -522,44 +591,46 @@ namespace Wist.Crypto.Experiment
         ///   thus this proves that "amount" is in [0, 2^64]
         ///   mask is a such that C = aG + bH, and b = amount
         /// </summary>
-        /// <param name="c">An output that will hold Pedersen Commitment associated with the certain amount</param>
+        /// <param name="c">An output value that will hold Pedersen Commitment associated with the certain amount</param>
         /// <param name="mask">will hold the blinding factor value used in the calculation of this Pedersen Commitment</param>
         /// <param name="amount">is the output amount for which the Pedersen Commitment will be calculated</param>
         /// <returns></returns>
-        private static RangeSig GetRangeSig(Key c, Key mask, ulong amount)
+        private static RangeSig GetRangeSig(Key commitment, Key blindingFactor, ulong amount)
         {
-            if (c == null)
+            if (commitment == null)
             {
-                throw new ArgumentNullException(nameof(c));
+                throw new ArgumentNullException(nameof(commitment));
             }
 
-            if (mask == null)
+            if (blindingFactor == null)
             {
-                throw new ArgumentNullException(nameof(mask));
+                throw new ArgumentNullException(nameof(blindingFactor));
             }
 
-            Array.Clear(mask.Bytes, 0, mask.Bytes.Length);
-            Array.Copy(I.Bytes, 0, c.Bytes, 0, I.Bytes.Length);
+            Array.Clear(blindingFactor.Bytes, 0, blindingFactor.Bytes.Length);
+            Array.Copy(I.Bytes, 0, commitment.Bytes, 0, I.Bytes.Length);
             BitArray bits = GetAmountBits(amount);
             RangeSig sig = new RangeSig();
-            Key64 ai = new Key64();
+            Key64 blindingFactorsPerBit = new Key64(); // random secret keys
             Key64 CiH = new Key64();
             for (int i = 0; i < bits.Length; i++)
             {
-                ai.Keys[i].Bytes = GetRandomSeed();
+                // creating random blinding factor
+                blindingFactorsPerBit.Keys[i].Bytes = GetRandomSeed();
                 if (bits[i])
                 {
-                    ScalarmulBaseAddKeys(sig.Ci.Keys[i], ai.Keys[i], H2.Keys[i]);
+                    ScalarmulBaseAddKeys(sig.Ci.Keys[i], blindingFactorsPerBit.Keys[i], H2.Keys[i]);
                 }
                 else
                 {
-                    ScalarmultBase(sig.Ci.Keys[i], ai.Keys[i]);
+                    ScalarmultBase(sig.Ci.Keys[i], blindingFactorsPerBit.Keys[i]);
                 }
+
                 SubKeys(CiH.Keys[i], sig.Ci.Keys[i], H2.Keys[i]);
-                ScalarOperations.sc_add(mask.Bytes, mask.Bytes, ai.Keys[i].Bytes);
-                AddKeys(c, c, sig.Ci.Keys[i]);
+                ScalarOperations.sc_add(blindingFactor.Bytes, blindingFactor.Bytes, blindingFactorsPerBit.Keys[i].Bytes);
+                AddKeys(commitment, commitment, sig.Ci.Keys[i]);
             }
-            sig.Asig = GenBorromean(ai, sig.Ci, CiH, bits);
+            sig.Asig = GenBorromean(blindingFactorsPerBit, sig.Ci, CiH, bits);
             return sig;
         }
 
@@ -802,7 +873,15 @@ namespace Wist.Crypto.Experiment
         #region Borromean
 
         //Borromean (c.f. gmax/andytoshi's paper)
-        private static BoroSig GenBorromean(Key64 x, Key64 P1, Key64 P2, BitArray indices)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="blindingFactorsPerBit">Blinding factors used for creating commitment per bit</param>
+        /// <param name="commitmentsPerBit">Commitment per each bit</param>
+        /// <param name="P2"></param>
+        /// <param name="indices"></param>
+        /// <returns></returns>
+        private static BoroSig GenBorromean(Key64 blindingFactorsPerBit, Key64 commitmentsPerBit, Key64 P2, BitArray indices)
         {
             Key64[] L = new Key64[] { new Key64(), new Key64() };
             Key64 alpha = new Key64();
@@ -834,14 +913,14 @@ namespace Wist.Crypto.Experiment
             {
                 if (!indices[jj])
                 {
-                    ScalarOperations.sc_mulsub(bb.S0.Keys[jj].Bytes, x.Keys[jj].Bytes, bb.Ee.Bytes, alpha.Keys[jj].Bytes);
+                    ScalarOperations.sc_mulsub(bb.S0.Keys[jj].Bytes, blindingFactorsPerBit.Keys[jj].Bytes, bb.Ee.Bytes, alpha.Keys[jj].Bytes);
                 }
                 else
                 {
                     bb.S0.Keys[jj].Bytes = GetRandomSeed();
-                    ScalarmulBaseAddKeys2(LL, bb.S0.Keys[jj], bb.Ee, P1.Keys[jj]); //different L0
+                    ScalarmulBaseAddKeys2(LL, bb.S0.Keys[jj], bb.Ee, commitmentsPerBit.Keys[jj]); //different L0
                     cc.Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(LL.Bytes).GetBytes();
-                    ScalarOperations.sc_mulsub(bb.S1.Keys[jj].Bytes, x.Keys[jj].Bytes, cc.Bytes, alpha.Keys[jj].Bytes);
+                    ScalarOperations.sc_mulsub(bb.S1.Keys[jj].Bytes, blindingFactorsPerBit.Keys[jj].Bytes, cc.Bytes, alpha.Keys[jj].Bytes);
                 }
             }
             return bb;
@@ -869,8 +948,10 @@ namespace Wist.Crypto.Experiment
             {
                 Array.Copy(Lv1.Keys[i].Bytes, 0, buf, 32 * i, Lv1.Keys[i].Bytes.Length);
             }
-            Key eeComputed = new Key();
-            eeComputed.Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes(); //hash function fine
+            Key eeComputed = new Key
+            {
+                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes() //hash function fine
+            };
             return EqualKeys(eeComputed, bb.Ee);
         }
 
@@ -1354,7 +1435,12 @@ namespace Wist.Crypto.Experiment
             GroupOperations.ge_tobytes(aGbB.Bytes, 0, ref rv);
         }
 
-        //for curve points: AB = A + B
+        /// <summary>
+        /// for curve points: AB = A + B
+        /// </summary>
+        /// <param name="ab"></param>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
         private static void AddKeys(Key ab, Key a, Key b)
         {
             if (ab == null)
@@ -1441,8 +1527,13 @@ namespace Wist.Crypto.Experiment
             GroupOperations.ge_tobytes(aP.Bytes, 0, ref R);
         }
 
-        //subtract Keys (subtracts curve points)
-        //AB = A - B where A, B are curve points
+        /// <summary>
+        ///subtract Keys (subtracts curve points)
+        ///AB = A - B where A, B are curve points
+        /// </summary>
+        /// <param name="ab"></param>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
         private static void SubKeys(Key ab, Key a, Key b)
         {
             if (ab == null)
@@ -1645,6 +1736,14 @@ namespace Wist.Crypto.Experiment
             hashes.Add(FastHash(kv));
             prehash = FastHash(hashes);
             return prehash;
+        }
+
+        private static byte[] MultiplyBasePoint(byte[] k)
+        {
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, k, 0);
+            byte[] res = new byte[32];
+            GroupOperations.ge_p3_tobytes(res, 0, ref p3);
+            return res;
         }
     }
 }

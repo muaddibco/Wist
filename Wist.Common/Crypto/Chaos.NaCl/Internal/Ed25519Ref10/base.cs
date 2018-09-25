@@ -1364,10 +1364,10 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 
         internal static GroupElementP3 ge_p3_identity = new GroupElementP3()
         {
-            X = new FieldElement(0),
-            Y = new FieldElement(1, 0),
-            Z = new FieldElement(1, 0),
-            T = new FieldElement(0)
+            X = new FieldElement(0, 0, 0, 0 ,0, 0, 0, 0, 0, 0),
+            Y = new FieldElement(1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            Z = new FieldElement(1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+            T = new FieldElement(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         };
     }
 }
