@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 namespace Wist.Crypto.Experiment.ConfidentialAssets
 {
@@ -70,30 +71,33 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 //    where `p` is encoded in 32 bytes using little-endian convention, and `counter` is encoded as a 64-bit little-endian integer.
                 byte[][] r = new byte[n][];
 
-                ShakeDigest shakeDigest = new ShakeDigest(256);
-                shakeDigest.BlockUpdate(BitConverter.GetBytes(counter), 0, 8);
-                shakeDigest.BlockUpdate(msg, 0, msg.Length);
-                shakeDigest.BlockUpdate(sk, 0, sk.Length);
-                shakeDigest.BlockUpdate(BitConverter.GetBytes((ulong)j), 0, 8);
-                foreach (GroupElementP3 pk in pks)
-                {
-                    shakeDigest.BlockUpdate(EncodePoint(pk), 0, 32);
-                }
+                //ShakeDigest shakeDigest = new ShakeDigest(256);
+                //shakeDigest.BlockUpdate(BitConverter.GetBytes(counter), 0, 8);
+                //shakeDigest.BlockUpdate(msg, 0, msg.Length);
+                //shakeDigest.BlockUpdate(sk, 0, sk.Length);
+                //shakeDigest.BlockUpdate(BitConverter.GetBytes((ulong)j), 0, 8);
+                //foreach (GroupElementP3 pk in pks)
+                //{
+                //    shakeDigest.BlockUpdate(EncodePoint(pk), 0, 32);
+                //}
 
                 for (int m = 0; m < (int)n - 1; m++)
                 {
-                    r[m] = new byte[32];
-                    shakeDigest.DoOutput(r[m], 0, 32);
+                    r[m] = GetRandomSeed();// new byte[32];
+                    //shakeDigest.DoOutput(r[m], 0, 32);
                 }
 
                 byte[] nonce = new byte[64];
                 byte[] mask = new byte[1];
 
-                shakeDigest.DoOutput(nonce, 0, 64);
-                shakeDigest.DoOutput(mask, 0, 1);
+                //shakeDigest.DoOutput(nonce, 0, 64);
+                //shakeDigest.DoOutput(mask, 0, 1);
 
                 // 3. Calculate `k = nonce mod L`, where `nonce` is interpreted as a 64-byte little-endian integer and reduced modulo subgroup order `L`.
-                byte[] k = ReduceScalar64(nonce);
+                //byte[] k = ReduceScalar64(nonce);
+                nonce = GetRandomSeed();
+                ScalarOperations.sc_reduce32(nonce);
+                byte[] k = nonce;
 
                 // 4. Calculate the initial e-value, let `i = j+1 mod n`:
                 ulong i = ((ulong)j + 1L) % n;
@@ -102,7 +106,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 GroupOperations.ge_scalarmult_base(out GroupElementP3 Ri, k, 0);
 
                 // 4.2. Define `w[j]` as `mask` with lower 4 bits set to zero: `w[j] = mask & 0xf0`.
-                byte wj = (byte)(mask[0] & 0xf0);
+                //byte wj = (byte)(mask[0] & 0xf0);
 
                 // 4.3. Calculate `e[i] = SHA3-512(R[i] || msg || i)` where `i` is encoded as a 64-bit little-endian integer. Interpret `e[i]` as a little-endian integer reduced modulo `L`.
                 byte[] Rienc = new byte[32];
@@ -183,7 +187,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 else
                 {
                     // 8. Define `s[j]` as `z[j]` with 4 high bits set to high 4 bits of the `mask`.
-                    zj[31] ^= (byte)(mask[0] & 0xf0); // zj now == sj
+                    //zj[31] ^= (byte)(mask[0] & 0xf0); // zj now == sj
 
                     // Put non-forged s[j] into ringsig
                     Array.Copy(zj, 0, ringSignature.S[j], 0, zj.Length);
@@ -689,6 +693,14 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                      .Where(x => x % 2 == 0)
                      .Select(x => Convert.ToByte(s.Substring(x, 2), 16))
                      .ToArray();
+        }
+
+        private static byte[] GetRandomSeed()
+        {
+            byte[] seed = new byte[32];
+            RNGCryptoServiceProvider.Create().GetNonZeroBytes(seed);
+
+            return seed;
         }
 
         #endregion Private Functions

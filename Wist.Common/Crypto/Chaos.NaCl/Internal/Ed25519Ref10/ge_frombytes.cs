@@ -88,9 +88,7 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
                 }
                 FieldOperations.fe_mul(out h.X, ref h.X, ref LookupTables.sqrtm1);
 
-                byte[] tmp = new byte[32];
                 FieldOperations.fe_reduce(out h.X, ref h.X);
-                FieldOperations.fe_tobytes(tmp, 0, ref h.X);
             }
 
             if (FieldOperations.fe_isnegative(ref h.X) != (data[offset + 31] >> 7))
