@@ -137,7 +137,7 @@ namespace Wist.Crypto.Experiment
                 assetIds[i] = GetRandomSeed();
             }
 
-            byte[][] nonBlindedAssetCommitments = new byte[totalAssets][];
+            GroupElementP3[] nonBlindedAssetCommitments = new GroupElementP3[totalAssets];
 
             for (int i = 0; i < totalAssets; i++)
             {
@@ -150,7 +150,7 @@ namespace Wist.Crypto.Experiment
                 blindingFactors[i] = GetRandomSeed();
             }
 
-            byte[][] blindedAssetCommitments = new byte[totalAssets][];
+            GroupElementP3[] blindedAssetCommitments = new GroupElementP3[totalAssets];
             for (int i = 0; i < totalAssets; i++)
             {
                 blindedAssetCommitments[i] = ConfidentialAssetsHelper.BlindAssetCommitment(nonBlindedAssetCommitments[i], blindingFactors[i]);
@@ -160,7 +160,7 @@ namespace Wist.Crypto.Experiment
             byte[] iek = ConfidentialAssetsHelper.DeriveIntermediateKey(recordEncryptionKey);
             byte[] aek = ConfidentialAssetsHelper.DeriveAssetKey(iek);
 
-            byte[] newBlindedAssetCommitment = ConfidentialAssetsHelper.CreateBlindedAssetCommitment(blindedAssetCommitments[transferredAssetIndex], blindingFactors[transferredAssetIndex], aek, out byte[] newBlindingFactor);
+            GroupElementP3 newBlindedAssetCommitment = ConfidentialAssetsHelper.CreateBlindedAssetCommitment(blindedAssetCommitments[transferredAssetIndex], blindingFactors[transferredAssetIndex], aek, out byte[] newBlindingFactor);
             EncryptedAssetID encryptedAssetID = ConfidentialAssetsHelper.EncryptAssetId(assetIds[transferredAssetIndex], newBlindedAssetCommitment, newBlindingFactor, aek);
             AssetRangeProof assetRangeProof = ConfidentialAssetsHelper.CreateAssetRangeProof(newBlindedAssetCommitment, encryptedAssetID, blindedAssetCommitments, transferredAssetIndex, newBlindingFactor);
 

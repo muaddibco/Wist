@@ -110,7 +110,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
                 GroupOperations.ge_frombytes(out GroupElementP3 testP3, Rienc, 0);
 
-                byte[] ei = ComputeE(Rienc, msg, i, wj);
+                byte[] ei = ComputeE(Rienc, msg, i);//, wj);
                 //ei = StringToByteArray("fa0a00c10f5a7ebabaf71f72091dcd9443d6b74a1225ea68cacf5631ba734301");
                 if (i == 0)
                 {
@@ -156,7 +156,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
                     // 5.7. Calculate `e[i’] = SHA3-512(R[i’] || msg || i’)` where `i’` is encoded as a 64-bit little-endian integer.
                     // Interpret `e[i’]` as a little-endian integer.
-                    ei = ComputeE(Ri1, msg, i1, wi);
+                    ei = ComputeE(Ri1, msg, i1);//, wi);
                     if (i1 == 0)
                     {
                         e0[0] = new byte[32];
@@ -239,7 +239,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
                 // 4. Calculate `e[i+1] = SHA3-512(R[i+1] || msg || i+1)` where `i+1` is encoded as a 64-bit little-endian integer.
                 // 5. Interpret `e[i+1]` as a little-endian integer reduced modulo subgroup order `L`.
-                e = ComputeE(R, msg, (ulong)((i + 1) % n), w);
+                e = ComputeE(R, msg, (ulong)((i + 1) % n));//, w);
             }
 
             return e.Equals32(ringSignature.E);
@@ -249,15 +249,15 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
         #region Range Proofs
 
-        public static byte[] CalcAssetRangeProofMsg(byte[] assetCommitment, EncryptedAssetID encryptedAssetID, byte[][] candidateAssetCommitments)
+        internal static byte[] CalcAssetRangeProofMsg(GroupElementP3 assetCommitment, EncryptedAssetID encryptedAssetID, GroupElementP3[] candidateAssetCommitments)
         {
             IHash hash = HashFactory.Crypto.CreateSHA256();
             hash.Initialize();
             hash.TransformByte(0x55);
-            hash.TransformBytes(assetCommitment);
-            foreach (byte[] candidate in candidateAssetCommitments)
+            hash.TransformBytes(EncodePoint(assetCommitment));
+            foreach (GroupElementP3 candidate in candidateAssetCommitments)
             {
-                hash.TransformBytes(candidate);
+                hash.TransformBytes(EncodePoint(candidate));
             }
             hash.TransformBytes(encryptedAssetID.AssetId);
             hash.TransformBytes(encryptedAssetID.BlindingFactor);
@@ -274,19 +274,16 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="assetCommitment"></param>
         /// <param name="candidateAssetCommitments"></param>
         /// <returns>array of 32 byte array representing point on EC</returns>
-        internal static GroupElementP3[] CalcAssetRangeProofPubkeys(byte[] assetCommitment, byte[][] candidateAssetCommitments)
+        internal static GroupElementP3[] CalcAssetRangeProofPubkeys(GroupElementP3 assetCommitment, GroupElementP3[] candidateAssetCommitments)
         {
             GroupElementP3[] pubKeys = new GroupElementP3[candidateAssetCommitments.Length];
 
-            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
-
             int index = 0;
-            foreach (byte[] candidateAssetCommitment in candidateAssetCommitments)
+            foreach (GroupElementP3 candidateAssetCommitment in candidateAssetCommitments)
             {
-                GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 candidateAssetCommitmentP3, candidateAssetCommitment, 0);
-
+                GroupElementP3 candidateAssetCommitmentP3 = candidateAssetCommitment;
                 GroupOperations.ge_p3_to_cached(out GroupElementCached candidateAssetCommitmentCached, ref candidateAssetCommitmentP3);
-                GroupOperations.ge_sub(out GroupElementP1P1 pubKeyP1P1, ref assetCommitmentP3, ref candidateAssetCommitmentCached);
+                GroupOperations.ge_sub(out GroupElementP1P1 pubKeyP1P1, ref assetCommitment, ref candidateAssetCommitmentCached);
 
                 GroupOperations.ge_p1p1_to_p3(out GroupElementP3 pubKeyP3, ref pubKeyP1P1);
                 pubKeys[index++] = pubKeyP3;
@@ -321,7 +318,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="j">index of input commitment among all input commitments that belong to sender and transferred to recipient</param>
         /// <param name="blindingFactor">Blinding factor used for creation Asset Commitment being sent to recipient</param>
         /// <returns></returns>
-        internal static AssetRangeProof CreateAssetRangeProof(byte[] assetCommitment, EncryptedAssetID encryptedAssetID, byte[][] candidateAssetCommitments, int j, byte[] blindingFactor)
+        internal static AssetRangeProof CreateAssetRangeProof(GroupElementP3 assetCommitment, EncryptedAssetID encryptedAssetID, GroupElementP3[] candidateAssetCommitments, int j, byte[] blindingFactor)
         {
             byte[] msg = CalcAssetRangeProofMsg(assetCommitment, encryptedAssetID, candidateAssetCommitments);
             GroupElementP3[] pubkeys = CalcAssetRangeProofPubkeys(assetCommitment, candidateAssetCommitments);
@@ -337,7 +334,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return assetRangeProof;
         }
 
-        public static bool VerifyAssetRangeProof(AssetRangeProof assetRangeProof, byte[] assetCommitment, EncryptedAssetID encryptedAssetID)
+        internal static bool VerifyAssetRangeProof(AssetRangeProof assetRangeProof, GroupElementP3 assetCommitment, EncryptedAssetID encryptedAssetID)
         {
             byte[] msg = CalcAssetRangeProofMsg(assetCommitment, encryptedAssetID, assetRangeProof.H);
 
@@ -359,7 +356,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// </summary>
         /// <param name="assetId">32-byte code of asset</param>
         /// <returns></returns>
-        public static byte[] CreateNonblindedAssetCommitment(byte[] assetId)
+        internal static GroupElementP3 CreateNonblindedAssetCommitment(byte[] assetId)
         {
             if (assetId == null)
             {
@@ -370,15 +367,15 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             {
                 throw new ArgumentOutOfRangeException(nameof(assetId));
             }
-        
-            byte[] assetIdCommitment = new byte[32];
+
+            GroupElementP3 assetIdCommitment = new GroupElementP3();
             ulong counter = 0;
             bool succeeded = false;
             do
             {
                 byte[] hashValue = FastHash256(assetId, BitConverter.GetBytes(counter++));
 
-                succeeded = GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 p3, hashValue, 0) == 0;
+                succeeded = GroupOperations.ge_frombytes(out GroupElementP3 p3, hashValue, 0) == 0;
 
                 if (succeeded)
                 {
@@ -386,9 +383,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
                     GroupOperations.ge_mul8(out GroupElementP1P1 p1P1, ref p2);
 
-                    GroupOperations.ge_p1p1_to_p3(out p3, ref p1P1);
-
-                    GroupOperations.ge_p3_tobytes(assetIdCommitment, 0, ref p3);
+                    GroupOperations.ge_p1p1_to_p3(out assetIdCommitment, ref p1P1);
                 }
             } while (!succeeded);
 
@@ -404,65 +399,50 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="assetEncryptionKey">32-byte encryption key used for encrypting</param>
         /// <param name="newBlindingFactor">output parameter that will hold 32-byte value of blinding factor used for blinding asset</param>
         /// <returns></returns>
-        public static byte[] CreateBlindedAssetCommitment(byte[] assetCommitment, byte[] prevBlindingFactor, byte[] assetEncryptionKey, out byte[] newBlindingFactor)
+        internal static GroupElementP3 CreateBlindedAssetCommitment(GroupElementP3 assetCommitment, byte[] prevBlindingFactor, byte[] assetEncryptionKey, out byte[] newBlindingFactor)
         {
             newBlindingFactor = ComputeDifferentialBlindingFactor(prevBlindingFactor, assetEncryptionKey);
-            byte[] assetCommitmentBlinded = BlindAssetCommitment(assetCommitment, newBlindingFactor);
+            GroupElementP3 assetCommitmentBlinded = BlindAssetCommitment(assetCommitment, newBlindingFactor);
 
             return assetCommitmentBlinded;
         }
 
-        public static byte[] BlindAssetCommitment(byte[] assetCommitment, byte[] blindingFactor)
+        internal static GroupElementP3 BlindAssetCommitment(GroupElementP3 assetCommitment, byte[] blindingFactor)
         {
-            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
             GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, blindingFactor, 0);
-            GroupOperations.ge_p3_to_cached(out GroupElementCached assetCommitmentCached, ref assetCommitmentP3);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached assetCommitmentCached, ref assetCommitment);
             GroupOperations.ge_add(out GroupElementP1P1 assetCommitmentP1P1, ref p3, ref assetCommitmentCached);
-            GroupOperations.ge_p1p1_to_p3(out assetCommitmentP3, ref assetCommitmentP1P1);
-
-            byte[] assetCommitmentBlinded = new byte[32];
-            GroupOperations.ge_p3_tobytes(assetCommitmentBlinded, 0, ref assetCommitmentP3);
-
-            return assetCommitmentBlinded;
+            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 assetCommitmentP3, ref assetCommitmentP1P1);
+            return assetCommitmentP3;
         }
 
-        public static byte[] CreateNonblindedValueCommitment(byte[] assetCommitment, ulong value)
+        internal static GroupElementP3 CreateNonblindedValueCommitment(GroupElementP3 assetCommitment, ulong value)
         {
             byte[] valueScalar = new byte[32];
             byte[] valueBytes = BitConverter.GetBytes(value);
             Array.Copy(valueBytes, 0, valueScalar, 0, valueBytes.Length);
 
-            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
-            GroupOperations.ge_p3_to_cached(out GroupElementCached assetCommitmentCached, ref assetCommitmentP3);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached assetCommitmentCached, ref assetCommitment);
             GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, ScalarOperations.zero, 0);
             GroupOperations.ge_add(out GroupElementP1P1 assetCommitmentP1P1, ref p3, ref assetCommitmentCached);
-            GroupOperations.ge_p1p1_to_p3(out assetCommitmentP3, ref assetCommitmentP1P1);
-
-            byte[] valueCommitment = new byte[32];
-            GroupOperations.ge_p3_tobytes(valueCommitment, 0, ref assetCommitmentP3);
-
-            return valueCommitment;
+            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 assetCommitmentP3, ref assetCommitmentP1P1);
+            return assetCommitmentP3;
         }
 
-        public static byte[] CreateBlindedValueCommitmentFromBlindingFactor(byte[] assetCommitment, ulong value, byte[] blindingFactor)
+        internal static GroupElementP3 CreateBlindedValueCommitmentFromBlindingFactor(GroupElementP3 assetCommitment, ulong value, byte[] blindingFactor)
         {
             byte[] valueScalar = new byte[32];
             byte[] valueBytes = BitConverter.GetBytes(value);
             Array.Copy(valueBytes, 0, valueScalar, 0, valueBytes.Length);
 
-            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
-            GroupOperations.ge_p3_to_cached(out GroupElementCached assetCommitmentCached, ref assetCommitmentP3);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached assetCommitmentCached, ref assetCommitment);
             GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, blindingFactor, 0);
             GroupOperations.ge_add(out GroupElementP1P1 assetCommitmentP1P1, ref p3, ref assetCommitmentCached);
-            GroupOperations.ge_p1p1_to_p3(out assetCommitmentP3, ref assetCommitmentP1P1);
-
-            byte[] valueCommitment = new byte[32];
-            GroupOperations.ge_p3_tobytes(valueCommitment, 0, ref assetCommitmentP3);
-
-            return valueCommitment;
+            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 assetCommitmentP3, ref assetCommitmentP1P1);
+            return assetCommitmentP3;
         }
 
-        public static byte[] CreateBlindedValueCommitment(byte[] assetCommitment, ulong value, byte[] valueEncryptionKey, out byte[] valueBlindingFactor)
+        internal static GroupElementP3 CreateBlindedValueCommitment(GroupElementP3 assetCommitment, ulong value, byte[] valueEncryptionKey, out byte[] valueBlindingFactor)
         {
             IHash hash = HashFactory.Crypto.CreateSHA512();
             hash.Initialize();
@@ -470,7 +450,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             hash.TransformBytes(valueEncryptionKey);
             valueBlindingFactor = ReduceScalar64(hash.TransformFinal().GetBytes());
 
-            byte[] blindedValueCommitment = CreateBlindedValueCommitmentFromBlindingFactor(assetCommitment, value, valueBlindingFactor);
+            GroupElementP3 blindedValueCommitment = CreateBlindedValueCommitmentFromBlindingFactor(assetCommitment, value, valueBlindingFactor);
 
             return blindedValueCommitment;
         }
@@ -523,9 +503,11 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
         #region Encrypt / Decrypt assetId
 
-        public static EncryptedAssetID EncryptAssetId(byte[] assetId, byte[] assetCommitment, byte[] blindingFactor, byte[] assetEncryptionKey)
+        internal static EncryptedAssetID EncryptAssetId(byte[] assetId, GroupElementP3 assetCommitment, byte[] blindingFactor, byte[] assetEncryptionKey)
         {
-            byte[] ek = FastHash512(assetEncryptionKey, assetCommitment);
+            byte[] assetCommitmentOriginal = new byte[32];
+            GroupOperations.ge_p3_tobytes(assetCommitmentOriginal, 0, ref assetCommitment);
+            byte[] ek = FastHash512(assetEncryptionKey, assetCommitmentOriginal);
             Span<byte> span = new Span<byte>(ek);
             EncryptedAssetID r = new EncryptedAssetID
             {
@@ -536,23 +518,25 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return r;
         }
 
-        public static byte[] DecryptAssetId(EncryptedAssetID encryptedAssetID, byte[] assetCommitment, byte[] assetEncryptionKey, out byte[] blindingFactor)
+        internal static byte[] DecryptAssetId(EncryptedAssetID encryptedAssetID, GroupElementP3 assetCommitment, byte[] assetEncryptionKey, out byte[] blindingFactor)
         {
-            byte[] ek = FastHash512(assetEncryptionKey, assetCommitment);
+            byte[] assetCommitmentOriginal = new byte[32];
+            GroupOperations.ge_p3_tobytes(assetCommitmentOriginal, 0, ref assetCommitment);
+            byte[] ek = FastHash512(assetEncryptionKey, assetCommitmentOriginal);
             Span<byte> span = new Span<byte>(ek);
 
             byte[] assetId = Xor256(encryptedAssetID.AssetId, span.Slice(0, 32).ToArray());
             blindingFactor = Xor256(encryptedAssetID.BlindingFactor, span.Slice(32).ToArray());
 
-            byte[] nonblindedAssetCommitment = CreateNonblindedAssetCommitment(assetId);
-            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 assetIdp3, assetId, 0);
-            GroupOperations.ge_p3_to_cached(out GroupElementCached assetIdCached, ref assetIdp3);
+            GroupElementP3 nonblindedAssetCommitment = CreateNonblindedAssetCommitment(assetId);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached assetIdCached, ref nonblindedAssetCommitment);
             GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, blindingFactor, 0);
             GroupOperations.ge_add(out GroupElementP1P1 p1p1, ref p3, ref assetIdCached);
             GroupOperations.ge_p1p1_to_p3(out p3, ref p1p1);
             byte[] assetCommitmentTemp = new byte[32];
+            GroupOperations.ge_p3_tobytes(assetCommitmentTemp, 0, ref p3);
 
-            if(!assetCommitmentTemp.Equals32(assetCommitment))
+            if(!assetCommitmentTemp.Equals32(assetCommitmentOriginal))
             {
                 throw new Exception("Asset ID decryption failed");
             }
@@ -570,15 +554,12 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="assetEncryptionKey"></param>
         /// <param name="assetPoint"></param>
         /// <returns></returns>
-        public static byte[] CreateTransientIssuanceKey(byte[] assetId, byte[] assetEncryptionKey, out byte[] assetPoint)
+        internal static byte[] CreateTransientIssuanceKey(byte[] assetId, byte[] assetEncryptionKey, out GroupElementP3 assetPoint)
         {
             byte[] hash = FastHash512(new byte[] { 0xA1 }, assetId, assetEncryptionKey);
             byte[] scalar = ReduceScalar64(hash);
 
-            GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, scalar, 0);
-            assetPoint = new byte[32];
-
-            GroupOperations.ge_p3_tobytes(assetPoint, 0, ref p3);
+            GroupOperations.ge_scalarmult_base(out assetPoint, scalar, 0);
 
             return scalar;
         }
@@ -678,9 +659,9 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             GroupOperations.ge_tobytes(aGbB, 0, ref rv);
         }
 
-        private static byte[] ComputeE(byte[] r, byte[] msg, ulong i, byte w)
+        private static byte[] ComputeE(byte[] r, byte[] msg, ulong i)//, byte w)
         {
-            byte[] hash = FastHash512(r, msg, BitConverter.GetBytes(i), new byte[] { w });
+            byte[] hash = FastHash512(r, msg, BitConverter.GetBytes(i));//, new byte[] { w });
             byte[] res = ReduceScalar64(hash);
 
             return res;
