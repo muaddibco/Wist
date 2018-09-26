@@ -1,0 +1,9 @@
+E:\GitDevelopment\Repos\Wist\Crypto\HashLib\CoreHashLib\bin\Debug\netstandard2.0\CoreHashLib.deps.json
+E:\GitDevelopment\Repos\Wist\Crypto\HashLib\CoreHashLib\bin\Debug\netstandard2.0\CoreHashLib.dll
+E:\GitDevelopment\Repos\Wist\Crypto\HashLib\CoreHashLib\bin\Debug\netstandard2.0\CoreHashLib.pdb
+E:\GitDevelopment\Repos\Wist\Crypto\HashLib\CoreHashLib\obj\Debug\netstandard2.0\CoreHashLib.csprojAssemblyReference.cache
+E:\GitDevelopment\Repos\Wist\Crypto\HashLib\CoreHashLib\obj\Debug\netstandard2.0\CoreHashLib.csproj.CoreCompileInputs.cache
+E:\GitDevelopment\Repos\Wist\Crypto\HashLib\CoreHashLib\obj\Debug\netstandard2.0\CoreHashLib.AssemblyInfoInputs.cache
+E:\GitDevelopment\Repos\Wist\Crypto\HashLib\CoreHashLib\obj\Debug\netstandard2.0\CoreHashLib.AssemblyInfo.cs
+E:\GitDevelopment\Repos\Wist\Crypto\HashLib\CoreHashLib\obj\Debug\netstandard2.0\CoreHashLib.dll
+E:\GitDevelopment\Repos\Wist\Crypto\HashLib\CoreHashLib\obj\Debug\netstandard2.0\CoreHashLib.pdb

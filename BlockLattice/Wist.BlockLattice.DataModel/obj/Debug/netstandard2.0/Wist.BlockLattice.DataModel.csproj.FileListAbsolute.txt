@@ -1,0 +1,13 @@
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\bin\Debug\netstandard2.0\Wist.BlockLattice.DataModel.pssym
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\bin\Debug\netstandard2.0\Wist.BlockLattice.DataModel.deps.json
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\bin\Debug\netstandard2.0\Wist.BlockLattice.DataModel.dll
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\bin\Debug\netstandard2.0\Wist.BlockLattice.DataModel.pdb
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\obj\Debug\netstandard2.0\Wist.BlockLattice.DataModel.csprojAssemblyReference.cache
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\obj\Debug\netstandard2.0\Wist.BlockLattice.DataModel.csproj.CoreCompileInputs.cache
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\obj\Debug\netstandard2.0\Wist.BlockLattice.DataModel.AssemblyInfoInputs.cache
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\obj\Debug\netstandard2.0\Wist.BlockLattice.DataModel.AssemblyInfo.cs
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\obj\Debug\netstandard2.0\PostSharp\touch
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\obj\Debug\netstandard2.0\PostSharp\dependencies.txt
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\obj\Debug\netstandard2.0\Wist.BlockLattice.DataModel.dll
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\obj\Debug\netstandard2.0\Wist.BlockLattice.DataModel.pdb
+E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.DataModel\obj\Debug\netstandard2.0\PostSharp\postsharp.app.config

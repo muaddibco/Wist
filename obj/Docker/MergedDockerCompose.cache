@@ -1,0 +1,11 @@
+networks:
+  default:
+    external:
+      name: nat
+services:
+  wist.node.console:
+    build:
+      context: E:\GitDevelopment\Repos\Wist\Node\Wist.Node.Console
+      dockerfile: Dockerfile
+    image: wistnodeconsole
+version: '3.4'

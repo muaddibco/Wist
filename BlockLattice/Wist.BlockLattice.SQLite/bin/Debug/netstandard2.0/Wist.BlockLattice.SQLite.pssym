@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Symbols LinesOfCode="526" PostSharpLinesOfCode="0" EnhancedTypesCount="1" SchemaVersion="1" PostSharpVersion="6.0.26.0" xmlns="http://schemas.postsharp.org/2.0/symbols">
+  <Class Class="#1=T:[Wist.Core]Wist.Core.Aspects.AutoLog">
+    <Instance Declaration="#2=T:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService" Id="3123cd9f1b67542">
+      <Target Target="#3=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::#ctor(Wist.Core.Configuration.IConfigurationService, Wist.Core.Identity.IIdentityKeyProvidersRegistry)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4=Wrapped by advice(s) OnEntry, OnException, OnExit" Ordinal="0" />
+      </Target>
+      <Target Target="#5=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::get_Instance()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" />
+      </Target>
+      <Target Target="#6=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::get_IsInitialized()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="2" />
+      </Target>
+      <Target Target="#7=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::set_IsInitialized(System.Boolean)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="3" />
+      </Target>
+      <Target Target="#8=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::AddSeed(Wist.Core.Identity.IKey, System.Byte[])" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="4" />
+      </Target>
+      <Target Target="#9=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::LoadAllIdentities()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="5" />
+      </Target>
+      <Target Target="#10=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetAllAccountIdentities()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="6" />
+      </Target>
+      <Target Target="#11=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetAccountIdentity(Wist.Core.Identity.IKey)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="7" />
+      </Target>
+      <Target Target="#12=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::AddIdentity(Wist.Core.Identity.IKey)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="8" />
+      </Target>
+      <Target Target="#13=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::AddNode(Wist.Core.Identity.IKey, Wist.BlockLattice.Core.DataModel.Nodes.NodeRole, System.String)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="9" />
+      </Target>
+      <Target Target="#14=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::AddNode(Wist.Core.Identity.IKey, Wist.BlockLattice.Core.DataModel.Nodes.NodeRole, System.Net.IPAddress)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="10" />
+      </Target>
+      <Target Target="#15=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::UpdateNode(Wist.Core.Identity.IKey, System.String)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="11" />
+      </Target>
+      <Target Target="#16=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::UpdateNode(Wist.Core.Identity.IKey, System.Net.IPAddress)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="12" />
+      </Target>
+      <Target Target="#17=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::LoadAllKnownNodeIPs()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="13" />
+      </Target>
+      <Target Target="#18=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetNodeIpAddress(Wist.Core.Identity.IKey)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="14" />
+      </Target>
+      <Target Target="#19=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetAllNodes()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="15" />
+      </Target>
+      <Target Target="#20=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetNode(Wist.Core.Identity.IKey)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="16" />
+      </Target>
+      <Target Target="#21=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetTransactionalGenesisModificationBlock(Wist.Core.Identity.IKey)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="17" />
+      </Target>
+      <Target Target="#22=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetTransactionalGenesisModificationBlock(Wist.BlockLattice.DataModel.AccountIdentity)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="18" />
+      </Target>
+      <Target Target="#23=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::CreateTransactionalGenesisBlock(Wist.Core.Identity.IKey, System.UInt16, System.Byte[])" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="19" />
+      </Target>
+      <Target Target="#24=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::IsGenesisBlockExists(Wist.Core.Identity.IKey)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="20" />
+      </Target>
+      <Target Target="#25=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetLastTransactionalBlock(Wist.BlockLattice.DataModel.TransactionalGenesisModification)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="21" />
+      </Target>
+      <Target Target="#26=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::AddTransactionalBlock(Wist.Core.Identity.IKey, System.UInt16, System.UInt16, System.Byte[])" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="22" />
+      </Target>
+      <Target Target="#27=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetLastTransactionalGenesisModification(Wist.Core.Identity.IKey)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="23" />
+      </Target>
+      <Target Target="#28=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetLastTransactionalGenesisModification(Wist.BlockLattice.DataModel.TransactionalGenesis)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="24" />
+      </Target>
+      <Target Target="#29=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetLastTransactionalBlock(Wist.BlockLattice.DataModel.AccountIdentity, System.Boolean)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="25" />
+      </Target>
+      <Target Target="#30=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetLastTransactionalBlock(Wist.Core.Identity.IKey, System.Boolean)" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="26" />
+      </Target>
+      <Target Target="#31=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetAllGenesisBlocks()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="27" />
+      </Target>
+      <Target Target="#32=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::AddSynchronizationBlock(System.UInt64, System.DateTime, System.DateTime, System.Byte[])" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="28" />
+      </Target>
+      <Target Target="#33=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::GetLastSynchronizationBlock()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="29" />
+      </Target>
+      <Target Target="#34=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::Initialize()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="30" />
+      </Target>
+      <Target Target="#35=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::EnsureChangesSaved()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="31" />
+      </Target>
+      <Target Target="#36=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::WipeAll()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="32" />
+      </Target>
+      <Target Target="#37=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::Dispose()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="33" />
+      </Target>
+      <Target Target="#38=M:[Wist.BlockLattice.SQLite]Wist.BlockLattice.SQLite.LatticeDataService::#cctor()" LinesAvoided="6">
+        <JoinPoint Advising="#1" Description="#4" Ordinal="34" />
+      </Target>
+    </Instance>
+  </Class>
+  <Annotation Target="#39=M:[Wist.Core]Wist.Core.Aspects.AutoLog::OnEntry(PostSharp.Aspects.MethodExecutionArgs)" Arguments="#40=2" Description="#41=PostSharp estimates that 2 line(s) of code are saved every time this advice is applied. Use the [LinesOfCodeAvoided] attribute on the aspect or specify the LinesOfCodeAvoided property on the advice attribute to override this value." />
+  <Annotation Target="#42=M:[Wist.Core]Wist.Core.Aspects.AutoLog::OnExit(PostSharp.Aspects.MethodExecutionArgs)" Arguments="#40" Description="#41" />
+  <Annotation Target="#43=M:[Wist.Core]Wist.Core.Aspects.AutoLog::OnException(PostSharp.Aspects.MethodExecutionArgs)" Arguments="#40" Description="#41" />
+</Symbols>

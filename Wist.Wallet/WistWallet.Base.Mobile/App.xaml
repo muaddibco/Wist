@@ -1,10 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Application xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:vm1="clr-namespace:WistWallet.Base.ViewModels;assembly=WistWallet.Base"
              x:Class="WistWallet.Base.Mobile.App">
 	<Application.Resources>
-        <vm1:ViewModelLocator x:Key="Locator" xmlns:vm="clr-namespace:WistWallet.Base.ViewModels" />
+        <vm:ViewModelLocator x:Key="Locator" xmlns:vm="clr-namespace:WistWallet.Base.ViewModels;assembly=WistWallet.Base" />
 		<ResourceDictionary>
             <!--Global Styles-->
             <Color x:Key="NavigationPrimary">#2196F3</Color>
