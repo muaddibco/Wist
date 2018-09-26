@@ -2,31 +2,32 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="WistWallet.Base.Mobile.Views.VotePage"
-             BindingContext="{Binding VoteViewModel, Source={StaticResource Locator}}">
+             BindingContext="{Binding VoteViewModelMobile, Source={StaticResource Locator}}">
     <ContentPage.Content>
         <StackLayout>
-         <Label Text="Welcome to Xamarin.Forms!"
-                VerticalOptions="CenterAndExpand" 
-                HorizontalOptions="CenterAndExpand" />
-            <!--<ListView 
-               
+            <ListView 
+                ItemsSource="{Binding VotePoll.Votings}"
+                RefreshCommand="{Binding LoadItemsCommand}"
                 VerticalOptions="FillAndExpand"
+                HasUnevenRows="true"
+                IsPullToRefreshEnabled="true"
                 CachingStrategy="RecycleElement">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
                             <StackLayout Padding="10">
-                                <Label Text="{Binding Label}" 
+                                <Label Text="{Binding VoteItem.Label}" 
                                    LineBreakMode="NoWrap" 
                                    Style="{DynamicResource ListItemTextStyle}" 
                                    FontSize="16" />
-                                <Slider Value="{Binding IsSelected}" 
+                                <Slider 
+                                   Value="{Binding VoteItem.IsSelected}" 
                                    Style="{DynamicResource ListItemDetailTextStyle}"/>
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>
                 </ListView.ItemTemplate>
-            </ListView>-->
+            </ListView>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

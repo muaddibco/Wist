@@ -4,6 +4,6 @@ namespace WistWallet.Base.Interfaces
 {
     public interface IVoteViewModel
     {
-        //VotePoll VotePoll { get; set; }
+        VotePoll VotePoll { get; set; }
     }
 }

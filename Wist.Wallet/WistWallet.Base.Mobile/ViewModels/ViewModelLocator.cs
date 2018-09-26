@@ -1,7 +1,9 @@
-﻿using WistWallet.Base.Interfaces;
-using WistWallet.Base.Models;
+﻿using CommonServiceLocator;
+using GalaSoft.MvvmLight.Ioc;
+using WistWallet.Base.Interfaces;
+using WistWallet.Base.Mobile.Interfaces;
 
-namespace WistWallet.Base.ViewModels
+namespace WistWallet.Base.Mobile.ViewModels
 {
     /// <classDetails>   
     ///*****************************************************************
@@ -9,37 +11,29 @@ namespace WistWallet.Base.ViewModels
     /// 
     ///  Author       : Ami
     ///       
-    ///  Date         : 9/15/2018 10:57:18 PM      
+    ///  Date         : 9/27/2018 1:10:47 AM      
     /// *****************************************************************/
     /// </classDetails>
     /// <summary>
     /// </summary>
-    public class VoteViewModel : BaseViewModel, IVoteViewModel
+    public class ViewModelLocator
     {
         //============================================================================
         //                                 MEMBERS
         //============================================================================
 
-        public VotePoll VotePoll { get; set; }
 
         //============================================================================
         //                                  C'TOR
         //============================================================================
 
-        public VoteViewModel()
+        public ViewModelLocator()
         {
-            //VotePoll = new VotePoll()
-            //{
-            //    Description = "Poly",
-            //    OpenForVoting = true,
-            //    Votings = new List<VoteItem>
-            //    {
-            //        new VoteItem(){ IsSelected = true, Label = "Bruno"},
-            //        new VoteItem(){ IsSelected = true, Label = "Romario.F"},
-            //        new VoteItem(){ IsSelected = true, Label = "Ronaldo"},
-            //        new VoteItem(){ IsSelected = true, Label = "Ronaldinho"}
-            //    }
-            //};
+            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
+
+            SimpleIoc.Default.Register<IPaymentViewModel, PaymentViewModelMobile>();
+
+            SimpleIoc.Default.Register<IVoteViewModelMobile, VoteViewModelMobile>();
         }
 
         //============================================================================
@@ -48,6 +42,8 @@ namespace WistWallet.Base.ViewModels
 
         #region ============ PUBLIC FUNCTIONS =============  
 
+        public IPaymentViewModel PaymentViewModel => ServiceLocator.Current.GetInstance<IPaymentViewModel>();
+        public IVoteViewModelMobile VotePaymentViewModel => ServiceLocator.Current.GetInstance<IVoteViewModelMobile>();
 
         #endregion
 

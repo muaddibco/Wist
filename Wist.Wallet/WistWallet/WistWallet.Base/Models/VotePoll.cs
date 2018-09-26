@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.ObjectModel;
 
 namespace WistWallet.Base.Models
 {
@@ -23,7 +21,7 @@ namespace WistWallet.Base.Models
 
         public string Description { get; set; }
 
-        public ICollection<VoteItem> Votings { get; set; }
+        public ObservableCollection<VoteItem> Votings { get; set; }
 
         public bool OpenForVoting { get; set; }
 
@@ -33,7 +31,7 @@ namespace WistWallet.Base.Models
 
         public VotePoll()
         {
-            Votings = new List<VoteItem>();
+            //Votings = new ObservableCollection<VoteItem>();
         }
 
         //============================================================================

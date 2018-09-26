@@ -25,7 +25,7 @@ namespace WistWallet.Base.Mobile.ViewModels
         //                                  C'TOR
         //============================================================================
 
-        public PaymentViewModelMobile()
+        public PaymentViewModelMobile(): base()
         {
 
         }

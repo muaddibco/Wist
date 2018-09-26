@@ -1,10 +1,47 @@
-﻿using WistWallet.Base.Interfaces;
+﻿using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using WistWallet.Base.Mobile.Interfaces;
+using WistWallet.Base.Models;
 using WistWallet.Base.ViewModels;
+using Xamarin.Forms;
 
 namespace WistWallet.Base.Mobile.ViewModels
 {
-    public class VoteViewModelMobile : VoteViewModel, IVoteViewModel
+    public class VoteViewModelMobile : VoteViewModel, IVoteViewModelMobile
     {
+        //============================================================================
+        //                                 MEMBERS
+        //============================================================================
 
+        public Command LoadItemsCommand { get; set; }
+
+        //============================================================================
+        //                                  C'TOR
+        //============================================================================
+
+        public VoteViewModelMobile() : base()
+        {
+            LoadItemsCommand = new Command(async () => await ExecuteLoadItemsCommand());
+        }
+
+        //============================================================================
+        //                                FUNCTIONS
+        //============================================================================
+
+        async Task ExecuteLoadItemsCommand()
+        {
+            VotePoll = new VotePoll()
+            {
+                Description = "Poly",
+                OpenForVoting = true,
+                Votings = new ObservableCollection<VoteItem>
+                {
+                    new VoteItem(){ IsSelected = true, Label = "Bruno"},
+                    new VoteItem(){ IsSelected = true, Label = "Romario.F"},
+                    new VoteItem(){ IsSelected = true, Label = "Ronaldo"},
+                    new VoteItem(){ IsSelected = true, Label = "Ronaldinho"}
+                }
+            };
+        }
     }
 }

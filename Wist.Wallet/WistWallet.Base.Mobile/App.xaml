@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="WistWallet.Base.Mobile.App">
 	<Application.Resources>
-        <vm:ViewModelLocator x:Key="Locator" xmlns:vm="clr-namespace:WistWallet.Base.ViewModels;assembly=WistWallet.Base" />
+        <vm:ViewModelLocator x:Key="Locator" xmlns:vm="clr-namespace:WistWallet.Base.Mobile.ViewModels;assembly=WistWallet.Base.Mobile" />
 		<ResourceDictionary>
             <!--Global Styles-->
             <Color x:Key="NavigationPrimary">#2196F3</Color>
