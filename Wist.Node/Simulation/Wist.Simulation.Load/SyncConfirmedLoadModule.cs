@@ -14,7 +14,7 @@ using Wist.Core.Logging;
 using Wist.Core.PerformanceCounters;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
-using Wist.Node.Core.Modules;
+using Wist.Node.Core.Common;
 
 namespace Wist.Simulation.Load
 {

@@ -123,11 +123,20 @@
   <data name="ERR_DPOS_PROVIDER_NOT_SUPPORTED" xml:space="preserve">
     <value>DPOS Provider for PacketType {0} is not supported.</value>
   </data>
+  <data name="ERR_MANDATORY_INPUT_ARGUMENT_MISSING" xml:space="preserve">
+    <value>Mandatory input argument '{0}' is missing</value>
+  </data>
   <data name="ERR_MEMPOOL_OF_ELEMENTS_NOT_SUPPORTED" xml:space="preserve">
     <value>MemPool of elements of type '{0}' is not supported.</value>
   </data>
+  <data name="ERR_NO_SECRET_KEY_PROVIDED" xml:space="preserve">
+    <value>No secret key provided in input arguments</value>
+  </data>
   <data name="ERR_ROLE_NOT_SUPPORTED" xml:space="preserve">
     <value>Role '{0}' is not supported.</value>
+  </data>
+  <data name="ERR_SECRET_KEY_INVALID" xml:space="preserve">
+    <value>Secret key is invalid - it must be first argument and be 32 byte hexadecimal number represented as hex-string of 64 characters</value>
   </data>
   <data name="ERR_UNEXPECTED_ARGUMENT_TYPE" xml:space="preserve">
     <value>Argument passed to function must be of type '{0}'.</value>

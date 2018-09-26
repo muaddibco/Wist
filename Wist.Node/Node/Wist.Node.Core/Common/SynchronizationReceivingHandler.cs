@@ -15,7 +15,7 @@ using Wist.Core.Cryptography;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 
-namespace Wist.Node.Core.Synchronization
+namespace Wist.Node.Core.Common
 {
     [RegisterExtension(typeof(IBlocksHandler), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationReceivingHandler : IBlocksHandler

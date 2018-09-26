@@ -79,6 +79,15 @@ namespace Wist.Node.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Mandatory input argument &apos;{0}&apos; is missing.
+        /// </summary>
+        internal static string ERR_MANDATORY_INPUT_ARGUMENT_MISSING {
+            get {
+                return ResourceManager.GetString("ERR_MANDATORY_INPUT_ARGUMENT_MISSING", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MemPool of elements of type &apos;{0}&apos; is not supported..
         /// </summary>
         internal static string ERR_MEMPOOL_OF_ELEMENTS_NOT_SUPPORTED {
@@ -88,11 +97,29 @@ namespace Wist.Node.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No secret key provided in input arguments.
+        /// </summary>
+        internal static string ERR_NO_SECRET_KEY_PROVIDED {
+            get {
+                return ResourceManager.GetString("ERR_NO_SECRET_KEY_PROVIDED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Role &apos;{0}&apos; is not supported..
         /// </summary>
         internal static string ERR_ROLE_NOT_SUPPORTED {
             get {
                 return ResourceManager.GetString("ERR_ROLE_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Secret key is invalid - it must be first argument and be 32 byte hexadecimal number represented as hex-string of 64 characters.
+        /// </summary>
+        internal static string ERR_SECRET_KEY_INVALID {
+            get {
+                return ResourceManager.GetString("ERR_SECRET_KEY_INVALID", resourceCulture);
             }
         }
         

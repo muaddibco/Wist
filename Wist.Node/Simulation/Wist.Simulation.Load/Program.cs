@@ -1,11 +1,13 @@
 ﻿using log4net;
 using log4net.Config;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Wist.Core.Architecture;
-using Wist.Node.Core;
+using Wist.Core.ExtensionMethods;
+using Wist.Node.Core.Common;
 using Wist.Simulation.Load.Properties;
 
 namespace Wist.Simulation.Load
@@ -24,7 +26,7 @@ namespace Wist.Simulation.Load
             ConfigureUnhandledExceptions();
 
             NodeBootstrapper nodeBootstrapper = new NodeBootstrapper(cancellationTokenSource.Token);
-            nodeBootstrapper.Run();
+            nodeBootstrapper.Run(new Dictionary<string, string> { { "secretKey", LoadModuleBase.GetRandomSeed().ToHexString()} });
 
             string command = null;
             do

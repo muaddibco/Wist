@@ -32,7 +32,7 @@ namespace Wist.Core.Architecture
 
         public UnityContainer Container { get; private set; }
 
-        public virtual void Run()
+        public virtual void Run(IDictionary<string, string> args = null)
         {
             _log.Info("Starting Bootstrap Run");
             try

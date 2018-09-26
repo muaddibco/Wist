@@ -2,9 +2,9 @@
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Logging;
-using Wist.Node.Core.Synchronization;
+using Wist.Node.Core.Common;
 
-namespace Wist.Node.Core.Modules
+namespace Wist.Node.Core.Synchronization
 {
     [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationProducerModule : ModuleBase

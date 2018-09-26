@@ -24,7 +24,7 @@ namespace Wist.Setup.Simulation
                 .Concat(Directory.EnumerateFiles(rootFolder, "Wist.BlockLattice.*.dll").Select(f => new FileInfo(f).Name));
         }
 
-        public override void Run()
+        public override void Run(IDictionary<string, string> args = null)
         {
             base.Run();
 

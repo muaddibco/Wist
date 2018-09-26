@@ -4,7 +4,7 @@ using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Logging;
-using Wist.Node.Core.Modules;
+using Wist.Node.Core.Common;
 
 namespace Wist.Node.Core.Storage
 {

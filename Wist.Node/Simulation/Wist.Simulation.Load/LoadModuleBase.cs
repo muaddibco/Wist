@@ -11,9 +11,9 @@ using Wist.Core.HashCalculations;
 using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.Core.PerformanceCounters;
-using Wist.Node.Core.Modules;
 using Wist.Simulation.Load.Configuration;
 using Wist.Simulation.Load.PerformanceCounters;
+using Wist.Node.Core.Common;
 
 namespace Wist.Simulation.Load
 {
@@ -59,15 +59,10 @@ namespace Wist.Simulation.Load
             _communicationService.Init(new SocketSettings(clientTcpCommunicationConfiguration.MaxConnections, clientTcpCommunicationConfiguration.ReceiveBufferSize, clientTcpCommunicationConfiguration.ListeningPort, System.Net.Sockets.AddressFamily.InterNetwork));
             _communicationService.Start();
 
-            byte[] seed = GetRandomSeed();
-
-            _cryptoService.Initialize(seed);
-
-            byte[] keyBytes = Ed25519.PublicKeyFromSeed(seed);
-            _key = _identityKeyProvider.GetKey(keyBytes);
+            _key = _cryptoService.Key;
         }
 
-        protected byte[] GetRandomSeed()
+        public static byte[] GetRandomSeed()
         {
             byte[] seed = new byte[32];
             RNGCryptoServiceProvider.Create().GetNonZeroBytes(seed);

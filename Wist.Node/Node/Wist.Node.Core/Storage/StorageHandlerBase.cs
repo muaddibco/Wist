@@ -14,6 +14,7 @@ using Wist.Core.Configuration;
 using Wist.Core.HashCalculations;
 using Wist.Core.States;
 using Wist.Network.Interfaces;
+using Wist.Node.Core.Common;
 using Wist.Node.Core.Registry;
 
 namespace Wist.Node.Core.Storage

@@ -63,6 +63,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "[Solution Items]", "[Soluti
 		General Packet Processing.png = General Packet Processing.png
 		README.md = README.md
 		Startup.md = Startup.md
+		..\Transaction Flow in Network.png = ..\Transaction Flow in Network.png
 		Wist Layers.png = Wist Layers.png
 	EndProjectSection
 EndProject

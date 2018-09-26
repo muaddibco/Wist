@@ -1,10 +1,13 @@
 ﻿using log4net;
 using log4net.Config;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Wist.Node.Core;
+using Wist.Node.Core.Common;
+using Wist.Node.Core.Exceptions;
 using Wist.Node.Properties;
 
 namespace Wist.Node
@@ -21,8 +24,18 @@ namespace Wist.Node
 
             ConfigureUnhandledExceptions();
 
+            if ((args?.Length ?? 0) == 0)
+            {
+                throw new NoSecretKeyProvidedException();
+            }
+
+            Dictionary<string, string> bootArgs = new Dictionary<string, string>
+            {
+                { "secretKey", args[0] }
+            };
+
             NodeBootstrapper nodeBootstrapper = new NodeBootstrapper(cancellationTokenSource.Token);
-            nodeBootstrapper.Run();
+            nodeBootstrapper.Run(bootArgs);
 
             string command = null;
             do
