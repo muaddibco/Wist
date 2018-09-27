@@ -6,17 +6,13 @@ using System.Text;
 
 namespace Wist.BlockLattice.DataModel
 {
-    [Table("synchronization_blocks")]
-    public class SynchronizationBlock
+    [Table("registry_combined_blocks")]
+    public class RegistryCombinedBlock
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public ulong SynchronizationBlockId { get; set; }
+        public ulong RegistryCombinedBlockId { get; set; }
 
-        public DateTime ReceiveTime { get; set; }
-
-        public DateTime MedianTime { get; set; }
-
-        public byte[] BlockContent { get; set; }
+        public byte[] Content { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
@@ -33,7 +34,7 @@ namespace Wist.Node.Core.Synchronization
 
             try
             {
-                SynchronizationConfirmedBlock synchronizationConfirmedBlock = (SynchronizationConfirmedBlock)_chainDataService.GetLastBlock(null);
+                SynchronizationConfirmedBlock synchronizationConfirmedBlock = (SynchronizationConfirmedBlock)_chainDataService.GetAllLastBlocksByType(BlockTypes.Synchronization_ConfirmedBlock).Single();
 
                 if (synchronizationConfirmedBlock != null)
                 {

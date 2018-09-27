@@ -35,6 +35,8 @@ namespace Wist.BlockLattice.SQLite
 
         public DbSet<SynchronizationBlock> SynchronizationBlocks { get; set; }
 
+        public DbSet<RegistryCombinedBlock> RegistryCombinedBlocks { get; set; }
+
         public void EnsureConfigurationCompleted()
         {
             _manualResetEventSlim.Wait();

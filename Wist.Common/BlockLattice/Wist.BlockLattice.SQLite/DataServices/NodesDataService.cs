@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using Wist.BlockLattice.Core.DataModel.Nodes;
 using Wist.BlockLattice.Core.Interfaces;
+using Wist.BlockLattice.SQLite.DataAccess;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Identity;
@@ -24,12 +23,12 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public void Add(Node item)
         {
-            LatticeDataService.Instance.AddNode(item.Key, item.NodeRole, item.IPAddress);
+            DataAccessService.Instance.AddNode(item.Key, item.NodeRole, item.IPAddress);
         }
 
         public Node Get(IKey key)
         {
-            DataModel.Node node = LatticeDataService.Instance.GetNode(key);
+            DataModel.Node node = DataAccessService.Instance.GetNode(key);
 
             if(node != null)
             {
@@ -41,7 +40,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public IEnumerable<Node> GetAll()
         {
-            return LatticeDataService.Instance.GetAllNodes().Select(n => new Node { Key = _identityKeyProvider.GetKey(n.Identity.PublicKey), IPAddress = new IPAddress(n.IPAddress)});
+            return DataAccessService.Instance.GetAllNodes().Select(n => new Node { Key = _identityKeyProvider.GetKey(n.Identity.PublicKey), IPAddress = new IPAddress(n.IPAddress)});
         }
 
         public void Initialize()
@@ -50,7 +49,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public void Update(IKey key, Node item)
         {
-            LatticeDataService.Instance.UpdateNode(key, item.IPAddress);
+            DataAccessService.Instance.UpdateNode(key, item.IPAddress);
         }
     }
 }

@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.DataModel;
+using Wist.BlockLattice.SQLite.DataAccess;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Identity;
@@ -28,11 +27,14 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public void Add(BlockBase item)
         {
-            SynchronizationConfirmedBlock synchronizationConfirmedBlock = item as SynchronizationConfirmedBlock;
-
-            if(synchronizationConfirmedBlock != null)
+            if (item is SynchronizationConfirmedBlock synchronizationConfirmedBlock)
             {
-                LatticeDataService.Instance.AddSynchronizationBlock(synchronizationConfirmedBlock.BlockHeight, DateTime.Now, synchronizationConfirmedBlock.ReportedTime, synchronizationConfirmedBlock.NonHeaderBytes);
+                DataAccessService.Instance.AddSynchronizationBlock(synchronizationConfirmedBlock.BlockHeight, DateTime.Now, synchronizationConfirmedBlock.ReportedTime, synchronizationConfirmedBlock.NonHeaderBytes);
+            }
+
+            if(item is SynchronizationRegistryCombinedBlock combinedBlock)
+            {
+                DataAccessService.Instance.AddSynchronizationRegistryCombinedBlock(combinedBlock.BlockHeight, combinedBlock.BodyBytes);
             }
         }
 
@@ -63,7 +65,21 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public List<BlockBase> GetAllLastBlocksByType(ushort blockType)
         {
-            throw new NotImplementedException();
+            switch (blockType)
+            {
+                case BlockTypes.Synchronization_RegistryCombinationBlock:
+                    {
+                        RegistryCombinedBlock block = DataAccessService.Instance.GetLastRegistryCombinedBlock();
+                        return new List<BlockBase> { _mapperFactory.GetInstance<RegistryCombinedBlock, BlockBase>().Translate(block) };
+                    }
+                case BlockTypes.Synchronization_ConfirmedBlock:
+                    {
+                        SynchronizationBlock block = DataAccessService.Instance.GetLastSynchronizationBlock();
+                        return  new List<BlockBase> { _mapperFactory.GetInstance<SynchronizationBlock, BlockBase>().Translate(block) };
+                    }
+                default:
+                    return null;
+            }
         }
 
         public IEnumerable<T> GetAllLastBlocksByType<T>() where T : BlockBase
@@ -83,13 +99,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public BlockBase GetLastBlock(IKey key)
         {
-            SynchronizationBlock synchronizationBlock = LatticeDataService.Instance.GetLastSynchronizationBlock();
-
-            ITranslator<SynchronizationBlock, SynchronizationConfirmedBlock> translator = _mapperFactory.GetInstance<SynchronizationBlock, SynchronizationConfirmedBlock>();
-
-            SynchronizationConfirmedBlock synchronizationConfirmedBlock = translator.Translate(synchronizationBlock);
-
-            return synchronizationConfirmedBlock;
+            throw new NotImplementedException();
         }
 
         public void Initialize()

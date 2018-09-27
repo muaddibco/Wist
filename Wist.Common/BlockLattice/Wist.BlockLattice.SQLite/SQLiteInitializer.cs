@@ -1,4 +1,5 @@
 ﻿using Wist.BlockLattice.SQLite.Configuration;
+using Wist.BlockLattice.SQLite.DataAccess;
 using Wist.Core;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
@@ -20,11 +21,11 @@ namespace Wist.BlockLattice.SQLite
         {
             if(_configuration.WipeOnStart)
             {
-                LatticeDataService.Instance.WipeAll();
+                DataAccessService.Instance.WipeAll();
             }
 
-            LatticeDataService.Instance.LoadAllIdentities();
-            LatticeDataService.Instance.LoadAllKnownNodeIPs();
+            DataAccessService.Instance.LoadAllIdentities();
+            DataAccessService.Instance.LoadAllKnownNodeIPs();
         }
     }
 }
