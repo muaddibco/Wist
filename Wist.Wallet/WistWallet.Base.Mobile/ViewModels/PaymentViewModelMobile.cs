@@ -1,5 +1,8 @@
-﻿using WistWallet.Base.Interfaces;
+﻿using System.Windows.Input;
+using WistWallet.Base.Interfaces;
+using WistWallet.Base.Mobile.Interfaces;
 using WistWallet.Base.ViewModels;
+using Xamarin.Forms;
 
 namespace WistWallet.Base.Mobile.ViewModels
 {
@@ -36,6 +39,11 @@ namespace WistWallet.Base.Mobile.ViewModels
 
         #region ============ PUBLIC FUNCTIONS =============  
 
+        public override ICommand SendPaymentCommand =>
+            new Command(() =>
+            {
+                DependencyService.Get<INotificationService>().ShowMessage("Heeeeeeeeeeeello");
+            });
 
         #endregion
 

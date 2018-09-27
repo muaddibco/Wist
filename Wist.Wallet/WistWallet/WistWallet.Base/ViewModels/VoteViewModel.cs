@@ -1,4 +1,6 @@
-﻿using WistWallet.Base.Interfaces;
+﻿using System.Collections.ObjectModel;
+using System.Windows.Input;
+using WistWallet.Base.Interfaces;
 using WistWallet.Base.Models;
 
 namespace WistWallet.Base.ViewModels
@@ -22,6 +24,8 @@ namespace WistWallet.Base.ViewModels
 
         public VotePoll VotePoll { get; set; }
 
+        public ICommand LoadItemsCommand { get; set; }
+
         //============================================================================
         //                                  C'TOR
         //============================================================================
@@ -32,7 +36,7 @@ namespace WistWallet.Base.ViewModels
             //{
             //    Description = "Poly",
             //    OpenForVoting = true,
-            //    Votings = new List<VoteItem>
+            //    Votings = new ObservableCollection<VoteItem>
             //    {
             //        new VoteItem(){ IsSelected = true, Label = "Bruno"},
             //        new VoteItem(){ IsSelected = true, Label = "Romario.F"},

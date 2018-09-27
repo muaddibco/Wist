@@ -43,7 +43,7 @@ namespace WistWallet.Base.Mobile.ViewModels
         #region ============ PUBLIC FUNCTIONS =============  
 
         public IPaymentViewModel PaymentViewModel => ServiceLocator.Current.GetInstance<IPaymentViewModel>();
-        public IVoteViewModelMobile VotePaymentViewModel => ServiceLocator.Current.GetInstance<IVoteViewModelMobile>();
+        public IVoteViewModelMobile VoteViewModel => ServiceLocator.Current.GetInstance<IVoteViewModelMobile>();
 
         #endregion
 

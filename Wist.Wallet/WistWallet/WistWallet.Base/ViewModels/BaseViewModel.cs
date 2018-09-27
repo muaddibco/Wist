@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Xamarin.Forms;
 using WistWallet.Base.Models;
 using WistWallet.Base.Services;
 
@@ -12,7 +11,7 @@ namespace WistWallet.Base.ViewModels
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public IDataStore<Item> DataStore => DependencyService.Get<IDataStore<Item>>() ?? new MockDataStore();
+       // public IDataStore<Item> DataStore => DependencyService.Get<IDataStore<Item>>() ?? new MockDataStore();
 
         bool isBusy = false;
         public bool IsBusy

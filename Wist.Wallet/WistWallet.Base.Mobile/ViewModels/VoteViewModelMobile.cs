@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using WistWallet.Base.Mobile.Interfaces;
 using WistWallet.Base.Models;
 using WistWallet.Base.ViewModels;
@@ -13,22 +12,20 @@ namespace WistWallet.Base.Mobile.ViewModels
         //                                 MEMBERS
         //============================================================================
 
-        public Command LoadItemsCommand { get; set; }
-
         //============================================================================
         //                                  C'TOR
         //============================================================================
 
         public VoteViewModelMobile() : base()
         {
-            LoadItemsCommand = new Command(async () => await ExecuteLoadItemsCommand());
+            LoadItemsCommand = new Command(() => ExecuteLoadItemsCommand());
         }
 
         //============================================================================
         //                                FUNCTIONS
         //============================================================================
 
-        async Task ExecuteLoadItemsCommand()
+        private void ExecuteLoadItemsCommand()
         {
             VotePoll = new VotePoll()
             {

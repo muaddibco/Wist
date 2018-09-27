@@ -5,6 +5,9 @@ using WistWallet.Base.Mobile;
 using Microsoft.AppCenter;
 using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
+using WistWallet.Base.Mobile.Interfaces;
+using Xamarin.Forms;
+using WistWallet.Droid.Services;
 
 namespace WistWallet.Droid
 {
@@ -19,7 +22,8 @@ namespace WistWallet.Droid
 
             base.OnCreate(bundle);
 
-            global::Xamarin.Forms.Forms.Init(this, bundle);
+            Forms.Init(this, bundle);
+            ((NotificationService)DependencyService.Get<INotificationService>()).Context = this;
             LoadApplication(new App());
         }
     }

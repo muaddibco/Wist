@@ -5,7 +5,6 @@ using System.Windows.Input;
 using WistWallet.Base.Interfaces;
 using WistWallet.Base.Models;
 using WistWallet.Base.Services;
-using Xamarin.Forms;
 
 namespace WistWallet.Base.ViewModels
 {
@@ -32,10 +31,11 @@ namespace WistWallet.Base.ViewModels
         public string LabelTargetUser => Strings.TargetUser;
         public string LabelPay => Strings.Pay;
 
-        public Currency SelectedCurrency { get; set; }
         public uint SelectedSum { get; set; }
         public string SelectedUser { get; set; }
+        public Currency SelectedCurrency { get; set; }
         public ICollection<string> ListCurrency => Enum.GetNames(typeof(Currency)).ToList();
+        public virtual ICommand SendPaymentCommand { get; }
 
         //============================================================================
         //                                  C'TOR
@@ -54,11 +54,7 @@ namespace WistWallet.Base.ViewModels
 
         #region ============ PUBLIC FUNCTIONS =============  
 
-        public ICommand SendPaymentCommand => 
-            new Command(() =>
-        {
-
-        });
+        
 
         #endregion
 
