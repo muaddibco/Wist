@@ -23,6 +23,7 @@ using Wist.Core.Shards;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
+using Wist.BlockLattice.Core.Serializers.RawPackets;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -43,14 +44,16 @@ namespace Wist.Node.Core.Synchronization
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly ISyncRegistryMemPool _syncRegistryMemPool;
         private readonly INodesResolutionService _nodesResolutionService;
-        private readonly IChainDataService _chainDataService;
+        private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
+        private readonly IChainDataService _synchronizationChainDataService;
+        private readonly IChainDataService _registryChainDataService;
         private IServerCommunicationService _communicationService;
         private CancellationToken _cancellationToken;
 
         public TransactionsRegistrySyncHandler(IStatesRepository statesRepository, ISyncShardsManager syncShardsManager, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, 
             ICryptoService cryptoService, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, 
             IServerCommunicationServicesRegistry communicationServicesRegistry, ISyncRegistryMemPool syncRegistryMemPool, INodesResolutionService nodesResolutionService,
-            IChainDataServicesManager chainDataServicesManager)
+            IChainDataServicesManager chainDataServicesManager, IRawPacketProvidersFactory rawPacketProvidersFactory)
         {
             _registryBlocks = new BlockingCollection<RegistryBlockBase>();
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
@@ -64,7 +67,9 @@ namespace Wist.Node.Core.Synchronization
             _communicationServicesRegistry = communicationServicesRegistry;
             _syncRegistryMemPool = syncRegistryMemPool;
             _nodesResolutionService = nodesResolutionService;
-            _chainDataService = chainDataServicesManager.GetChainDataService(PacketType.Synchronization);
+            _rawPacketProvidersFactory = rawPacketProvidersFactory;
+            _synchronizationChainDataService = chainDataServicesManager.GetChainDataService(PacketType.Synchronization);
+            _registryChainDataService = chainDataServicesManager.GetChainDataService(PacketType.Registry);
         }
 
         public string Name => NAME;
@@ -114,26 +119,25 @@ namespace Wist.Node.Core.Synchronization
             }
         }
 
+        // every round must last around 5 seconds
+        // when round ends following things will happen:
+        // 1. Shard Leader will send block with information about Transactions Registry Block collected most votes
+        // 2. Winning Transactions Registry Block will be saved to local database and will be sent to Storage Layer
+        // 3. It will be created Combined Block that will hold information about winning Transactions Registry Block 
         private void RoundEndedHandler(RoundDescriptor roundDescriptor)
         {
             RegistryFullBlock transactionsFullBlockMostConfident = _syncRegistryMemPool.GetMostConfidentFullBlock();
 
-            RegistryConfirmationBlock registryConfirmationBlock = new RegistryConfirmationBlock
-            {
-                SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0,
-                BlockHeight = roundDescriptor.Round,
-                ReferencedBlockHash = transactionsFullBlockMostConfident.ShortBlockHash
-            };
+            CreateAndDistributeConfirmationBlock(roundDescriptor, transactionsFullBlockMostConfident);
 
-            ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound(roundDescriptor.Round);
-            ISignatureSupportSerializer registryConfirmationBlockSerializer = _signatureSupportSerializersFactory.Create(registryConfirmationBlock);
+            DistributeAndSaveFullBlock(transactionsFullBlockMostConfident);
 
-            _communicationService.PostMessage(_syncRegistryNeighborhoodState.GetAllNeighbors(), registryConfirmationBlockSerializer);
+            CreateAndDistributeCombinedBlock(transactionsFullBlockMostConfident);
+        }
 
-            IEnumerable<IKey> storageLayerKeys = _nodesResolutionService.GetStorageNodeKeys(registryConfirmationBlockSerializer);
-            _communicationService.PostMessage(storageLayerKeys, registryConfirmationBlockSerializer);
-
-            SynchronizationRegistryCombinedBlock lastCombinedBlock = (SynchronizationRegistryCombinedBlock)_chainDataService.GetAllLastBlocksByType(BlockTypes.Synchronization_RegistryCombinationBlock).Single();
+        private void CreateAndDistributeCombinedBlock(RegistryFullBlock transactionsFullBlockMostConfident)
+        {
+            SynchronizationRegistryCombinedBlock lastCombinedBlock = (SynchronizationRegistryCombinedBlock)_synchronizationChainDataService.GetAllLastBlocksByType(BlockTypes.Synchronization_RegistryCombinationBlock).Single();
             byte[] prevHash = CryptoHelper.ComputeHash(lastCombinedBlock.BodyBytes);
             byte[] fullBlockHash = CryptoHelper.ComputeHash(transactionsFullBlockMostConfident.BodyBytes);
 
@@ -150,9 +154,35 @@ namespace Wist.Node.Core.Synchronization
             ISignatureSupportSerializer combinedBlockSerializer = _signatureSupportSerializersFactory.Create(synchronizationRegistryCombinedBlock);
             combinedBlockSerializer.FillBodyAndRowBytes();
 
-            _chainDataService.Add(synchronizationRegistryCombinedBlock);
+            IEnumerable<IKey> storageLayerKeys = _nodesResolutionService.GetStorageNodeKeys(combinedBlockSerializer);
+            _communicationService.PostMessage(storageLayerKeys, combinedBlockSerializer);
 
-            //TODO: transactionsFullBlockMostConfident must be sent to Storage level and combined with other most confident full blocks from other shards
+            _synchronizationChainDataService.Add(synchronizationRegistryCombinedBlock);
+        }
+
+        private void DistributeAndSaveFullBlock(RegistryFullBlock transactionsFullBlockMostConfident)
+        {
+            IRawPacketProvider fullBlockSerializer = _rawPacketProvidersFactory.Create(transactionsFullBlockMostConfident);
+
+            IEnumerable<IKey> storageLayerKeys = _nodesResolutionService.GetStorageNodeKeys(fullBlockSerializer);
+            _communicationService.PostMessage(storageLayerKeys, fullBlockSerializer);
+
+            _registryChainDataService.Add(transactionsFullBlockMostConfident);
+        }
+
+        private void CreateAndDistributeConfirmationBlock(RoundDescriptor roundDescriptor, RegistryFullBlock transactionsFullBlockMostConfident)
+        {
+            RegistryConfirmationBlock registryConfirmationBlock = new RegistryConfirmationBlock
+            {
+                SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0,
+                BlockHeight = roundDescriptor.Round,
+                ReferencedBlockHash = transactionsFullBlockMostConfident.ShortBlockHash
+            };
+
+            ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound(roundDescriptor.Round);
+            ISignatureSupportSerializer registryConfirmationBlockSerializer = _signatureSupportSerializersFactory.Create(registryConfirmationBlock);
+
+            _communicationService.PostMessage(_syncRegistryNeighborhoodState.GetAllNeighbors(), registryConfirmationBlockSerializer);
         }
 
         #endregion Private Functions
