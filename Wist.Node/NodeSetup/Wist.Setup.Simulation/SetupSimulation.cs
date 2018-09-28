@@ -1,11 +1,8 @@
 ﻿using Chaos.NaCl;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using Wist.BlockLattice.SQLite;
+using Wist.BlockLattice.SQLite.DataAccess;
 using Wist.Core.Identity;
 
 namespace Wist.Setup.Simulation
@@ -24,12 +21,12 @@ namespace Wist.Setup.Simulation
         {
             if(resetDatabase)
             {
-                LatticeDataService.Instance.WipeAll();
+                DataAccessService.Instance.WipeAll();
             }
 
-            LatticeDataService.Instance.LoadAllIdentities();
+            DataAccessService.Instance.LoadAllIdentities();
 
-            IEnumerable<IKey> keys = LatticeDataService.Instance.GetAllAccountIdentities();
+            IEnumerable<IKey> keys = DataAccessService.Instance.GetAllAccountIdentities();
 
             int targetKeyNumber = 5 - keys.Count();
 
@@ -41,17 +38,17 @@ namespace Wist.Setup.Simulation
                 byte[] keyBytes = Ed25519.PublicKeyFromSeed(seed);
                 IKey key = _identityKeyProvider.GetKey(keyBytes);
 
-                LatticeDataService.Instance.AddIdentity(key);
+                DataAccessService.Instance.AddIdentity(key);
 
-                if (LatticeDataService.Instance.AddSeed(key, seed))
+                if (DataAccessService.Instance.AddSeed(key, seed))
                 {
                     targetKeyNumber--;
                 }
             }
 
-            keys = LatticeDataService.Instance.GetAllAccountIdentities();
+            keys = DataAccessService.Instance.GetAllAccountIdentities();
 
-            LatticeDataService.Instance.EnsureChangesSaved();
+            DataAccessService.Instance.EnsureChangesSaved();
         }
 
         private byte[] GetRandomSeed()

@@ -3,6 +3,7 @@ using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel.Registry
 {
+
     public class RegistryConfirmationBlock : RegistryBlockBase
     {
         public override ushort BlockType => BlockTypes.Registry_ConfirmationBlock;

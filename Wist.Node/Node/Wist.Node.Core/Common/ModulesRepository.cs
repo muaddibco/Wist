@@ -5,7 +5,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using System.Collections.ObjectModel;
 
-namespace Wist.Node.Core.Modules
+namespace Wist.Node.Core.Common
 {
     [RegisterDefaultImplementation(typeof(IModulesRepository), Lifetime = LifetimeManagement.Singleton)]
     public class ModulesRepository : IModulesRepository

@@ -5,7 +5,7 @@ using Wist.Core.Communication;
 namespace Wist.BlockLattice.Core.Serializers.RawPackets
 {
     [ExtensionPoint]
-    public interface IRawPacketProvider : IPacketProvider
+    public interface IRawPacketProvider : IPacketProvider, ITransactionKeyProvider
     {
         void Initialize(BlockBase blockBase);
     }

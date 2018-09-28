@@ -18,7 +18,7 @@ using Wist.Core.Synchronization;
 using Wist.Core.ExtensionMethods;
 using Chaos.NaCl;
 using Wist.BlockLattice.Core.Serializers;
-using Wist.Node.Core.Modules;
+using Wist.Node.Core.Common;
 
 namespace Wist.Simulation.Load
 {

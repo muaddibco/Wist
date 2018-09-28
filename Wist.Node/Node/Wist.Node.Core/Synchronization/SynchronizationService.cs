@@ -16,6 +16,7 @@ using Wist.Core.Logging;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.DPOS;
+using Wist.Node.Core.Common;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -107,7 +108,7 @@ namespace Wist.Node.Core.Synchronization
 
         private bool CheckShouldJoinSyncGroup()
         {
-            SortedDictionary<ushort, byte[]> topParticipants = _dposService.GetTopNodesPublicKeys(_nodeContext.SyncGroupParticipantsCount);
+            SortedDictionary<ushort, byte[]> topParticipants = _dposService.GetTopNodesPublicKeys(21);
 
             bool result = topParticipants.Any(t => t.Value.Equals32(_accountState.AccountKey.Value));
 
@@ -116,7 +117,7 @@ namespace Wist.Node.Core.Synchronization
 
         private bool CheckShouldLeaveSyncGroup()
         {
-            SortedDictionary<ushort, byte[]> topParticipants = _dposService.GetTopNodesPublicKeys(_nodeContext.SyncGroupParticipantsCount);
+            SortedDictionary<ushort, byte[]> topParticipants = _dposService.GetTopNodesPublicKeys(21);
 
             bool result = topParticipants.Any(t => t.Value.Equals32(_accountState.AccountKey.Value));
 

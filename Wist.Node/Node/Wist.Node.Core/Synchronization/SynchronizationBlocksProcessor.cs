@@ -16,6 +16,7 @@ using Wist.Core.ExtensionMethods;
 using Wist.Core.Identity;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
+using Wist.Node.Core.Common;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -170,7 +171,7 @@ namespace Wist.Node.Core.Synchronization
 
         private void BroadcastConfirmation(ulong height)
         {
-            List<SynchronizationBlockRetransmissionV1> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height].Where(r => _nodeContext.SyncGroupParticipants.Any(p => p.PublicKey == r.Key)).Select(kv => kv.Value.First()).OrderBy(s => s.ConfirmationPublicKey.ToHexString()).ToList();
+            List<SynchronizationBlockRetransmissionV1> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height].Where(r => _nodeContext.SyncGroupParticipants.Any(p => p.Key == r.Key)).Select(kv => kv.Value.First()).OrderBy(s => s.ConfirmationPublicKey.ToHexString()).ToList();
 
             SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock
             {
@@ -195,9 +196,9 @@ namespace Wist.Node.Core.Synchronization
             Dictionary<IKey, List<SynchronizationBlockRetransmissionV1>> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height];
             foreach (IKey publicKey in retransmittedSyncBlocks.Keys)
             {
-                if (_nodeContext.SyncGroupParticipants.Any(p => p.PublicKey == publicKey))
+                if (_nodeContext.SyncGroupParticipants.Any(p => p.Key == publicKey))
                 {
-                    IEnumerable<SynchronizationBlockRetransmissionV1> lst = retransmittedSyncBlocks[publicKey].Where(s => _nodeContext.SyncGroupParticipants.Any(p => p.PublicKey.Equals(s.ConfirmationPublicKey)));
+                    IEnumerable<SynchronizationBlockRetransmissionV1> lst = retransmittedSyncBlocks[publicKey].Where(s => _nodeContext.SyncGroupParticipants.Any(p => p.Key.Equals(s.ConfirmationPublicKey)));
                     if (lst.Count() >= TARGET_CONSENSUS_LOW_LIMIT && lst.Any(l => lst.First().ReportedTime == l.ReportedTime))
                     {
                         count++;

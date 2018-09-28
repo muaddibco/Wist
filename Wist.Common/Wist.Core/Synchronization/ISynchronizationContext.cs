@@ -12,6 +12,8 @@ namespace Wist.Core.Synchronization
 
         SynchronizationDescriptor PrevBlockDescriptor { get; }
 
+        ulong LastRegistrationBlockHeight { get; set; }
+
         /// <summary>
         /// Utility function that returns median value from provided array
         /// </summary>

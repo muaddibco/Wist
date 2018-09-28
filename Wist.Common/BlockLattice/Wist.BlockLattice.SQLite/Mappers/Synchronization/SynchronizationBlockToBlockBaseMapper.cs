@@ -1,6 +1,6 @@
-﻿using Wist.BlockLattice.Core.DataModel.Synchronization;
+﻿using Wist.BlockLattice.Core.DataModel;
+using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Parsers;
 using Wist.BlockLattice.DataModel;
 using Wist.Core.Architecture;
@@ -11,16 +11,16 @@ namespace Wist.BlockLattice.SQLite.Mappers.Synchronization
 {
 
     [RegisterExtension(typeof(ITranslator), Lifetime = LifetimeManagement.Singleton)]
-    public class SynchronizationBlockToSynchronizationConfirmedBlockMapper : TranslatorBase<SynchronizationBlock, SynchronizationConfirmedBlock>
+    public class SynchronizationBlockToBlockBaseMapper : TranslatorBase<SynchronizationBlock, BlockBase>
     {
         private readonly IBlockParsersRepository _blockParsersRepository;
 
-        public SynchronizationBlockToSynchronizationConfirmedBlockMapper(IBlockParsersRepositoriesRepository blockParsersFactoriesRepository)
+        public SynchronizationBlockToBlockBaseMapper(IBlockParsersRepositoriesRepository blockParsersFactoriesRepository)
         {
             _blockParsersRepository = blockParsersFactoriesRepository.GetBlockParsersRepository(PacketType.Synchronization);
         }
 
-        public override SynchronizationConfirmedBlock Translate(SynchronizationBlock synchronizationBlock)
+        public override BlockBase Translate(SynchronizationBlock synchronizationBlock)
         {
             if(synchronizationBlock == null)
             {

@@ -10,6 +10,7 @@ namespace Wist.BlockLattice.DataModel
     public class SynchronizationBlock
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public ulong SynchronizationBlockId { get; set; }
 
         public DateTime ReceiveTime { get; set; }

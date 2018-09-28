@@ -10,6 +10,7 @@ using Wist.BlockLattice.Core.DataModel;
 using Wist.Core.Translators;
 using Wist.Core.Identity;
 using Wist.BlockLattice.Core.Serializers;
+using Wist.BlockLattice.SQLite.DataAccess;
 
 namespace Wist.BlockLattice.SQLite.DataServices
 {
@@ -44,7 +45,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
                 if(DoesChainExist(key))
                 {
-                    LatticeDataService.Instance.AddTransactionalBlock(key, transactionalBlockBase.BlockType, transactionalBlockBase.BodyBytes);
+                    DataAccessService.Instance.AddTransactionalBlock(key, transactionalBlockBase.BlockType, transactionalBlockBase.BodyBytes);
                 }
             }
         }
@@ -65,13 +66,13 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
             using (ISignatureSupportSerializer serializer = _serializersFactory.Create(transactionalGenesisBlock))
             {
-                LatticeDataService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.Signer, transactionalGenesisBlock.Version, transactionalGenesisBlock.NonHeaderBytes);
+                DataAccessService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.Signer, transactionalGenesisBlock.Version, transactionalGenesisBlock.NonHeaderBytes);
             }
         }
 
         public bool DoesChainExist(IKey key)
         {
-            return LatticeDataService.Instance.IsGenesisBlockExists(key);
+            return DataAccessService.Instance.IsGenesisBlockExists(key);
         }
 
         public BlockBase[] GetAllBlocks(IKey key)
@@ -86,7 +87,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public GenesisBlockBase GetGenesisBlock(IKey key)
         {
-            TransactionalGenesis transactionalGenesis = LatticeDataService.Instance.GetTransactionalGenesisBlock(key);
+            TransactionalGenesis transactionalGenesis = DataAccessService.Instance.GetTransactionalGenesisBlock(key);
 
             ITranslator<TransactionalGenesis, GenesisBlockBase> mapper = _mapperFactory.GetInstance<TransactionalGenesis, GenesisBlockBase>();
 
@@ -95,7 +96,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public BlockBase GetLastBlock(IKey key)
         {
-            TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(key);
+            TransactionalBlock transactionalBlock = DataAccessService.Instance.GetLastTransactionalBlock(key);
 
             ITranslator<TransactionalBlock, TransactionalBlockBase> mapper = _mapperFactory.GetInstance<TransactionalBlock, TransactionalBlockBase>();
 
@@ -110,7 +111,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
             if (typeof(T) == typeof(TransactionalGenesisBlock))
             {
-                foreach (TransactionalGenesis genesis in LatticeDataService.Instance.GetAllGenesisBlocks())
+                foreach (TransactionalGenesis genesis in DataAccessService.Instance.GetAllGenesisBlocks())
                 {
                     ITranslator<TransactionalGenesis, TransactionalGenesisBlock> translator = _mapperFactory.GetInstance<TransactionalGenesis, TransactionalGenesisBlock>();
 
@@ -122,9 +123,9 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
             if(typeof(T) == typeof(TransactionalBlockBase))
             {
-                foreach (TransactionalGenesis genesis in LatticeDataService.Instance.GetAllGenesisBlocks())
+                foreach (TransactionalGenesis genesis in DataAccessService.Instance.GetAllGenesisBlocks())
                 {
-                    TransactionalBlock transactionalBlock = LatticeDataService.Instance.GetLastTransactionalBlock(genesis.Identity);
+                    TransactionalBlock transactionalBlock = DataAccessService.Instance.GetLastTransactionalBlock(genesis.Identity);
 
                     ITranslator<TransactionalBlock, TransactionalBlockBase> translator = _mapperFactory.GetInstance<TransactionalBlock, TransactionalBlockBase>();
 
@@ -143,7 +144,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
             if(blockType == BlockTypes.Transaction_Genesis)
             {
-                foreach (TransactionalGenesis genesis in LatticeDataService.Instance.GetAllGenesisBlocks())
+                foreach (TransactionalGenesis genesis in DataAccessService.Instance.GetAllGenesisBlocks())
                 {
                     ITranslator<TransactionalGenesis, TransactionalGenesisBlock> translator = _mapperFactory.GetInstance<TransactionalGenesis, TransactionalGenesisBlock>();
 

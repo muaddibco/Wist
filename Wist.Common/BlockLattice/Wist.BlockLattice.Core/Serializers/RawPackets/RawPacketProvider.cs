@@ -2,6 +2,8 @@
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.HashCalculations;
+using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.Serializers.RawPackets
 {
@@ -12,10 +14,14 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
         private bool _disposed = false; // To detect redundant calls
         private BlockBase _blockBase;
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
+        private readonly IHashCalculation _transactionKeyHashCalculation;
+        private readonly IIdentityKeyProvider _transactionKeyIdentityKeyProvider;
 
-        public RawPacketProvider(IRawPacketProvidersFactory rawPacketProvidersFactory)
+        public RawPacketProvider(IRawPacketProvidersFactory rawPacketProvidersFactory, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository)
         {
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
+            _transactionKeyIdentityKeyProvider = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
+            _transactionKeyHashCalculation = hashCalculationsRepository.Create(HashType.MurMur);
         }
 
         public byte[] GetBytes()
@@ -37,6 +43,14 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
 
                 _disposed = true;
             }
+        }
+
+        public IKey GetKey()
+        {
+            byte[] hash = _transactionKeyHashCalculation.CalculateHash(_blockBase.RawData);
+            IKey key = _transactionKeyIdentityKeyProvider.GetKey(hash);
+
+            return key;
         }
     }
 }

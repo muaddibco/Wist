@@ -9,7 +9,9 @@ using Wist.Node.Core.Configuration;
 using System.Collections.Generic;
 using Wist.Core.Logging;
 using Wist.BlockLattice.Core.Handlers;
-using Wist.Node.Core.Modules;
+using Wist.Node.Core.Common;
+using Wist.Core.Cryptography;
+using Wist.Core.States;
 
 namespace Wist.Node.Core
 {
@@ -30,11 +32,13 @@ namespace Wist.Node.Core
         private readonly IConfigurationService _configurationService;
         private readonly IModulesRepository _modulesRepository;
         private readonly IPacketsHandler _packetsHandler;
+        private readonly ICryptoService _cryptoService;
+        private readonly INodeContext _nodeContext;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         //private read-only IBlocksProcessor _blocksProcessor
 
-        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IPacketsHandler packetsHandler, IBlocksHandlersRegistry blocksProcessorFactory, ILoggerService loggerService)
+        public NodeMain(IServerCommunicationServicesRepository communicationServicesFactory, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, IModulesRepository modulesRepository, IPacketsHandler packetsHandler, IBlocksHandlersRegistry blocksProcessorFactory, ILoggerService loggerService, ICryptoService cryptoService, IStatesRepository statesRepository)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _communicationServicesFactory = communicationServicesFactory;
@@ -42,11 +46,21 @@ namespace Wist.Node.Core
             _configurationService = configurationService;
             _modulesRepository = modulesRepository;
             _packetsHandler = packetsHandler;
+            _cryptoService = cryptoService;
+            _nodeContext = statesRepository.GetInstance<INodeContext>();
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
-        public void Initialize(CancellationToken ct)
+        public void Initialize(byte[] secretKey, CancellationToken ct)
         {
+            if (secretKey == null)
+            {
+                throw new ArgumentNullException(nameof(secretKey));
+            }
+
+            _cryptoService.Initialize(secretKey);
+            _nodeContext.Initialize();
+
             InitializeCommunicationLayer();
 
             ObtainConfiguredModules();

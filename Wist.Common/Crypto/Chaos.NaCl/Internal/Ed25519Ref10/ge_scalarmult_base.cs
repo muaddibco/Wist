@@ -109,5 +109,14 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
             }
         }
 
+        public static void ge_mul8(out GroupElementP1P1 r, ref GroupElementP2 t)
+        {
+            GroupElementP2 u;
+            ge_p2_dbl(out r, ref t);
+            ge_p1p1_to_p2(out u, ref r);
+            ge_p2_dbl(out r, ref u);
+            ge_p1p1_to_p2(out u, ref r);
+            ge_p2_dbl(out r, ref u);
+        }
     }
 }
