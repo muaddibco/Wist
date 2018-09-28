@@ -5,3 +5,4 @@
 /Wist.Core.Tests
 /Wist.Wallet/WistWallet.Base.Mobile/Services/NotificationService.cs
 /Wist.Wallet/WistWallet/WistWallet.Base/Interfaces/INotificationService.cs
+/Wist.Wallet/WistWallet.Base.Mobile/Converters/BoolToDoubleConverter.cs

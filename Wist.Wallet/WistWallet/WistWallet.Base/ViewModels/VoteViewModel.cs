@@ -24,26 +24,12 @@ namespace WistWallet.Base.ViewModels
 
         public VotePoll VotePoll { get; set; }
 
-        public ICommand LoadItemsCommand { get; set; }
-
         //============================================================================
         //                                  C'TOR
         //============================================================================
 
         public VoteViewModel()
         {
-            //VotePoll = new VotePoll()
-            //{
-            //    Description = "Poly",
-            //    OpenForVoting = true,
-            //    Votings = new ObservableCollection<VoteItem>
-            //    {
-            //        new VoteItem(){ IsSelected = true, Label = "Bruno"},
-            //        new VoteItem(){ IsSelected = true, Label = "Romario.F"},
-            //        new VoteItem(){ IsSelected = true, Label = "Ronaldo"},
-            //        new VoteItem(){ IsSelected = true, Label = "Ronaldinho"}
-            //    }
-            //};
         }
 
         //============================================================================

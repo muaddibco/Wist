@@ -5,13 +5,10 @@
              BindingContext="{Binding VoteViewModel, Source={StaticResource Locator}}">
     <ContentPage.Content>
         <StackLayout>
+            <Label Text="{Binding VotePoll.Description}" HorizontalTextAlignment="Center" Style="{DynamicResource ListItemTextStyle}"/>
             <ListView 
-                ItemsSource="{Binding VotePoll.Votings}"
-                RefreshCommand="{Binding LoadItemsCommand}"
-                VerticalOptions="FillAndExpand"
-                HasUnevenRows="true"
-                IsPullToRefreshEnabled="true"
-                CachingStrategy="RecycleElement">
+                IsEnabled="{Binding VotePoll.OpenForVoting}"
+                ItemsSource="{Binding VotePoll.Votings}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
@@ -20,9 +17,8 @@
                                    LineBreakMode="NoWrap" 
                                    Style="{DynamicResource ListItemTextStyle}" 
                                    FontSize="16" />
-                                <Slider 
-                                   Value="{Binding IsSelected}" 
-                                   Style="{DynamicResource ListItemDetailTextStyle}"/>
+                                <Switch IsToggled="{Binding IsSelected}" 
+                                    VerticalOptions="Center"/>
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>

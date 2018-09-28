@@ -2,7 +2,6 @@
 using WistWallet.Base.Mobile.Interfaces;
 using WistWallet.Base.Models;
 using WistWallet.Base.ViewModels;
-using Xamarin.Forms;
 
 namespace WistWallet.Base.Mobile.ViewModels
 {
@@ -18,15 +17,6 @@ namespace WistWallet.Base.Mobile.ViewModels
 
         public VoteViewModelMobile() : base()
         {
-            LoadItemsCommand = new Command(() => ExecuteLoadItemsCommand());
-        }
-
-        //============================================================================
-        //                                FUNCTIONS
-        //============================================================================
-
-        private void ExecuteLoadItemsCommand()
-        {
             VotePoll = new VotePoll()
             {
                 Description = "Poly",
@@ -40,5 +30,10 @@ namespace WistWallet.Base.Mobile.ViewModels
                 }
             };
         }
+
+        //============================================================================
+        //                                FUNCTIONS
+        //============================================================================
+     
     }
 }

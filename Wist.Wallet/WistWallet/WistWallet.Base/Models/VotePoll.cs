@@ -31,7 +31,6 @@ namespace WistWallet.Base.Models
 
         public VotePoll()
         {
-            //Votings = new ObservableCollection<VoteItem>();
         }
 
         //============================================================================
