@@ -54,7 +54,7 @@ namespace Wist.Node.Core.Tests
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
             ulong expectedCount = 10;
 
             SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
@@ -112,7 +112,7 @@ namespace Wist.Node.Core.Tests
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
 
             SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
 
@@ -180,7 +180,7 @@ namespace Wist.Node.Core.Tests
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
 
             SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
 

@@ -1,5 +1,6 @@
 ﻿using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Logging;
 using Wist.Core.PerformanceCounters;
 
 namespace Wist.BlockLattice.Core.PerformanceCounters
@@ -8,7 +9,7 @@ namespace Wist.BlockLattice.Core.PerformanceCounters
     [RegisterExtension(typeof(IPerformanceCountersCategoryBase), Lifetime = LifetimeManagement.Singleton)]
     public class EndToEndCountersService : PerformanceCountersCategoryBase
     {
-        public EndToEndCountersService(IApplicationContext applicationContext) : base(applicationContext)
+        public EndToEndCountersService(IApplicationContext applicationContext, ILoggerService loggerService) : base(applicationContext, loggerService)
         {
         }
 

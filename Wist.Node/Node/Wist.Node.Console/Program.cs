@@ -4,11 +4,12 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Wist.Node.Core;
+using Wist.Core.ExtensionMethods;
 using Wist.Node.Core.Common;
 using Wist.Node.Console.Properties;
 using Wist.Node.Core.Exceptions;
 using System.Collections.Generic;
+using Wist.Core.Cryptography;
 
 namespace Wist.Node.Console
 {
@@ -31,14 +32,28 @@ namespace Wist.Node.Console
 
             ConfigureUnhandledExceptions();
 
+            string secretKey = null;
+
             if ((args?.Length ?? 0) == 0)
             {
-                throw new NoSecretKeyProvidedException();
+                if (Debugger.IsAttached)
+                {
+                    byte[] seed = CryptoHelper.GetRandomSeed();
+                    secretKey = seed.ToHexString();
+                }
+                else
+                {
+                    throw new NoSecretKeyProvidedException();
+                }
+            }
+            else
+            {
+                secretKey = args[0];
             }
 
             Dictionary<string, string> bootArgs = new Dictionary<string, string>
             {
-                { "secretKey", args[0] }
+                { "secretKey", secretKey }
             };
 
             NodeBootstrapper nodeBootstrapper = new NodeBootstrapper(cancellationTokenSource.Token);

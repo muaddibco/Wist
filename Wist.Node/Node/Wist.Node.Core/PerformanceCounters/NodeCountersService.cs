@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Logging;
 using Wist.Core.PerformanceCounters;
 
 namespace Wist.Node.Core.PerformanceCounters
@@ -11,7 +12,7 @@ namespace Wist.Node.Core.PerformanceCounters
     [RegisterExtension(typeof(IPerformanceCountersCategoryBase), Lifetime = LifetimeManagement.Singleton)]
     public class NodeCountersService : PerformanceCountersCategoryBase
     {
-        public NodeCountersService(IApplicationContext applicationContext) : base(applicationContext)
+        public NodeCountersService(IApplicationContext applicationContext, ILoggerService loggerService) : base(applicationContext, loggerService)
         {
         }
 

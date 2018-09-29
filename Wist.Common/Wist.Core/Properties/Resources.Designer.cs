@@ -97,6 +97,24 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to initialize counter &apos;{0}&apos; from category &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_FAILED_TO_INITIALIZE_COUNTER {
+            get {
+                return ResourceManager.GetString("ERR_FAILED_TO_INITIALIZE_COUNTER", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hash algorithm &apos;{0}&apos; is not supported.
+        /// </summary>
+        internal static string ERR_HASH_ALGORITHM_NOT_SUPPORTED {
+            get {
+                return ResourceManager.GetString("ERR_HASH_ALGORITHM_NOT_SUPPORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Identity Provider {0} not supported..
         /// </summary>
         internal static string ERR_IDENTITY_PROVIDER_NOT_SUPPORTED {
@@ -162,9 +180,9 @@ namespace Wist.Core.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Proof of work algorithm {0} not supported..
         /// </summary>
-        internal static string ERR_HASH_ALGORITHM_NOT_SUPPORTED {
+        internal static string ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED {
             get {
-                return ResourceManager.GetString("ERR_HASH_ALGORITHM_NOT_SUPPORTED", resourceCulture);
+                return ResourceManager.GetString("ERR_PROOF_OF_WORK_ALGORITHM_NOT_SUPPORTED", resourceCulture);
             }
         }
         

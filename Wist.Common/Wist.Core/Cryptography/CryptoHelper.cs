@@ -36,5 +36,13 @@ namespace Wist.Core.Cryptography
             }
             return buffer;
         }
+
+        public static byte[] GetRandomSeed()
+        {
+            byte[] seed = new byte[32];
+            RNGCryptoServiceProvider.Create().GetNonZeroBytes(seed);
+
+            return seed;
+        }
     }
 }

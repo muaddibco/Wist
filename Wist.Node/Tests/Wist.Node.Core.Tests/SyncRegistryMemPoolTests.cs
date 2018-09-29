@@ -223,7 +223,7 @@ namespace Wist.Node.Core.Tests
         private static ICryptoService GetRandomCryptoService()
         {
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
             byte[] expandedPrivateKey;
             byte[] publicKey;
             Ed25519.KeyPairFromSeed(out publicKey, out expandedPrivateKey, privateKey);
