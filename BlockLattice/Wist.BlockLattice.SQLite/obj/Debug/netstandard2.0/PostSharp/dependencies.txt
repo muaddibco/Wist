@@ -1,2 +1,0 @@
-C:\ProgramData\PostSharp\6.0.26\bin.Release\netcoreapp2.0\PostSharp.Compiler.Engine.dll
-E:\GitDevelopment\Repos\Wist\BlockLattice\Wist.BlockLattice.SQLite\obj\Debug\netstandard2.0\PostSharp\postsharp.config

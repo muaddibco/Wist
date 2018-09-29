@@ -1,9 +1,0 @@
-E:\GitDevelopment\Repos\Wist\Crypto\Chaos.NaCl\bin\Debug\netstandard2.0\Chaos.NaCl.deps.json
-E:\GitDevelopment\Repos\Wist\Crypto\Chaos.NaCl\bin\Debug\netstandard2.0\Chaos.NaCl.dll
-E:\GitDevelopment\Repos\Wist\Crypto\Chaos.NaCl\bin\Debug\netstandard2.0\Chaos.NaCl.pdb
-E:\GitDevelopment\Repos\Wist\Crypto\Chaos.NaCl\obj\Debug\netstandard2.0\Chaos.NaCl.csprojAssemblyReference.cache
-E:\GitDevelopment\Repos\Wist\Crypto\Chaos.NaCl\obj\Debug\netstandard2.0\Chaos.NaCl.csproj.CoreCompileInputs.cache
-E:\GitDevelopment\Repos\Wist\Crypto\Chaos.NaCl\obj\Debug\netstandard2.0\Chaos.NaCl.AssemblyInfoInputs.cache
-E:\GitDevelopment\Repos\Wist\Crypto\Chaos.NaCl\obj\Debug\netstandard2.0\Chaos.NaCl.AssemblyInfo.cs
-E:\GitDevelopment\Repos\Wist\Crypto\Chaos.NaCl\obj\Debug\netstandard2.0\Chaos.NaCl.dll
-E:\GitDevelopment\Repos\Wist\Crypto\Chaos.NaCl\obj\Debug\netstandard2.0\Chaos.NaCl.pdb
