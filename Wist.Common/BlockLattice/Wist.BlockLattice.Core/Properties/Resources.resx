@@ -141,6 +141,9 @@
   <data name="ERR_NOT_SUPPORTED_PACKET_TYPE_HANDLER" xml:space="preserve">
     <value>Packet type handler {0} is not supported.</value>
   </data>
+  <data name="ERR_PREV_HASH_NOT_PROVIDED" xml:space="preserve">
+    <value>Value of previous block hash not provided</value>
+  </data>
   <data name="ERR_SIGNATURE_SUPPORTING_SERIALIZERS_BLOCK_TYPE_NOT_SUPPORTED" xml:space="preserve">
     <value>Block Type {0} of Chain Type {1} is not supported by Signature Supporting Serializers.</value>
   </data>

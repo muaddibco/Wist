@@ -133,6 +133,15 @@ namespace Wist.BlockLattice.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Value of previous block hash not provided.
+        /// </summary>
+        internal static string ERR_PREV_HASH_NOT_PROVIDED {
+            get {
+                return ResourceManager.GetString("ERR_PREV_HASH_NOT_PROVIDED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Block Type {0} of Chain Type {1} is not supported by Signature Supporting Serializers..
         /// </summary>
         internal static string ERR_SIGNATURE_SUPPORTING_SERIALIZERS_BLOCK_TYPE_NOT_SUPPORTED {

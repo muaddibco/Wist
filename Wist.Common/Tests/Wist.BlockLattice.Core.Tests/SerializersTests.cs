@@ -490,5 +490,76 @@ namespace Wist.BlockLattice.Core.Tests
 
             Assert.Equal(expectedPacket, actualPacket);
         }
+
+        [Fact]
+        public void SynchronizationRegistryCombinedBlockSerializerTest()
+        {
+            ulong syncBlockHeight = 1;
+            uint nonce = 4;
+            byte[] powHash = BinaryBuilder.GetPowHash(1234);
+            ushort version = 1;
+            ulong blockHeight = 9;
+            byte[] prevHash = BinaryBuilder.GetDefaultHash(1234);
+
+            byte[] body;
+
+            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            Ed25519.KeyPairFromSeed(out byte[] publicKey, out byte[] expandedPrivateKey, privateKey);
+
+            DateTime expectedDateTime = DateTime.Now;
+            byte[][] expectedHashes = new byte[2][] { BinaryBuilder.GetRandomSeed(), BinaryBuilder.GetRandomSeed() };
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter bw = new BinaryWriter(ms))
+                {
+                    bw.Write(expectedDateTime.ToBinary());
+                    bw.Write((ushort)2);
+                    bw.Write(expectedHashes[0]);
+                    bw.Write(expectedHashes[1]);
+                }
+
+                body = ms.ToArray();
+            }
+
+            byte[] expectedPacket = BinaryBuilder.GetSignedPacket(
+                PacketType.Synchronization,
+                syncBlockHeight,
+                nonce, powHash, version,
+                BlockTypes.Synchronization_RegistryCombinationBlock, blockHeight, prevHash, body, privateKey, out byte[] expectedSignature);
+
+            SynchronizationRegistryCombinedBlock block = new SynchronizationRegistryCombinedBlock
+            {
+                SyncBlockHeight = syncBlockHeight,
+                Nonce = nonce,
+                PowHash = powHash,
+                BlockHeight = blockHeight,
+                HashPrev = prevHash,
+                ReportedTime = expectedDateTime,
+                BlockHashes = expectedHashes
+            };
+
+            ICryptoService cryptoService = Substitute.For<ICryptoService>();
+            cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
+            cryptoService.Key.Returns(new Key32() { Value = publicKey });
+
+            IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
+            identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProvider);
+
+            IHashCalculationsRepository hashCalculationsRepository = Substitute.For<IHashCalculationsRepository>();
+            hashCalculationsRepository.Create(HashType.MurMur).Returns(new MurMurHashCalculation());
+
+            SynchronizationRegistryCombinedBlockSerializer serializer = new SynchronizationRegistryCombinedBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository);
+            serializer.Initialize(block);
+
+            byte[] actualPacket = serializer.GetBytes();
+
+            Trace.WriteLine(expectedPacket.ToHexString());
+            Trace.WriteLine(actualPacket.ToHexString());
+
+            Assert.Equal(expectedPacket, actualPacket);
+        }
     }
 }
