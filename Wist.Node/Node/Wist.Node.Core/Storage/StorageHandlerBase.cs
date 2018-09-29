@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -19,13 +20,14 @@ using Wist.Node.Core.Registry;
 
 namespace Wist.Node.Core.Storage
 {
-    public abstract class StorageHandlerBase : IBlocksHandler
+    public abstract class StorageHandlerBase<T> : IBlocksHandler where T : BlockBase
     {
         private readonly INodeContext _nodeContext;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IChainDataServicesManager _chainDataServicesManager;
-        private ActionBlock<BlockBase> _storeFullBlock;
+        private ActionBlock<T> _storeBlock;
         private CancellationToken _cancellationToken;
+        private readonly BlockingCollection<T> _registryBlocks;
 
         public StorageHandlerBase(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, IHashCalculationsRepository hashCalculationRepository, IChainDataServicesManager chainDataServicesManager)
         {
@@ -41,15 +43,15 @@ namespace Wist.Node.Core.Storage
         public void Initialize(CancellationToken ct)
         {
             _cancellationToken = ct;
-            _storeFullBlock = new ActionBlock<BlockBase>((Action<BlockBase>)StoreFullBlock, new ExecutionDataflowBlockOptions { CancellationToken = _cancellationToken });
+            _storeBlock = new ActionBlock<T>((Action<T>)StoreBlock, new ExecutionDataflowBlockOptions { BoundedCapacity = int.MaxValue,  CancellationToken = _cancellationToken, MaxDegreeOfParallelism = 1 });
         }
 
         public void ProcessBlock(BlockBase blockBase)
         {
-            _storeFullBlock.Post(blockBase);
+            _storeBlock.Post((T)blockBase);
         }
 
-        private void StoreFullBlock(BlockBase blockBase)
+        private void StoreBlock(T blockBase)
         {
             IChainDataService chainDataService = _chainDataServicesManager.GetChainDataService(blockBase.PacketType);
             chainDataService.Add(blockBase);

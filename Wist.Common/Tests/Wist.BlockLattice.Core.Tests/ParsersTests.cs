@@ -410,11 +410,8 @@ namespace Wist.BlockLattice.Core.Tests
             byte[] body;
 
             byte[] privateKey = BinaryBuilder.GetRandomSeed();
-            byte[] expandedPrivateKey;
-            byte[] publicKey;
-            Ed25519.KeyPairFromSeed(out publicKey, out expandedPrivateKey, privateKey);
+            Ed25519.KeyPairFromSeed(out byte[] publicKey, out byte[] expandedPrivateKey, privateKey);
 
-            byte[] expectedSignature;
 
             using (MemoryStream ms = new MemoryStream())
             {
@@ -433,7 +430,7 @@ namespace Wist.BlockLattice.Core.Tests
                 PacketType.Registry,
                 syncBlockHeight,
                 nonce, powHash, version,
-                BlockTypes.Registry_ConfidenceBlock, blockHeight, prevHash, body, privateKey, out expectedSignature);
+                BlockTypes.Registry_ConfidenceBlock, blockHeight, prevHash, body, privateKey, out byte[] expectedSignature);
 
             RegistryConfidenceBlockParser registryFullBlockParser = new RegistryConfidenceBlockParser(identityKeyProvidersRegistry, hashCalculationRepository);
             RegistryConfidenceBlock block = (RegistryConfidenceBlock)registryFullBlockParser.Parse(packet);
@@ -447,6 +444,70 @@ namespace Wist.BlockLattice.Core.Tests
             Assert.Equal(bitMask, block.BitMask);
             Assert.Equal(expectedProof, block.ConfidenceProof);
             Assert.Equal(expectedReferencedBodyHash, block.ReferencedBlockHash);
+
+            Assert.Equal(publicKey, block.Signer.Value);
+            Assert.Equal(expectedSignature, block.Signature);
+        }
+
+        [Fact]
+        public void SynchronizationRegistryCombinedBlockParserTest()
+        {
+            IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
+            IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
+            IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
+
+            identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<byte[]>() });
+
+            ulong syncBlockHeight = 1;
+            uint nonce = 4;
+            byte[] powHash = BinaryBuilder.GetPowHash(1234);
+            ushort version = 1;
+            ulong blockHeight = 9;
+            byte[] prevHash = BinaryBuilder.GetDefaultHash(1234);
+
+            byte[] body;
+
+            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            Ed25519.KeyPairFromSeed(out byte[] publicKey, out byte[] expandedPrivateKey, privateKey);
+
+            DateTime expectedDateTime = DateTime.Now;
+            byte[][] expectedHashes = new byte[2][] { BinaryBuilder.GetRandomSeed(), BinaryBuilder.GetRandomSeed() };
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (BinaryWriter bw = new BinaryWriter(ms))
+                {
+                    bw.Write(expectedDateTime.ToBinary());
+                    bw.Write((ushort)2);
+                    bw.Write(expectedHashes[0]);
+                    bw.Write(expectedHashes[1]);
+                }
+
+                body = ms.ToArray();
+            }
+
+            byte[] packet = BinaryBuilder.GetSignedPacket(
+                PacketType.Synchronization,
+                syncBlockHeight,
+                nonce, powHash, version,
+                BlockTypes.Synchronization_RegistryCombinationBlock, blockHeight, prevHash, body, privateKey, out byte[] expectedSignature);
+
+
+            SynchronizationRegistryCombinedBlockParser parser = new SynchronizationRegistryCombinedBlockParser(identityKeyProvidersRegistry, hashCalculationRepository);
+            SynchronizationRegistryCombinedBlock block = (SynchronizationRegistryCombinedBlock)parser.Parse(packet);
+
+            Assert.Equal(syncBlockHeight, block.SyncBlockHeight);
+            Assert.Equal(nonce, block.Nonce);
+            Assert.Equal(powHash, block.PowHash);
+            Assert.Equal(version, block.Version);
+            Assert.Equal(blockHeight, block.BlockHeight);
+
+            Assert.Equal(expectedHashes.Length, block.BlockHashes.Length);
+            for (int i = 0; i < expectedHashes.Length; i++)
+            {
+                Assert.Equal(expectedHashes[i], block.BlockHashes[i]);
+            }
 
             Assert.Equal(publicKey, block.Signer.Value);
             Assert.Equal(expectedSignature, block.Signature);

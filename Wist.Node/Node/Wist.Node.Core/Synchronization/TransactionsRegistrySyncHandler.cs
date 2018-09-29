@@ -66,6 +66,7 @@ namespace Wist.Node.Core.Synchronization
             _defaultTransactionHashCalculation = hashCalculationsRepository.Create(Globals.DEFAULT_HASH);
             _communicationServicesRegistry = communicationServicesRegistry;
             _syncRegistryMemPool = syncRegistryMemPool;
+            _syncRegistryMemPool.SubscribeOnRoundElapsed(new ActionBlock<RoundDescriptor>((Action<RoundDescriptor>)RoundEndedHandler));
             _nodesResolutionService = nodesResolutionService;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
             _synchronizationChainDataService = chainDataServicesManager.GetChainDataService(PacketType.Synchronization);

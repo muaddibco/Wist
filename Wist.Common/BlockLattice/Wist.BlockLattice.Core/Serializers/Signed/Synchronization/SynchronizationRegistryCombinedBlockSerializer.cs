@@ -21,6 +21,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Synchronization
         {
             base.WriteBody(bw);
 
+            bw.Write(_block.ReportedTime.ToBinary());
             bw.Write((ushort)_block.BlockHashes.Length);
             foreach (byte[] blockHash in _block.BlockHashes)
             {

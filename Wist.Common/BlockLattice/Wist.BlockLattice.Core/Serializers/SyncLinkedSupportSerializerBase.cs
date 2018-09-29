@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
+using Wist.BlockLattice.Core.Exceptions;
 using Wist.Core.Cryptography;
 using Wist.Core.HashCalculations;
 using Wist.Core.Identity;
@@ -17,6 +18,12 @@ namespace Wist.BlockLattice.Core.Serializers
         protected override void WriteBody(BinaryWriter bw)
         {
             base.WriteBody(bw);
+
+            if (_block.HashPrev == null)
+            {
+                throw new PreviousHashNotProvidedException();
+            }
+
             bw.Write(_block.HashPrev);
         }
     }
