@@ -23,7 +23,7 @@ namespace Wist.BlockLattice.SQLite
 
         public DbSet<AccountIdentity> AccountIdentities { get; set; }
 
-        public DbSet<Node> Nodes { get; set; }
+        public DbSet<NodeRecord> Nodes { get; set; }
 
         public DbSet<AccountBlock> AccountBlocks { get; set; }
 

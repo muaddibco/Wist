@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace Wist.BlockLattice.DataModel
 {
     [Table("nodes")]
-    public class Node
+    public class NodeRecord
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

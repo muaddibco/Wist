@@ -38,12 +38,12 @@ namespace Wist.BlockLattice.SQLite.DataAccess
             {
                 lock (_sync)
                 {
-                    DataModel.Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
+                    DataModel.NodeRecord node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
 
                     if (node == null)
                     {
 
-                        node = new DataModel.Node { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes() };
+                        node = new DataModel.NodeRecord { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes() };
                         _dataContext.Nodes.Add(node);
                         _keyToNodeMap.Add(key, node);
                         return true;
@@ -74,12 +74,12 @@ namespace Wist.BlockLattice.SQLite.DataAccess
             {
                 lock (_sync)
                 {
-                    DataModel.Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
+                    DataModel.NodeRecord node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
 
                     if (node != null)
                     {
                         node.IPAddress = ipAddress.GetAddressBytes();
-                        _dataContext.Update<DataModel.Node>(node);
+                        _dataContext.Update<DataModel.NodeRecord>(node);
                         _keyToNodeMap[key].IPAddress = ipAddress.GetAddressBytes();
                         return true;
                     }
@@ -107,12 +107,12 @@ namespace Wist.BlockLattice.SQLite.DataAccess
             return IPAddress.None;
         }
 
-        public IEnumerable<DataModel.Node> GetAllNodes()
+        public IEnumerable<DataModel.NodeRecord> GetAllNodes()
         {
             return _keyToNodeMap.Values;
         }
 
-        public DataModel.Node GetNode(IKey key)
+        public DataModel.NodeRecord GetNode(IKey key)
         {
             if (_keyToNodeMap.ContainsKey(key))
             {
