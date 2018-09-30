@@ -25,8 +25,6 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 
         protected override Span<byte> ParseSynchronization(ushort version, Span<byte> spanBody, out SynchronizationBlockBase synchronizationBlockBase)
         {
-            SynchronizationBlockBase synchronizationConfirmedBlock;
-
             if(version == 1)
             {
                 ushort round = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
@@ -40,7 +38,7 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
                     signatures[i] = spanBody.Slice(3 + (Globals.NODE_PUBLIC_KEY_SIZE + Globals.SIGNATURE_SIZE )* i + Globals.NODE_PUBLIC_KEY_SIZE, Globals.SIGNATURE_SIZE).ToArray();
                 }
 
-                synchronizationConfirmedBlock = new SynchronizationConfirmedBlock()
+                SynchronizationBlockBase synchronizationConfirmedBlock = new SynchronizationConfirmedBlock()
                 {
                     Round = round,
                     PublicKeys = signers,

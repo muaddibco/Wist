@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Wist.Core.Architecture;
 
-namespace Wist.Node.Core.DPOS
+namespace Wist.Node.Core.Rating
 {
     /// <summary>
     /// Service for storing information about DPOS votes in memory. 

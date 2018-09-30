@@ -4,7 +4,7 @@ using System.Text;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
-namespace Wist.Node.Core.DPOS
+namespace Wist.Node.Core.Rating
 {
     [RegisterDefaultImplementation(typeof(IDposService), Lifetime = LifetimeManagement.Singleton)]
     public class DposService : IDposService

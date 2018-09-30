@@ -17,6 +17,7 @@ using Wist.Core.Identity;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Common;
+using Wist.Node.Core.Rating;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -26,9 +27,9 @@ namespace Wist.Node.Core.Synchronization
     [RegisterExtension(typeof(IBlocksHandler), Lifetime = Wist.Core.Architecture.Enums.LifetimeManagement.Singleton)]
     public class SynchronizationBlocksHandler : IBlocksHandler, IRequiresCommunicationHub
     {
-        public const string BLOCKS_PROCESSOR_NAME = "SynchronizationBlocksHandler";
+        public const string NAME = "SynchronizationBlocksHandler";
         public const ushort TARGET_CONSENSUS_SIZE = 21;
-        public const ushort TARGET_CONSENSUS_LOW_LIMIT = 14;
+        public const ushort TARGET_CONSENSUS_LOW_LIMIT = 1;// 14;
 
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISynchronizationProducer _synchronizationProducer;
@@ -37,6 +38,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly ICryptoService _cryptoService;
         private readonly IIdentityKeyProvider _identityKeyProvider;
+        private readonly INodesRatingProvider _nodesRatingProvider;
         private IServerCommunicationService _communicationHub;
         private ulong _currentSyncBlockOrder;
 
@@ -46,7 +48,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly BlockingCollection<SynchronizationBlockRetransmissionV1> _retransmittedBlocks;
         
 
-        public SynchronizationBlocksHandler(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry)
+        public SynchronizationBlocksHandler(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, INodesRatingProviderFactory nodesRatingProvidersFactory)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationProducer = synchronizationProducer;
@@ -58,9 +60,10 @@ namespace Wist.Node.Core.Synchronization
             _synchronizationBlocks = new BlockingCollection<SynchronizationBlockBase>();
             _retransmittedBlocks = new BlockingCollection<SynchronizationBlockRetransmissionV1>();
             _synchronizationBlocksByHeight = new Dictionary<ulong, Dictionary<IKey, List<SynchronizationBlockRetransmissionV1>>>();
+            _nodesRatingProvider = nodesRatingProvidersFactory.Create(PacketType.TransactionalChain);
         }
 
-        public string Name => BLOCKS_PROCESSOR_NAME;
+        public string Name => NAME;
 
         public PacketType PacketType => PacketType.Synchronization;
 
@@ -88,8 +91,8 @@ namespace Wist.Node.Core.Synchronization
             }
             else if (synchronizationConfirmedBlock != null && _synchronizationContext.LastBlockDescriptor.BlockHeight < synchronizationConfirmedBlock.BlockHeight)
             {
-                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, synchronizationConfirmedBlock.HashPrev, synchronizationConfirmedBlock.ReportedTime, DateTime.Now));
-                _synchronizationProducer.DeferredBroadcast();
+                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, synchronizationConfirmedBlock.HashPrev, synchronizationConfirmedBlock.ReportedTime, DateTime.Now, synchronizationConfirmedBlock.Round));
+                //_synchronizationProducer.DeferredBroadcast();
             }
         }
 
@@ -111,13 +114,20 @@ namespace Wist.Node.Core.Synchronization
                     continue;
                 }
 
-                SynchronizationProducingBlock synchronizationBlockV1 = synchronizationBlock as SynchronizationProducingBlock;
 
-                if (synchronizationBlockV1 != null)
+                if (synchronizationBlock is SynchronizationProducingBlock synchronizationProducingBlock)
                 {
-                    if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 == synchronizationBlockV1.BlockHeight)
+                    int ratingPosition = _nodesRatingProvider.GetCandidateRating(_accountState.AccountKey);
+
+                    if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 == synchronizationProducingBlock.BlockHeight)
                     {
-                        RetransmitSynchronizationBlock(synchronizationBlockV1);
+                        //RetransmitSynchronizationBlock(synchronizationBlockV1);
+
+                        //TODO: this is temporary stub. Need replace with actual implementation after POC
+                        if ((synchronizationProducingBlock.Round + 1) % _nodesRatingProvider.GetParticipantsCount() == ratingPosition)
+                        {
+                            BroadcastConfirmation(synchronizationProducingBlock.BlockHeight, synchronizationProducingBlock.Round);
+                        }
                     }
                     else
                     {
@@ -125,8 +135,7 @@ namespace Wist.Node.Core.Synchronization
                     }
                 }
 
-                SynchronizationBlockRetransmissionV1 synchronizationBlockRetransmission = synchronizationBlock as SynchronizationBlockRetransmissionV1;
-                if(synchronizationBlockRetransmission != null)
+                if (synchronizationBlock is SynchronizationBlockRetransmissionV1 synchronizationBlockRetransmission)
                 {
                     _retransmittedBlocks.TryAdd(synchronizationBlockRetransmission);
 
@@ -164,21 +173,22 @@ namespace Wist.Node.Core.Synchronization
 
                 if(CheckSynchronizationCompleteConsensusAchieved(retransmittedBlock.BlockHeight))
                 {
-                    BroadcastConfirmation(retransmittedBlock.BlockHeight);
+                    //TODO: Round in retransmittedBlock is missing!
+                    BroadcastConfirmation(retransmittedBlock.BlockHeight, 0);
                 }
             }
         }
 
-        private void BroadcastConfirmation(ulong height)
+        private void BroadcastConfirmation(ulong height, ushort round)
         {
             List<SynchronizationBlockRetransmissionV1> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height].Where(r => _nodeContext.SyncGroupParticipants.Any(p => p.Key == r.Key)).Select(kv => kv.Value.First()).OrderBy(s => s.ConfirmationPublicKey.ToHexString()).ToList();
 
             SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock
             {
                 BlockHeight = height,
-                //ReportedTimes = retransmittedSyncBlocks.Select(b => b.ReportedTime).ToArray(),
-                PublicKeys = retransmittedSyncBlocks.Select(b => b.ConfirmationPublicKey).ToArray(),
-                Signatures = retransmittedSyncBlocks.Select(b => b.ConfirmationSignature).ToArray()
+                Round = round,
+                PublicKeys = new byte[0][],// retransmittedSyncBlocks.Select(b => b.ConfirmationPublicKey).ToArray(),
+                Signatures = new byte[0][] //retransmittedSyncBlocks.Select(b => b.ConfirmationSignature).ToArray()
             };
 
             //TODO: complete logic of sync block propagation

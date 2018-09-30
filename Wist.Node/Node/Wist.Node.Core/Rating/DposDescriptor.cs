@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Wist.Core.Identity;
 
-namespace Wist.Node.Core.DPOS
+namespace Wist.Node.Core.Rating
 {
     public class DposDescriptor
     {
