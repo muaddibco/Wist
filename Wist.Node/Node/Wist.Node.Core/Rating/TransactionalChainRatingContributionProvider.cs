@@ -54,7 +54,7 @@ namespace Wist.Node.Core.Rating
         public int GetCandidateRating(IKey candidateKey)
         {
             //int index = _votesForCandidates.OrderByDescending(cv => cv.Value.Count()).OrderByDescending(cv => cv.Key.GetHashCode()).Select(cv => cv.Key).ToList().IndexOf(candidateKey);
-            int index = _topNodeKeys.FindIndex(k => candidateKey == k);
+            int index = _topNodeKeys.FindIndex(k => candidateKey.Equals(k));
             return index;
         }
 

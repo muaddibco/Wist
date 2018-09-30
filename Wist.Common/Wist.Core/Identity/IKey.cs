@@ -7,7 +7,7 @@ namespace Wist.Core.Identity
     /// <summary>
     /// Generic key
     /// </summary>
-    public interface IKey : IEqualityComparer<IKey>
+    public interface IKey : IEqualityComparer<IKey>, IEquatable<IKey>
     {
         int Length { get; }
 

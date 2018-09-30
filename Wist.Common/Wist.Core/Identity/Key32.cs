@@ -53,14 +53,23 @@ namespace Wist.Core.Identity
 
         public override bool Equals(object obj)
         {
-            Key32 pk = obj as Key32;
 
-            if(pk == null)
+            if (!(obj is Key32 pk))
             {
                 return false;
             }
 
             return Value.Equals32(pk.Value);
+        }
+
+        public bool Equals(IKey other)
+        {
+            if(other == null)
+            {
+                return false;
+            }
+
+            return Value.Equals32(other.Value);
         }
     }
 }

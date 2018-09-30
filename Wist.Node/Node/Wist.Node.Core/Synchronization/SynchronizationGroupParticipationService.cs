@@ -105,7 +105,7 @@ namespace Wist.Node.Core.Synchronization
 
             if (recheckPosition)
             {
-                _ratingPosition = _nodesRatingProvider.GetCandidateRating(_accountState.AccountKey);
+                _ratingPosition = _nodesRatingProvider.GetCandidateRating(_accountState.AccountKey) + 1;
                 _synchronizationProducer.DeferredBroadcast((ushort)_ratingPosition);
             }
         }

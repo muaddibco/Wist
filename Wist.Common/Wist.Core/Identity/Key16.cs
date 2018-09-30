@@ -50,14 +50,23 @@ namespace Wist.Core.Identity
 
         public override bool Equals(object obj)
         {
-            Key16 pk = obj as Key16;
 
-            if (pk == null)
+            if (!(obj is Key16 pk))
             {
                 return false;
             }
 
             return Value.EqualsX16(pk.Value);
+        }
+
+        public bool Equals(IKey other)
+        {
+            if(other == null)
+            {
+                return false;
+            }
+
+            return Value.EqualsX16(other.Value);
         }
     }
 }

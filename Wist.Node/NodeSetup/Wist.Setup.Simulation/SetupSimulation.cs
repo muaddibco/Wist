@@ -1,4 +1,5 @@
 ﻿using Chaos.NaCl;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -7,6 +8,7 @@ using Wist.BlockLattice.DataModel;
 using Wist.BlockLattice.SQLite.DataAccess;
 using Wist.Core.Cryptography;
 using Wist.Core.Identity;
+using Wist.Core.ExtensionMethods;
 
 namespace Wist.Setup.Simulation
 {
@@ -73,6 +75,10 @@ namespace Wist.Setup.Simulation
 
                 DataAccessService.Instance.AddNode(key, NodeRole.TransactionsRegistrationLayer, IPAddress.Parse("127.0.0.1"));
                 DataAccessService.Instance.AddNode(key, NodeRole.StorageLayer, IPAddress.Parse("127.0.0.1"));
+                DataAccessService.Instance.AddNode(key, NodeRole.SynchronizationLayer, IPAddress.Parse("127.0.0.1"));
+
+                Console.WriteLine($"Please copy carefully aside seed below for providing as input argument to Node executable:");
+                Console.WriteLine(seed.ToHexString());
             }
         }
     }

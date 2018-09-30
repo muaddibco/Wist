@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reactive.Subjects;
-using System.Text;
 using System.Threading.Tasks.Dataflow;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 
 namespace Wist.Core.States
@@ -14,6 +13,12 @@ namespace Wist.Core.States
     public class AccountState : IAccountState
     {
         private readonly Subject<string> _subject = new Subject<string>();
+        private readonly ICryptoService _cryptoService;
+
+        public AccountState(ICryptoService cryptoService)
+        {
+            _cryptoService = cryptoService;
+        }
 
         public IKey AccountKey { get; private set; }
 
@@ -21,7 +26,7 @@ namespace Wist.Core.States
 
         public void Initialize()
         {
-            
+            AccountKey = _cryptoService.Key;
         }
 
         public IDisposable SubscribeOnStateChange(ITargetBlock<string> targetBlock)

@@ -26,6 +26,9 @@ namespace Wist.Setup.Simulation
             bootstrapper.ResetDatabase = args?.Contains("--WipeAll") ?? false;
             bootstrapper.Run();
 
+            Console.WriteLine("Press <ENTER> for exit");
+            Console.ReadLine();
+
             _log.Info("===== SIMULATION SETUP COMPLETED =====");
         }
 
