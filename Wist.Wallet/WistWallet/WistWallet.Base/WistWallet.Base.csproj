@@ -11,8 +11,33 @@
 
   <ItemGroup>
     <PackageReference Include="CommonServiceLocator" Version="2.0.4" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.3" />
     <PackageReference Include="MvvmLight" Version="5.4.1.1" />
     <PackageReference Include="MvvmLightLibs" Version="5.4.1.1" />  
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Wist.Client\Wist.Client.Common\Wist.Client.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Chaos.NaCl">
+      <HintPath>..\..\..\Wist.Node\Bin\Debug\Chaos.NaCl.dll</HintPath>
+    </Reference>
+    <Reference Include="CoreHashLib">
+      <HintPath>..\..\..\Wist.Node\Bin\Debug\CoreHashLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Wist.BlockLattice.Core">
+      <HintPath>..\..\..\Wist.Node\Bin\Debug\Wist.BlockLattice.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Wist.Core">
+      <HintPath>..\..\..\Wist.Node\Bin\Debug\Wist.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Wist.Crypto">
+      <HintPath>..\..\..\Wist.Node\Bin\Debug\Wist.Crypto.dll</HintPath>
+    </Reference>
+    <Reference Include="Wist.Network">
+      <HintPath>..\..\..\Wist.Node\Bin\Debug\Wist.Network.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

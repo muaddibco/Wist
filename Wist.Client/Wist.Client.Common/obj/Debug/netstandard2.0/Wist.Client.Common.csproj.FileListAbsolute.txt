@@ -1,0 +1,9 @@
+E:\GitDevelopment\Repos\Wist\Wist.Client\Wist.Client.Common\bin\Debug\netstandard2.0\Wist.Client.Common.deps.json
+E:\GitDevelopment\Repos\Wist\Wist.Client\Wist.Client.Common\bin\Debug\netstandard2.0\Wist.Client.Common.dll
+E:\GitDevelopment\Repos\Wist\Wist.Client\Wist.Client.Common\bin\Debug\netstandard2.0\Wist.Client.Common.pdb
+E:\GitDevelopment\Repos\Wist\Wist.Client\Wist.Client.Common\obj\Debug\netstandard2.0\Wist.Client.Common.csprojAssemblyReference.cache
+E:\GitDevelopment\Repos\Wist\Wist.Client\Wist.Client.Common\obj\Debug\netstandard2.0\Wist.Client.Common.csproj.CoreCompileInputs.cache
+E:\GitDevelopment\Repos\Wist\Wist.Client\Wist.Client.Common\obj\Debug\netstandard2.0\Wist.Client.Common.AssemblyInfoInputs.cache
+E:\GitDevelopment\Repos\Wist\Wist.Client\Wist.Client.Common\obj\Debug\netstandard2.0\Wist.Client.Common.AssemblyInfo.cs
+E:\GitDevelopment\Repos\Wist\Wist.Client\Wist.Client.Common\obj\Debug\netstandard2.0\Wist.Client.Common.dll
+E:\GitDevelopment\Repos\Wist\Wist.Client\Wist.Client.Common\obj\Debug\netstandard2.0\Wist.Client.Common.pdb

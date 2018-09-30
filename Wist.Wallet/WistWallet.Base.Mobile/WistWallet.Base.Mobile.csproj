@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Wist.Client\Wist.Client.Common\Wist.Client.Common.csproj" />
     <ProjectReference Include="..\WistWallet\WistWallet.Base\WistWallet.Base.csproj" />
   </ItemGroup>
 

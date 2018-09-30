@@ -1,13 +1,9 @@
-﻿using CommonServiceLocator;
-using GalaSoft.MvvmLight.Ioc;
-using Wist.Client.Common.Communication;
+﻿using System.Collections.Generic;
+using System.Net;
+using Wist.Client.Common.Entities;
 using Wist.Client.Common.Interfaces;
-using Wist.Common.Communication;
-using Wist.Common.Interfaces;
-using WistWallet.Base.Interfaces;
-using WistWallet.Base.Mobile.Interfaces;
 
-namespace WistWallet.Base.Mobile.ViewModels
+namespace Wist.Client.Common.Communication
 {
     /// <classDetails>   
     ///*****************************************************************
@@ -15,32 +11,28 @@ namespace WistWallet.Base.Mobile.ViewModels
     /// 
     ///  Author       : Ami
     ///       
-    ///  Date         : 9/27/2018 1:10:47 AM      
+    ///  Date         : 9/30/2018 3:32:47 PM      
     /// *****************************************************************/
     /// </classDetails>
     /// <summary>
     /// </summary>
-    public class ViewModelLocator
+    public class NetworkManager : INetworkManager
     {
         //============================================================================
         //                                 MEMBERS
         //============================================================================
 
+        private INetworkAdapter _networkAdapter;
+
+        private IDictionary<byte[], ulong> _heightsDictionary;
 
         //============================================================================
         //                                  C'TOR
         //============================================================================
 
-        public ViewModelLocator()
+        public NetworkManager(INetworkAdapter networkAdapter)
         {
-            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
-
-            SimpleIoc.Default.Register<IPaymentViewModel, PaymentViewModelMobile>();
-            SimpleIoc.Default.Register<IVoteViewModelMobile, VoteViewModelMobile>();
-            SimpleIoc.Default.Register<INetworkAdapter, NetworkAdapter>();
-            SimpleIoc.Default.Register<INetworkManager, NetworkManager>();
-            SimpleIoc.Default.Register<INetworkSynchronizer, NetworkSynchronizer>();
-            SimpleIoc.Default.Register<IRestfulClient, RestfulClient>();
+            _networkAdapter = networkAdapter;
         }
 
         //============================================================================
@@ -49,8 +41,21 @@ namespace WistWallet.Base.Mobile.ViewModels
 
         #region ============ PUBLIC FUNCTIONS =============  
 
-        public IPaymentViewModel PaymentViewModel => ServiceLocator.Current.GetInstance<IPaymentViewModel>();
-        public IVoteViewModelMobile VoteViewModel => ServiceLocator.Current.GetInstance<IVoteViewModelMobile>();
+        public ICollection<IPAddress> StorageEndpoints { get; set; }
+
+        public ICollection<IPAddress> RegistrationEndpoints { get; set; }
+
+        public void InitializeNetwork()
+        {
+            StorageEndpoints = _networkAdapter.GetIPAddressesOfStorageEndpoints();
+
+            RegistrationEndpoints = _networkAdapter.GetIPAddressesOfRegistrationEndpoints();
+        }
+
+        public ulong GetCurrentHeight(Account account)
+        {
+            return _heightsDictionary[account.PrivateKey];
+        }
 
         #endregion
 
