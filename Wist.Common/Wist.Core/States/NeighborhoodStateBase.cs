@@ -11,7 +11,7 @@ namespace Wist.Core.States
     {
         private readonly Subject<string> _subject;
 
-        private readonly HashSet<IKey> _neighbors;
+        protected readonly HashSet<IKey> _neighbors;
 
         public NeighborhoodStateBase()
         {

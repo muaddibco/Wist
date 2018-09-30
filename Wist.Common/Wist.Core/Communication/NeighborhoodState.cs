@@ -6,7 +6,7 @@ namespace Wist.Core.Communication
 {
     [RegisterExtension(typeof(IState), Lifetime = LifetimeManagement.Singleton)]
     /// <summary>
-    /// Class that contains general list of neighbor nodes
+    /// Class that contains general list of neighbor nodes. This class is used by participants at all roles in order have random neighbors of the same role
     /// </summary>
     public class NeighborhoodState : NeighborhoodStateBase
     {

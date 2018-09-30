@@ -38,7 +38,7 @@ namespace Wist.Node.Core.Synchronization
             _accountState = statesRepository.GetInstance<IAccountState>();
             _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();
             _synchronizationGroupParticipationCheckAction = new TransformBlock<string, string>((Func<string, string>)SynchronizationGroupParticipationCheckAction);
-            _synchronizationGroupLeaderCheckAction = new ActionBlock<string>(SynchronizationGroupLeaderCheckAction);
+            _synchronizationGroupLeaderCheckAction = new ActionBlock<string>((Action<string>)SynchronizationGroupLeaderCheckAction);
         }
 
         public void Initialize()

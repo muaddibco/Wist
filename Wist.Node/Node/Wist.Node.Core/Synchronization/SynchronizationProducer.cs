@@ -80,7 +80,7 @@ namespace Wist.Node.Core.Synchronization
 
                             using (ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock))
                             {
-                                _communicationService.PostMessage(_synchronizationGroupState.GetAllParticipants(), signatureSupportSerializer);
+                                _communicationService.PostMessage(_synchronizationGroupState.GetAllNeighbors(), signatureSupportSerializer);
                                 _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
                             }
 

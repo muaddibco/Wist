@@ -18,6 +18,8 @@ using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Common;
 using Wist.Node.Core.Rating;
+using Wist.Network.Topology;
+using Wist.Core.Communication;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -39,6 +41,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly ICryptoService _cryptoService;
         private readonly IIdentityKeyProvider _identityKeyProvider;
         private readonly INodesRatingProvider _nodesRatingProvider;
+        private readonly INeighborhoodState _neighborhoodState;
         private IServerCommunicationService _communicationHub;
         private ulong _currentSyncBlockOrder;
 
@@ -48,12 +51,14 @@ namespace Wist.Node.Core.Synchronization
         private readonly BlockingCollection<SynchronizationBlockRetransmissionV1> _retransmittedBlocks;
         
 
-        public SynchronizationBlocksHandler(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, INodesRatingProviderFactory nodesRatingProvidersFactory)
+        public SynchronizationBlocksHandler(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, 
+            ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, INodesRatingProviderFactory nodesRatingProvidersFactory)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationProducer = synchronizationProducer;
             _nodeContext = statesRepository.GetInstance<INodeContext>();
             _accountState = statesRepository.GetInstance<IAccountState>();
+            _neighborhoodState = statesRepository.GetInstance<INeighborhoodState>();
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _cryptoService = cryptoService;
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
@@ -191,8 +196,9 @@ namespace Wist.Node.Core.Synchronization
                 Signatures = new byte[0][] //retransmittedSyncBlocks.Select(b => b.ConfirmationSignature).ToArray()
             };
 
-            //TODO: complete logic of sync block propagation
-            //_communicationHub.PostMessage(synchronizationConfirmedBlock);
+            ISignatureSupportSerializer confirmationBlockSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);
+
+            _communicationHub.PostMessage(_neighborhoodState.GetAllNeighbors(), confirmationBlockSerializer);
         }
 
         private bool CheckSynchronizationCompleteConsensusAchieved(ulong height)

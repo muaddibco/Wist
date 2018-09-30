@@ -5,9 +5,10 @@ using System.Text;
 namespace Wist.BlockLattice.Core.DataModel.Nodes
 {
     public enum NodeRole : byte
-        {
+    {
         TransactionsRegistrationLayer,
         StorageLayer,
-        DeferredConsensusLayer
+        DeferredConsensusLayer,
+        SynchronizationLayer
     }
 }

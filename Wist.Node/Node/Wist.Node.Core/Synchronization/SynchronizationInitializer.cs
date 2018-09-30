@@ -13,7 +13,9 @@ using Wist.Core.Synchronization;
 
 namespace Wist.Node.Core.Synchronization
 {
-
+    /// <summary>
+    /// Set SynchronizationContext according to information in database
+    /// </summary>
     [RegisterExtension(typeof(IInitializer), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationInitializer : InitializerBase
     {
@@ -38,7 +40,7 @@ namespace Wist.Node.Core.Synchronization
 
                 if (synchronizationConfirmedBlock != null)
                 {
-                    _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, CryptoHelper.ComputeHash(synchronizationConfirmedBlock.BodyBytes), synchronizationConfirmedBlock.ReportedTime, DateTime.Now));
+                    _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, CryptoHelper.ComputeHash(synchronizationConfirmedBlock.BodyBytes), synchronizationConfirmedBlock.ReportedTime, DateTime.Now, synchronizationConfirmedBlock.Round));
                 }
             }
             finally
