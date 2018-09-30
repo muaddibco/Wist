@@ -9,7 +9,7 @@ namespace Wist.Node.Core.Synchronization
 {
 
     [RegisterExtension(typeof(IState), Lifetime = LifetimeManagement.Singleton)]
-    public class SynchronizationGroupState : NeighborhoodStateBase
+    public class SynchronizationGroupState : NeighborhoodStateBase, ISynchronizationGroupState
     {
         public const string NAME = nameof(ISynchronizationGroupState);
 
