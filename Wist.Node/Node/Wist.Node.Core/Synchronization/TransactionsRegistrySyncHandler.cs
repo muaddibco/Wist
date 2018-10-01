@@ -40,6 +40,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly ICryptoService _cryptoService;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly IHashCalculation _defaultTransactionHashCalculation;
+        private readonly IHashCalculation _powCalculation;
         private readonly ISyncRegistryNeighborhoodState _syncRegistryNeighborhoodState;
 
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
@@ -65,6 +66,7 @@ namespace Wist.Node.Core.Synchronization
             _cryptoService = cryptoService;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _defaultTransactionHashCalculation = hashCalculationsRepository.Create(Globals.DEFAULT_HASH);
+            _powCalculation = hashCalculationsRepository.Create(Globals.POW_TYPE);
             _communicationServicesRegistry = communicationServicesRegistry;
             _syncRegistryMemPool = syncRegistryMemPool;
             _syncRegistryMemPool.SubscribeOnRoundElapsed(new ActionBlock<RoundDescriptor>((Action<RoundDescriptor>)RoundEndedHandler));
@@ -140,13 +142,14 @@ namespace Wist.Node.Core.Synchronization
         private void CreateAndDistributeCombinedBlock(RegistryFullBlock transactionsFullBlockMostConfident)
         {
             SynchronizationRegistryCombinedBlock lastCombinedBlock = (SynchronizationRegistryCombinedBlock)_synchronizationChainDataService.GetAllLastBlocksByType(BlockTypes.Synchronization_RegistryCombinationBlock).Single();
-            byte[] prevHash = CryptoHelper.ComputeHash(lastCombinedBlock.BodyBytes);
+            byte[] prevHash = lastCombinedBlock != null ? CryptoHelper.ComputeHash(lastCombinedBlock.BodyBytes) : new byte[Globals.DEFAULT_HASH_SIZE];
             byte[] fullBlockHash = CryptoHelper.ComputeHash(transactionsFullBlockMostConfident.BodyBytes);
 
             //TODO: For initial POC there will be only one participant at Synchronization Layer, thus combination of FullBlocks won't be implemented fully
             SynchronizationRegistryCombinedBlock synchronizationRegistryCombinedBlock = new SynchronizationRegistryCombinedBlock
             {
                 SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0,
+                PowHash = _powCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE]),
                 BlockHeight = _synchronizationContext.LastRegistrationBlockHeight++,
                 HashPrev = prevHash,
                 ReportedTime = DateTime.Now,
@@ -177,6 +180,7 @@ namespace Wist.Node.Core.Synchronization
             RegistryConfirmationBlock registryConfirmationBlock = new RegistryConfirmationBlock
             {
                 SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0,
+                PowHash = _powCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE]),
                 BlockHeight = roundDescriptor.Round,
                 ReferencedBlockHash = transactionsFullBlockMostConfident.ShortBlockHash
             };

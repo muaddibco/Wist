@@ -14,8 +14,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
 
         public bool AddNode(IKey key, NodeRole nodeRole, string ipAddressExpression = null)
         {
-            IPAddress ipAddress;
-            if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out ipAddress))
+            if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out IPAddress ipAddress))
             {
                 return AddNode(key, nodeRole, ipAddress);
             }
@@ -59,9 +58,8 @@ namespace Wist.BlockLattice.SQLite.DataAccess
 
         public bool UpdateNode(IKey key, string ipAddressExpression = null)
         {
-            IPAddress ipAddress;
 
-            if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out ipAddress))
+            if (IPAddress.TryParse(ipAddressExpression ?? "127.0.0.1", out IPAddress ipAddress))
             {
                 return UpdateNode(key, ipAddress);
             }

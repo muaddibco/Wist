@@ -8,6 +8,8 @@ using Wist.Core.Configuration;
 using CommonServiceLocator;
 using Wist.BlockLattice.SQLite.Configuration;
 using Wist.Core.Identity;
+using Wist.Core.Logging;
+using System;
 
 namespace Wist.BlockLattice.SQLite.DataAccess
 {
@@ -24,9 +26,10 @@ namespace Wist.BlockLattice.SQLite.DataAccess
         private readonly DataContext _dataContext;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly IConfigurationService _configurationService;
+        private readonly ILogger _logger;
         private bool _isSaving;
 
-        private DataAccessService(IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry)
+        private DataAccessService(IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ILoggerService loggerService)
         {
             _cancellationTokenSource = new CancellationTokenSource();
             _configurationService = configurationService;
@@ -36,6 +39,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                 AccountIdentity accountIdentity = e.Entry.Entity as AccountIdentity;
             };
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
+            _logger = loggerService.GetLogger(nameof(DataAccessService));
         }
 
         public static DataAccessService Instance
@@ -48,7 +52,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                     {
                         if(_instance == null)
                         {
-                            _instance = new DataAccessService(ServiceLocator.Current.GetInstance<IConfigurationService>(), ServiceLocator.Current.GetInstance<IIdentityKeyProvidersRegistry>());
+                            _instance = new DataAccessService(ServiceLocator.Current.GetInstance<IConfigurationService>(), ServiceLocator.Current.GetInstance<IIdentityKeyProvidersRegistry>(), ServiceLocator.Current.GetInstance<ILoggerService>());
                             _instance.Initialize();
                         }
                     }
@@ -166,6 +170,10 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                         {
                             _dataContext.SaveChanges();
                         }
+                    }
+                    catch(Exception ex)
+                    {
+                        _logger.Error("Failure during saving data to database", ex);
                     }
                     finally
                     {

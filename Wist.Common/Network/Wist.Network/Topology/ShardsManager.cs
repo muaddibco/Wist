@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks.Dataflow;
+using Wist.BlockLattice.Core.DataModel.Nodes;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
@@ -40,24 +41,25 @@ namespace Wist.Network.Topology
             _cancellationToken = cancellationToken;
             _cancellationToken.Register(() => _syncContextChangedUnsibscriber.Dispose());
 
-            IEnumerable<BlockLattice.Core.DataModel.Nodes.Node> nodes = _nodesDataService.GetAll();
-
-            List<ShardDescriptor> shardDescriptors = new List<ShardDescriptor>();
-            ShardDescriptor shardDescriptor = new ShardDescriptor();
-            shardDescriptors.Add(shardDescriptor);
-
-            foreach (var node in nodes)
-            {
-                //TODO: apply usage of _synchronizationContext.LastBlockDescriptor for building shards
-                shardDescriptor.Nodes.Add(node.Key);
-            }
+            UpdateTransactionalShards();
         }
 
         public void UpdateTransactionalShards()
         {
             lock(_sync)
             {
+                IEnumerable<Node> nodes = _nodesDataService.GetAll().Where(n => n.NodeRole == NodeRole.TransactionsRegistrationLayer);
+
                 List<ShardDescriptor> shardDescriptors = new List<ShardDescriptor>();
+                ShardDescriptor shardDescriptor = new ShardDescriptor();
+                shardDescriptors.Add(shardDescriptor);
+
+                foreach (var node in nodes)
+                {
+                    //TODO: apply usage of _synchronizationContext.LastBlockDescriptor for building shards
+                    shardDescriptor.Nodes.Add(node.Key);
+                }
+
                 _shardDescriptors = new ReadOnlyCollection<ShardDescriptor>(shardDescriptors);
             }
         }

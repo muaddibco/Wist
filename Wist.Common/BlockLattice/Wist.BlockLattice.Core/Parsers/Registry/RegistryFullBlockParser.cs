@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
+using Wist.BlockLattice.Core.Exceptions;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.HashCalculations;
@@ -27,28 +28,37 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
         protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
         {
-            RegistryFullBlock transactionsFullBlock = new RegistryFullBlock();
-            ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
-
-            transactionsFullBlock.TransactionHeaders = new SortedList<ushort, RegistryRegisterBlock>(itemsCount);
-
-            int registryRegisterPacketSize = ((spanBody.Length - 2 - Globals.NODE_PUBLIC_KEY_SIZE - Globals.SIGNATURE_SIZE) / itemsCount) - 2;
-
-            for (int i = 0; i < itemsCount; i++)
+            if (version == 1)
             {
-                ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2 + i * (registryRegisterPacketSize + 2)));
-                byte[] registryRegisterPacket = spanBody.Slice(2 + i * (registryRegisterPacketSize + 2) + 2, registryRegisterPacketSize).ToArray();
+                RegistryFullBlock transactionsFullBlock = new RegistryFullBlock();
+                ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
 
-                RegistryRegisterBlock registryRegisterBlock = (RegistryRegisterBlock)_registryRegisterBlockParser.Parse(registryRegisterPacket);
+                transactionsFullBlock.TransactionHeaders = new SortedList<ushort, RegistryRegisterBlock>(itemsCount);
+                int registryRegisterPacketSize = 0;
 
-                transactionsFullBlock.TransactionHeaders.Add(order, registryRegisterBlock);
+                if (itemsCount > 0)
+                {
+                    registryRegisterPacketSize = ((spanBody.Length - 2 - Globals.NODE_PUBLIC_KEY_SIZE - Globals.SIGNATURE_SIZE) / itemsCount) - 2;
+
+                    for (int i = 0; i < itemsCount; i++)
+                    {
+                        ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2 + i * (registryRegisterPacketSize + 2)));
+                        byte[] registryRegisterPacket = spanBody.Slice(2 + i * (registryRegisterPacketSize + 2) + 2, registryRegisterPacketSize).ToArray();
+
+                        RegistryRegisterBlock registryRegisterBlock = (RegistryRegisterBlock)_registryRegisterBlockParser.Parse(registryRegisterPacket);
+
+                        transactionsFullBlock.TransactionHeaders.Add(order, registryRegisterBlock);
+                    }
+                }
+
+                transactionsFullBlock.ShortBlockHash = spanBody.Slice(2 + itemsCount * (registryRegisterPacketSize + 2), Globals.DEFAULT_HASH_SIZE).ToArray();
+
+                syncedBlockBase = transactionsFullBlock;
+
+                return spanBody.Slice(2 + itemsCount * (registryRegisterPacketSize + 2) + Globals.DEFAULT_HASH_SIZE);
             }
 
-            transactionsFullBlock.ShortBlockHash = spanBody.Slice(2 + itemsCount * (registryRegisterPacketSize + 2), Globals.DEFAULT_HASH_SIZE).ToArray();
-
-            syncedBlockBase = transactionsFullBlock;
-
-            return spanBody.Slice(2 + itemsCount * (registryRegisterPacketSize + 2) + Globals.DEFAULT_HASH_SIZE);
+            throw new BlockVersionNotSupportedException(version, BlockType);
         }
     }
 }

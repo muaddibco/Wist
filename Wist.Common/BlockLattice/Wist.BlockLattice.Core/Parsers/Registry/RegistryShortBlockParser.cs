@@ -5,6 +5,7 @@ using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
+using Wist.BlockLattice.Core.Exceptions;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
@@ -28,24 +29,29 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
         protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
         {
-            RegistryShortBlock transactionsShortBlock = new RegistryShortBlock();
-            ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
-
-            transactionsShortBlock.TransactionHeaderHashes = new SortedList<ushort, IKey>(itemsCount);
-
-            for (int i = 0; i < itemsCount; i++)
+            if (version == 1)
             {
-                ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2 + i * (Globals.TRANSACTION_KEY_HASH_SIZE + 2)));
-                byte[] hashKey = spanBody.Slice(2 + i * (Globals.TRANSACTION_KEY_HASH_SIZE + 2) + 2, Globals.TRANSACTION_KEY_HASH_SIZE).ToArray();
+                RegistryShortBlock transactionsShortBlock = new RegistryShortBlock();
+                ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
 
-                IKey key = _transactionHashKeyProvider.GetKey(hashKey);
+                transactionsShortBlock.TransactionHeaderHashes = new SortedList<ushort, IKey>(itemsCount);
 
-                transactionsShortBlock.TransactionHeaderHashes.Add(order, key);
+                for (int i = 0; i < itemsCount; i++)
+                {
+                    ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2 + i * (Globals.TRANSACTION_KEY_HASH_SIZE + 2)));
+                    byte[] hashKey = spanBody.Slice(2 + i * (Globals.TRANSACTION_KEY_HASH_SIZE + 2) + 2, Globals.TRANSACTION_KEY_HASH_SIZE).ToArray();
+
+                    IKey key = _transactionHashKeyProvider.GetKey(hashKey);
+
+                    transactionsShortBlock.TransactionHeaderHashes.Add(order, key);
+                }
+
+                syncedBlockBase = transactionsShortBlock;
+
+                return spanBody.Slice(2 + itemsCount * (Globals.TRANSACTION_KEY_HASH_SIZE + 2));
             }
 
-            syncedBlockBase = transactionsShortBlock;
-
-            return spanBody.Slice(2 + itemsCount * (Globals.TRANSACTION_KEY_HASH_SIZE + 2));
+            throw new BlockVersionNotSupportedException(version, BlockType);
         }
     }
 }

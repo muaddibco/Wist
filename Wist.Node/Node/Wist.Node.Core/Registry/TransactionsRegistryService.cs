@@ -16,6 +16,8 @@ using Wist.Core.Predicates;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.PerformanceCounters;
+using Wist.Core.HashCalculations;
+using Wist.BlockLattice.Core;
 
 namespace Wist.Node.Core.Registry
 {
@@ -30,15 +32,21 @@ namespace Wist.Node.Core.Registry
         private readonly IIdentityKeyProvider _transactionHashKey;
         private readonly ICryptoService _cryptoService;
         private readonly IConfigurationService _configurationService;
+        private readonly IServerCommunicationServicesRegistry _serverCommunicationServicesRegistry;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly ITransactionsRegistryHelper _transactionsRegistryHelper;
-        private readonly IServerCommunicationService _tcpCommunicationService;
-        private readonly IServerCommunicationService _udpCommunicationService;
+        private readonly IHashCalculation _powCalculation;
+        private readonly IHashCalculation _hashCalculation;
+        private IServerCommunicationService _tcpCommunicationService;
+        private IServerCommunicationService _udpCommunicationService;
         private readonly NodeCountersService _nodeCountersService;
         private Timer _timer;
         private IDisposable _syncContextUnsubscriber;
 
-        public TransactionsRegistryService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, IServerCommunicationServicesRegistry serverCommunicationServicesRegistry, IPerformanceCountersRepository performanceCountersRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ITransactionsRegistryHelper transactionsRegistryHelper)
+        public TransactionsRegistryService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, 
+            IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, 
+            IServerCommunicationServicesRegistry serverCommunicationServicesRegistry, IPerformanceCountersRepository performanceCountersRepository, 
+            ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ITransactionsRegistryHelper transactionsRegistryHelper, IHashCalculationsRepository hashCalculationsRepository)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
@@ -46,31 +54,32 @@ namespace Wist.Node.Core.Registry
             _transactionHashKey = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
             _cryptoService = cryptoService;
             _configurationService = configurationService;
+            _serverCommunicationServicesRegistry = serverCommunicationServicesRegistry;
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _transactionsRegistryHelper = transactionsRegistryHelper;
+            _powCalculation = hashCalculationsRepository.Create(Globals.POW_TYPE);
+            _hashCalculation = hashCalculationsRepository.Create(Globals.DEFAULT_HASH);
             TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>> deduplicateAndOrderTransactionRegisterBlocksBlock = new TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>((Func<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>)DeduplicateAndOrderTransactionRegisterBlocks);
             TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>((Func<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>)ProduceTransactionsFullBlock);
-            ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>> sendTransactionsFullBlock = new ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>>((Action<Tuple<RegistryFullBlock, RegistryShortBlock>>)SendTransactionsFullBlock);
+            ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>> sendTransactionsBlocks = new ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>>((Action<Tuple<RegistryFullBlock, RegistryShortBlock>>)SendTransactionsBlocks);
             TransformBlock<RegistryFullBlock, Tuple<RegistryFullBlock, RegistryShortBlock>> produceTransactionsShortBlock = new TransformBlock<RegistryFullBlock, Tuple<RegistryFullBlock, RegistryShortBlock>>((Func<RegistryFullBlock, Tuple<RegistryFullBlock, RegistryShortBlock>>)ProduceTransactionsShortBlock);
-            ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>> sendTransactionsShortBlock = new ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>>((Action<Tuple<RegistryFullBlock, RegistryShortBlock>>)SendTransactionsShortBlock);
 
             deduplicateAndOrderTransactionRegisterBlocksBlock.LinkTo(produceTransactionsFullBlock);
             produceTransactionsFullBlock.LinkTo(produceTransactionsShortBlock);
-            produceTransactionsShortBlock.LinkTo(sendTransactionsFullBlock);
-            produceTransactionsShortBlock.LinkTo(sendTransactionsShortBlock);
+            produceTransactionsShortBlock.LinkTo(sendTransactionsBlocks);
 
             _transactionsRegistryProducingFlow = deduplicateAndOrderTransactionRegisterBlocksBlock;
 
 
             _registryMemPool = registryMemPool;
-            _tcpCommunicationService = serverCommunicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().TcpServiceName);
-            _udpCommunicationService = serverCommunicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().UdpServiceName);
 
             _nodeCountersService = performanceCountersRepository.GetInstance<NodeCountersService>();
         }
 
         public void Initialize()
         {
+            _tcpCommunicationService = _serverCommunicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().TcpServiceName);
+            _udpCommunicationService = _serverCommunicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().UdpServiceName);
         }
 
         public void Start()
@@ -130,22 +139,31 @@ namespace Wist.Node.Core.Registry
         {
             RegistryFullBlock transactionsFullBlock = new RegistryFullBlock
             {
-                SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight??0,
+                SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0,
+                PowHash = _powCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE]),
                 BlockHeight = (ulong)_registryGroupState.Round,
                 TransactionHeaders = transactionRegisterBlocks
             };
 
-            _nodeCountersService.RegistryBlockLastSize.RawValue = transactionRegisterBlocks.Count;
-            _nodeCountersService.RegistryBlockLastSize.NextSample();
+            //_nodeCountersService.RegistryBlockLastSize.RawValue = transactionRegisterBlocks.Count;
+            //_nodeCountersService.RegistryBlockLastSize.NextSample();
 
             return transactionsFullBlock;
         }
 
-        private void SendTransactionsFullBlock(Tuple<RegistryFullBlock, RegistryShortBlock> tuple)
+        private void SendTransactionsBlocks(Tuple<RegistryFullBlock, RegistryShortBlock> tuple)
         {
             RegistryFullBlock transactionsFullBlock = tuple.Item1;
-            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionsFullBlock);
-            _tcpCommunicationService.PostMessage(_registryGroupState.SyncLayerNode, signatureSupportSerializer);
+            RegistryShortBlock transactionsShortBlock = tuple.Item2;
+
+            ISignatureSupportSerializer fullBlockSerializer = _signatureSupportSerializersFactory.Create(transactionsFullBlock);
+            ISignatureSupportSerializer shortBlockSerializer = _signatureSupportSerializersFactory.Create(transactionsShortBlock);
+
+            shortBlockSerializer.FillBodyAndRowBytes();
+            transactionsFullBlock.ShortBlockHash = _hashCalculation.CalculateHash(transactionsShortBlock.BodyBytes);
+
+            _tcpCommunicationService.PostMessage(_registryGroupState.SyncLayerNode, fullBlockSerializer);
+            _tcpCommunicationService.PostMessage(_registryGroupState.GetAllNeighbors(), shortBlockSerializer);
         }
 
         private Tuple<RegistryFullBlock, RegistryShortBlock> ProduceTransactionsShortBlock(RegistryFullBlock transactionsFullBlock)
@@ -153,9 +171,11 @@ namespace Wist.Node.Core.Registry
             RegistryShortBlock transactionsShortBlock = new RegistryShortBlock
             {
                 SyncBlockHeight = transactionsFullBlock.SyncBlockHeight,
+                PowHash = _powCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE]),
                 BlockHeight = transactionsFullBlock.BlockHeight,
                 TransactionHeaderHashes = new SortedList<ushort, IKey>(transactionsFullBlock.TransactionHeaders.ToDictionary(i => i.Key, i => _transactionsRegistryHelper.GetTransactionRegistryTwiceHashedKey(i.Value)))
             };
+
             Tuple<RegistryFullBlock, RegistryShortBlock> tuple = new Tuple<RegistryFullBlock, RegistryShortBlock>(transactionsFullBlock, transactionsShortBlock);
 
             return tuple;
