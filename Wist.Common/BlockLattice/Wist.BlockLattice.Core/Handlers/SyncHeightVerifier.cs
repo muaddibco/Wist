@@ -21,11 +21,11 @@ namespace Wist.BlockLattice.Core.Handlers
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly IHashCalculation _proofOfWorkCalculation;
 
-        public SyncHeightVerifier(IStatesRepository statesRepository, IHashCalculationsRepository proofOfWorkCalculationFactory, ILoggerService loggerService)
+        public SyncHeightVerifier(IStatesRepository statesRepository, IHashCalculationsRepository hashCalculationsRepository, ILoggerService loggerService)
         {
             _log = loggerService.GetLogger(GetType().Name);
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
-            _proofOfWorkCalculation = proofOfWorkCalculationFactory.Create(Globals.POW_TYPE);
+            _proofOfWorkCalculation = hashCalculationsRepository.Create(Globals.POW_TYPE);
         }
 
         public bool VerifyBlock(BlockBase blockBase)

@@ -12,13 +12,13 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public byte[] ReferencedBlockHash { get; set; }
 
-        public class ConfidenceDescriptor
-        {
-            public ushort Confidence { get; set; }
+        //public class ConfidenceDescriptor
+        //{
+        //    public ushort Confidence { get; set; }
 
-            public byte[] Signature{ get; set; }
+        //    public byte[] Signature{ get; set; }
 
-            public IKey Signer { get; set; }
-        }
+        //    public IKey Signer { get; set; }
+        //}
     }
 }

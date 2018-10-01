@@ -196,17 +196,20 @@ namespace Wist.Node.Core.Registry
             {
                 ulong syncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
 
-                ushort order = 0;
-
-                foreach (int orderKey in _transactionRegisterBlocksOrdered[syncBlockHeight].Keys)
+                if (_transactionRegisterBlocksOrdered.ContainsKey(syncBlockHeight))
                 {
-                    RegistryRegisterBlock transactionRegisterBlock = _transactionRegisterBlocksOrdered[syncBlockHeight][orderKey];
+                    ushort order = 0;
 
-                    items.Add(order++, transactionRegisterBlock);
-
-                    if (order == ushort.MaxValue)
+                    foreach (int orderKey in _transactionRegisterBlocksOrdered[syncBlockHeight].Keys)
                     {
-                        break;
+                        RegistryRegisterBlock transactionRegisterBlock = _transactionRegisterBlocksOrdered[syncBlockHeight][orderKey];
+
+                        items.Add(order++, transactionRegisterBlock);
+
+                        if (order == ushort.MaxValue)
+                        {
+                            break;
+                        }
                     }
                 }
             }

@@ -73,21 +73,18 @@ namespace Wist.Node.Core.Registry
 
         public void ProcessBlock(BlockBase blockBase)
         {
-            RegistryRegisterBlock transactionRegisterBlock = blockBase as RegistryRegisterBlock;
 
-            if(transactionRegisterBlock != null)
+            if (blockBase is RegistryRegisterBlock transactionRegisterBlock)
             {
                 _registrationBlocks.Add(transactionRegisterBlock);
             }
 
-            RegistryShortBlock transactionsShortBlock = blockBase as RegistryShortBlock;
-            if(transactionsShortBlock != null)
+            if (blockBase is RegistryShortBlock transactionsShortBlock)
             {
                 _transactionsRegistryConfidenceFlow.Post(transactionsShortBlock);
             }
 
-            RegistryConfirmationBlock confirmationBlock = blockBase as RegistryConfirmationBlock;
-            if(confirmationBlock != null && ValidateConfirmationBlock(confirmationBlock))
+            if (blockBase is RegistryConfirmationBlock confirmationBlock && ValidateConfirmationBlock(confirmationBlock))
             {
                 _confirmationBlockFlow.Post(confirmationBlock);
             }

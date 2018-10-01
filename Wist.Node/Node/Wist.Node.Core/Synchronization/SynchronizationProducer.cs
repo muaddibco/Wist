@@ -11,6 +11,7 @@ using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Common;
 using Wist.BlockLattice.Core;
+using Wist.Core.HashCalculations;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -23,11 +24,14 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISynchronizationGroupState _synchronizationGroupState;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IConfigurationService _configurationService;
+        private readonly IHashCalculation _proofOfWorkCalculation;
         private IServerCommunicationService _communicationService;
         private ulong _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
-        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService)
+        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, 
+            IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, 
+            IHashCalculationsRepository hashCalculationsRepository)
         {
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _nodeContext = statesRepository.GetInstance<INodeContext>();
@@ -35,6 +39,7 @@ namespace Wist.Node.Core.Synchronization
             _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _configurationService = configurationService;
+            _proofOfWorkCalculation = hashCalculationsRepository.Create(Globals.POW_TYPE);
         }
 
         public void Initialize()
@@ -42,14 +47,14 @@ namespace Wist.Node.Core.Synchronization
             _communicationService = _communicationServicesRegistry.GetInstance(_configurationService.Get<ISynchronizationConfiguration>().CommunicationServiceName);
         }
 
-        public void DeferredBroadcast(ushort round)
+        public void DeferredBroadcast(ushort round, Action onBroadcasted)
         {
             if (_synchronizationContext == null)
             {
                 return;
             }
 
-            if(_synchronizationContext.LastBlockDescriptor == null || _synchronizationContext.LastBlockDescriptor.BlockHeight > _lastLaunchedSyncBlockOrder)
+            if(_synchronizationContext.LastBlockDescriptor == null || _synchronizationContext.LastBlockDescriptor.BlockHeight >= _lastLaunchedSyncBlockOrder)
             {
                 if(_synchronizationContext.LastBlockDescriptor != null &&_synchronizationContext.LastBlockDescriptor.BlockHeight - 1 > _lastLaunchedSyncBlockOrder)
                 {
@@ -59,29 +64,36 @@ namespace Wist.Node.Core.Synchronization
 
                 _syncProducingCancellation = new CancellationTokenSource();
 
-                int delay = (int)(60000 * round - (DateTime.Now - (_synchronizationContext.LastBlockDescriptor?.UpdateTime ?? DateTime.Now)).TotalMilliseconds);
+                int delay = Math.Max((int)(60000 * round - (DateTime.Now - (_synchronizationContext.LastBlockDescriptor?.UpdateTime ?? DateTime.Now)).TotalMilliseconds), 0);
 
                 if (delay > 0)
                 {
                     Task.Delay(delay, _syncProducingCancellation.Token)
                         .ContinueWith(t =>
                         {
-                            SynchronizationDescriptor synchronizationDescriptor = _synchronizationContext.LastBlockDescriptor;
-
-                            SynchronizationProducingBlock synchronizationBlock = new SynchronizationProducingBlock
+                            try
                             {
-                                SyncBlockHeight = synchronizationDescriptor?.BlockHeight ?? 0,
-                                BlockHeight = synchronizationDescriptor?.BlockHeight ?? 0 + 1,
-                                ReportedTime = synchronizationDescriptor?.MedianTime.AddMinutes(1) ?? DateTime.Now,
-                                Round = round,
-                                HashPrev = new byte[Globals.DEFAULT_HASH_SIZE],
-                                PowHash = new byte[Globals.POW_HASH_SIZE]
-                            };
+                                SynchronizationDescriptor synchronizationDescriptor = _synchronizationContext.LastBlockDescriptor;
 
-                            using (ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock))
+                                SynchronizationProducingBlock synchronizationBlock = new SynchronizationProducingBlock
+                                {
+                                    SyncBlockHeight = synchronizationDescriptor?.BlockHeight ?? 0,
+                                    BlockHeight = (synchronizationDescriptor?.BlockHeight ?? 0) + 1,
+                                    ReportedTime = synchronizationDescriptor?.MedianTime.AddMinutes(1) ?? DateTime.Now,
+                                    Round = round,
+                                    HashPrev = _synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE],
+                                    PowHash = _proofOfWorkCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE])
+                                };
+
+                                using (ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock))
+                                {
+                                    _communicationService.PostMessage(_synchronizationGroupState.GetAllNeighbors(), signatureSupportSerializer);
+                                    _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
+                                }
+                            }
+                            finally
                             {
-                                _communicationService.PostMessage(_synchronizationGroupState.GetAllNeighbors(), signatureSupportSerializer);
-                                _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
+                                onBroadcasted.Invoke();
                             }
 
                         }, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);

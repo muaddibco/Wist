@@ -26,19 +26,19 @@ namespace Wist.Node.Core.Synchronization
         private CancellationTokenSource _cancellationTokenSource;
         private bool _isParticipating;
         private bool _isStarted;
-        private bool _round;
+        private bool _roundStarted;
         private int _ratingPosition;
         private IDisposable _synchronozationGroupLeaderCheckUnsubscriber;
 
         public SynchronizationGroupParticipationService(ISynchronizationProducer synchronizationProducer, IStatesRepository statesRepository, INodesRatingProviderFactory nodesRatingProvidersFactory)
         {
             _synchronizationProducer = synchronizationProducer;
-            _nodesRatingProvider = nodesRatingProvidersFactory.Create(PacketType.TransactionalChain);
+            _nodesRatingProvider = nodesRatingProvidersFactory.GetInstance(PacketType.TransactionalChain);
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _accountState = statesRepository.GetInstance<IAccountState>();
             _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();
-            _synchronizationGroupParticipationCheckAction = new TransformBlock<string, string>((Func<string, string>)SynchronizationGroupParticipationCheckAction);
-            _synchronizationGroupLeaderCheckAction = new ActionBlock<string>((Action<string>)SynchronizationGroupLeaderCheckAction);
+            _synchronizationGroupParticipationCheckAction = new TransformBlock<string, string>((Func<string, string>)SynchronizationGroupParticipationCheckAction, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 1 });
+            _synchronizationGroupLeaderCheckAction = new ActionBlock<string>((Action<string>)SynchronizationGroupLeaderCheckAction, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 1 });
         }
 
         public void Initialize()
@@ -93,7 +93,7 @@ namespace Wist.Node.Core.Synchronization
             }
             else
             {
-                _synchronozationGroupLeaderCheckUnsubscriber.Dispose();
+                _synchronozationGroupLeaderCheckUnsubscriber?.Dispose();
             }
 
             return arg;
@@ -101,12 +101,26 @@ namespace Wist.Node.Core.Synchronization
 
         private void SynchronizationGroupLeaderCheckAction(string arg)
         {
-            bool recheckPosition = _synchronizationContext.LastBlockDescriptor == null || _synchronizationContext.LastBlockDescriptor.Round % _nodesRatingProvider.GetParticipantsCount() == 0;
-
-            if (recheckPosition)
+            if (_roundStarted)
             {
-                _ratingPosition = _nodesRatingProvider.GetCandidateRating(_accountState.AccountKey) + 1;
-                _synchronizationProducer.DeferredBroadcast((ushort)_ratingPosition);
+                return;
+            }
+
+            lock (_sync)
+            {
+                if(_roundStarted)
+                {
+                    return;
+                }
+
+                bool recheckPosition = _synchronizationContext.LastBlockDescriptor == null || _synchronizationContext.LastBlockDescriptor.Round % _nodesRatingProvider.GetParticipantsCount() == 0;
+
+                if (recheckPosition)
+                {
+                    _roundStarted = true;
+                    _ratingPosition = _nodesRatingProvider.GetCandidateRating(_accountState.AccountKey) + 1;
+                    _synchronizationProducer.DeferredBroadcast((ushort)_ratingPosition, () => _roundStarted = false);
+                }
             }
         }
 

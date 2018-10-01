@@ -11,16 +11,19 @@ namespace Wist.Node.Core.Registry
     {
         public const string NAME = nameof(TransactionsRegistrationModule);
         private readonly IBlocksHandlersRegistry _blocksHandlersFactory;
+        private readonly ITransactionsRegistryService _transactionsRegistryService;
 
-        public TransactionsRegistrationModule(ILoggerService loggerService, IBlocksHandlersRegistry blocksHandlersFactory) : base(loggerService)
+        public TransactionsRegistrationModule(ILoggerService loggerService, IBlocksHandlersRegistry blocksHandlersFactory, ITransactionsRegistryService transactionsRegistryService) : base(loggerService)
         {
             _blocksHandlersFactory = blocksHandlersFactory;
+            _transactionsRegistryService = transactionsRegistryService;
         }
 
         public override string Name => NAME;
 
         public override void Start()
         {
+            _transactionsRegistryService.Start();
         }
 
         protected override void InitializeInner()
@@ -28,6 +31,8 @@ namespace Wist.Node.Core.Registry
             IBlocksHandler blocksHandler = _blocksHandlersFactory.GetInstance(TransactionsRegistryHandler.NAME);
             _blocksHandlersFactory.RegisterInstance(blocksHandler);
             blocksHandler.Initialize(_cancellationToken);
+
+            _transactionsRegistryService.Initialize();
         }
     }
 }

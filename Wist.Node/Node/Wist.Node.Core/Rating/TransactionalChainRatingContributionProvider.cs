@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Wist.BlockLattice.Core.DataModel;
+using Wist.BlockLattice.Core.DataModel.Nodes;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Interfaces;
@@ -17,9 +18,9 @@ namespace Wist.Node.Core.Rating
     {
         private readonly IChainDataService _chainDataService;
         private readonly INodesDataService _nodesDataService;
+        private readonly List<IKey> _topNodeKeys;
         private Dictionary<IKey, DposDescriptor> _dposDescriptors = new Dictionary<IKey, DposDescriptor>();
         private Dictionary<IKey, List<DposDescriptor>> _votesForCandidates;
-        private List<IKey> _topNodeKeys = new List<IKey>();
 
         public PacketType PacketType => PacketType.TransactionalChain;
 
@@ -27,6 +28,7 @@ namespace Wist.Node.Core.Rating
         {
             _chainDataService = chainDataServicesManager.GetChainDataService(PacketType.TransactionalChain);
             _nodesDataService = nodesDataService;
+            _topNodeKeys = new List<IKey>();
         }
 
         public double GetVotesForCandidate(IKey nodeKey)
@@ -36,7 +38,7 @@ namespace Wist.Node.Core.Rating
 
         public void Initialize()
         {
-            _topNodeKeys.AddRange(_nodesDataService.GetAll().Take(21).Select(n => n.Key));
+            _topNodeKeys.AddRange(_nodesDataService.GetAll().Where(n => n.NodeRole == NodeRole.SynchronizationLayer).Take(21).Select(n => n.Key));
             ////TODO: need to take all last blocks where DPOS delegation is specified
             //IEnumerable<TransactionalGenesisBlock> genesisBlocks = _chainDataService.GetAllLastBlocksByType<TransactionalGenesisBlock>();
             ////IEnumerable<TransactionalBlockBaseV1> transactionalBlocks = _chainDataService.GetAllLastBlocksByType<TransactionalBlockBaseV1>();

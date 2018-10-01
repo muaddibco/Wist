@@ -73,14 +73,13 @@ namespace Wist.BlockLattice.Core.Handlers
 
             for (int i = 0; i < _maxDegreeOfParallelism; i++)
             {
-                tasks.Add(Task.Run(() => Parse(i)));
+                tasks.Add(Task.Factory.StartNew(o => Parse((int)o), i, TaskCreationOptions.LongRunning));
             }
-            //Parallel.For(0, _maxDegreeOfParallelism, async i => await Parse(i));
 
             _log.Info("PacketsHandler started");
         }
 
-        private async Task Parse(int iteration)
+        private void Parse(int iteration)
         {
             _log.Info($"Parse function #{iteration} starting");
 
@@ -91,7 +90,7 @@ namespace Wist.BlockLattice.Core.Handlers
                 foreach (byte[] messagePacket in _messagePackets.GetConsumingEnumerable(_cancellationToken))
                 {
                     _endToEndCountersService.MessagesQueueSize.Decrement();
-                    await _handlingFlows[iteration].PostMessage(messagePacket);
+                    _handlingFlows[iteration].PostMessage(messagePacket);
                 }
             }
             finally

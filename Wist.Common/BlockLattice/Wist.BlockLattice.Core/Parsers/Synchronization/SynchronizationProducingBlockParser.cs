@@ -32,6 +32,7 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
                 };
 
                 synchronizationBlockBase = synchronizationBlock;
+                return spanBody.Slice(2);
             }
 
             throw new BlockVersionNotSupportedException(version, BlockType);
