@@ -75,7 +75,7 @@ namespace Wist.Node.Core.Common
                     continue;
                 }
 
-                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationBlock.BlockHeight, CryptoHelper.ComputeHash(synchronizationBlock.BodyBytes), synchronizationBlock.ReportedTime, DateTime.Now));
+                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationBlock.BlockHeight, CryptoHelper.ComputeHash(synchronizationBlock.BodyBytes), synchronizationBlock.ReportedTime, DateTime.Now, synchronizationBlock.Round));
 
                 _chainDataService.Add(synchronizationBlock);
 

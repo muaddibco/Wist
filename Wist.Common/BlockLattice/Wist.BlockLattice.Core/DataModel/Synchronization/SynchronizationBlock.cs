@@ -10,5 +10,7 @@ namespace Wist.BlockLattice.Core.DataModel.Synchronization
         public override ushort BlockType => BlockTypes.Synchronization_TimeSyncProducingBlock;
 
         public override ushort Version => 1;
+
+        public ushort Round { get; set; }
     }
 }

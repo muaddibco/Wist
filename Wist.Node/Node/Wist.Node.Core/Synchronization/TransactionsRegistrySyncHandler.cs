@@ -41,6 +41,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly IHashCalculation _defaultTransactionHashCalculation;
         private readonly ISyncRegistryNeighborhoodState _syncRegistryNeighborhoodState;
+
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly ISyncRegistryMemPool _syncRegistryMemPool;
         private readonly INodesResolutionService _nodesResolutionService;

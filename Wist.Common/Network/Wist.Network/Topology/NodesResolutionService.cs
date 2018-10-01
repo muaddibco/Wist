@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
-using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Nodes;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.BlockLattice.Core.Serializers;
@@ -42,10 +40,16 @@ namespace Wist.Network.Topology
 
         public IPAddress ResolveNodeAddress(IKey key)
         {
+            if(_nodeAddresses.ContainsKey(key))
+            {
+                return _nodeAddresses[key].IP;
+            }
+
             Node node = _nodesDataService.Get(key);
 
             if(node != null)
             {
+                _nodeAddresses.AddOrUpdate(key, new NodeAddress(key, node.IPAddress), (k, v) => v);
                 return node.IPAddress;
             }
 

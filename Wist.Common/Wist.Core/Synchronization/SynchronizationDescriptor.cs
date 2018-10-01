@@ -6,18 +6,21 @@ namespace Wist.Core.Synchronization
 {
     public class SynchronizationDescriptor
     {
-        public SynchronizationDescriptor(ulong blockHeight, byte[] hash, DateTime medianTime, DateTime updateTime)
+        public SynchronizationDescriptor(ulong blockHeight, byte[] hash, DateTime medianTime, DateTime updateTime, ushort round)
         {
             BlockHeight = blockHeight;
             Hash = hash;
             MedianTime = medianTime;
             UpdateTime = updateTime;
+            Round = round;
         }
 
         /// <summary>
         /// Last synchronization block obtained from Network
         /// </summary>
         public ulong BlockHeight { get; private set; }
+
+        public ushort Round { get; set; }
 
         public byte[] Hash { get; private set; }
 

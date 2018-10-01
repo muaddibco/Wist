@@ -34,7 +34,7 @@ namespace Wist.BlockLattice.Core.Tests
             identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
             identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<byte[]>() });
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
             byte signersCount = 10;
             byte[] body = new byte[11 + Globals.NODE_PUBLIC_KEY_SIZE * signersCount + Globals.SIGNATURE_SIZE * signersCount];
             ushort round = 1;
@@ -55,7 +55,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             for (int i = 0; i < signersCount; i++)
             {
-                byte[] privateSignerKey = BinaryBuilder.GetRandomSeed();
+                byte[] privateSignerKey = CryptoHelper.GetRandomSeed();
                 byte[] publicSignerKey;
                 byte[] expandedSignerKey;
 
@@ -141,7 +141,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             byte[] body;
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
             byte[] expandedPrivateKey;
             byte[] publicKey;
             Ed25519.KeyPairFromSeed(out publicKey, out expandedPrivateKey, privateKey);
@@ -209,7 +209,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             byte[] body;
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
             byte[] expandedPrivateKey;
             byte[] publicKey;
             Ed25519.KeyPairFromSeed(out publicKey, out expandedPrivateKey, privateKey);
@@ -287,7 +287,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             byte[] body;
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
             byte[] expandedPrivateKey;
             byte[] publicKey;
             Ed25519.KeyPairFromSeed(out publicKey, out expandedPrivateKey, privateKey);
@@ -409,7 +409,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             byte[] body;
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
             Ed25519.KeyPairFromSeed(out byte[] publicKey, out byte[] expandedPrivateKey, privateKey);
 
 
@@ -468,11 +468,11 @@ namespace Wist.BlockLattice.Core.Tests
 
             byte[] body;
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
             Ed25519.KeyPairFromSeed(out byte[] publicKey, out byte[] expandedPrivateKey, privateKey);
 
             DateTime expectedDateTime = DateTime.Now;
-            byte[][] expectedHashes = new byte[2][] { BinaryBuilder.GetRandomSeed(), BinaryBuilder.GetRandomSeed() };
+            byte[][] expectedHashes = new byte[2][] { CryptoHelper.GetRandomSeed(), CryptoHelper.GetRandomSeed() };
 
             using (MemoryStream ms = new MemoryStream())
             {

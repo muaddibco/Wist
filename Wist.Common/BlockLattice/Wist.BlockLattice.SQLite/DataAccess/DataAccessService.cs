@@ -18,7 +18,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
         
         private static DataAccessService _instance = null;
         private Dictionary<IKey, AccountIdentity> _keyIdentityMap;
-        private Dictionary<IKey, Node> _keyToNodeMap;
+        private Dictionary<IKey, NodeRecord> _keyToNodeMap;
         private readonly IIdentityKeyProvider _identityKeyProvider;
 
         private readonly DataContext _dataContext;
@@ -71,9 +71,9 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                 lock (_sync)
                 {
                     AccountSeed accountSeed = _dataContext.AccountSeeds.FirstOrDefault(s => s.Identity == identity);
-                    if(accountSeed == null)
+                    if (accountSeed == null)
                     {
-                    accountSeed = new AccountSeed { Identity = identity, Seed = seed};
+                        accountSeed = new AccountSeed { Identity = identity, Seed = seed };
                         _dataContext.AccountSeeds.Add(accountSeed);
                     }
 

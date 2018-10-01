@@ -5,6 +5,7 @@ using System.IO;
 using System.Security.Cryptography;
 using Wist.BlockLattice.Core;
 using Wist.BlockLattice.Core.Enums;
+using Wist.Core.Cryptography;
 
 namespace Wist.Tests.Core
 {
@@ -77,17 +78,9 @@ namespace Wist.Tests.Core
             return result;
         }
 
-        public static byte[] GetRandomSeed()
-        {
-            byte[] seed = new byte[32];
-            RNGCryptoServiceProvider.Create().GetNonZeroBytes(seed);
-
-            return seed;
-        }
-
         public static byte[] GetRandomPublicKey()
         {
-            byte[] seed = GetRandomSeed();
+            byte[] seed = CryptoHelper.GetRandomSeed();
 
             return Ed25519.PublicKeyFromSeed(seed);
         }

@@ -9,10 +9,10 @@ namespace Wist.BlockLattice.DataModel
     [Table("transactions_registry_block")]
     public class TransactionsRegistryBlock
     {
-        [Key, Column(Order = 0)]
+        // Primary key defined using Fluent API
         public ulong TransactionsRegistryBlockId { get; set; }
 
-        [Key, Column(Order = 1)]
+        // Primary key defined using Fluent API
         public ushort ShardId { get; set; }
 
         public byte[] Content { get; set; }

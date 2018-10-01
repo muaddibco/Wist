@@ -38,14 +38,17 @@ namespace Wist.BlockLattice.SQLite.DataAccess
             {
                 lock (_sync)
                 {
-                    DataModel.Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
+                    DataModel.NodeRecord node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity && n.NodeRole == (byte)nodeRole);
 
                     if (node == null)
                     {
 
-                        node = new DataModel.Node { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes() };
+                        node = new DataModel.NodeRecord { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes(), NodeRole = (byte)nodeRole };
                         _dataContext.Nodes.Add(node);
-                        _keyToNodeMap.Add(key, node);
+                        if (!_keyToNodeMap.ContainsKey(key))
+                        {
+                            _keyToNodeMap.Add(key, node);
+                        }
                         return true;
                     }
                 }
@@ -74,14 +77,13 @@ namespace Wist.BlockLattice.SQLite.DataAccess
             {
                 lock (_sync)
                 {
-                    DataModel.Node node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity);
+                    IEnumerable<NodeRecord> nodes = _dataContext.Nodes.Where(n => n.Identity == accountIdentity);
 
-                    if (node != null)
+                    foreach (var node in nodes)
                     {
                         node.IPAddress = ipAddress.GetAddressBytes();
-                        _dataContext.Update<DataModel.Node>(node);
+                        _dataContext.Update(node);
                         _keyToNodeMap[key].IPAddress = ipAddress.GetAddressBytes();
-                        return true;
                     }
                 }
             }
@@ -93,7 +95,15 @@ namespace Wist.BlockLattice.SQLite.DataAccess
         {
             lock (_sync)
             {
-                _keyToNodeMap = _dataContext.Nodes.ToDictionary(i => _identityKeyProvider.GetKey(i.Identity.PublicKey), i => i);
+                _keyToNodeMap = new Dictionary<IKey, NodeRecord>();
+                foreach (var node in _dataContext.Nodes)
+                {
+                    IKey key = _identityKeyProvider.GetKey(node.Identity.PublicKey);
+                    if(!_keyToNodeMap.ContainsKey(key))
+                    {
+                        _keyToNodeMap.Add(key, node);
+                    }
+                }
             }
         }
 
@@ -107,12 +117,12 @@ namespace Wist.BlockLattice.SQLite.DataAccess
             return IPAddress.None;
         }
 
-        public IEnumerable<DataModel.Node> GetAllNodes()
+        public IEnumerable<DataModel.NodeRecord> GetAllNodes()
         {
             return _keyToNodeMap.Values;
         }
 
-        public DataModel.Node GetNode(IKey key)
+        public DataModel.NodeRecord GetNode(IKey key)
         {
             if (_keyToNodeMap.ContainsKey(key))
             {

@@ -28,7 +28,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public Node Get(IKey key)
         {
-            DataModel.Node node = DataAccessService.Instance.GetNode(key);
+            DataModel.NodeRecord node = DataAccessService.Instance.GetNode(key);
 
             if(node != null)
             {

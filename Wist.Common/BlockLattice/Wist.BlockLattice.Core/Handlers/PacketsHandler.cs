@@ -11,6 +11,7 @@ using Wist.Core.HashCalculations;
 using Wist.Core.PerformanceCounters;
 using Wist.BlockLattice.Core.PerformanceCounters;
 using Wist.BlockLattice.Core.Parsers;
+using System.Collections.Generic;
 
 namespace Wist.BlockLattice.Core.Handlers
 {
@@ -68,7 +69,13 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             _log.Info("PacketsHandler starting");
 
-            Parallel.For(0, _maxDegreeOfParallelism, i => Parse(i));
+            List<Task> tasks = new List<Task>();
+
+            for (int i = 0; i < _maxDegreeOfParallelism; i++)
+            {
+                tasks.Add(Task.Run(() => Parse(i)));
+            }
+            //Parallel.For(0, _maxDegreeOfParallelism, async i => await Parse(i));
 
             _log.Info("PacketsHandler started");
         }

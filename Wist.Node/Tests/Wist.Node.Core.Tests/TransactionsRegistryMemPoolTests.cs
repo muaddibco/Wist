@@ -27,7 +27,7 @@ namespace Wist.Node.Core.Tests
         [Fact]
         public void MemPool_AddedXUniqueTransactions_AllContained()
         {
-            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.DEFAULT_HASH_SIZE], DateTime.Now, DateTime.Now);
+            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.DEFAULT_HASH_SIZE], DateTime.Now, DateTime.Now, 1);
             IHash transactionKeyHash = HashFactory.Hash128.CreateMurmur3_128();
             ILogger logger = Substitute.For<ILogger>();
             ILoggerService loggerService = Substitute.For<ILoggerService>();
@@ -54,7 +54,7 @@ namespace Wist.Node.Core.Tests
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
             ulong expectedCount = 10;
 
             SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
@@ -85,7 +85,7 @@ namespace Wist.Node.Core.Tests
         [Fact]
         public void MemPool_AddedNonUniqueTransactions_NotAllContained()
         {
-            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.DEFAULT_HASH_SIZE], DateTime.Now, DateTime.Now);
+            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.DEFAULT_HASH_SIZE], DateTime.Now, DateTime.Now, 1);
             IHash transactionKeyHash = HashFactory.Hash128.CreateMurmur3_128();
             ILogger logger = Substitute.For<ILogger>();
             ILoggerService loggerService = Substitute.For<ILoggerService>();
@@ -112,7 +112,7 @@ namespace Wist.Node.Core.Tests
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
 
             SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
 
@@ -153,7 +153,7 @@ namespace Wist.Node.Core.Tests
         [Fact]
         public void MemPool_ContainsXItems_ConfidenceLevelOnAll()
         {
-            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.DEFAULT_HASH_SIZE], DateTime.Now, DateTime.Now);
+            SynchronizationDescriptor synchronizationDescriptor = new SynchronizationDescriptor(1, new byte[Globals.DEFAULT_HASH_SIZE], DateTime.Now, DateTime.Now, 1);
             IHash transactionKeyHash = HashFactory.Hash128.CreateMurmur3_128();
             ILogger logger = Substitute.For<ILogger>();
             ILoggerService loggerService = Substitute.For<ILoggerService>();
@@ -180,7 +180,7 @@ namespace Wist.Node.Core.Tests
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
 
-            byte[] privateKey = BinaryBuilder.GetRandomSeed();
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
 
             SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
 

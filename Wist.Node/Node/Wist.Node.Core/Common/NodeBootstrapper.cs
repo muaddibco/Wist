@@ -1,5 +1,6 @@
 ﻿using CommonServiceLocator;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -10,7 +11,7 @@ namespace Wist.Node.Core.Common
 {
     public class NodeBootstrapper : Bootstrapper
     {
-        private readonly string[] _catalogItems = new string[] { "Wist.Crypto.dll", "Chaos.NaCl.dll", "Wist.Communication.dll", "Wist.Node.Core.dll" };
+        private readonly string[] _catalogItems = new string[] { "Wist.Crypto.dll", "Chaos.NaCl.dll", "Wist.Network.dll", "Wist.Node.Core.dll" };
 
         public NodeBootstrapper(CancellationToken ct) : base(ct)
         {
@@ -91,7 +92,7 @@ namespace Wist.Node.Core.Common
                 {
                     string byteValueExpression = $"{secretKeyExpression[i * 2]}{secretKeyExpression[i * 2 + 1]}";
 
-                    if (byte.TryParse(byteValueExpression, out byte byteValue))
+                    if (byte.TryParse(byteValueExpression, NumberStyles.HexNumber, null, out byte byteValue))
                     {
                         sk[i] = byteValue;
                     }

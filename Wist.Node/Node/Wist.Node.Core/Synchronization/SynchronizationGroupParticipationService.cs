@@ -7,7 +7,7 @@ using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
-using Wist.Node.Core.DPOS;
+using Wist.Node.Core.Rating;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -15,8 +15,9 @@ namespace Wist.Node.Core.Synchronization
     public class SynchronizationGroupParticipationService : ISynchronizationGroupParticipationService
     {
         private readonly ISynchronizationProducer _synchronizationProducer;
-        private readonly INodeDposProvider _nodeDposProvider;
+        private readonly INodesRatingProvider _nodesRatingProvider;
         private readonly ISynchronizationContext _synchronizationContext;
+        private readonly ISynchronizationGroupState _synchronizationGroupState;
         private readonly IAccountState _accountState;
         private readonly TransformBlock<string, string> _synchronizationGroupParticipationCheckAction;
         private readonly ActionBlock<string> _synchronizationGroupLeaderCheckAction;
@@ -25,21 +26,25 @@ namespace Wist.Node.Core.Synchronization
         private CancellationTokenSource _cancellationTokenSource;
         private bool _isParticipating;
         private bool _isStarted;
+        private bool _round;
+        private int _ratingPosition;
         private IDisposable _synchronozationGroupLeaderCheckUnsubscriber;
 
-        public SynchronizationGroupParticipationService(ISynchronizationProducer synchronizationProducer, IStatesRepository statesRepository, INodeDposProvidersFactory nodeDposProvidersFactory)
+        public SynchronizationGroupParticipationService(ISynchronizationProducer synchronizationProducer, IStatesRepository statesRepository, INodesRatingProviderFactory nodesRatingProvidersFactory)
         {
             _synchronizationProducer = synchronizationProducer;
-            _nodeDposProvider = nodeDposProvidersFactory.Create(PacketType.TransactionalChain);
+            _nodesRatingProvider = nodesRatingProvidersFactory.Create(PacketType.TransactionalChain);
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _accountState = statesRepository.GetInstance<IAccountState>();
+            _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();
             _synchronizationGroupParticipationCheckAction = new TransformBlock<string, string>((Func<string, string>)SynchronizationGroupParticipationCheckAction);
-            _synchronizationGroupLeaderCheckAction = new ActionBlock<string>(SynchronizationGroupLeaderCheckAction);
+            _synchronizationGroupLeaderCheckAction = new ActionBlock<string>((Action<string>)SynchronizationGroupLeaderCheckAction);
         }
 
         public void Initialize()
         {
-            
+            _nodesRatingProvider.Initialize();
+            _synchronizationProducer.Initialize();
         }
 
         public void Start()
@@ -72,29 +77,37 @@ namespace Wist.Node.Core.Synchronization
 
         #region Private Functions
 
-        private void CheckSynchronizationGroupParticipation()
-        {
-            //TODO: add real check for participation
-            int rating = _nodeDposProvider.GetCandidateRating(_accountState.AccountKey);
-        }
-
+        /// <summary>
+        /// This function will work on arriving of every Synchronization Block and will initiate flow of checking whether current node is participating in Synchronization Group
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
         private string SynchronizationGroupParticipationCheckAction(string arg)
         {
-            if (!_isParticipating)
-            {
-                _isParticipating = true;
-                _synchronizationProducer.Initialize();
+            _isParticipating = _nodesRatingProvider.IsCandidateInTopList(_accountState.AccountKey);
 
+            if (_isParticipating)
+            {
                 _synchronozationGroupLeaderCheckUnsubscriber = _synchronizationGroupParticipationCheckAction.LinkTo(_synchronizationGroupLeaderCheckAction);
                 _synchronizationGroupLeaderCheckAction.Post(null);
+            }
+            else
+            {
+                _synchronozationGroupLeaderCheckUnsubscriber.Dispose();
             }
 
             return arg;
         }
 
-        private async Task SynchronizationGroupLeaderCheckAction(string arg)
+        private void SynchronizationGroupLeaderCheckAction(string arg)
         {
-            _synchronizationProducer.DeferredBroadcast();
+            bool recheckPosition = _synchronizationContext.LastBlockDescriptor == null || _synchronizationContext.LastBlockDescriptor.Round % _nodesRatingProvider.GetParticipantsCount() == 0;
+
+            if (recheckPosition)
+            {
+                _ratingPosition = _nodesRatingProvider.GetCandidateRating(_accountState.AccountKey) + 1;
+                _synchronizationProducer.DeferredBroadcast((ushort)_ratingPosition);
+            }
         }
 
         #endregion Private Functions

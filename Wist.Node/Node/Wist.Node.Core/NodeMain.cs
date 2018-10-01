@@ -34,6 +34,7 @@ namespace Wist.Node.Core
         private readonly IPacketsHandler _packetsHandler;
         private readonly ICryptoService _cryptoService;
         private readonly INodeContext _nodeContext;
+        private readonly IAccountState _accountState;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         //private read-only IBlocksProcessor _blocksProcessor
@@ -48,6 +49,7 @@ namespace Wist.Node.Core
             _packetsHandler = packetsHandler;
             _cryptoService = cryptoService;
             _nodeContext = statesRepository.GetInstance<INodeContext>();
+            _accountState = statesRepository.GetInstance<IAccountState>();
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -59,6 +61,7 @@ namespace Wist.Node.Core
             }
 
             _cryptoService.Initialize(secretKey);
+            _accountState.Initialize();
             _nodeContext.Initialize();
 
             InitializeCommunicationLayer();

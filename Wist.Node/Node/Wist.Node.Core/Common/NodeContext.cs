@@ -16,15 +16,11 @@ namespace Wist.Node.Core.Common
         public const string NAME = nameof(INodeContext);
 
         private readonly Subject<string> _subject = new Subject<string>();
-        private readonly ICryptoService _cryptoService;
 
-        public NodeContext(ICryptoService cryptoService)
+        public NodeContext()
         {
             SyncGroupParticipants = new List<SynchronizationGroupParticipant>();
-            _cryptoService = cryptoService;
         }
-
-        public IKey NodeKey { get; private set; }
 
         public string Name => NAME;
 
@@ -32,7 +28,6 @@ namespace Wist.Node.Core.Common
 
         public void Initialize()
         {
-            NodeKey = _cryptoService.Key;
         }
 
         public IDisposable SubscribeOnStateChange(ITargetBlock<string> targetBlock)

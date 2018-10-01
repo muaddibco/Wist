@@ -10,6 +10,7 @@ using Wist.Core.Configuration;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.Node.Core.Common;
+using Wist.BlockLattice.Core;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -38,11 +39,10 @@ namespace Wist.Node.Core.Synchronization
 
         public void Initialize()
         {
-            
             _communicationService = _communicationServicesRegistry.GetInstance(_configurationService.Get<ISynchronizationConfiguration>().CommunicationServiceName);
         }
 
-        public void DeferredBroadcast()
+        public void DeferredBroadcast(ushort round)
         {
             if (_synchronizationContext == null)
             {
@@ -59,28 +59,32 @@ namespace Wist.Node.Core.Synchronization
 
                 _syncProducingCancellation = new CancellationTokenSource();
 
-                int delay = (int)(60000 - (DateTime.Now - (_synchronizationContext.LastBlockDescriptor?.UpdateTime ?? DateTime.Now)).TotalMilliseconds);
+                int delay = (int)(60000 * round - (DateTime.Now - (_synchronizationContext.LastBlockDescriptor?.UpdateTime ?? DateTime.Now)).TotalMilliseconds);
 
                 if (delay > 0)
                 {
                     Task.Delay(delay, _syncProducingCancellation.Token)
-                        .ContinueWith((t, o) =>
+                        .ContinueWith(t =>
                         {
-                            SynchronizationDescriptor synchronizationDescriptor = o as SynchronizationDescriptor;
+                            SynchronizationDescriptor synchronizationDescriptor = _synchronizationContext.LastBlockDescriptor;
 
                             SynchronizationProducingBlock synchronizationBlock = new SynchronizationProducingBlock
                             {
+                                SyncBlockHeight = synchronizationDescriptor?.BlockHeight ?? 0,
                                 BlockHeight = synchronizationDescriptor?.BlockHeight ?? 0 + 1,
-                                ReportedTime = synchronizationDescriptor?.MedianTime.AddMinutes(1) ?? DateTime.Now
+                                ReportedTime = synchronizationDescriptor?.MedianTime.AddMinutes(1) ?? DateTime.Now,
+                                Round = round,
+                                HashPrev = new byte[Globals.DEFAULT_HASH_SIZE],
+                                PowHash = new byte[Globals.POW_HASH_SIZE]
                             };
 
                             using (ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock))
                             {
-                                _communicationService.PostMessage(_synchronizationGroupState.GetAllParticipants(), signatureSupportSerializer);
+                                _communicationService.PostMessage(_synchronizationGroupState.GetAllNeighbors(), signatureSupportSerializer);
                                 _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
                             }
 
-                        }, _synchronizationContext.LastBlockDescriptor, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
+                        }, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
                 }
             }
         }
