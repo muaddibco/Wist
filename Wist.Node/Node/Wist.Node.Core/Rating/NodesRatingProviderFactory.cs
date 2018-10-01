@@ -1,6 +1,4 @@
-﻿using CommonServiceLocator;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
@@ -11,7 +9,7 @@ namespace Wist.Node.Core.Rating
     [RegisterDefaultImplementation(typeof(INodesRatingProviderFactory), Lifetime = LifetimeManagement.Singleton)]
     public class NodesRatingProviderFactory : INodesRatingProviderFactory
     {
-        private readonly Dictionary<PacketType, Stack<INodesRatingProvider>> _nodesRatingProviders = new Dictionary<PacketType, Stack<INodesRatingProvider>>();
+        private readonly Dictionary<PacketType, INodesRatingProvider> _nodesRatingProviders = new Dictionary<PacketType, INodesRatingProvider>();
 
         public NodesRatingProviderFactory(INodesRatingProvider[] nodesRatingProviders)
         {
@@ -19,45 +17,19 @@ namespace Wist.Node.Core.Rating
             {
                 if(!_nodesRatingProviders.ContainsKey(nodesRatingProvider.PacketType))
                 {
-                    _nodesRatingProviders.Add(nodesRatingProvider.PacketType, new Stack<INodesRatingProvider>());
-                    _nodesRatingProviders[nodesRatingProvider.PacketType].Push(nodesRatingProvider);
+                    _nodesRatingProviders.Add(nodesRatingProvider.PacketType, nodesRatingProvider);
                 }
             }
         }
 
-        public INodesRatingProvider Create(PacketType key)
+        public INodesRatingProvider GetInstance(PacketType key)
         {
             if(!_nodesRatingProviders.ContainsKey(key))
             {
                 throw new DposProviderNotSupportedException(key);
             }
 
-            if(_nodesRatingProviders[key].Count > 1)
-            {
-                return _nodesRatingProviders[key].Pop();
-            }
-            else
-            {
-                INodesRatingProvider nodeDposProviderTemp = _nodesRatingProviders[key].Pop();
-                INodesRatingProvider nodeDposProvider = (INodesRatingProvider)ServiceLocator.Current.GetInstance(nodeDposProviderTemp.GetType());
-                _nodesRatingProviders[key].Push(nodeDposProviderTemp);
-                return nodeDposProvider;
-            }
-        }
-
-        public void Utilize(INodesRatingProvider obj)
-        {
-            if (obj == null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            if (!_nodesRatingProviders.ContainsKey(obj.PacketType))
-            {
-                throw new DposProviderNotSupportedException(obj.PacketType);
-            }
-
-            _nodesRatingProviders[obj.PacketType].Push(obj);
+            return _nodesRatingProviders[key];
         }
     }
 }

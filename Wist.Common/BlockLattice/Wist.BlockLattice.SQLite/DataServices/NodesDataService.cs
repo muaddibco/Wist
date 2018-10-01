@@ -40,7 +40,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public IEnumerable<Node> GetAll()
         {
-            return DataAccessService.Instance.GetAllNodes().Select(n => new Node { Key = _identityKeyProvider.GetKey(n.Identity.PublicKey), IPAddress = new IPAddress(n.IPAddress)});
+            return DataAccessService.Instance.GetAllNodes().Select(n => new Node { Key = _identityKeyProvider.GetKey(n.Identity.PublicKey), IPAddress = new IPAddress(n.IPAddress), NodeRole = (NodeRole)n.NodeRole });
         }
 
         public void Initialize()

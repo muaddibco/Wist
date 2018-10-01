@@ -47,9 +47,9 @@ namespace Wist.BlockLattice.Core.Handlers
             _parseBlock.LinkTo(_processBlock, ValidateBlock);
         }
 
-        public async Task PostMessage(byte[] messagePacket)
+        public void PostMessage(byte[] messagePacket)
         {
-            await _decodeBlock.SendAsync(messagePacket);
+            _decodeBlock.Post(messagePacket);
         }
 
         private byte[] DecodeMessage(byte[] messagePacket)

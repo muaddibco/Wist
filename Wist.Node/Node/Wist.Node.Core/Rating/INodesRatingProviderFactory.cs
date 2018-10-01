@@ -5,7 +5,7 @@ using Wist.Core.Architecture;
 namespace Wist.Node.Core.Rating
 {
     [ServiceContract]
-    public interface INodesRatingProviderFactory : IFactory<INodesRatingProvider, PacketType>
+    public interface INodesRatingProviderFactory : IRepository<INodesRatingProvider, PacketType>
     {
     }
 }

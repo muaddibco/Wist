@@ -38,12 +38,12 @@ namespace Wist.BlockLattice.SQLite.DataAccess
             {
                 lock (_sync)
                 {
-                    DataModel.NodeRecord node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity && n.NodeRole == (byte)nodeRole);
+                    NodeRecord node = _dataContext.Nodes.FirstOrDefault(n => n.Identity == accountIdentity && n.NodeRole == (byte)nodeRole);
 
                     if (node == null)
                     {
 
-                        node = new DataModel.NodeRecord { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes(), NodeRole = (byte)nodeRole };
+                        node = new NodeRecord { Identity = accountIdentity, IPAddress = ipAddress.GetAddressBytes(), NodeRole = (byte)nodeRole };
                         _dataContext.Nodes.Add(node);
                         if (!_keyToNodeMap.ContainsKey(key))
                         {
@@ -117,12 +117,14 @@ namespace Wist.BlockLattice.SQLite.DataAccess
             return IPAddress.None;
         }
 
-        public IEnumerable<DataModel.NodeRecord> GetAllNodes()
+        public IEnumerable<NodeRecord> GetAllNodes()
         {
-            return _keyToNodeMap.Values;
+            List<NodeRecord> nodes = _dataContext.Nodes.ToList();
+
+            return nodes;
         }
 
-        public DataModel.NodeRecord GetNode(IKey key)
+        public NodeRecord GetNode(IKey key)
         {
             if (_keyToNodeMap.ContainsKey(key))
             {

@@ -20,6 +20,7 @@ using Wist.Node.Core.Common;
 using Wist.Node.Core.Rating;
 using Wist.Network.Topology;
 using Wist.Core.Communication;
+using Wist.BlockLattice.Core;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -27,7 +28,7 @@ namespace Wist.Node.Core.Synchronization
     // need to implement logic with time limit for confirmation of retransmitted blocks, etc
     // what happens when consensus was not achieved
     [RegisterExtension(typeof(IBlocksHandler), Lifetime = Wist.Core.Architecture.Enums.LifetimeManagement.Singleton)]
-    public class SynchronizationBlocksHandler : IBlocksHandler, IRequiresCommunicationHub
+    public class SynchronizationBlocksHandler : IBlocksHandler
     {
         public const string NAME = "SynchronizationBlocksHandler";
         public const ushort TARGET_CONSENSUS_SIZE = 21;
@@ -39,10 +40,11 @@ namespace Wist.Node.Core.Synchronization
         private readonly IAccountState _accountState;
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly ICryptoService _cryptoService;
+        private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IIdentityKeyProvider _identityKeyProvider;
         private readonly INodesRatingProvider _nodesRatingProvider;
         private readonly INeighborhoodState _neighborhoodState;
-        private IServerCommunicationService _communicationHub;
+        private IServerCommunicationService _communicationService;
         private ulong _currentSyncBlockOrder;
 
         private readonly Dictionary<ulong, Dictionary<IKey, List<SynchronizationBlockRetransmissionV1>>> _synchronizationBlocksByHeight;
@@ -52,7 +54,7 @@ namespace Wist.Node.Core.Synchronization
         
 
         public SynchronizationBlocksHandler(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, 
-            ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, INodesRatingProviderFactory nodesRatingProvidersFactory)
+            ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, INodesRatingProviderFactory nodesRatingProvidersFactory, IServerCommunicationServicesRegistry communicationServicesRegistry)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _synchronizationProducer = synchronizationProducer;
@@ -61,11 +63,12 @@ namespace Wist.Node.Core.Synchronization
             _neighborhoodState = statesRepository.GetInstance<INeighborhoodState>();
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _cryptoService = cryptoService;
+            _communicationServicesRegistry = communicationServicesRegistry;
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
             _synchronizationBlocks = new BlockingCollection<SynchronizationBlockBase>();
             _retransmittedBlocks = new BlockingCollection<SynchronizationBlockRetransmissionV1>();
             _synchronizationBlocksByHeight = new Dictionary<ulong, Dictionary<IKey, List<SynchronizationBlockRetransmissionV1>>>();
-            _nodesRatingProvider = nodesRatingProvidersFactory.Create(PacketType.TransactionalChain);
+            _nodesRatingProvider = nodesRatingProvidersFactory.GetInstance(PacketType.TransactionalChain);
         }
 
         public string Name => NAME;
@@ -74,7 +77,9 @@ namespace Wist.Node.Core.Synchronization
 
         public void Initialize(CancellationToken ct)
         {
-            _currentSyncBlockOrder = _synchronizationContext.LastBlockDescriptor.BlockHeight;
+            _currentSyncBlockOrder = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
+            _communicationService = _communicationServicesRegistry.GetInstance("GenericTcp");
+
             Task.Factory.StartNew(() => {
                 ProcessBlocks(ct);
             }, ct, TaskCreationOptions.LongRunning, TaskScheduler.Current);
@@ -88,22 +93,11 @@ namespace Wist.Node.Core.Synchronization
         public void ProcessBlock(BlockBase blockBase)
         {
             SynchronizationBlockBase synchronizationBlock = blockBase as SynchronizationBlockBase;
-            SynchronizationConfirmedBlock synchronizationConfirmedBlock = blockBase as SynchronizationConfirmedBlock;
 
             if (synchronizationBlock != null && !_synchronizationBlocks.IsAddingCompleted)
             {
                 _synchronizationBlocks.TryAdd(synchronizationBlock);
             }
-            else if (synchronizationConfirmedBlock != null && _synchronizationContext.LastBlockDescriptor.BlockHeight < synchronizationConfirmedBlock.BlockHeight)
-            {
-                _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, synchronizationConfirmedBlock.HashPrev, synchronizationConfirmedBlock.ReportedTime, DateTime.Now, synchronizationConfirmedBlock.Round));
-                //_synchronizationProducer.DeferredBroadcast();
-            }
-        }
-
-        public void RegisterCommunicationHub(IServerCommunicationService communicationHub)
-        {
-            _communicationHub = communicationHub;
         }
 
         #region Private Functions
@@ -114,24 +108,24 @@ namespace Wist.Node.Core.Synchronization
 
             foreach (SynchronizationBlockBase synchronizationBlock in _synchronizationBlocks.GetConsumingEnumerable(ct))
             {
-                if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 > synchronizationBlock.BlockHeight)
+                ulong lastBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
+                if (lastBlockHeight + 1 > synchronizationBlock.BlockHeight)
                 {
                     continue;
                 }
-
 
                 if (synchronizationBlock is SynchronizationProducingBlock synchronizationProducingBlock)
                 {
                     int ratingPosition = _nodesRatingProvider.GetCandidateRating(_accountState.AccountKey);
 
-                    if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 == synchronizationProducingBlock.BlockHeight)
+                    if (lastBlockHeight + 1 == synchronizationProducingBlock.BlockHeight)
                     {
                         //RetransmitSynchronizationBlock(synchronizationBlockV1);
 
                         //TODO: this is temporary stub. Need replace with actual implementation after POC
                         if ((synchronizationProducingBlock.Round + 1) % _nodesRatingProvider.GetParticipantsCount() == ratingPosition)
                         {
-                            BroadcastConfirmation(synchronizationProducingBlock.BlockHeight, synchronizationProducingBlock.Round);
+                            BroadcastConfirmation(synchronizationProducingBlock.BlockHeight, synchronizationProducingBlock.Round, synchronizationProducingBlock.HashPrev, synchronizationProducingBlock.SyncBlockHeight, synchronizationProducingBlock.PowHash);
                         }
                     }
                     else
@@ -144,7 +138,7 @@ namespace Wist.Node.Core.Synchronization
                 {
                     _retransmittedBlocks.TryAdd(synchronizationBlockRetransmission);
 
-                    if (_synchronizationContext.LastBlockDescriptor.BlockHeight + 1 == synchronizationBlockRetransmission.BlockHeight)
+                    if (lastBlockHeight + 1 == synchronizationBlockRetransmission.BlockHeight)
                     {
 
                     }
@@ -179,18 +173,21 @@ namespace Wist.Node.Core.Synchronization
                 if(CheckSynchronizationCompleteConsensusAchieved(retransmittedBlock.BlockHeight))
                 {
                     //TODO: Round in retransmittedBlock is missing!
-                    BroadcastConfirmation(retransmittedBlock.BlockHeight, 0);
+                    BroadcastConfirmation(retransmittedBlock.BlockHeight, 0, retransmittedBlock.HashPrev, retransmittedBlock.SyncBlockHeight, retransmittedBlock.PowHash);
                 }
             }
         }
 
-        private void BroadcastConfirmation(ulong height, ushort round)
+        private void BroadcastConfirmation(ulong height, ushort round, byte[] prevHash, ulong syncBlockHeight, byte[] powValue)
         {
-            List<SynchronizationBlockRetransmissionV1> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height].Where(r => _nodeContext.SyncGroupParticipants.Any(p => p.Key == r.Key)).Select(kv => kv.Value.First()).OrderBy(s => s.ConfirmationPublicKey.ToHexString()).ToList();
+            //List<SynchronizationBlockRetransmissionV1> retransmittedSyncBlocks = _synchronizationBlocksByHeight[height].Where(r => _nodeContext.SyncGroupParticipants.Any(p => p.Key == r.Key)).Select(kv => kv.Value.First()).OrderBy(s => s.ConfirmationPublicKey.ToHexString()).ToList();
 
             SynchronizationConfirmedBlock synchronizationConfirmedBlock = new SynchronizationConfirmedBlock
             {
                 BlockHeight = height,
+                HashPrev = prevHash, //TODO: does not seems too secure
+                SyncBlockHeight = syncBlockHeight, //TODO: does not seems too secure
+                PowHash = powValue, //TODO: does not seems too secure
                 Round = round,
                 PublicKeys = new byte[0][],// retransmittedSyncBlocks.Select(b => b.ConfirmationPublicKey).ToArray(),
                 Signatures = new byte[0][] //retransmittedSyncBlocks.Select(b => b.ConfirmationSignature).ToArray()
@@ -198,7 +195,7 @@ namespace Wist.Node.Core.Synchronization
 
             ISignatureSupportSerializer confirmationBlockSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);
 
-            _communicationHub.PostMessage(_neighborhoodState.GetAllNeighbors(), confirmationBlockSerializer);
+            _communicationService.PostMessage(_neighborhoodState.GetAllNeighbors(), confirmationBlockSerializer);
         }
 
         private bool CheckSynchronizationCompleteConsensusAchieved(ulong height)
