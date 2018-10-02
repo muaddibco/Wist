@@ -81,7 +81,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Setup", "NodeSetup\Wis
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wist.Node.Core.Tests", "Tests\Wist.Node.Core.Tests\Wist.Node.Core.Tests.csproj", "{8BFD43BC-6DD8-4331-BFE4-B089B92A4A89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Crypto.Experiment", "..\Crypto\Wist.Crypto.Experiment\Wist.Crypto.Experiment.csproj", "{C262002E-F2ED-48B3-A4AC-947F43A9CB62}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wist.Crypto.Experiment", "..\Wist.Common\Crypto\Wist.Crypto.Experiment\Wist.Crypto.Experiment.csproj", "{C262002E-F2ED-48B3-A4AC-947F43A9CB62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
