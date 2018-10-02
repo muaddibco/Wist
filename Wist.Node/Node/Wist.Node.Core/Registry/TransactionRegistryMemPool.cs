@@ -13,6 +13,7 @@ using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
+using Wist.BlockLattice.Core;
 
 namespace Wist.Node.Core.Registry
 {
@@ -159,7 +160,10 @@ namespace Wist.Node.Core.Registry
 
                 //Dictionary<IKey, RegistryRegisterBlock> mutualValues = _transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight].Where(kvp => transactionsShortBlock.TransactionHeaderHashes.Values.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-                return bigIntegerSum.ToByteArray().Take(16).ToArray();
+                byte[] sumBytes = bigIntegerSum.ToByteArray().Take(Globals.TRANSACTION_KEY_HASH_SIZE).ToArray();
+                byte[] returnValue = new byte[Globals.TRANSACTION_KEY_HASH_SIZE];
+                Array.Copy(sumBytes, 0, returnValue, 0, sumBytes.Length);
+                return returnValue;
             }
         }
 

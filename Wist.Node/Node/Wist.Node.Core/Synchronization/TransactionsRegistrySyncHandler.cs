@@ -134,9 +134,12 @@ namespace Wist.Node.Core.Synchronization
 
             _syncRegistryMemPool.SetRound((byte)(roundDescriptor.Round + 1));
 
-            CreateAndDistributeConfirmationBlock(roundDescriptor, transactionsFullBlockMostConfident);
+            if (transactionsFullBlockMostConfident != null)
+            {
+                CreateAndDistributeConfirmationBlock(roundDescriptor, transactionsFullBlockMostConfident);
 
-            DistributeAndSaveFullBlock(transactionsFullBlockMostConfident);
+                DistributeAndSaveFullBlock(transactionsFullBlockMostConfident);
+            }
 
             CreateAndDistributeCombinedBlock(transactionsFullBlockMostConfident);
         }
@@ -145,14 +148,14 @@ namespace Wist.Node.Core.Synchronization
         {
             SynchronizationRegistryCombinedBlock lastCombinedBlock = (SynchronizationRegistryCombinedBlock)_synchronizationChainDataService.GetAllLastBlocksByType(BlockTypes.Synchronization_RegistryCombinationBlock).Single();
             byte[] prevHash = lastCombinedBlock != null ? CryptoHelper.ComputeHash(lastCombinedBlock.BodyBytes) : new byte[Globals.DEFAULT_HASH_SIZE];
-            byte[] fullBlockHash = CryptoHelper.ComputeHash(transactionsFullBlockMostConfident.BodyBytes);
+            byte[] fullBlockHash = CryptoHelper.ComputeHash(transactionsFullBlockMostConfident?.BodyBytes ?? new byte[Globals.DEFAULT_HASH_SIZE]);
 
             //TODO: For initial POC there will be only one participant at Synchronization Layer, thus combination of FullBlocks won't be implemented fully
             SynchronizationRegistryCombinedBlock synchronizationRegistryCombinedBlock = new SynchronizationRegistryCombinedBlock
             {
                 SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0,
                 PowHash = _powCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE]),
-                BlockHeight = _synchronizationContext.LastRegistrationBlockHeight++,
+                BlockHeight = _synchronizationContext.LastRegistrationCombinedBlockHeight + 1,
                 HashPrev = prevHash,
                 ReportedTime = DateTime.Now,
                 BlockHashes = new byte[][] { fullBlockHash }
@@ -165,6 +168,8 @@ namespace Wist.Node.Core.Synchronization
             _communicationService.PostMessage(storageLayerKeys, combinedBlockSerializer);
 
             _synchronizationChainDataService.Add(synchronizationRegistryCombinedBlock);
+
+            _synchronizationContext.LastRegistrationCombinedBlockHeight++;
         }
 
         private void DistributeAndSaveFullBlock(RegistryFullBlock transactionsFullBlockMostConfident)

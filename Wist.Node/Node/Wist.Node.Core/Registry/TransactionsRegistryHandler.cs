@@ -17,6 +17,8 @@ using Wist.Core.Configuration;
 using Wist.Core.HashCalculations;
 using Wist.Core.States;
 using Wist.Node.Core.Common;
+using Wist.BlockLattice.Core.Serializers;
+using Wist.Core.Synchronization;
 
 namespace Wist.Node.Core.Registry
 {
@@ -32,22 +34,31 @@ namespace Wist.Node.Core.Registry
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
         private readonly IRegistryMemPool _registryMemPool;
         private readonly IConfigurationService _configurationService;
+        private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly IRegistryGroupState _registryGroupState;
+        private readonly ISynchronizationContext _synchronizationContext;
         private readonly IHashCalculation _defaulHashCalculation;
+        private readonly IHashCalculation _powCalculation;
         private readonly INodeContext _nodeContext;
-        private IServerCommunicationService _communicationService;
+        private IServerCommunicationService _udpCommunicationService;
+        private IServerCommunicationService _tcpCommunicationService;
         private  Timer _timer;
 
-        public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, IHashCalculationsRepository hashCalculationRepository)
+        public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, 
+            IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, 
+            IHashCalculationsRepository hashCalculationRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
         {
             _registrationBlocks = new BlockingCollection<RegistryRegisterBlock>();
             _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _nodeContext = statesRepository.GetInstance<INodeContext>();
             _communicationServicesRegistry = communicationServicesRegistry;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
             _registryMemPool = registryMemPool;
             _configurationService = configurationService;
+            _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _defaulHashCalculation = hashCalculationRepository.Create(Globals.DEFAULT_HASH);
+            _powCalculation = hashCalculationRepository.Create(Globals.POW_TYPE);
 
             TransformBlock<RegistryShortBlock, RegistryConfidenceBlock> produceConfidenceBlock = new TransformBlock<RegistryShortBlock, RegistryConfidenceBlock>((Func<RegistryShortBlock, RegistryConfidenceBlock>)GetConfidence);
             ActionBlock<RegistryConfidenceBlock> sendConfidenceBlock = new ActionBlock<RegistryConfidenceBlock>((Action<RegistryConfidenceBlock>)SendConfidence);
@@ -64,7 +75,8 @@ namespace Wist.Node.Core.Registry
 
         public void Initialize(CancellationToken ct)
         {
-            _communicationService = _communicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().UdpServiceName);
+            _udpCommunicationService = _communicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().UdpServiceName);
+            _tcpCommunicationService = _communicationServicesRegistry.GetInstance(_configurationService.Get<IRegistryConfiguration>().TcpServiceName);
 
             Task.Factory.StartNew(() => {
                 ProcessBlocks(ct);
@@ -108,7 +120,7 @@ namespace Wist.Node.Core.Registry
                 if (isNew)
                 {
                     IPacketProvider packetProvider = _rawPacketProvidersFactory.Create(transactionRegisterBlock);
-                    _communicationService.PostMessage(_registryGroupState.GetAllNeighbors(), packetProvider);
+                    _udpCommunicationService.PostMessage(_registryGroupState.GetAllNeighbors(), packetProvider);
                 }
             }
         }
@@ -120,12 +132,12 @@ namespace Wist.Node.Core.Registry
 
         private RegistryConfidenceBlock GetConfidence(RegistryShortBlock transactionsShortBlock)
         {
-            byte[] bitMask;
-            byte[] proof = _registryMemPool.GetConfidenceMask(transactionsShortBlock, out bitMask);
+            byte[] proof = _registryMemPool.GetConfidenceMask(transactionsShortBlock, out byte[] bitMask);
 
             RegistryConfidenceBlock transactionsRegistryConfidenceBlock = new RegistryConfidenceBlock()
             {
                 SyncBlockHeight = transactionsShortBlock.SyncBlockHeight,
+                PowHash = _powCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE]),
                 BlockHeight = transactionsShortBlock.BlockHeight,
                 ReferencedBlockHash = _defaulHashCalculation.CalculateHash(transactionsShortBlock.BodyBytes),
                 BitMask = bitMask,
@@ -137,7 +149,8 @@ namespace Wist.Node.Core.Registry
 
         private void SendConfidence(RegistryConfidenceBlock transactionsRegistryConfidenceBlock)
         {
-
+            ISignatureSupportSerializer confidenceBlockSerializer = _signatureSupportSerializersFactory.Create(transactionsRegistryConfidenceBlock);
+            _tcpCommunicationService.PostMessage(_registryGroupState.SyncLayerNode, confidenceBlockSerializer);
         }
 
         private bool ValidateConfirmationBlock(RegistryConfirmationBlock confirmationBlock)

@@ -29,7 +29,7 @@ namespace Wist.Core.Synchronization
 
         public string Name => nameof(ISynchronizationContext);
 
-        public ulong LastRegistrationBlockHeight { get; set; }
+        public ulong LastRegistrationCombinedBlockHeight { get; set; }
 
         /// <summary>
         /// Utility function that returns median value from provided array

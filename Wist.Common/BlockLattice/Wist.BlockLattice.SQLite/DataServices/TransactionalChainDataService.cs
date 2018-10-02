@@ -45,7 +45,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
                 if(DoesChainExist(key))
                 {
-                    DataAccessService.Instance.AddTransactionalBlock(key, transactionalBlockBase.BlockType, transactionalBlockBase.BodyBytes.ToArray());
+                    DataAccessService.Instance.AddTransactionalBlock(key, transactionalBlockBase.BlockType, transactionalBlockBase.NonHeaderBytes.ToArray());
                 }
             }
         }

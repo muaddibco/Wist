@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Subjects;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks.Dataflow;
 using Wist.BlockLattice.Core;
@@ -115,8 +114,13 @@ namespace Wist.Node.Core.Synchronization
                 }
             }
 
-            IKey mostConfidentKey = roundDescriptor.CandidateVotes.OrderByDescending(kv => (double)kv.Value / (double)roundDescriptor.CandidateBlocks[kv.Key].TransactionHeaders.Count).First().Key;
-            RegistryFullBlock transactionsFullBlockMostConfident = roundDescriptor.CandidateBlocks[mostConfidentKey];
+            RegistryFullBlock transactionsFullBlockMostConfident = null;
+
+            if (roundDescriptor.CandidateVotes?.Count > 0 )
+            {
+                IKey mostConfidentKey = roundDescriptor.CandidateVotes.OrderByDescending(kv => (double)kv.Value / (double)roundDescriptor.CandidateBlocks[kv.Key].TransactionHeaders.Count).First().Key;
+                transactionsFullBlockMostConfident = roundDescriptor.CandidateBlocks[mostConfidentKey];
+            }
 
             return transactionsFullBlockMostConfident;
         }
