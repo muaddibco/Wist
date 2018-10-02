@@ -17,8 +17,6 @@ namespace Wist.Node.Core.Synchronization
 
         void AddVotingBlock(RegistryConfidenceBlock confidenceBlock);
 
-        void SetRound(byte round);
-
-        RegistryFullBlock GetMostConfidentFullBlock();
+        RegistryFullBlock GetMostConfidentFullBlock(RoundDescriptor roundDescriptor);
     }
 }

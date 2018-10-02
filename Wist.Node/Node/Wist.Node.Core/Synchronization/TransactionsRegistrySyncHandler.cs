@@ -105,7 +105,6 @@ namespace Wist.Node.Core.Synchronization
 
         private void SynchronizationStateChanged(string propName)
         {
-            _syncRegistryMemPool.SetRound(1);
         }
 
         private void ProcessBlocks(CancellationToken ct)
@@ -130,9 +129,7 @@ namespace Wist.Node.Core.Synchronization
         // 3. It will be created Combined Block that will hold information about winning Transactions Registry Block 
         private void RoundEndedHandler(RoundDescriptor roundDescriptor)
         {
-            RegistryFullBlock transactionsFullBlockMostConfident = _syncRegistryMemPool.GetMostConfidentFullBlock();
-
-            _syncRegistryMemPool.SetRound((byte)(roundDescriptor.Round + 1));
+            RegistryFullBlock transactionsFullBlockMostConfident = _syncRegistryMemPool.GetMostConfidentFullBlock(roundDescriptor);
 
             if (transactionsFullBlockMostConfident != null)
             {
@@ -192,7 +189,7 @@ namespace Wist.Node.Core.Synchronization
                 ReferencedBlockHash = transactionsFullBlockMostConfident.ShortBlockHash
             };
 
-            ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound(roundDescriptor.Round);
+            ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound((int)roundDescriptor.Round);
             ISignatureSupportSerializer registryConfirmationBlockSerializer = _signatureSupportSerializersFactory.Create(registryConfirmationBlock);
 
             _communicationService.PostMessage(_syncRegistryNeighborhoodState.GetAllNeighbors(), registryConfirmationBlockSerializer);

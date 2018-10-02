@@ -9,21 +9,25 @@ namespace Wist.Node.Core.Synchronization
     {
         private readonly IIdentityKeyProvider _identityKeyProvider;
 
-        public RoundDescriptor(Timer timer, IIdentityKeyProvider identityKeyProvider)
+        public RoundDescriptor(IIdentityKeyProvider identityKeyProvider)
         {
             CandidateBlocks = new Dictionary<IKey, RegistryFullBlock>();
             CandidateVotes = new Dictionary<IKey, int>();
             VotingBlocks = new HashSet<RegistryConfidenceBlock>();
-            Timer = timer;
             _identityKeyProvider = identityKeyProvider;
         }
         
-        public byte Round { get; set; }
+        public ulong Round { get; set; }
         public Dictionary<IKey, RegistryFullBlock> CandidateBlocks { get; }
         public Dictionary<IKey, int> CandidateVotes { get; }
         public HashSet<RegistryConfidenceBlock> VotingBlocks { get; }
-        public Timer Timer { get; }
+        public Timer Timer { get; private set; }
         public bool IsFinished { get; set; }
+
+        public void SetTimer(Timer timer)
+        {
+            Timer = timer;
+        }
 
         public void AddFullBlock(RegistryFullBlock registryFullBlock)
         {

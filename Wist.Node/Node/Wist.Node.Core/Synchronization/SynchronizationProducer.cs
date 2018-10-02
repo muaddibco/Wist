@@ -54,51 +54,53 @@ namespace Wist.Node.Core.Synchronization
                 return;
             }
 
-            if(_synchronizationContext.LastBlockDescriptor == null || _synchronizationContext.LastBlockDescriptor.BlockHeight >= _lastLaunchedSyncBlockOrder)
+            //if (_synchronizationContext.LastBlockDescriptor != null && _synchronizationContext.LastBlockDescriptor.BlockHeight - 1 > _lastLaunchedSyncBlockOrder)
+            //{
+            //    _syncProducingCancellation?.Cancel();
+            //    _syncProducingCancellation = null;
+            //}
+
+            _syncProducingCancellation = new CancellationTokenSource();
+
+            int delay = Math.Max((int)(60000 * round - (DateTime.Now - (_synchronizationContext.LastBlockDescriptor?.UpdateTime ?? DateTime.Now)).TotalMilliseconds), 0);
+
+            if (delay > 0)
             {
-                if(_synchronizationContext.LastBlockDescriptor != null &&_synchronizationContext.LastBlockDescriptor.BlockHeight - 1 > _lastLaunchedSyncBlockOrder)
-                {
-                    _syncProducingCancellation?.Cancel();
-                    _syncProducingCancellation = null;
-                }
-
-                _syncProducingCancellation = new CancellationTokenSource();
-
-                int delay = Math.Max((int)(60000 * round - (DateTime.Now - (_synchronizationContext.LastBlockDescriptor?.UpdateTime ?? DateTime.Now)).TotalMilliseconds), 0);
-
-                if (delay > 0)
-                {
-                    Task.Delay(delay, _syncProducingCancellation.Token)
-                        .ContinueWith(t =>
+                Task.Delay(delay, _syncProducingCancellation.Token)
+                    .ContinueWith(t =>
+                    {
+                        try
                         {
-                            try
+                            SynchronizationDescriptor synchronizationDescriptor = _synchronizationContext.LastBlockDescriptor;
+
+                            SynchronizationProducingBlock synchronizationBlock = new SynchronizationProducingBlock
                             {
-                                SynchronizationDescriptor synchronizationDescriptor = _synchronizationContext.LastBlockDescriptor;
+                                SyncBlockHeight = synchronizationDescriptor?.BlockHeight ?? 0,
+                                BlockHeight = (synchronizationDescriptor?.BlockHeight ?? 0) + 1,
+                                ReportedTime = synchronizationDescriptor?.MedianTime.AddMinutes(1) ?? DateTime.Now,
+                                Round = round,
+                                HashPrev = _synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE],
+                                PowHash = _proofOfWorkCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE])
+                            };
 
-                                SynchronizationProducingBlock synchronizationBlock = new SynchronizationProducingBlock
-                                {
-                                    SyncBlockHeight = synchronizationDescriptor?.BlockHeight ?? 0,
-                                    BlockHeight = (synchronizationDescriptor?.BlockHeight ?? 0) + 1,
-                                    ReportedTime = synchronizationDescriptor?.MedianTime.AddMinutes(1) ?? DateTime.Now,
-                                    Round = round,
-                                    HashPrev = _synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE],
-                                    PowHash = _proofOfWorkCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE])
-                                };
-
-                                using (ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock))
-                                {
-                                    _communicationService.PostMessage(_synchronizationGroupState.GetAllNeighbors(), signatureSupportSerializer);
-                                    _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
-                                }
-                            }
-                            finally
+                            using (ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock))
                             {
-                                onBroadcasted.Invoke();
+                                _communicationService.PostMessage(_synchronizationGroupState.GetAllNeighbors(), signatureSupportSerializer);
+                                _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;
                             }
+                        }
+                        finally
+                        {
+                            onBroadcasted.Invoke();
+                        }
 
-                        }, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
-                }
+                    }, _syncProducingCancellation.Token, TaskContinuationOptions.NotOnCanceled, TaskScheduler.Current);
             }
+        }
+
+        public void CancelDeferredBroadcast()
+        {
+            _syncProducingCancellation?.Cancel();
         }
     }
 }

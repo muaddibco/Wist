@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
@@ -131,33 +130,48 @@ namespace Wist.BlockLattice.Core.Handlers
                 return false;
             }
 
-            foreach (ICoreVerifier coreVerifier in _coreVerifiers)
+            try
             {
-                if(!coreVerifier.VerifyBlock(blockBase))
+                foreach (ICoreVerifier coreVerifier in _coreVerifiers)
                 {
-                    return false;
+                    if (!coreVerifier.VerifyBlock(blockBase))
+                    {
+                        return false;
+                    }
                 }
+
+                IPacketVerifier packetVerifier = _chainTypeValidationHandlersFactory.GetInstance(blockBase.PacketType);
+
+                bool res = packetVerifier?.ValidatePacket(blockBase) ?? true;
+
+                _endToEndCountersService.CoreValidationThroughput.Increment();
+
+                return res;
             }
-
-            IPacketVerifier packetVerifier = _chainTypeValidationHandlersFactory.GetInstance(blockBase.PacketType);
-
-            bool res = packetVerifier?.ValidatePacket(blockBase) ?? true;
-
-            _endToEndCountersService.CoreValidationThroughput.Increment();
-
-            return res;
+            catch (Exception ex)
+            {
+                _log.Error($"Failed to validate block {blockBase.RawData.ToHexString()}", ex);
+                return false;
+            }
         }
 
         private void DispatchBlock(BlockBase block)
         {
             if (block != null)
             {
-                IEnumerable<IBlocksHandler> blocksProcessors = _blocksHandlersRegistry.GetBulkInstances(block.PacketType);
+                try
+                {
+                    IEnumerable<IBlocksHandler> blocksProcessors = _blocksHandlersRegistry.GetBulkInstances(block.PacketType);
 
-                //TODO: weigh to check whether number of processors is greater than 1 before parallelizing for sake of performance
-                blocksProcessors.AsParallel().ForAll(p => p.ProcessBlock(block));
+                    //TODO: weigh to check whether number of processors is greater than 1 before parallelizing for sake of performance
+                    blocksProcessors.AsParallel().ForAll(p => p.ProcessBlock(block));
 
-                _endToEndCountersService.DispatchThroughput.Increment();
+                    _endToEndCountersService.DispatchThroughput.Increment();
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Failed to dispatch block {block.RawData.ToHexString()}", ex);
+                }
             }
         }
     }
