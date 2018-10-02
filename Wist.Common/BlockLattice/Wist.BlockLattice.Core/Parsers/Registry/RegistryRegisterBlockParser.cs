@@ -23,13 +23,13 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
         public override PacketType PacketType => PacketType.Registry;
 
-        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
+        protected override Memory<byte> ParseSynced(ushort version, Memory<byte> spanBody, out SyncedBlockBase syncedBlockBase)
         {
             if (version == 1)
             {
-                PacketType referencedPacketType = (PacketType)BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
-                ushort referencedBlockType = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2));
-                ulong referencedBlockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Slice(4));
+                PacketType referencedPacketType = (PacketType)BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span);
+                ushort referencedBlockType = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span.Slice(2));
+                ulong referencedBlockHeight = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Span.Slice(4));
                 byte[] referencedBlockHash = spanBody.Slice(12, Globals.DEFAULT_HASH_SIZE).ToArray();
                 byte[] referencedTargetHash = spanBody.Slice(12 + Globals.DEFAULT_HASH_SIZE, Globals.DEFAULT_HASH_SIZE).ToArray();
                 RegistryRegisterBlock transactionRegisterBlock = new RegistryRegisterBlock

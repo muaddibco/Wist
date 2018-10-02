@@ -24,6 +24,7 @@ namespace Wist.Crypto
         public IKey Key { get; private set; }
 
         public byte[] ComputeTransactionKey(byte[] bytes) => _hashCalculation.CalculateHash(bytes);
+        public byte[] ComputeTransactionKey(Memory<byte> bytes) => _hashCalculation.CalculateHash(bytes);
 
         public void Initialize(byte[] privateKey)
         {
@@ -32,8 +33,7 @@ namespace Wist.Crypto
                 throw new ArgumentNullException(nameof(privateKey));
             }
 
-            byte[] publicKey;
-            Ed25519.KeyPairFromSeed(out publicKey, out _expandedPrivateKey, privateKey);
+            Ed25519.KeyPairFromSeed(out byte[] publicKey, out _expandedPrivateKey, privateKey);
 
             Key = _identityKeyProvider.GetKey(publicKey);
         }

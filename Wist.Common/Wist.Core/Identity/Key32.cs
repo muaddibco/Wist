@@ -1,4 +1,5 @@
-﻿using Wist.Core.ExtensionMethods;
+﻿using System;
+using Wist.Core.ExtensionMethods;
 
 namespace Wist.Core.Identity
 {
@@ -12,7 +13,7 @@ namespace Wist.Core.Identity
 
         }
 
-        public Key32(byte[] value)
+        public Key32(Memory<byte> value)
         {
             Value = value;
         }
@@ -20,7 +21,7 @@ namespace Wist.Core.Identity
         /// <summary>
         /// Byte array of length of 32 bytes
         /// </summary>
-        public byte[] Value { get; set; } //TODO: need to add length check at setter
+        public Memory<byte> Value { get; set; } //TODO: need to add length check at setter
 
         public int Length => 32;
 
@@ -34,7 +35,7 @@ namespace Wist.Core.Identity
             Key32 pk1 = x as Key32;
             Key32 pk2 = y as Key32;
 
-            if(pk1 == null || pk2 == null)
+            if (pk1 == null || pk2 == null)
             {
                 return false;
             }
@@ -64,12 +65,12 @@ namespace Wist.Core.Identity
 
         public bool Equals(IKey other)
         {
-            if(other == null)
+            if (other == null)
             {
                 return false;
             }
 
             return Value.Equals32(other.Value);
         }
-    }
+   }
 }

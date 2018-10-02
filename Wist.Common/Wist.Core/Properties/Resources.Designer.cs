@@ -106,6 +106,15 @@ namespace Wist.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to marshal argument &apos;{0}&apos; to byte array.
+        /// </summary>
+        internal static string ERR_FAILED_TO_MARCHAL_TO_BYTE_ARRAY {
+            get {
+                return ResourceManager.GetString("ERR_FAILED_TO_MARCHAL_TO_BYTE_ARRAY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hash algorithm &apos;{0}&apos; is not supported.
         /// </summary>
         internal static string ERR_HASH_ALGORITHM_NOT_SUPPORTED {

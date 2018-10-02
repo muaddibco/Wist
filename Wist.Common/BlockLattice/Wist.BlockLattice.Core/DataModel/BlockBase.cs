@@ -19,13 +19,13 @@ namespace Wist.BlockLattice.Core.DataModel
         /// <summary>
         /// Bytes of packet (without signature and public key)
         /// </summary>
-        public byte[] BodyBytes { get; set; }
+        public Memory<byte> BodyBytes { get; set; }
 
-        public abstract byte[] NonHeaderBytes { get; }
+        public Memory<byte> NonHeaderBytes { get; set; }
 
         /// <summary>
         /// All bytes of packet (without DLE + STX and length)
         /// </summary>
-        public byte[] RawData { get; set; }
+        public Memory<byte> RawData { get; set; }
     }
 }

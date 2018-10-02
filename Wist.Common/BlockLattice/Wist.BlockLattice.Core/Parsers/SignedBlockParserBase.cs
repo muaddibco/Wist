@@ -17,22 +17,21 @@ namespace Wist.BlockLattice.Core.Parsers
             _signerIdentityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }
 
-        protected override BlockBase ParseBlockBase(ushort version, Span<byte> spanBody)
+        protected override BlockBase ParseBlockBase(ushort version, Memory<byte> spanBody)
         {
-            SignedBlockBase signedBlockBase;
-            Span<byte> spanPostBody = ParseSigned(version, spanBody, out signedBlockBase);
+            Memory<byte> spanPostBody = ParseSigned(version, spanBody, out SignedBlockBase signedBlockBase);
 
-            signedBlockBase.Signature = spanPostBody.Slice(0, Globals.SIGNATURE_SIZE).ToArray();
-            signedBlockBase.Signer = _signerIdentityKeyProvider.GetKey(spanPostBody.Slice(Globals.SIGNATURE_SIZE, Globals.NODE_PUBLIC_KEY_SIZE).ToArray());
+            signedBlockBase.Signature = spanPostBody.Slice(0, Globals.SIGNATURE_SIZE);
+            signedBlockBase.Signer = _signerIdentityKeyProvider.GetKey(spanPostBody.Slice(Globals.SIGNATURE_SIZE, Globals.NODE_PUBLIC_KEY_SIZE));
 
             return signedBlockBase;
         }
 
-        protected override byte[] GetBodyBytes(Span<byte> spanBody)
+        protected override Memory<byte> GetBodyBytes(Memory<byte> spanBody)
         {
-            return spanBody.Slice(0, spanBody.Length - Globals.SIGNATURE_SIZE - Globals.NODE_PUBLIC_KEY_SIZE).ToArray();
+            return spanBody.Slice(0, spanBody.Length - Globals.SIGNATURE_SIZE - Globals.NODE_PUBLIC_KEY_SIZE);
         }
 
-        protected abstract Span<byte> ParseSigned(ushort version, Span<byte> spanBody, out SignedBlockBase signedBlockBase);
+        protected abstract Memory<byte> ParseSigned(ushort version, Memory<byte> spanBody, out SignedBlockBase signedBlockBase);
     }
 }

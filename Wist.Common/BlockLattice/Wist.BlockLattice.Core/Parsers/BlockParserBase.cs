@@ -24,7 +24,7 @@ namespace Wist.BlockLattice.Core.Parsers
 
         public virtual BlockBase ParseBody(byte[] blockBody)
         {
-            Span<byte> span = new Span<byte>(blockBody);
+            Memory<byte> span = new Memory<byte>(blockBody);
 
             BlockBase blockBase = ParseBody(span);
 
@@ -33,48 +33,48 @@ namespace Wist.BlockLattice.Core.Parsers
 
         public virtual BlockBase Parse(byte[] source)
         {
-            Span<byte> span = new Span<byte>(source);
-            
-            Span<byte> spanHeader;
-            Span<byte> spanBody = SliceInitialBytes(span, out spanHeader);
+            Memory<byte> sourceMemory = new Memory<byte>(source);
+
+            Memory<byte> spanBody = SliceInitialBytes(sourceMemory, out Memory<byte> spanHeader);
 
             BlockBase blockBase = ParseBody(spanBody);
 
-            FillBlockBaseHeader(blockBase, spanHeader);
+            blockBase.RawData = sourceMemory;
 
-            blockBase.RawData = source;
+            FillBlockBaseHeader(blockBase, spanHeader);
 
             return blockBase;
         }
 
-        private BlockBase ParseBody(Span<byte> spanBody)
+        private BlockBase ParseBody(Memory<byte> spanBody)
         {
-            ushort version = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
-            ushort messageType = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2));
+            ushort version = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span);
+            ushort messageType = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span.Slice(2));
             BlockBase blockBase = ParseBlockBase(version, spanBody.Slice(4));
 
             blockBase.BodyBytes = GetBodyBytes(spanBody);
+            blockBase.NonHeaderBytes = spanBody;
 
             return blockBase;
         }
 
-        protected virtual byte[] GetBodyBytes(Span<byte> spanBody)
+        protected virtual Memory<byte> GetBodyBytes(Memory<byte> spanBody)
         {
-            return spanBody.ToArray();
+            return spanBody;
         }
 
-        protected virtual Span<byte> SliceInitialBytes(Span<byte> span, out Span<byte> spanHeader)
+        protected virtual Memory<byte> SliceInitialBytes(Memory<byte> span, out Memory<byte> spanHeader)
         {
             spanHeader = span.Slice(0, 2);
 
             return span.Slice(2);
         }
 
-        protected abstract BlockBase ParseBlockBase(ushort version, Span<byte> spanBody);
+        protected abstract BlockBase ParseBlockBase(ushort version, Memory<byte> spanBody);
 
-        protected virtual Span<byte> FillBlockBaseHeader(BlockBase blockBase, Span<byte> spanHeader)
+        protected virtual Memory<byte> FillBlockBaseHeader(BlockBase blockBase, Memory<byte> spanHeader)
         {
-            PacketType packetType = (PacketType)BinaryPrimitives.ReadUInt16LittleEndian(spanHeader);
+            PacketType packetType = (PacketType)BinaryPrimitives.ReadUInt16LittleEndian(spanHeader.Span);
 
             return spanHeader.Slice(2);
         }

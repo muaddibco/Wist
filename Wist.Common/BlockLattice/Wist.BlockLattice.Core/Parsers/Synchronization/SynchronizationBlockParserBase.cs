@@ -20,12 +20,11 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 
         public override PacketType PacketType => PacketType.Synchronization;
 
-        protected override Span<byte> ParseSyncLinked(ushort version, Span<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase)
+        protected override Memory<byte> ParseSyncLinked(ushort version, Memory<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase)
         {
-            DateTime dateTime = DateTime.FromBinary(BinaryPrimitives.ReadInt64LittleEndian(spanBody));
+            DateTime dateTime = DateTime.FromBinary(BinaryPrimitives.ReadInt64LittleEndian(spanBody.Span));
 
-            SynchronizationBlockBase synchronizationBlockBase;
-            Span<byte> spanPostBody = ParseSynchronization(version, spanBody.Slice(8), out synchronizationBlockBase);
+            Memory<byte> spanPostBody = ParseSynchronization(version, spanBody.Slice(8), out SynchronizationBlockBase synchronizationBlockBase);
             synchronizationBlockBase.ReportedTime = dateTime;
 
             syncedBlockBase = synchronizationBlockBase;
@@ -33,6 +32,6 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
             return spanPostBody;
         }
 
-        protected abstract Span<byte> ParseSynchronization(ushort version, Span<byte> spanBody, out SynchronizationBlockBase synchronizationBlockBase);
+        protected abstract Memory<byte> ParseSynchronization(ushort version, Memory<byte> spanBody, out SynchronizationBlockBase synchronizationBlockBase);
     }
 }

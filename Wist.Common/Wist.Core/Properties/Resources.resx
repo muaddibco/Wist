@@ -132,6 +132,9 @@
   <data name="ERR_FAILED_TO_INITIALIZE_COUNTER" xml:space="preserve">
     <value>Failed to initialize counter '{0}' from category '{1}'.</value>
   </data>
+  <data name="ERR_FAILED_TO_MARCHAL_TO_BYTE_ARRAY" xml:space="preserve">
+    <value>Failed to marshal argument '{0}' to byte array</value>
+  </data>
   <data name="ERR_HASH_ALGORITHM_NOT_SUPPORTED" xml:space="preserve">
     <value>Hash algorithm '{0}' is not supported</value>
   </data>

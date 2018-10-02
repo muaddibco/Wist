@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices;
+using Wist.Core.Exceptions;
 
 namespace Wist.Core.ExtensionMethods
 {
-    public static class ByteArrayExtensionMethods
+    public static class MemoryExtensionMethods
     {
         private static readonly uint[] _lookup32Unsafe = CreateLookup32Unsafe();
         private static readonly unsafe uint* _lookup32UnsafeP = (uint*)GCHandle.Alloc(_lookup32Unsafe, GCHandleType.Pinned).AddrOfPinnedObject();
@@ -26,25 +24,29 @@ namespace Wist.Core.ExtensionMethods
             return result;
         }
 
-        public static unsafe string ToHexString(this byte[] arr, int offset = 0, int length = 0)
+        public static unsafe string ToHexString(this Memory<byte> arr, int offset = 0, int length = 0)
         {
-            if (arr != null)
+            if (!MemoryMarshal.TryGetArray(arr, out ArraySegment<byte> byteArray))
             {
-                var arrLength = (length == 0 ? arr.Length : length);
-                var lookupP = _lookup32UnsafeP;
-                var result = new char[arrLength * 2];
-                fixed (byte* bytesP = arr)
+                throw new FailedToMarshalToByteArrayException(nameof(arr));
+            }
+
+            var arrLength = (length == 0 ? arr.Length : length);
+            var lookupP = _lookup32UnsafeP;
+            var result = new char[arrLength * 2];
+            fixed (byte* bytesP = byteArray.Array)
+            {
+                byte* bytesP1 = bytesP + byteArray.Offset;
                 fixed (char* resultP = result)
                 {
                     uint* resultP2 = (uint*)resultP;
                     for (int i = 0; i < arrLength; i++)
                     {
-                        resultP2[i] = lookupP[bytesP[i + offset]];
+                        resultP2[i] = lookupP[bytesP1[i + offset]];
                     }
                 }
-                return new string(result);
             }
-            return null;
+            return new string(result);
         }
 
         /// <summary>
@@ -54,29 +56,33 @@ namespace Wist.Core.ExtensionMethods
         /// <param name="b"></param>
         /// <returns></returns>
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
-        public static unsafe bool EqualsX16(this byte[] a, byte[] b)
+        public static unsafe bool EqualsX16(this Memory<byte> a, Memory<byte> b)
         {
-            if (a == null)
-                throw new ArgumentNullException(nameof(a));
-
-            if (b == null)
-                throw new ArgumentNullException(nameof(b));
-
-            if (a.Length % 16 != 0 || b.Length % 16 != 0)
-                throw new ArgumentOutOfRangeException("EqualsX16 can check only sizes of hash values multiple of 16");
-
             int length = a.Length;
             if (length != b.Length)
             {
                 return false;
             }
 
-            fixed (byte* a1 = a)
+            if (!MemoryMarshal.TryGetArray(a, out ArraySegment<byte> byteArrayA))
             {
-                byte* pa1 = a1;
-                fixed (byte* b1 = b)
+                throw new FailedToMarshalToByteArrayException(nameof(a));
+            }
+
+            if (!MemoryMarshal.TryGetArray(b, out ArraySegment<byte> byteArrayB))
+            {
+                throw new FailedToMarshalToByteArrayException(nameof(b));
+            }
+
+            if (byteArrayA.Count % 16 != 0)
+                throw new ArgumentOutOfRangeException("EqualsX16 can check only sizes of hash values multiple of 16");
+
+            fixed (byte* a1 = byteArrayA.Array)
+            {
+                byte* pa1 = a1 + byteArrayA.Offset;
+                fixed (byte* b1 = byteArrayB.Array)
                 {
-                    byte* pb1 = b1;
+                    byte* pb1 = b1 + byteArrayB.Offset;
                     byte* pa1_1 = pa1;
                     byte* pb1_1 = pb1;
                     while (length >= 0)
@@ -101,29 +107,27 @@ namespace Wist.Core.ExtensionMethods
         /// <param name="b"></param>
         /// <returns></returns>
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
-        public static unsafe bool Equals24(this byte[] a, byte[] b)
+        public static unsafe bool Equals24(this Memory<byte> a, Memory<byte> b)
         {
-            if (a == null)
-                throw new ArgumentNullException(nameof(a));
-
-            if (b == null)
-                throw new ArgumentNullException(nameof(b));
-
             if (a.Length != 24 || b.Length != 24)
-                throw new ArgumentOutOfRangeException($"{nameof(Equals24)} can check only sizes of hash values multiple of 24");
+                throw new ArgumentOutOfRangeException("Equals24 can check only sizes of hash values multiple of 24");
 
-            int length = a.Length;
-            if (length != b.Length)
+            if (!MemoryMarshal.TryGetArray(a, out ArraySegment<byte> byteArrayA))
             {
-                return false;
+                throw new FailedToMarshalToByteArrayException(nameof(a));
             }
 
-            fixed (byte* a1 = a)
+            if (!MemoryMarshal.TryGetArray(b, out ArraySegment<byte> byteArrayB))
             {
-                byte* pa1 = a1;
-                fixed (byte* b1 = b)
+                throw new FailedToMarshalToByteArrayException(nameof(b));
+            }
+
+            fixed (byte* a1 = byteArrayA.Array)
+            {
+                byte* pa1 = a1 + byteArrayA.Offset;
+                fixed (byte* b1 = byteArrayB.Array)
                 {
-                    byte* pb1 = b1;
+                    byte* pb1 = b1 + byteArrayB.Offset;
                     long* pla1 = (long*)pa1;
                     long* pla2 = (long*)(pa1 + 8);
                     long* pla3 = (long*)(pa1 + 16);
@@ -145,29 +149,27 @@ namespace Wist.Core.ExtensionMethods
         /// <param name="b"></param>
         /// <returns></returns>
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
-        public static unsafe bool Equals32(this byte[] a, byte[] b)
+        public static unsafe bool Equals32(this Memory<byte> a, Memory<byte> b)
         {
-            if (a == null)
-                throw new ArgumentNullException(nameof(a));
-
-            if (b == null)
-                throw new ArgumentNullException(nameof(b));
-
             if (a.Length != 32 || b.Length != 32)
                 throw new ArgumentOutOfRangeException($"{nameof(Equals32)} can check only sizes of hash values of 32 bytes");
 
-            int length = a.Length;
-            if (length != b.Length)
+            if (!MemoryMarshal.TryGetArray(a, out ArraySegment<byte> byteArrayA))
             {
-                return false;
+                throw new FailedToMarshalToByteArrayException(nameof(a));
             }
 
-            fixed (byte* a1 = a)
+            if (!MemoryMarshal.TryGetArray(b, out ArraySegment<byte> byteArrayB))
             {
-                byte* pa1 = a1;
-                fixed (byte* b1 = b)
+                throw new FailedToMarshalToByteArrayException(nameof(b));
+            }
+
+            fixed (byte* a1 = byteArrayA.Array)
+            {
+                byte* pa1 = a1 + byteArrayA.Offset;
+                fixed (byte* b1 = byteArrayB.Array)
                 {
-                    byte* pb1 = b1;
+                    byte* pb1 = b1 + byteArrayB.Offset;
                     long* pla1 = (long*)pa1;
                     long* pla2 = (long*)(pa1 + 8);
                     long* pla3 = (long*)(pa1 + 16);
@@ -192,29 +194,27 @@ namespace Wist.Core.ExtensionMethods
         /// <param name="b"></param>
         /// <returns></returns>
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
-        public static unsafe bool Equals64(this byte[] a, byte[] b)
+        public static unsafe bool Equals64(this Memory<byte> a, Memory<byte> b)
         {
-            if (a == null)
-                throw new ArgumentNullException(nameof(a));
-
-            if (b == null)
-                throw new ArgumentNullException(nameof(b));
-
             if (a.Length != 64 || b.Length != 64)
                 throw new ArgumentOutOfRangeException($"{nameof(Equals64)} can check only sizes of hash values of 64 bytes");
 
-            int length = a.Length;
-            if (length != b.Length)
+            if (!MemoryMarshal.TryGetArray(a, out ArraySegment<byte> byteArrayA))
             {
-                return false;
+                throw new FailedToMarshalToByteArrayException(nameof(a));
             }
 
-            fixed (byte* a1 = a)
+            if (!MemoryMarshal.TryGetArray(b, out ArraySegment<byte> byteArrayB))
             {
-                byte* pa1 = a1;
-                fixed (byte* b1 = b)
+                throw new FailedToMarshalToByteArrayException(nameof(b));
+            }
+
+            fixed (byte* a1 = byteArrayA.Array)
+            {
+                byte* pa1 = a1 + byteArrayA.Offset;
+                fixed (byte* b1 = byteArrayB.Array)
                 {
-                    byte* pb1 = b1;
+                    byte* pb1 = b1 + byteArrayB.Offset;
                     long* pla1 = (long*)pa1;
                     long* pla2 = (long*)(pa1 + 8);
                     long* pla3 = (long*)(pa1 + 16);
@@ -245,22 +245,28 @@ namespace Wist.Core.ExtensionMethods
         }
 
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
-        public static unsafe int GetHashCode16(this byte[] data)
+        public static unsafe int GetHashCode16(this Memory<byte> data)
         {
             if (data.Length != 16)
                 throw new ArgumentOutOfRangeException($"{nameof(GetHashCode16)} can work with byte arrays of length of 16 bytes only");
 
-            fixed (byte* a = data)
+            if (!MemoryMarshal.TryGetArray(data, out ArraySegment<byte> byteArray))
             {
+                throw new FailedToMarshalToByteArrayException(nameof(data));
+            }
+
+            fixed (byte* a = byteArray.Array)
+            {
+                byte* a_1 = a + byteArray.Offset;
                 unchecked
                 {
                     const int p = 16777619;
                     int hash = (int)2166136261;
 
-                    int* a1 = (int*)a;
-                    int* a2 = (int*)(a + 4);
-                    int* a3 = (int*)(a + 8);
-                    int* a4 = (int*)(a + 12);
+                    int* a1 = (int*)a_1;
+                    int* a2 = (int*)(a_1 + 4);
+                    int* a3 = (int*)(a_1 + 8);
+                    int* a4 = (int*)(a_1 + 12);
 
                     hash = (hash ^ *a1) * p;
                     hash = (hash ^ *a2) * p;
@@ -276,28 +282,34 @@ namespace Wist.Core.ExtensionMethods
                 }
             }
         }
-        
+
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
-        public static unsafe int GetHashCode32(this byte[] data)
+        public static unsafe int GetHashCode32(this Memory<byte> data)
         {
             if (data.Length != 32)
-                throw new ArgumentOutOfRangeException("GetHashCode32 can work with byte arrays of length of 32 bytes only");
+                throw new ArgumentOutOfRangeException($"{nameof(GetHashCode32)} can work with byte arrays of length of 32 bytes only");
 
-            fixed (byte* a = data)
+            if (!MemoryMarshal.TryGetArray(data, out ArraySegment<byte> byteArray))
             {
+                throw new FailedToMarshalToByteArrayException(nameof(data));
+            }
+
+            fixed (byte* a = byteArray.Array)
+            {
+                byte* a_1 = a + byteArray.Offset;
                 unchecked
                 {
                     const int p = 16777619;
                     int hash = (int)2166136261;
 
-                    int* a1 = (int*)a;
-                    int* a2 = (int*)(a + 4);
-                    int* a3 = (int*)(a + 8);
-                    int* a4 = (int*)(a + 12);
-                    int* a5 = (int*)(a + 16);
-                    int* a6 = (int*)(a + 20);
-                    int* a7 = (int*)(a + 24);
-                    int* a8 = (int*)(a + 28);
+                    int* a1 = (int*)a_1;
+                    int* a2 = (int*)(a_1 + 4);
+                    int* a3 = (int*)(a_1 + 8);
+                    int* a4 = (int*)(a_1 + 12);
+                    int* a5 = (int*)(a_1 + 16);
+                    int* a6 = (int*)(a_1 + 20);
+                    int* a7 = (int*)(a_1 + 24);
+                    int* a8 = (int*)(a_1 + 28);
 
                     hash = (hash ^ *a1) * p;
                     hash = (hash ^ *a2) * p;

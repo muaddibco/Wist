@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Buffers.Binary;
-using System.IO;
-using Wist.Core.ExtensionMethods;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Identity;
@@ -23,12 +20,12 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 
         public override ushort BlockType => BlockTypes.Synchronization_ConfirmedBlock;
 
-        protected override Span<byte> ParseSynchronization(ushort version, Span<byte> spanBody, out SynchronizationBlockBase synchronizationBlockBase)
+        protected override Memory<byte> ParseSynchronization(ushort version, Memory<byte> spanBody, out SynchronizationBlockBase synchronizationBlockBase)
         {
             if(version == 1)
             {
-                ushort round = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
-                byte numberOfSigners = spanBody[2];
+                ushort round = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span);
+                byte numberOfSigners = spanBody.Span[2];
                 byte[][] signers = new byte[numberOfSigners][];
                 byte[][] signatures = new byte[numberOfSigners][];
 

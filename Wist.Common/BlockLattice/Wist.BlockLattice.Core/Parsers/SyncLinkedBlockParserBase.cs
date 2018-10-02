@@ -12,17 +12,16 @@ namespace Wist.BlockLattice.Core.Parsers
         {
         }
 
-        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase signedBlockBase)
+        protected override Memory<byte> ParseSynced(ushort version, Memory<byte> spanBody, out SyncedBlockBase signedBlockBase)
         {
             byte[] prevHash = spanBody.Slice(0, Globals.DEFAULT_HASH_SIZE).ToArray();
-            SyncedLinkedBlockBase syncedBlockBase;
-            Span<byte> spanPostBody = ParseSyncLinked(version, spanBody.Slice(Globals.DEFAULT_HASH_SIZE), out syncedBlockBase);
+            Memory<byte> spanPostBody = ParseSyncLinked(version, spanBody.Slice(Globals.DEFAULT_HASH_SIZE), out SyncedLinkedBlockBase syncedBlockBase);
             syncedBlockBase.HashPrev = prevHash;
             signedBlockBase = syncedBlockBase;
 
             return spanPostBody;
         }
 
-        protected abstract Span<byte> ParseSyncLinked(ushort version, Span<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase);
+        protected abstract Memory<byte> ParseSyncLinked(ushort version, Memory<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase);
     }
 }

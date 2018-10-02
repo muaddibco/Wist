@@ -121,7 +121,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
 
             if(identity == null)
             {
-                identity = new AccountIdentity { PublicKey = key.Value };
+                identity = new AccountIdentity { PublicKey = key.Value.ToArray() };
 
                 lock (_sync)
                 {

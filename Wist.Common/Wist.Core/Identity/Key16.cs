@@ -1,4 +1,5 @@
-﻿using Wist.Core.ExtensionMethods;
+﻿using System;
+using Wist.Core.ExtensionMethods;
 
 namespace Wist.Core.Identity
 {
@@ -9,7 +10,7 @@ namespace Wist.Core.Identity
 
         }
 
-        public Key16(byte[] value)
+        public Key16(Memory<byte> value)
         {
             Value = value;
         }
@@ -17,7 +18,7 @@ namespace Wist.Core.Identity
         /// <summary>
         /// Byte array of length of 16 bytes
         /// </summary>
-        public byte[] Value { get; set; } //TODO: need to add length check at setter
+        public Memory<byte> Value { get; set; } //TODO: need to add length check at setter
 
         public int Length => 16;
 

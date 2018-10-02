@@ -22,13 +22,13 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 
         public override ushort BlockType => BlockTypes.Synchronization_RegistryCombinationBlock;
 
-        protected override Span<byte> ParseSynchronization(ushort version, Span<byte> spanBody, out SynchronizationBlockBase synchronizationBlockBase)
+        protected override Memory<byte> ParseSynchronization(ushort version, Memory<byte> spanBody, out SynchronizationBlockBase synchronizationBlockBase)
         {
             SynchronizationRegistryCombinedBlock block = new SynchronizationRegistryCombinedBlock();
 
             if(version == 1)
             {
-                ushort blockHashesCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
+                ushort blockHashesCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span);
                 block.BlockHashes = new byte[blockHashesCount][];
                 for (int i = 0; i < blockHashesCount; i++)
                 {

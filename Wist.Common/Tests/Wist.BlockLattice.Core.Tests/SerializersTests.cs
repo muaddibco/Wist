@@ -2,7 +2,6 @@
 using NSubstitute;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Serializers.Signed.Synchronization;
@@ -117,7 +116,7 @@ namespace Wist.BlockLattice.Core.Tests
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
 
             IIdentityKeyProvider transactionIdentityKeyProvider = Substitute.For<IIdentityKeyProvider>();
-            transactionIdentityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            transactionIdentityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
             IIdentityKeyProvidersRegistry transactionIdentityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
             transactionIdentityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(transactionIdentityKeyProvider);
 
@@ -198,7 +197,7 @@ namespace Wist.BlockLattice.Core.Tests
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
 
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
             identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProvider);
 
@@ -251,7 +250,7 @@ namespace Wist.BlockLattice.Core.Tests
                     foreach (ushort order in transactionHeaders.Keys)
                     {
                         bw.Write(order);
-                        bw.Write(transactionHeaders[order].Value);
+                        bw.Write(transactionHeaders[order].Value.ToArray());
                     }
                 }
 
@@ -278,7 +277,7 @@ namespace Wist.BlockLattice.Core.Tests
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
 
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
             identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProvider);
 
@@ -346,7 +345,7 @@ namespace Wist.BlockLattice.Core.Tests
                 };
 
                 IIdentityKeyProvider transactionIdentityKeyProvider = Substitute.For<IIdentityKeyProvider>();
-                transactionIdentityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+                transactionIdentityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
                 IIdentityKeyProvidersRegistry transactionIdentityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
                 transactionIdentityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(transactionIdentityKeyProvider);
 
@@ -369,7 +368,7 @@ namespace Wist.BlockLattice.Core.Tests
                     foreach (ushort order in transactionHeaders.Keys)
                     {
                         bw.Write(order);
-                        bw.Write(transactionHeaders[order].RawData);
+                        bw.Write(transactionHeaders[order].RawData.ToArray());
                     }
 
                     bw.Write(BinaryBuilder.GetDefaultHash(1111));
@@ -395,7 +394,7 @@ namespace Wist.BlockLattice.Core.Tests
             };
 
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
             identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProvider);
 
@@ -473,7 +472,7 @@ namespace Wist.BlockLattice.Core.Tests
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
 
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
             identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProvider);
 
@@ -544,7 +543,7 @@ namespace Wist.BlockLattice.Core.Tests
             cryptoService.Key.Returns(new Key32() { Value = publicKey });
 
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
             identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProvider);
 

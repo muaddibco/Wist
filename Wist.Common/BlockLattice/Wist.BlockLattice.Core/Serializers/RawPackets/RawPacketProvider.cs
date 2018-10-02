@@ -26,7 +26,7 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
 
         public byte[] GetBytes()
         {
-            return _blockBase?.RawData;
+            return _blockBase?.RawData.ToArray();
         }
 
         public void Initialize(BlockBase blockBase)

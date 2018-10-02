@@ -45,7 +45,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
                 if(DoesChainExist(key))
                 {
-                    DataAccessService.Instance.AddTransactionalBlock(key, transactionalBlockBase.BlockType, transactionalBlockBase.BodyBytes);
+                    DataAccessService.Instance.AddTransactionalBlock(key, transactionalBlockBase.BlockType, transactionalBlockBase.BodyBytes.ToArray());
                 }
             }
         }
@@ -66,7 +66,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
             using (ISignatureSupportSerializer serializer = _serializersFactory.Create(transactionalGenesisBlock))
             {
-                DataAccessService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.Signer, transactionalGenesisBlock.Version, transactionalGenesisBlock.NonHeaderBytes);
+                DataAccessService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.Signer, transactionalGenesisBlock.Version, transactionalGenesisBlock.NonHeaderBytes.ToArray());
             }
         }
 

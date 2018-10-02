@@ -105,7 +105,7 @@ namespace Wist.Node.Core.Synchronization
 
         private void SynchronizationStateChanged(string propName)
         {
-            _syncRegistryMemPool.SetRound(0);
+            _syncRegistryMemPool.SetRound(1);
         }
 
         private void ProcessBlocks(CancellationToken ct)
@@ -131,6 +131,8 @@ namespace Wist.Node.Core.Synchronization
         private void RoundEndedHandler(RoundDescriptor roundDescriptor)
         {
             RegistryFullBlock transactionsFullBlockMostConfident = _syncRegistryMemPool.GetMostConfidentFullBlock();
+
+            _syncRegistryMemPool.SetRound((byte)(roundDescriptor.Round + 1));
 
             CreateAndDistributeConfirmationBlock(roundDescriptor, transactionsFullBlockMostConfident);
 

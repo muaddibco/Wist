@@ -152,7 +152,7 @@ namespace Wist.Node.Core.Registry
                         int transactionHeaderOrder = _transactionOrderByTransactionHash[transactionsShortBlock.SyncBlockHeight][transactionsShortBlock.TransactionHeaderHashes[key]];
                         RegistryRegisterBlock registryRegisterBlock = _transactionRegisterBlocksOrdered[transactionsShortBlock.SyncBlockHeight][transactionHeaderOrder];
                         IKey registryRegisterBlockKey = _transactionsRegistryHelper.GetTransactionRegistryHashKey(registryRegisterBlock);
-                        BigInteger bigInteger = new BigInteger(registryRegisterBlockKey.Value);
+                        BigInteger bigInteger = new BigInteger(registryRegisterBlockKey.Value.ToArray());
                         bigIntegerSum += bigInteger;
                     }
                 }

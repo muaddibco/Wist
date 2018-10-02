@@ -37,7 +37,7 @@ namespace Wist.BlockLattice.Core.Handlers
             if (!((_synchronizationContext.LastBlockDescriptor?.BlockHeight.Equals(syncBlockHeight) ?? true) ||
                 (_synchronizationContext.PrevBlockDescriptor?.BlockHeight.Equals(syncBlockHeight) ?? true)))
             {
-                _log.Error($"Synchronization block height is outdated: {blockBase.RawData.ToHexString()}");
+                _log.Error($"Synchronization block height is outdated: {blockBase.RawData.ToArray().ToHexString()}");
                 return false;
             }
 
