@@ -13,6 +13,11 @@ namespace Wist.BlockLattice.DataModel
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public ulong RegistryCombinedBlockId { get; set; }
 
+
+        public ulong SyncBlockHeight { get; set; }
+
+        public ulong Round { get; set; }
+
         public byte[] Content { get; set; }
     }
 }

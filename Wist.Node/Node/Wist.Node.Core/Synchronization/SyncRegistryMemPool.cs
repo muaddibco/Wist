@@ -42,8 +42,7 @@ namespace Wist.Node.Core.Synchronization
             {
                 if (!_roundDescriptors.ContainsKey(transactionsFullBlock.BlockHeight))
                 {
-                    RoundDescriptor roundDescriptor = new RoundDescriptor(_transactionHashKey) { Round = transactionsFullBlock.BlockHeight };
-                    roundDescriptor.SetTimer(new Timer(new TimerCallback(RoundEndedHandler), roundDescriptor, 3000, Timeout.Infinite));
+                    RoundDescriptor roundDescriptor = new RoundDescriptor(_transactionHashKey, RoundEndedHandler, 3000);
                     roundDescriptor.AddFullBlock(transactionsFullBlock);
                     _roundDescriptors.Add(transactionsFullBlock.BlockHeight, roundDescriptor);
                 }
@@ -63,16 +62,15 @@ namespace Wist.Node.Core.Synchronization
             {
                 if (!_roundDescriptors.ContainsKey(confidenceBlock.BlockHeight))
                 {
-                    RoundDescriptor roundDescriptor = new RoundDescriptor(_transactionHashKey);
-                    roundDescriptor.SetTimer(new Timer(new TimerCallback(RoundEndedHandler), roundDescriptor, 3000, Timeout.Infinite));
-                    roundDescriptor.VotingBlocks.Add(confidenceBlock);
+                    RoundDescriptor roundDescriptor = new RoundDescriptor(_transactionHashKey, RoundEndedHandler, 3000);
+                    roundDescriptor.AddVotingBlock(confidenceBlock);
                     _roundDescriptors.Add(confidenceBlock.BlockHeight, roundDescriptor);
                 }
                 else
                 {
                     if (!_roundDescriptors[confidenceBlock.BlockHeight].IsFinished)
                     {
-                        _roundDescriptors[confidenceBlock.BlockHeight].VotingBlocks.Add(confidenceBlock);
+                        _roundDescriptors[confidenceBlock.BlockHeight].AddVotingBlock(confidenceBlock);
                     }
                 }
             }

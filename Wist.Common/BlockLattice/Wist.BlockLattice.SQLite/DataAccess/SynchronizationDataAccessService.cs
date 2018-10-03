@@ -31,13 +31,15 @@ namespace Wist.BlockLattice.SQLite.DataAccess
             }
         }
 
-        public void AddSynchronizationRegistryCombinedBlock(ulong blockHeight, byte[] content)
+        public void AddSynchronizationRegistryCombinedBlock(ulong blockHeight, ulong syncBlockHeight, ulong round, byte[] content)
         {
             lock (_sync)
             {
                 _dataContext.RegistryCombinedBlocks.Add(new RegistryCombinedBlock
                 {
                     RegistryCombinedBlockId = blockHeight,
+                    SyncBlockHeight = syncBlockHeight,
+                    Round = round,
                     Content = content
                 });
             }

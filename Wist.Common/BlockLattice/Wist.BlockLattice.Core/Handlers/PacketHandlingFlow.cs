@@ -43,7 +43,7 @@ namespace Wist.BlockLattice.Core.Handlers
             _endToEndCountersService = performanceCountersRepository.GetInstance<EndToEndCountersService>();
 
             _decodeBlock.LinkTo(_parseBlock);
-            _parseBlock.LinkTo(_processBlock, ValidateBlock);
+            _parseBlock.LinkTo(_processBlock);
         }
 
         public void PostMessage(byte[] messagePacket)
@@ -84,14 +84,25 @@ namespace Wist.BlockLattice.Core.Handlers
 
         private BlockBase ParseMessagePacket(byte[] messagePacket)
         {
-            PacketType packetType = (PacketType)BitConverter.ToUInt16(messagePacket, 0);
             BlockBase blockBase = null;
+            PacketType packetType = (PacketType)BitConverter.ToUInt16(messagePacket, 0);
+            int blockTypePos = Globals.PACKET_TYPE_LENGTH + Globals.SYNC_BLOCK_HEIGHT_LENGTH + Globals.NONCE_LENGTH + Globals.POW_HASH_SIZE + Globals.VERSION_LENGTH;
+
+            if (messagePacket.Length < blockTypePos + 2)
+            {
+                _log.Error($"Length of packet is insufficient for obtaining BlockType value: {messagePacket.ToHexString()}");
+                return blockBase;
+            }
+
+            ushort blockType = BitConverter.ToUInt16(messagePacket, Globals.PACKET_TYPE_LENGTH + Globals.SYNC_BLOCK_HEIGHT_LENGTH + Globals.NONCE_LENGTH + Globals.POW_HASH_SIZE + Globals.VERSION_LENGTH);
             IBlockParser blockParser = null;
             IBlockParsersRepository blockParsersFactory = null;
+
             try
             {
                 //TODO: weigh assumption that all messages are sync based (have reference to latest Sync Block)
-                ushort blockType = BitConverter.ToUInt16(messagePacket, Globals.PACKET_TYPE_LENGTH + Globals.SYNC_BLOCK_HEIGHT_LENGTH + Globals.NONCE_LENGTH + Globals.POW_HASH_SIZE + Globals.VERSION_LENGTH);
+
+                _log.Info($"Parsing packet of type {packetType} and block type {blockType}");
 
                 blockParsersFactory = _blockParsersFactoriesRepository.GetBlockParsersRepository(packetType);
 
@@ -115,7 +126,7 @@ namespace Wist.BlockLattice.Core.Handlers
             }
             catch (Exception ex)
             {
-                _log.Error($"Failed to parse message {messagePacket.ToHexString()}", ex);
+                _log.Error($"Failed to parse message of packet type {packetType} and block type {blockType}: {messagePacket.ToHexString()}", ex);
             }
 
             _endToEndCountersService.ParsingThroughput.Increment();
@@ -123,26 +134,29 @@ namespace Wist.BlockLattice.Core.Handlers
             return blockBase;
         }
 
-        private bool ValidateBlock(BlockBase blockBase)
+        private bool ValidateBlock(BlockBase block)
         {
-            if (blockBase == null)
+            if (block == null)
             {
                 return false;
             }
+
+            _log.Info($"Validating block with PacketType {block.PacketType} and BlockType {block.BlockType}");
 
             try
             {
                 foreach (ICoreVerifier coreVerifier in _coreVerifiers)
                 {
-                    if (!coreVerifier.VerifyBlock(blockBase))
+                    if (!coreVerifier.VerifyBlock(block))
                     {
+                        _log.Error($"Verifier {coreVerifier.GetType().Name} found block invalid: {block.RawData.ToHexString()}");
                         return false;
                     }
                 }
 
-                IPacketVerifier packetVerifier = _chainTypeValidationHandlersFactory.GetInstance(blockBase.PacketType);
+                IPacketVerifier packetVerifier = _chainTypeValidationHandlersFactory.GetInstance(block.PacketType);
 
-                bool res = packetVerifier?.ValidatePacket(blockBase) ?? true;
+                bool res = packetVerifier?.ValidatePacket(block) ?? true;
 
                 _endToEndCountersService.CoreValidationThroughput.Increment();
 
@@ -150,7 +164,7 @@ namespace Wist.BlockLattice.Core.Handlers
             }
             catch (Exception ex)
             {
-                _log.Error($"Failed to validate block {blockBase.RawData.ToHexString()}", ex);
+                _log.Error($"Failed to validate block {block.RawData.ToHexString()}", ex);
                 return false;
             }
         }
@@ -159,8 +173,15 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             if (block != null)
             {
+                if (!ValidateBlock(block))
+                {
+                    return;
+                }
+
                 try
                 {
+                    _log.Info($"Dispatching block with PacketType {block.PacketType} and BlockType {block.BlockType}");
+
                     IEnumerable<IBlocksHandler> blocksProcessors = _blocksHandlersRegistry.GetBulkInstances(block.PacketType);
 
                     //TODO: weigh to check whether number of processors is greater than 1 before parallelizing for sake of performance

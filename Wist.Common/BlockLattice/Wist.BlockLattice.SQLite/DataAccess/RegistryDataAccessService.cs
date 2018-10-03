@@ -4,7 +4,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
 {
     public partial class DataAccessService
     {
-        public void AddRegistryFullBlock(ulong syncBlockHeight, ulong round, byte[] content)
+        public void AddRegistryFullBlock(ulong syncBlockHeight, ulong round, int transactionsCount, byte[] content)
         {
             lock(_sync)
             {
@@ -12,6 +12,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                 {
                     SyncBlockHeight = syncBlockHeight,
                     Round = round,
+                    TransactionsCount = transactionsCount,
                     Content = content
                 });
             }

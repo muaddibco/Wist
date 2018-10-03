@@ -67,7 +67,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
         public void Start()
         {
-            _log.Info("PacketsHandler starting");
+            _log.Debug("PacketsHandler starting");
 
             List<Task> tasks = new List<Task>();
 
@@ -76,12 +76,12 @@ namespace Wist.BlockLattice.Core.Handlers
                 tasks.Add(Task.Factory.StartNew(o => Parse((int)o), i, TaskCreationOptions.LongRunning));
             }
 
-            _log.Info("PacketsHandler started");
+            _log.Debug("PacketsHandler started");
         }
 
         private void Parse(int iteration)
         {
-            _log.Info($"Parse function #{iteration} starting");
+            _log.Debug($"Parse function #{iteration} starting");
 
             try
             {
@@ -95,7 +95,7 @@ namespace Wist.BlockLattice.Core.Handlers
             }
             finally
             {
-                _log.Info("Parse function finished");
+                _log.Debug("Parse function finished");
                 _endToEndCountersService.ParallelParsers.Decrement();
             }
         }

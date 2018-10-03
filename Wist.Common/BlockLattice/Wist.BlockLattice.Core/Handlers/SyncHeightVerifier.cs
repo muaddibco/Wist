@@ -50,6 +50,7 @@ namespace Wist.BlockLattice.Core.Handlers
             uint nonce = syncedBlockBase.Nonce;
             byte[] powHash = syncedBlockBase.PowHash;
             byte[] baseHash;
+            byte[] baseSyncHash;
 
             if (syncedBlockBase.PacketType != PacketType.Synchronization)
             {
@@ -59,14 +60,17 @@ namespace Wist.BlockLattice.Core.Handlers
                 //    return false;
                 //}
                 BigInteger bigInteger;
+
                 if (_synchronizationContext.LastBlockDescriptor != null || _synchronizationContext.PrevBlockDescriptor != null)
                 {
-                    bigInteger = new BigInteger((syncBlockHeight == _synchronizationContext.LastBlockDescriptor?.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash);
+                    baseSyncHash = (syncBlockHeight == _synchronizationContext.LastBlockDescriptor?.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash;
                 }
                 else
                 {
-                    bigInteger = new BigInteger(new byte[Globals.DEFAULT_HASH_SIZE]);
+                    baseSyncHash = new byte[Globals.DEFAULT_HASH_SIZE];
                 }
+
+                bigInteger = new BigInteger(baseSyncHash);
 
                 bigInteger += nonce;
                 baseHash = bigInteger.ToByteArray();
@@ -75,19 +79,21 @@ namespace Wist.BlockLattice.Core.Handlers
             {
                 if (_synchronizationContext.LastBlockDescriptor == null)
                 {
-                    baseHash = new byte[Globals.DEFAULT_HASH_SIZE];
+                    baseSyncHash = new byte[Globals.DEFAULT_HASH_SIZE];
                 }
                 else
                 {
-                    baseHash = (syncBlockHeight == _synchronizationContext.LastBlockDescriptor.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash;
+                    baseSyncHash = (syncBlockHeight == _synchronizationContext.LastBlockDescriptor.BlockHeight) ? _synchronizationContext.LastBlockDescriptor.Hash : _synchronizationContext.PrevBlockDescriptor.Hash;
                 }
+
+                baseHash = baseSyncHash;
             }
 
             byte[] computedHash = _proofOfWorkCalculation.CalculateHash(baseHash);
 
             if (!computedHash.Equals24(powHash))
             {
-                _log.Error("Computed HASH differs from obtained one");
+                _log.Error($"Computed HASH differs from obtained one. PacketType is {syncedBlockBase.PacketType}, BlockType is {syncedBlockBase.BlockType}. Reported SyncBlockHeight is {syncedBlockBase.SyncBlockHeight}, Nonce is {syncedBlockBase.Nonce}, POW is {syncedBlockBase.PowHash}. Hash of SyncBlock is {baseSyncHash.ToHexString()}, after adding Nonce is {baseHash.ToHexString()}, computed POW Hash is {computedHash.ToHexString()}");
                 return false;
             }
 

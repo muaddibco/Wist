@@ -14,6 +14,8 @@ namespace Wist.BlockLattice.DataModel
 
         public ulong Round { get; set; }
 
+        public int TransactionsCount { get; set; }
+
         public byte[] Content { get; set; }
     }
 }

@@ -34,7 +34,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
             if(item is SynchronizationRegistryCombinedBlock combinedBlock)
             {
-                DataAccessService.Instance.AddSynchronizationRegistryCombinedBlock(combinedBlock.BlockHeight, combinedBlock.NonHeaderBytes.ToArray());
+                DataAccessService.Instance.AddSynchronizationRegistryCombinedBlock(combinedBlock.BlockHeight, combinedBlock.SyncBlockHeight, combinedBlock.BlockHeight, combinedBlock.NonHeaderBytes.ToArray());
             }
         }
 

@@ -1,5 +1,4 @@
 ﻿using Wist.BlockLattice.Core.DataModel;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;

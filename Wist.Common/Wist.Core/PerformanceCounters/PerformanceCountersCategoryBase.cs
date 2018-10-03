@@ -47,7 +47,7 @@ namespace Wist.Core.PerformanceCounters
                 {
                     FailedToInitializeCounterException exception = new FailedToInitializeCounterException(prop.Name, categoryAttr.Name, ex);
 
-                    _logger.Error(exception.ToString());
+                    _logger.Warning(exception.ToString());
                 }
             }
         }
