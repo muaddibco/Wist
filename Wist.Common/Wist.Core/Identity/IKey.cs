@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,6 +12,6 @@ namespace Wist.Core.Identity
     {
         int Length { get; }
 
-        byte[] Value { get; set; }
+        Memory<byte> Value { get; set; }
     }
 }

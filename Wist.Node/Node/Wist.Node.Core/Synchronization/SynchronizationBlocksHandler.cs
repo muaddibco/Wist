@@ -229,8 +229,8 @@ namespace Wist.Node.Core.Synchronization
                 BlockHeight = synchronizationBlockV1.BlockHeight,
                 ReportedTime = synchronizationBlockV1.ReportedTime,
                 OffsetSinceLastMedian = (ushort)(DateTime.Now - _synchronizationContext.LastBlockDescriptor.UpdateTime).TotalSeconds,
-                ConfirmationPublicKey = synchronizationBlockV1.Signer.Value,
-                ConfirmationSignature = synchronizationBlockV1.Signature,
+                ConfirmationPublicKey = synchronizationBlockV1.Signer.Value.ToArray(),
+                ConfirmationSignature = synchronizationBlockV1.Signature.ToArray(),
                 Signer = _accountState.AccountKey
             };
 

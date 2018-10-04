@@ -57,7 +57,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
             FillBodyAndRowBytes();
 
-            return _block.RawData;
+            return _block.RawData.ToArray();
         }
 
         public virtual void Initialize(SignedBlockBase signedBlockBase)
@@ -124,19 +124,21 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             _memoryStream.Seek(pos, SeekOrigin.Begin);
 
             byte[] body = _binaryReader.ReadBytes((int)bodyLength);
-
-            _block.BodyBytes = body;
-
             byte[] signature = _cryptoService.Sign(body);
+            byte[] signer = _cryptoService.Key.Value.ToArray();
 
             _binaryWriter.Write(signature);
-            _binaryWriter.Write(_cryptoService.Key.Value);
+            _binaryWriter.Write(_cryptoService.Key.Value.ToArray());
 
-            _block.Signature = signature;
+            Memory<byte> memory = _memoryStream.ToArray();
+
+            _block.Signature = memory.Slice(memory.Length - signature.Length - signer.Length, signature.Length);
             _block.Signer = _cryptoService.Key;
-            _block.RawData = _memoryStream.ToArray();
+            _block.RawData = memory;
+            _block.BodyBytes = memory.Slice((int)pos, (int)bodyLength);
+            _block.NonHeaderBytes = memory.Slice((int)pos);
 
-            byte[] hash = _transactionKeyHashCalculation.CalculateHash(_block.RawData);
+            byte[] hash = _transactionKeyHashCalculation.CalculateHash(_block.RawData.ToArray());
             _block.Key = _transactionKeyIdentityKeyProvider.GetKey(hash);
             _bytesFilled = true;
         }

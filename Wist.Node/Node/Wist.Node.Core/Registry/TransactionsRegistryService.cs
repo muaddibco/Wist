@@ -104,7 +104,7 @@ namespace Wist.Node.Core.Registry
 
             if (_isBlockProducerPredicate.Evaluate())
             {
-                _registryGroupState.WaitLastBlockConfirmationReceived();
+                //_registryGroupState.WaitLastBlockConfirmationReceived();
                 _transactionsRegistryProducingFlow.Post(_registryMemPool);
             }
         }
@@ -114,7 +114,7 @@ namespace Wist.Node.Core.Registry
             StopTimer();
 
             _registryGroupState.Round = 0;
-            _registryGroupState.ToggleLastBlockConfirmationReceived();
+            //_registryGroupState.ToggleLastBlockConfirmationReceived();
 
             _timer = new Timer(5000);
             _timer.Elapsed += _timer_Elapsed;

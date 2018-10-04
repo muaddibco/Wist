@@ -27,7 +27,7 @@ namespace Wist.BlockLattice.SQLite.Mappers.Synchronization
             }
 
             SynchronizationRegistryCombinedBlock block = null;
-            IBlockParser blockParser = _blockParsersRepository.GetInstance(BlockTypes.Synchronization_ConfirmedBlock);
+            IBlockParser blockParser = _blockParsersRepository.GetInstance(BlockTypes.Synchronization_RegistryCombinationBlock);
 
             block = blockParser.ParseBody(registryCombinedBlock.Content) as SynchronizationRegistryCombinedBlock;
 

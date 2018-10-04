@@ -20,11 +20,11 @@ namespace Wist.BlockLattice.Core.Parsers.Synchronization
 
         public override ushort BlockType => BlockTypes.Synchronization_TimeSyncProducingBlock;
 
-        protected override Span<byte> ParseSynchronization(ushort version, Span<byte> spanBody, out SynchronizationBlockBase synchronizationBlockBase)
+        protected override Memory<byte> ParseSynchronization(ushort version, Memory<byte> spanBody, out SynchronizationBlockBase synchronizationBlockBase)
         {
             if (version == 1)
             {
-                ushort round = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
+                ushort round = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span);
 
                 SynchronizationProducingBlock synchronizationBlock = new SynchronizationProducingBlock
                 {

@@ -21,14 +21,14 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         public override ushort BlockType => BlockTypes.Transaction_AcceptFunds;
 
-        protected override Span<byte> ParseTransactional(ushort version, Span<byte> spanBody, out TransactionalBlockBase transactionalBlockBase)
+        protected override Memory<byte> ParseTransactional(ushort version, Memory<byte> spanBody, out TransactionalBlockBase transactionalBlockBase)
         {
             TransactionalBlockBase block = null;
 
             if (version == 1)
             {
                 byte[] origin = spanBody.Slice(0, Globals.DEFAULT_HASH_SIZE).ToArray();
-                ulong funds = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Slice(Globals.DEFAULT_HASH_SIZE));
+                ulong funds = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Span.Slice(Globals.DEFAULT_HASH_SIZE));
 
                 block = new AcceptFundsBlockV1()
                 {

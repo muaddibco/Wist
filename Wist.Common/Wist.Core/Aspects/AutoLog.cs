@@ -112,7 +112,7 @@ namespace Wist.Core.Aspects
 
             string message = $"Entering Method: {GenerateMethodString()}";
 
-            Logger?.Info(message);
+            Logger?.Debug(message);
         }
 
 
@@ -127,7 +127,7 @@ namespace Wist.Core.Aspects
                 {
                     string message = $"Heavy Method: {GenerateMethodString()}, {timeStamp}";
 
-                    Logger?.Info(message);
+                    Logger?.Debug(message);
                 }
             }
         }

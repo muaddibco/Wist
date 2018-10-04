@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
@@ -84,6 +83,8 @@ namespace Wist.Node.Core.Synchronization
         /// <returns></returns>
         private string SynchronizationGroupParticipationCheckAction(string arg)
         {
+            _roundStarted = false;
+            _synchronizationProducer.CancelDeferredBroadcast();
             _isParticipating = _nodesRatingProvider.IsCandidateInTopList(_accountState.AccountKey);
 
             if (_isParticipating)
@@ -119,7 +120,7 @@ namespace Wist.Node.Core.Synchronization
                 {
                     _roundStarted = true;
                     _ratingPosition = _nodesRatingProvider.GetCandidateRating(_accountState.AccountKey) + 1;
-                    _synchronizationProducer.DeferredBroadcast((ushort)_ratingPosition, () => _roundStarted = false);
+                    _synchronizationProducer.DeferredBroadcast((ushort)_ratingPosition, () => _synchronizationGroupParticipationCheckAction.Post(null));
                 }
             }
         }

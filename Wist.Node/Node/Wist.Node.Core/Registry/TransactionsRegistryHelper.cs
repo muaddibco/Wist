@@ -27,7 +27,8 @@ namespace Wist.Node.Core.Registry
 
         public IKey GetTransactionRegistryTwiceHashedKey(RegistryRegisterBlock registryRegisterBlock)
         {
-            IKey key = _transactionHashKey.GetKey(_cryptoService.ComputeTransactionKey(_cryptoService.ComputeTransactionKey(registryRegisterBlock.RawData)));
+            byte[] hash = _cryptoService.ComputeTransactionKey(_cryptoService.ComputeTransactionKey(registryRegisterBlock.RawData));
+            IKey key = _transactionHashKey.GetKey(hash);
 
             return key;
         }

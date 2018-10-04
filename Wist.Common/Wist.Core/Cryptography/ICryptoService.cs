@@ -22,5 +22,6 @@ namespace Wist.Core.Cryptography
         void Initialize(byte[] privateKey);
 
         byte[] ComputeTransactionKey(byte[] bytes);
+        byte[] ComputeTransactionKey(Memory<byte> bytes);
     }
 }

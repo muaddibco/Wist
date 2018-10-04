@@ -28,7 +28,7 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         public override PacketType PacketType => PacketType.TransactionalChain;
 
-        protected override Span<byte> ParseTransactional(ushort version, Span<byte> spanBody, out TransactionalBlockBase transactionalBlockBase)
+        protected override Memory<byte> ParseTransactional(ushort version, Memory<byte> spanBody, out TransactionalBlockBase transactionalBlockBase)
         {
             throw new NotImplementedException();
             //BlockBase block = null;

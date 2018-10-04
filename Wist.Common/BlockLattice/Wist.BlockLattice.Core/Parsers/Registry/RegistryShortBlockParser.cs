@@ -27,18 +27,18 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
         public override PacketType PacketType => PacketType.Registry;
 
-        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
+        protected override Memory<byte> ParseSynced(ushort version, Memory<byte> spanBody, out SyncedBlockBase syncedBlockBase)
         {
             if (version == 1)
             {
                 RegistryShortBlock transactionsShortBlock = new RegistryShortBlock();
-                ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
+                ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span);
 
                 transactionsShortBlock.TransactionHeaderHashes = new SortedList<ushort, IKey>(itemsCount);
 
                 for (int i = 0; i < itemsCount; i++)
                 {
-                    ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2 + i * (Globals.TRANSACTION_KEY_HASH_SIZE + 2)));
+                    ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span.Slice(2 + i * (Globals.TRANSACTION_KEY_HASH_SIZE + 2)));
                     byte[] hashKey = spanBody.Slice(2 + i * (Globals.TRANSACTION_KEY_HASH_SIZE + 2) + 2, Globals.TRANSACTION_KEY_HASH_SIZE).ToArray();
 
                     IKey key = _transactionHashKeyProvider.GetKey(hashKey);

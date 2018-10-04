@@ -32,7 +32,7 @@ namespace Wist.BlockLattice.Core.Tests
             IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
 
             identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<byte[]>() });
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<Memory<byte>>() });
 
             byte[] privateKey = CryptoHelper.GetRandomSeed();
             byte signersCount = 10;
@@ -112,8 +112,8 @@ namespace Wist.BlockLattice.Core.Tests
                 Assert.Equal(expectedSignerSignatures[i], block.Signatures[i]);
             }
 
-            Assert.Equal(publicKey, block.Signer.Value);
-            Assert.Equal(expectedSignature, block.Signature);
+            Assert.Equal(publicKey, block.Signer.Value.ToArray());
+            Assert.Equal(expectedSignature, block.Signature.ToArray());
         }
 
         [Fact]
@@ -124,7 +124,7 @@ namespace Wist.BlockLattice.Core.Tests
             IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
 
             identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<byte[]>() });
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<Memory<byte>>() });
 
             ulong syncBlockHeight = 1;
             uint nonce = 4;
@@ -183,8 +183,8 @@ namespace Wist.BlockLattice.Core.Tests
             Assert.Equal(expectedReferencedBodyHash, block.TransactionHeader.ReferencedBodyHash);
             Assert.Equal(expectedTarget, block.TransactionHeader.ReferencedTargetHash);
 
-            Assert.Equal(publicKey, block.Signer.Value);
-            Assert.Equal(expectedSignature, block.Signature);
+            Assert.Equal(publicKey, block.Signer.Value.ToArray());
+            Assert.Equal(expectedSignature, block.Signature.ToArray());
         }
 
         [Fact]
@@ -197,8 +197,8 @@ namespace Wist.BlockLattice.Core.Tests
 
             identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
             identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(transactionHashKeyProvider);
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<byte[]>() });
-            transactionHashKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16() { Value = c.Arg<byte[]>() });
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<Memory<byte>>() });
+            transactionHashKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16() { Value = c.Arg<Memory<byte>>() });
 
             ulong syncBlockHeight = 1;
             uint nonce = 4;
@@ -232,7 +232,7 @@ namespace Wist.BlockLattice.Core.Tests
                     foreach (ushort order in transactionHeaders.Keys)
                     {
                         bw.Write(order);
-                        bw.Write(transactionHeaders[order].Value);
+                        bw.Write(transactionHeaders[order].Value.ToArray());
                     }
                 }
 
@@ -260,8 +260,8 @@ namespace Wist.BlockLattice.Core.Tests
                 Assert.Equal(item.Value, block.TransactionHeaderHashes[item.Key]);
             }
 
-            Assert.Equal(publicKey, block.Signer.Value);
-            Assert.Equal(expectedSignature, block.Signature);
+            Assert.Equal(publicKey, block.Signer.Value.ToArray());
+            Assert.Equal(expectedSignature, block.Signature.ToArray());
         }
 
         [Fact]
@@ -272,7 +272,7 @@ namespace Wist.BlockLattice.Core.Tests
             IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
 
             identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<byte[]>() });
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<Memory<byte>>() });
 
             ulong syncBlockHeight = 1;
             uint nonce = 4;
@@ -335,7 +335,7 @@ namespace Wist.BlockLattice.Core.Tests
                     foreach (ushort order in transactionHeaders.Keys)
                     {
                         bw.Write(order);
-                        bw.Write(transactionHeaders[order].RawData);
+                        bw.Write(transactionHeaders[order].RawData.ToArray());
                     }
 
                     expectedShortBlockHash = BinaryBuilder.GetDefaultHash(1111);
@@ -374,14 +374,14 @@ namespace Wist.BlockLattice.Core.Tests
                 Assert.Equal(item.Value.TransactionHeader.ReferencedHeight, block.TransactionHeaders[item.Key].TransactionHeader.ReferencedHeight);
                 Assert.Equal(item.Value.TransactionHeader.ReferencedBodyHash, block.TransactionHeaders[item.Key].TransactionHeader.ReferencedBodyHash);
                 Assert.Equal(item.Value.TransactionHeader.ReferencedTargetHash, block.TransactionHeaders[item.Key].TransactionHeader.ReferencedTargetHash);
-                Assert.Equal(item.Value.Signature, block.TransactionHeaders[item.Key].Signature);
+                Assert.Equal(item.Value.Signature.ToArray(), block.TransactionHeaders[item.Key].Signature.ToArray());
                 Assert.Equal(item.Value.Signer, block.TransactionHeaders[item.Key].Signer);
             }
 
             Assert.Equal(expectedShortBlockHash, block.ShortBlockHash);
 
-            Assert.Equal(publicKey, block.Signer.Value);
-            Assert.Equal(expectedSignature, block.Signature);
+            Assert.Equal(publicKey, block.Signer.Value.ToArray());
+            Assert.Equal(expectedSignature, block.Signature.ToArray());
         }
 
         [Fact]
@@ -392,7 +392,7 @@ namespace Wist.BlockLattice.Core.Tests
             IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
 
             identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<byte[]>() });
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<Memory<byte>>() });
 
             ulong syncBlockHeight = 1;
             uint nonce = 4;
@@ -445,8 +445,8 @@ namespace Wist.BlockLattice.Core.Tests
             Assert.Equal(expectedProof, block.ConfidenceProof);
             Assert.Equal(expectedReferencedBodyHash, block.ReferencedBlockHash);
 
-            Assert.Equal(publicKey, block.Signer.Value);
-            Assert.Equal(expectedSignature, block.Signature);
+            Assert.Equal(publicKey, block.Signer.Value.ToArray());
+            Assert.Equal(expectedSignature, block.Signature.ToArray());
         }
 
         [Fact]
@@ -457,7 +457,7 @@ namespace Wist.BlockLattice.Core.Tests
             IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
 
             identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
-            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<byte[]>() });
+            identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<Memory<byte>>() });
 
             ulong syncBlockHeight = 1;
             uint nonce = 4;
@@ -509,8 +509,8 @@ namespace Wist.BlockLattice.Core.Tests
                 Assert.Equal(expectedHashes[i], block.BlockHashes[i]);
             }
 
-            Assert.Equal(publicKey, block.Signer.Value);
-            Assert.Equal(expectedSignature, block.Signature);
+            Assert.Equal(publicKey, block.Signer.Value.ToArray());
+            Assert.Equal(expectedSignature, block.Signature.ToArray());
         }
     }
 }

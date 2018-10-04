@@ -26,7 +26,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
             foreach (var item in _block.TransactionHeaderHashes)
             {
                 bw.Write(item.Key);
-                bw.Write(item.Value.Value);
+                bw.Write(item.Value.Value.ToArray());
             }
         }
     }

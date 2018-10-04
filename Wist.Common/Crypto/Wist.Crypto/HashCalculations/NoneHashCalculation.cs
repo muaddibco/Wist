@@ -1,4 +1,5 @@
-﻿using Wist.Core.Architecture;
+﻿using System;
+using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.HashCalculations;
 
@@ -11,9 +12,8 @@ namespace Wist.Crypto.HashCalculations
 
         public int HashSize => 0;
 
-        public byte[] CalculateHash(byte[] input)
-        {
-            return null;
-        }
+        public byte[] CalculateHash(Memory<byte> input) => null;
+
+        public byte[] CalculateHash(byte[] input) => null;
     }
 }

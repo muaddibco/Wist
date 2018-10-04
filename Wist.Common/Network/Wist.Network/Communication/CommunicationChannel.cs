@@ -181,7 +181,7 @@ namespace Wist.Network.Communication
         {
             if (e.LastOperation == SocketAsyncOperation.Receive)
             {
-                _log.Info($"Receive_Completed from IP {RemoteIPAddress}");
+                _log.Debug($"Receive_Completed from IP {RemoteIPAddress}");
                 ProcessReceive();
             }
             else
@@ -195,7 +195,7 @@ namespace Wist.Network.Communication
             if (e.LastOperation == SocketAsyncOperation.Send)
             {
                 _socketSendEvent.Set();
-                _log.Info($"Send_Completed to IP {RemoteIPAddress}");
+                _log.Debug($"Send_Completed to IP {RemoteIPAddress}");
 
                 ProcessSend();
             }
@@ -207,7 +207,7 @@ namespace Wist.Network.Communication
 
         private void StartReceive()
         {
-            _log.Info($"Start receive from IP {RemoteIPAddress}");
+            _log.Debug($"Start receive from IP {RemoteIPAddress}");
 
             if(!_socketReceiveAsyncEventArgs.AcceptSocket.Connected)
             {
@@ -222,7 +222,7 @@ namespace Wist.Network.Communication
 
                     if (!willRaiseEvent)
                     {
-                        _log.Info($"Going to ProcessReceive from IP {RemoteIPAddress}");
+                        _log.Debug($"Going to ProcessReceive from IP {RemoteIPAddress}");
 
                         ProcessReceive();
                     }
@@ -260,7 +260,7 @@ namespace Wist.Network.Communication
             {
                 if (remainingBytesToProcess > 0)
                 {
-                    _log.Info($"ProcessReceive from IP {RemoteIPAddress}. remainingBytesToProcess = {remainingBytesToProcess}");
+                    _log.Debug($"ProcessReceive from IP {RemoteIPAddress}. remainingBytesToProcess = {remainingBytesToProcess}");
 
                     PushForParsing(_socketReceiveAsyncEventArgs.Buffer, _socketReceiveAsyncEventArgs.Offset, _socketReceiveAsyncEventArgs.BytesTransferred);
                 }
@@ -272,11 +272,11 @@ namespace Wist.Network.Communication
         private void CloseClientSocket()
         {
             _communicationCountersService?.CommunicationChannels.Decrement();
-            _log.Info($"Closing client socket with IP {RemoteIPAddress}");
+            _log.Debug($"Closing client socket with IP {RemoteIPAddress}");
 
             try
             {
-                _log.Info($"Trying shutdown Socket with IP {RemoteIPAddress}");
+                _log.Debug($"Trying shutdown Socket with IP {RemoteIPAddress}");
                 _socketReceiveAsyncEventArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
             }
             catch (Exception ex)

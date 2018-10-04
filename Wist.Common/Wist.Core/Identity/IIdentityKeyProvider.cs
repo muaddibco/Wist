@@ -10,7 +10,9 @@ namespace Wist.Core.Identity
     {
         string Name { get; }
 
-        IKey GetKey(byte[] keyBytes);
+        //IKey GetKey(byte[] keyBytes);
+
+        IKey GetKey(Memory<byte> keyBytes);
 
         IEqualityComparer<IKey> GetComparer();
     }

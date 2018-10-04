@@ -54,7 +54,7 @@ namespace Wist.BlockLattice.SQLite
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<TransactionsRegistryBlock>().HasKey(p => new { p.TransactionsRegistryBlockId, p.ShardId });
+            //modelBuilder.Entity<TransactionsRegistryBlock>().HasKey(p => new { p.TransactionsRegistryBlockId, p.ShardId });
             //modelBuilder.Entity<TransactionalGenesis>().HasIndex("OriginalHash");
             
             //modelBuilder.Entity<TransactionalBlock>().HasIndex("BlockOrder");

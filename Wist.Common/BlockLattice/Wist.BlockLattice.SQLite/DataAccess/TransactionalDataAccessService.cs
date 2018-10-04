@@ -100,7 +100,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
 
             if (transactionalGenesis == null)
             {
-                throw new GenesisBlockNotFoundException(key.Value.ToHexString());
+                throw new GenesisBlockNotFoundException(key.ToString());
             }
 
             TransactionalBlock transactionalBlockLast = GetLastTransactionalBlock(transactionalGenesis);

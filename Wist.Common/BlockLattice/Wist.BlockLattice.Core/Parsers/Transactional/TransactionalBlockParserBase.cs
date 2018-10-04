@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Transactional;
 using Wist.BlockLattice.Core.Enums;
@@ -22,16 +19,15 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         public override PacketType PacketType => PacketType.TransactionalChain;
 
-        protected override Span<byte> ParseSyncLinked(ushort version, Span<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase)
+        protected override Memory<byte> ParseSyncLinked(ushort version, Memory<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase)
         {
-            TransactionalBlockBase transactionalBlockBase;
 
-            Span<byte> spanPostBody = ParseTransactional(version, spanBody, out transactionalBlockBase);
+            Memory<byte> spanPostBody = ParseTransactional(version, spanBody, out TransactionalBlockBase transactionalBlockBase);
             syncedBlockBase = transactionalBlockBase;
 
             return spanPostBody;
         }
 
-        protected abstract Span<byte> ParseTransactional(ushort version, Span<byte> spanBody, out TransactionalBlockBase transactionalBlockBase);
+        protected abstract Memory<byte> ParseTransactional(ushort version, Memory<byte> spanBody, out TransactionalBlockBase transactionalBlockBase);
     }
 }

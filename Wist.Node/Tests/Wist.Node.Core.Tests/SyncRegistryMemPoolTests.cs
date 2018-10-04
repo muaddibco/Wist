@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks.Dataflow;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
@@ -45,7 +47,7 @@ namespace Wist.Node.Core.Tests
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
             ICryptoService cryptoService = GetRandomCryptoService();
 
-            identityKeyProviderTransactionKey.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+            identityKeyProviderTransactionKey.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
 
             identityKeyProvidersRegistry.GetInstance("DefaultHash").Returns(new DefaultHashKeyProvider());
             identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(identityKeyProviderTransactionKey);
@@ -61,7 +63,6 @@ namespace Wist.Node.Core.Tests
             });
 
             SyncRegistryMemPool syncRegistryMemPool = new SyncRegistryMemPool(signatureSupportSerializersFactory, hashCalculationsRepository, identityKeyProvidersRegistry, cryptoService);
-            syncRegistryMemPool.SetRound((byte)blockHeight);
 
             for (int i = 0; i < fullBlockCount; i++)
             {
@@ -150,9 +151,16 @@ namespace Wist.Node.Core.Tests
             }
 
             IKey expectedMostConfidentKey = votesPerShortBlockKey.OrderByDescending(kv => kv.Value).Select(kv => kv.Key).First();
-            RegistryFullBlock actualFullBlock;
+            RegistryFullBlock actualFullBlock = null;
             IKey actualMostConfidentKey;
-            actualFullBlock = syncRegistryMemPool.GetMostConfidentFullBlock();
+            ManualResetEventSlim manualResetEvent = new ManualResetEventSlim(false);
+            syncRegistryMemPool.SubscribeOnRoundElapsed(new ActionBlock<RoundDescriptor>(r => 
+            {
+                actualFullBlock = syncRegistryMemPool.GetMostConfidentFullBlock(r);
+                manualResetEvent.Set();
+            }));
+
+            manualResetEvent.Wait();
 
             actualMostConfidentKey = new Key32(actualFullBlock.ShortBlockHash);
 
@@ -203,7 +211,7 @@ namespace Wist.Node.Core.Tests
                 ICryptoService cryptoService = GetRandomCryptoService();
 
                 IIdentityKeyProvider transactionIdentityKeyProvider = Substitute.For<IIdentityKeyProvider>();
-                transactionIdentityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<byte[]>(0)));
+                transactionIdentityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
                 IIdentityKeyProvidersRegistry transactionIdentityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
                 transactionIdentityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().Returns(transactionIdentityKeyProvider);
 

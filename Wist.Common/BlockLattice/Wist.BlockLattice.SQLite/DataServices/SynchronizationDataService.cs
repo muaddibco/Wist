@@ -29,12 +29,12 @@ namespace Wist.BlockLattice.SQLite.DataServices
         {
             if (item is SynchronizationConfirmedBlock synchronizationConfirmedBlock)
             {
-                DataAccessService.Instance.AddSynchronizationBlock(synchronizationConfirmedBlock.BlockHeight, DateTime.Now, synchronizationConfirmedBlock.ReportedTime, synchronizationConfirmedBlock.NonHeaderBytes);
+                DataAccessService.Instance.AddSynchronizationBlock(synchronizationConfirmedBlock.BlockHeight, DateTime.Now, synchronizationConfirmedBlock.ReportedTime, synchronizationConfirmedBlock.NonHeaderBytes.ToArray());
             }
 
             if(item is SynchronizationRegistryCombinedBlock combinedBlock)
             {
-                DataAccessService.Instance.AddSynchronizationRegistryCombinedBlock(combinedBlock.BlockHeight, combinedBlock.BodyBytes);
+                DataAccessService.Instance.AddSynchronizationRegistryCombinedBlock(combinedBlock.BlockHeight, combinedBlock.SyncBlockHeight, combinedBlock.BlockHeight, combinedBlock.NonHeaderBytes.ToArray());
             }
         }
 

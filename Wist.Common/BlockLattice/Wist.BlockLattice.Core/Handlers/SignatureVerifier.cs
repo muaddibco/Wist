@@ -1,5 +1,4 @@
 ﻿using Wist.BlockLattice.Core.DataModel;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
@@ -23,9 +22,9 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             SignedBlockBase signedBlockBase = (SignedBlockBase)blockBase;
 
-            byte[] messageBody = signedBlockBase.BodyBytes;
-            byte[] signature = signedBlockBase.Signature;
-            byte[] publickKey = signedBlockBase.Signer.Value;
+            byte[] messageBody = signedBlockBase.BodyBytes.ToArray();
+            byte[] signature = signedBlockBase.Signature.ToArray();
+            byte[] publickKey = signedBlockBase.Signer.Value.ToArray();
 
             if (!VerifySignature(messageBody, signature, publickKey))
             {

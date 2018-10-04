@@ -24,7 +24,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
         public override PacketType PacketType => PacketType.Registry;
 
-        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
+        protected override Memory<byte> ParseSynced(ushort version, Memory<byte> spanBody, out SyncedBlockBase syncedBlockBase)
         {
             if(version == 1)
             {

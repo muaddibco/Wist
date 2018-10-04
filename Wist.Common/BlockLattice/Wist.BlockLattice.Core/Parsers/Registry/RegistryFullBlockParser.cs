@@ -26,12 +26,12 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
         public override PacketType PacketType => PacketType.Registry;
 
-        protected override Span<byte> ParseSynced(ushort version, Span<byte> spanBody, out SyncedBlockBase syncedBlockBase)
+        protected override Memory<byte> ParseSynced(ushort version, Memory<byte> spanBody, out SyncedBlockBase syncedBlockBase)
         {
             if (version == 1)
             {
                 RegistryFullBlock transactionsFullBlock = new RegistryFullBlock();
-                ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody);
+                ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span);
 
                 transactionsFullBlock.TransactionHeaders = new SortedList<ushort, RegistryRegisterBlock>(itemsCount);
                 int registryRegisterPacketSize = 0;
@@ -42,7 +42,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
                     for (int i = 0; i < itemsCount; i++)
                     {
-                        ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Slice(2 + i * (registryRegisterPacketSize + 2)));
+                        ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span.Slice(2 + i * (registryRegisterPacketSize + 2)));
                         byte[] registryRegisterPacket = spanBody.Slice(2 + i * (registryRegisterPacketSize + 2) + 2, registryRegisterPacketSize).ToArray();
 
                         RegistryRegisterBlock registryRegisterBlock = (RegistryRegisterBlock)_registryRegisterBlockParser.Parse(registryRegisterPacket);

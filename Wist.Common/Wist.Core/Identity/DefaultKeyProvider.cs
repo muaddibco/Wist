@@ -13,19 +13,14 @@ namespace Wist.Core.Identity
 
         public IEqualityComparer<IKey> GetComparer() => new Key32();
 
-        public IKey GetKey(byte[] keyBytes)
+        public IKey GetKey(Memory<byte> keyBytes)
         {
-            if (keyBytes == null)
-            {
-                throw new ArgumentNullException(nameof(keyBytes));
-            }
-
             if(keyBytes.Length != 32)
             {
                 throw new ArgumentOutOfRangeException("The size of byte array must be 32 bytes");
             }
 
-            return new Key32 { Value = keyBytes };
+            return new Key32(keyBytes);
         }
     }
 }

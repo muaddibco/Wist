@@ -1,4 +1,5 @@
-﻿using HashLib;
+﻿using Chaos.NaCl;
+using HashLib;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
@@ -50,11 +51,15 @@ namespace Wist.Node.Core.Tests
 
             statesRepository.GetInstance<ISynchronizationContext>().Returns(synchronizationContext);
 
-            cryptoService.ComputeTransactionKey(null).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
+            Ed25519.KeyPairFromSeed(out byte[] publicKey, out byte[] expandedPrivateKey, privateKey);
+
+            cryptoService.ComputeTransactionKey(new Memory<byte>()).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<Memory<byte>>().ToArray()).GetBytes());
+            cryptoService.ComputeTransactionKey(new byte[0]).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
+            cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
+            cryptoService.Key.ReturnsForAnyArgs(new Key32(publicKey));
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
-
-            byte[] privateKey = CryptoHelper.GetRandomSeed();
             ulong expectedCount = 10;
 
             SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
@@ -105,14 +110,19 @@ namespace Wist.Node.Core.Tests
             loggerService.GetLogger(null).Returns(logger);
 
             identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider().ReturnsForAnyArgs(identityKeyProvider);
+            //identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16() { Value = c.Arg<Memory<byte>>() });
 
             statesRepository.GetInstance<ISynchronizationContext>().Returns(synchronizationContext);
 
-            cryptoService.ComputeTransactionKey(null).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
+            Ed25519.KeyPairFromSeed(out byte[] publicKey, out byte[] expandedPrivateKey, privateKey);
+
+            cryptoService.ComputeTransactionKey(new Memory<byte>()).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<Memory<byte>>().ToArray()).GetBytes());
+            cryptoService.ComputeTransactionKey(new byte[0]).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
+            cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
+            cryptoService.Key.ReturnsForAnyArgs(new Key32(publicKey));
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
-
-            byte[] privateKey = CryptoHelper.GetRandomSeed();
 
             SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
 
@@ -176,11 +186,15 @@ namespace Wist.Node.Core.Tests
 
             statesRepository.GetInstance<ISynchronizationContext>().Returns(synchronizationContext);
 
-            cryptoService.ComputeTransactionKey(null).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
+            byte[] privateKey = CryptoHelper.GetRandomSeed();
+            Ed25519.KeyPairFromSeed(out byte[] publicKey, out byte[] expandedPrivateKey, privateKey);
+
+            cryptoService.ComputeTransactionKey(new Memory<byte>()).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<Memory<byte>>().ToArray()).GetBytes());
+            cryptoService.ComputeTransactionKey(new byte[0]).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
+            cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
+            cryptoService.Key.ReturnsForAnyArgs(new Key32(publicKey));
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
-
-            byte[] privateKey = CryptoHelper.GetRandomSeed();
 
             SortedList<ushort, RegistryRegisterBlock> expectedBlocks = new SortedList<ushort, RegistryRegisterBlock>();
 

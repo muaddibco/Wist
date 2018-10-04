@@ -30,7 +30,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
             if(item is RegistryFullBlock block)
             {
                 //TODO: shardId must be taken from somewhere
-                DataAccessService.Instance.AddRegistryFullBlock(block.BlockHeight, 1, block.BodyBytes);
+                DataAccessService.Instance.AddRegistryFullBlock(block.SyncBlockHeight, block.BlockHeight, block.TransactionHeaders?.Count??0, block.NonHeaderBytes.ToArray());
             }
         }
 

@@ -42,6 +42,12 @@ namespace Wist.Node.Core.Synchronization
                 {
                     _synchronizationContext.UpdateLastSyncBlockDescriptor(new SynchronizationDescriptor(synchronizationConfirmedBlock.BlockHeight, CryptoHelper.ComputeHash(synchronizationConfirmedBlock.BodyBytes), synchronizationConfirmedBlock.ReportedTime, DateTime.Now, synchronizationConfirmedBlock.Round));
                 }
+
+                SynchronizationRegistryCombinedBlock combinedBlock = (SynchronizationRegistryCombinedBlock)_chainDataService.GetAllLastBlocksByType(BlockTypes.Synchronization_RegistryCombinationBlock).Single();
+                if(combinedBlock != null)
+                {
+                    _synchronizationContext.LastRegistrationCombinedBlockHeight = combinedBlock.BlockHeight;
+                }
             }
             finally
             {

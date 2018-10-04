@@ -1,4 +1,5 @@
-﻿using Wist.Core.Architecture;
+﻿using System;
+using Wist.Core.Architecture;
 
 namespace Wist.Core.HashCalculations
 {
@@ -10,5 +11,7 @@ namespace Wist.Core.HashCalculations
         int HashSize { get; }
 
         byte[] CalculateHash(byte[] input);
+
+        byte[] CalculateHash(Memory<byte> input);
     }
 }

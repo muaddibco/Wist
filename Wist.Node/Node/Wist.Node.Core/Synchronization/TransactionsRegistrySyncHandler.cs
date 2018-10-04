@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -24,6 +23,7 @@ using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Serializers.RawPackets;
+using Wist.Core.Logging;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -49,13 +49,16 @@ namespace Wist.Node.Core.Synchronization
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
         private readonly IChainDataService _synchronizationChainDataService;
         private readonly IChainDataService _registryChainDataService;
+
+        private readonly ILogger _logger;
+
         private IServerCommunicationService _communicationService;
         private CancellationToken _cancellationToken;
 
         public TransactionsRegistrySyncHandler(IStatesRepository statesRepository, ISyncShardsManager syncShardsManager, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, 
             ICryptoService cryptoService, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, 
             IServerCommunicationServicesRegistry communicationServicesRegistry, ISyncRegistryMemPool syncRegistryMemPool, INodesResolutionService nodesResolutionService,
-            IChainDataServicesManager chainDataServicesManager, IRawPacketProvidersFactory rawPacketProvidersFactory)
+            IChainDataServicesManager chainDataServicesManager, IRawPacketProvidersFactory rawPacketProvidersFactory, ILoggerService loggerService)
         {
             _registryBlocks = new BlockingCollection<RegistryBlockBase>();
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
@@ -74,6 +77,7 @@ namespace Wist.Node.Core.Synchronization
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
             _synchronizationChainDataService = chainDataServicesManager.GetChainDataService(PacketType.Synchronization);
             _registryChainDataService = chainDataServicesManager.GetChainDataService(PacketType.Registry);
+            _logger = loggerService.GetLogger(nameof(TransactionsRegistrySyncHandler));
         }
 
         public string Name => NAME;
@@ -105,21 +109,42 @@ namespace Wist.Node.Core.Synchronization
 
         private void SynchronizationStateChanged(string propName)
         {
-            _syncRegistryMemPool.SetRound(0);
         }
 
         private void ProcessBlocks(CancellationToken ct)
         {
             foreach (RegistryBlockBase registryBlock in _registryBlocks.GetConsumingEnumerable(ct))
             {
-                if (registryBlock is RegistryFullBlock transactionsFullBlock)
+                try
                 {
-                    _syncRegistryMemPool.AddCandidateBlock(transactionsFullBlock);
+                    if (registryBlock is RegistryFullBlock transactionsFullBlock)
+                    {
+                        _syncRegistryMemPool.AddCandidateBlock(transactionsFullBlock);
+                    }
+                    else if (registryBlock is RegistryConfidenceBlock transactionsRegistryConfidenceBlock)
+                    {
+                        _syncRegistryMemPool.AddVotingBlock(transactionsRegistryConfidenceBlock);
+                    }
                 }
-                else if (registryBlock is RegistryConfidenceBlock transactionsRegistryConfidenceBlock)
+                catch (Exception ex)
                 {
-                    _syncRegistryMemPool.AddVotingBlock(transactionsRegistryConfidenceBlock);
+                    _logger.Error("Error during processing block", ex);
                 }
+            }
+        }
+
+        private readonly CancellationTokenSource _votingCyclesCancellation = new CancellationTokenSource();
+        private readonly ManualResetEventSlim _votingCyclesEntrySwitch = new ManualResetEventSlim(false);
+
+        private void DoVotingCycles()
+        {
+            _votingCyclesEntrySwitch.Wait(); //will be set on arriving of SyncConfirmBlock to enter loop of votings
+
+            while(!_votingCyclesCancellation.IsCancellationRequested)
+            {
+                Thread.Sleep(5000);
+
+                //Collect Votes
             }
         }
 
@@ -130,27 +155,47 @@ namespace Wist.Node.Core.Synchronization
         // 3. It will be created Combined Block that will hold information about winning Transactions Registry Block 
         private void RoundEndedHandler(RoundDescriptor roundDescriptor)
         {
-            RegistryFullBlock transactionsFullBlockMostConfident = _syncRegistryMemPool.GetMostConfidentFullBlock();
+            if (roundDescriptor == null)
+            {
+                return;
+            }
 
-            CreateAndDistributeConfirmationBlock(roundDescriptor, transactionsFullBlockMostConfident);
+            try
+            {
+                RegistryFullBlock transactionsFullBlockMostConfident = _syncRegistryMemPool.GetMostConfidentFullBlock(roundDescriptor);
 
-            DistributeAndSaveFullBlock(transactionsFullBlockMostConfident);
+                if (transactionsFullBlockMostConfident != null)
+                {
+                    CreateAndDistributeConfirmationBlock(roundDescriptor, transactionsFullBlockMostConfident);
 
-            CreateAndDistributeCombinedBlock(transactionsFullBlockMostConfident);
+                    DistributeAndSaveFullBlock(transactionsFullBlockMostConfident);
+                }
+
+                CreateAndDistributeCombinedBlock(transactionsFullBlockMostConfident);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Failed to complete Round due to error", ex);
+            }
+            finally
+            {
+                roundDescriptor?.Reset();
+            }
         }
 
         private void CreateAndDistributeCombinedBlock(RegistryFullBlock transactionsFullBlockMostConfident)
         {
             SynchronizationRegistryCombinedBlock lastCombinedBlock = (SynchronizationRegistryCombinedBlock)_synchronizationChainDataService.GetAllLastBlocksByType(BlockTypes.Synchronization_RegistryCombinationBlock).Single();
             byte[] prevHash = lastCombinedBlock != null ? CryptoHelper.ComputeHash(lastCombinedBlock.BodyBytes) : new byte[Globals.DEFAULT_HASH_SIZE];
-            byte[] fullBlockHash = CryptoHelper.ComputeHash(transactionsFullBlockMostConfident.BodyBytes);
+            byte[] fullBlockHash = CryptoHelper.ComputeHash(transactionsFullBlockMostConfident?.BodyBytes ?? new byte[Globals.DEFAULT_HASH_SIZE]);
 
             //TODO: For initial POC there will be only one participant at Synchronization Layer, thus combination of FullBlocks won't be implemented fully
             SynchronizationRegistryCombinedBlock synchronizationRegistryCombinedBlock = new SynchronizationRegistryCombinedBlock
             {
                 SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0,
                 PowHash = _powCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE]),
-                BlockHeight = _synchronizationContext.LastRegistrationBlockHeight++,
+                BlockHeight = _synchronizationContext.LastRegistrationCombinedBlockHeight + 1,
                 HashPrev = prevHash,
                 ReportedTime = DateTime.Now,
                 BlockHashes = new byte[][] { fullBlockHash }
@@ -163,6 +208,8 @@ namespace Wist.Node.Core.Synchronization
             _communicationService.PostMessage(storageLayerKeys, combinedBlockSerializer);
 
             _synchronizationChainDataService.Add(synchronizationRegistryCombinedBlock);
+
+            _synchronizationContext.LastRegistrationCombinedBlockHeight++;
         }
 
         private void DistributeAndSaveFullBlock(RegistryFullBlock transactionsFullBlockMostConfident)
@@ -181,11 +228,11 @@ namespace Wist.Node.Core.Synchronization
             {
                 SyncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0,
                 PowHash = _powCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE]),
-                BlockHeight = roundDescriptor.Round,
+                BlockHeight = transactionsFullBlockMostConfident.BlockHeight,
                 ReferencedBlockHash = transactionsFullBlockMostConfident.ShortBlockHash
             };
 
-            ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound(roundDescriptor.Round);
+            ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound((int)transactionsFullBlockMostConfident.BlockHeight);
             ISignatureSupportSerializer registryConfirmationBlockSerializer = _signatureSupportSerializersFactory.Create(registryConfirmationBlock);
 
             _communicationService.PostMessage(_syncRegistryNeighborhoodState.GetAllNeighbors(), registryConfirmationBlockSerializer);

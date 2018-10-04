@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using Wist.Core.Exceptions;
 
 namespace Wist.Core.Cryptography
 {
     public static class CryptoHelper
     {
         /// <summary>
-        /// Calculates SHA512 HASH
+        /// Calculates SHA256 HASH
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -21,6 +23,26 @@ namespace Wist.Core.Cryptography
                 byte[] hash = hashAlgorithm.ComputeHash(input);
                 return hash;
             }            
+        }
+
+        /// <summary>
+        /// Calculates SHA256 HASH
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static byte[] ComputeHash(Memory<byte> input)
+        {
+            if (MemoryMarshal.TryGetArray(input, out ArraySegment<byte> byteArray))
+            {
+                //using (SHA512 hashAlgorithm = SHA512CryptoServiceProvider.Create())
+                using (SHA256 hashAlgorithm = SHA256CryptoServiceProvider.Create())
+                {
+                    byte[] hash = hashAlgorithm.ComputeHash(byteArray.Array);
+                    return hash;
+                }
+            }
+
+            throw new FailedToMarshalToByteArrayException(nameof(input));
         }
 
         public static byte[] ComputeHash(byte[] input, uint level)
