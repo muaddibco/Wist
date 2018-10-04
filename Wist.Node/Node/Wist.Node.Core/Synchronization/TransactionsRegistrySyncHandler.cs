@@ -133,6 +133,21 @@ namespace Wist.Node.Core.Synchronization
             }
         }
 
+        private readonly CancellationTokenSource _votingCyclesCancellation = new CancellationTokenSource();
+        private readonly ManualResetEventSlim _votingCyclesEntrySwitch = new ManualResetEventSlim(false);
+
+        private void DoVotingCycles()
+        {
+            _votingCyclesEntrySwitch.Wait(); //will be set on arriving of SyncConfirmBlock to enter loop of votings
+
+            while(!_votingCyclesCancellation.IsCancellationRequested)
+            {
+                Thread.Sleep(5000);
+
+                //Collect Votes
+            }
+        }
+
         // every round must last around 5 seconds
         // when round ends following things will happen:
         // 1. Shard Leader will send block with information about Transactions Registry Block collected most votes
