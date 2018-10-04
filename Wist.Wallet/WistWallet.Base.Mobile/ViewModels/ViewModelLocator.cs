@@ -1,9 +1,5 @@
 ﻿using CommonServiceLocator;
 using GalaSoft.MvvmLight.Ioc;
-using Wist.Client.Common.Communication;
-using Wist.Client.Common.Interfaces;
-using Wist.Common.Communication;
-using Wist.Common.Interfaces;
 using WistWallet.Base.Interfaces;
 using WistWallet.Base.Mobile.Interfaces;
 
@@ -26,21 +22,15 @@ namespace WistWallet.Base.Mobile.ViewModels
         //                                 MEMBERS
         //============================================================================
 
-
         //============================================================================
         //                                  C'TOR
         //============================================================================
 
         public ViewModelLocator()
         {
-            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
-
+            
             SimpleIoc.Default.Register<IPaymentViewModel, PaymentViewModelMobile>();
             SimpleIoc.Default.Register<IVoteViewModelMobile, VoteViewModelMobile>();
-            SimpleIoc.Default.Register<INetworkAdapter, NetworkAdapter>();
-            SimpleIoc.Default.Register<INetworkManager, NetworkManager>();
-            SimpleIoc.Default.Register<INetworkSynchronizer, NetworkSynchronizer>();
-            SimpleIoc.Default.Register<IRestfulClient, RestfulClient>();
         }
 
         //============================================================================
@@ -61,3 +51,6 @@ namespace WistWallet.Base.Mobile.ViewModels
 
     }
 }
+
+
+

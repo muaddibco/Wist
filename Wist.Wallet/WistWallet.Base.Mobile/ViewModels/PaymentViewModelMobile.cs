@@ -1,4 +1,7 @@
-﻿using System.Windows.Input;
+﻿using CommonServiceLocator;
+using System.Linq;
+using System.Windows.Input;
+using Wist.Client.Common.Interfaces;
 using WistWallet.Base.Interfaces;
 using WistWallet.Base.Mobile.Interfaces;
 using WistWallet.Base.ViewModels;
@@ -42,7 +45,15 @@ namespace WistWallet.Base.Mobile.ViewModels
         public override ICommand SendPaymentCommand =>
             new Command(() =>
             {
+                byte[] test = new byte[] { 1, 1 };
+
                 DependencyService.Get<INotificationService>().ShowMessage("Heeeeeeeeeeeello");
+
+                IMobileContext mobileContext = DependencyService.Get<IMobileContext>();
+
+                INetworkManager networkManager = mobileContext?.GetNetworkManager();
+
+                ulong height = networkManager.GetCurrentHeight(mobileContext.WalletAccounts.ToList().FirstOrDefault(a => a.PrivateKey == test));
             });
 
         #endregion

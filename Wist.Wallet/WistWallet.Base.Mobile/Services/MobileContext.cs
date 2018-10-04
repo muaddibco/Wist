@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Net;
-using Wist.Client.Common.Entities;
+﻿using CommonServiceLocator;
 using Wist.Client.Common.Interfaces;
+using WistWallet.Base.Mobile.Interfaces;
+using WistWallet.Base.Mobile.Services;
+using WistWallet.Base.Services;
+using Xamarin.Forms;
 
-namespace Wist.Client.Common.Communication
+[assembly: Dependency(typeof(MobileContext))]
+namespace WistWallet.Base.Mobile.Services
 {
     /// <classDetails>   
     ///*****************************************************************
@@ -11,30 +14,26 @@ namespace Wist.Client.Common.Communication
     /// 
     ///  Author       : Ami
     ///       
-    ///  Date         : 9/30/2018 3:32:47 PM      
+    ///  Date         : 10/5/2018 12:13:08 AM      
     /// *****************************************************************/
     /// </classDetails>
     /// <summary>
     /// </summary>
-    public class NetworkManager : INetworkManager
+    public class MobileContext : Context, IMobileContext
     {
         //============================================================================
         //                                 MEMBERS
         //============================================================================
 
-        private INetworkAdapter _networkAdapter;
-
-        private readonly IDictionary<byte[], ulong> _heightsDictionary;
 
         //============================================================================
         //                                  C'TOR
         //============================================================================
 
-        public NetworkManager(INetworkAdapter networkAdapter)
+        public MobileContext() 
+            : base()
         {
-            _networkAdapter = networkAdapter;
 
-            _heightsDictionary = new Dictionary<byte[], ulong>();
         }
 
         //============================================================================
@@ -43,20 +42,13 @@ namespace Wist.Client.Common.Communication
 
         #region ============ PUBLIC FUNCTIONS =============  
 
-        public ICollection<IPAddress> StorageEndpoints { get; set; }
-
-        public ICollection<IPAddress> RegistrationEndpoints { get; set; }
-
-        public void InitializeNetwork()
+        public override INetworkManager GetNetworkManager()
         {
-            StorageEndpoints = _networkAdapter.GetIPAddressesOfStorageEndpoints();
-
-            RegistrationEndpoints = _networkAdapter.GetIPAddressesOfRegistrationEndpoints();
-        }
-
-        public ulong GetCurrentHeight(Account account)
-        {
-            return _heightsDictionary[account.PrivateKey];
+            if (_networkManager == null)
+            {
+                _networkManager = ServiceLocator.Current.GetInstance<INetworkManager>();
+            }
+            return _networkManager;
         }
 
         #endregion

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Wist.Client.Common.Entities;
 using Wist.Client.Common.Interfaces;
+using WistWallet.Base.Interfaces;
 
 namespace WistWallet.Base.Services
 {
@@ -17,21 +18,20 @@ namespace WistWallet.Base.Services
     /// </classDetails>
     /// <summary>
     /// </summary>
-    public class Context
+    public class Context : IContext
     {
         //============================================================================
         //                                 MEMBERS
         //============================================================================
 
-        private INetworkManager _networkManager;
+        protected INetworkManager _networkManager;
 
         //============================================================================
         //                                  C'TOR
         //============================================================================
 
-        public Context(INetworkManager networkManager)
+        public Context()
         {
-            _networkManager = networkManager;
         }
 
         //============================================================================
@@ -39,6 +39,8 @@ namespace WistWallet.Base.Services
         //============================================================================
 
         #region ============ PUBLIC FUNCTIONS =============  
+
+     
 
         public ICollection<Account> WalletAccounts { get; set; }
 
@@ -53,6 +55,11 @@ namespace WistWallet.Base.Services
                 throw new Exception("this account is part of current wallet");
             }
             return 0;
+        }
+
+        public virtual INetworkManager GetNetworkManager()
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
