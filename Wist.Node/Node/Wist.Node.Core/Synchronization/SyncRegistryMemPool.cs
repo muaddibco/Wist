@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Subjects;
-using System.Threading;
-using System.Threading.Tasks.Dataflow;
 using Wist.BlockLattice.Core;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Serializers;
@@ -12,6 +10,10 @@ using Wist.Core.Architecture.Enums;
 using Wist.Core.Cryptography;
 using Wist.Core.HashCalculations;
 using Wist.Core.Identity;
+using Wist.Core.States;
+using Wist.Core.Synchronization;
+using Wist.Core.ExtensionMethods;
+using Wist.Core.Logging;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -26,43 +28,76 @@ namespace Wist.Node.Core.Synchronization
         private readonly Subject<RoundDescriptor> _subject = new Subject<RoundDescriptor>();
         private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         private readonly ICryptoService _cryptoService;
+        private readonly ISynchronizationContext _synchronizationContext;
+        private readonly ILogger _logger;
 
-        public SyncRegistryMemPool(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService)
+        private ulong _lastCompletedSyncHeight = 0;
+        private ulong _lastCompletedRound = 0;
+
+        public SyncRegistryMemPool(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, 
+            IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IStatesRepository statesRepository, ILoggerService loggerService)
         {
+            _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _roundDescriptors = new Dictionary<ulong, RoundDescriptor>();
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _cryptoService = cryptoService;
             _defaultTransactionHashCalculation = hashCalculationsRepository.Create(Globals.DEFAULT_HASH);
             _transactionHashKey = identityKeyProvidersRegistry.GetInstance("DefaultHash");
+            _logger = loggerService.GetLogger(nameof(SyncRegistryMemPool));
         }
 
         public void AddCandidateBlock(RegistryFullBlock transactionsFullBlock)
         {
+            if (transactionsFullBlock == null)
+            {
+                throw new ArgumentNullException(nameof(transactionsFullBlock));
+            }
+
+            _logger.Debug($"{nameof(SyncRegistryMemPool)} - adding candidate block {transactionsFullBlock.RawData.ToHexString()}");
+
+            if (_lastCompletedRound > 1 && transactionsFullBlock.BlockHeight <= _lastCompletedRound && transactionsFullBlock.BlockHeight != 1 || _lastCompletedRound == 1 && transactionsFullBlock.BlockHeight == 1)
+            {
+                return;
+            }
+
             lock (_syncRound)
             {
                 if (!_roundDescriptors.ContainsKey(transactionsFullBlock.BlockHeight))
                 {
-                    RoundDescriptor roundDescriptor = new RoundDescriptor(_transactionHashKey, RoundEndedHandler, 3000);
+                    RoundDescriptor roundDescriptor = new RoundDescriptor(_transactionHashKey);
                     roundDescriptor.AddFullBlock(transactionsFullBlock);
                     _roundDescriptors.Add(transactionsFullBlock.BlockHeight, roundDescriptor);
                 }
                 else
                 {
+                    _logger.Debug($"AddCandidateBlock - Number of candidate blocks for round {transactionsFullBlock.BlockHeight} = {_roundDescriptors[transactionsFullBlock.BlockHeight].CandidateBlocks.Count}");
                     if (!_roundDescriptors[transactionsFullBlock.BlockHeight].IsFinished)
                     {
                         _roundDescriptors[transactionsFullBlock.BlockHeight].AddFullBlock(transactionsFullBlock);
                     }
                 }
+
+                _logger.Debug($"AddCandidateBlock - Number of candidate blocks for round {transactionsFullBlock.BlockHeight} = {_roundDescriptors[transactionsFullBlock.BlockHeight].CandidateBlocks.Count}");
             }
         }
 
         public void AddVotingBlock(RegistryConfidenceBlock confidenceBlock)
         {
+            if (confidenceBlock == null)
+            {
+                throw new ArgumentNullException(nameof(confidenceBlock));
+            }
+
+            if(confidenceBlock.SyncBlockHeight <= _lastCompletedSyncHeight)
+            {
+                return;
+            }
+
             lock (_syncRound)
             {
                 if (!_roundDescriptors.ContainsKey(confidenceBlock.BlockHeight))
                 {
-                    RoundDescriptor roundDescriptor = new RoundDescriptor(_transactionHashKey, RoundEndedHandler, 3000);
+                    RoundDescriptor roundDescriptor = new RoundDescriptor(_transactionHashKey);
                     roundDescriptor.AddVotingBlock(confidenceBlock);
                     _roundDescriptors.Add(confidenceBlock.BlockHeight, roundDescriptor);
                 }
@@ -76,13 +111,15 @@ namespace Wist.Node.Core.Synchronization
             }
         }
 
-        public IDisposable SubscribeOnRoundElapsed(ITargetBlock<RoundDescriptor> onRoundElapsed)
+        public RegistryFullBlock GetMostConfidentFullBlock(ulong round)
         {
-            return _subject.Subscribe(onRoundElapsed.AsObserver());
-        }
+            if (!_roundDescriptors.ContainsKey(round))
+            {
+                return null;
+            }
 
-        public RegistryFullBlock GetMostConfidentFullBlock(RoundDescriptor roundDescriptor)
-        {
+            RoundDescriptor roundDescriptor = _roundDescriptors[round];
+
             foreach (var confidenceBlock in roundDescriptor.VotingBlocks)
             {
                 IKey key = _transactionHashKey.GetKey(confidenceBlock.ReferencedBlockHash);
@@ -145,21 +182,20 @@ namespace Wist.Node.Core.Synchronization
             return (((i + (i >> 4)) & 0xF0F0F0F0F0F0F0F) * 0x101010101010101) >> 56;
         }
 
-        private void RoundEndedHandler(object state)
+        public void ResetRound(ulong round)
         {
-            RoundDescriptor roundDescriptor = state as RoundDescriptor;
-            lock (_syncRound)
-            {
-                try
-                {
-                    _subject.OnNext(roundDescriptor);
-                }
-                catch (Exception)
-                {
-                }
+            _lastCompletedRound = round;
 
-                roundDescriptor.IsFinished = true;
+            if(_roundDescriptors.ContainsKey(round))
+            {
+                _roundDescriptors[round].Reset();
+                _logger.Debug($"ResetRound - Number of candidate blocks for round {round} = {_roundDescriptors[round].CandidateBlocks.Count}");
             }
+        }
+
+        public void SetLastCompletedSyncHeight(ulong syncHeight)
+        {
+            _lastCompletedSyncHeight = syncHeight;
         }
 
         #endregion Private Functions

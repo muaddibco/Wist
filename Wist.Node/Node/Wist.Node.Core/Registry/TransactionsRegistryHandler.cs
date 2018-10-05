@@ -19,6 +19,7 @@ using Wist.Core.States;
 using Wist.Node.Core.Common;
 using Wist.BlockLattice.Core.Serializers;
 using Wist.Core.Synchronization;
+using Wist.Core.ExtensionMethods;
 
 namespace Wist.Node.Core.Registry
 {

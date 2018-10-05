@@ -14,6 +14,9 @@ using Wist.BlockLattice.Core.Serializers.Signed.Registry;
 using Wist.Core.Cryptography;
 using Wist.Core.HashCalculations;
 using Wist.Core.Identity;
+using Wist.Core.Logging;
+using Wist.Core.States;
+using Wist.Core.Synchronization;
 using Wist.Crypto.HashCalculations;
 using Wist.Node.Core.Synchronization;
 using Wist.Tests.Core;
@@ -46,6 +49,10 @@ namespace Wist.Node.Core.Tests
             IIdentityKeyProvider identityKeyProviderTransactionKey = Substitute.For<IIdentityKeyProvider>();
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
             ICryptoService cryptoService = GetRandomCryptoService();
+            ILoggerService loggerService = Substitute.For<ILoggerService>();
+            IStatesRepository statesRepository = Substitute.For<IStatesRepository>();
+            ISynchronizationContext synchronizationContext = new Wist.Core.Synchronization.SynchronizationContext(loggerService);
+            statesRepository.GetInstance<ISynchronizationContext>().ReturnsForAnyArgs(synchronizationContext);
 
             identityKeyProviderTransactionKey.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
 
@@ -62,7 +69,7 @@ namespace Wist.Node.Core.Tests
                 return registryShortBlockSerializer;
             });
 
-            SyncRegistryMemPool syncRegistryMemPool = new SyncRegistryMemPool(signatureSupportSerializersFactory, hashCalculationsRepository, identityKeyProvidersRegistry, cryptoService);
+            SyncRegistryMemPool syncRegistryMemPool = new SyncRegistryMemPool(signatureSupportSerializersFactory, hashCalculationsRepository, identityKeyProvidersRegistry, cryptoService, statesRepository, loggerService);
 
             for (int i = 0; i < fullBlockCount; i++)
             {
@@ -151,18 +158,9 @@ namespace Wist.Node.Core.Tests
             }
 
             IKey expectedMostConfidentKey = votesPerShortBlockKey.OrderByDescending(kv => kv.Value).Select(kv => kv.Key).First();
-            RegistryFullBlock actualFullBlock = null;
-            IKey actualMostConfidentKey;
-            ManualResetEventSlim manualResetEvent = new ManualResetEventSlim(false);
-            syncRegistryMemPool.SubscribeOnRoundElapsed(new ActionBlock<RoundDescriptor>(r => 
-            {
-                actualFullBlock = syncRegistryMemPool.GetMostConfidentFullBlock(r);
-                manualResetEvent.Set();
-            }));
 
-            manualResetEvent.Wait();
-
-            actualMostConfidentKey = new Key32(actualFullBlock.ShortBlockHash);
+            RegistryFullBlock actualFullBlock = syncRegistryMemPool.GetMostConfidentFullBlock(blockHeight);
+            IKey actualMostConfidentKey = new Key32(actualFullBlock.ShortBlockHash);
 
             Assert.Equal(expectedMostConfidentKey, actualMostConfidentKey);
         }

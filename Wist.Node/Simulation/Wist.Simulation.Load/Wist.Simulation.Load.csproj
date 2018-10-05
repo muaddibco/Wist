@@ -211,6 +211,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\ClientTcpCommunicationConfiguration.cs" />
+    <Compile Include="FullTransactionSingleModule.cs" />
     <Compile Include="LoadModuleBase.cs" />
     <Compile Include="PerformanceCounters\LoadCountersService.cs" />
     <Compile Include="Program.cs" />

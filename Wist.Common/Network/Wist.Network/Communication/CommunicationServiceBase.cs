@@ -15,6 +15,7 @@ using Wist.Core.Identity;
 using Wist.Core.Logging;
 using Wist.BlockLattice.Core.Handlers;
 using Wist.Network.Topology;
+using Wist.Core.ExtensionMethods;
 
 namespace Wist.Network.Communication
 {
@@ -94,7 +95,9 @@ namespace Wist.Network.Communication
                 throw new ArgumentNullException(nameof(message));
             }
 
-            _messagesQueue.Add(new KeyValuePair<IKey, byte[]>(destination, message.GetBytes()));
+            byte[] messageBytes = message.GetBytes();
+            _log.Debug($"Enqueuing to single destination {destination.Value.ToHexString()} message {messageBytes.ToHexString()}");
+            _messagesQueue.Add(new KeyValuePair<IKey, byte[]>(destination, messageBytes));
         }
 
         public void PostMessage(IEnumerable<IKey> destinations, IPacketProvider message)
@@ -109,9 +112,11 @@ namespace Wist.Network.Communication
                 throw new ArgumentNullException(nameof(message));
             }
 
-            foreach (IKey key in destinations)
+            foreach (IKey destination in destinations)
             {
-                _messagesQueue.Add(new KeyValuePair<IKey, byte[]>(key, message.GetBytes()));
+                byte[] messageBytes = message.GetBytes();
+                _log.Debug($"Enqueuing to one of multiple destinations {destination.Value.ToHexString()} message {messageBytes.ToHexString()}");
+                _messagesQueue.Add(new KeyValuePair<IKey, byte[]>(destination, messageBytes));
             }
         }
 

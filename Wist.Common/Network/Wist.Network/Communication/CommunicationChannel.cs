@@ -151,6 +151,8 @@ namespace Wist.Network.Communication
             //TODO: weigh refactoring so BlockingCollection will be used
             lock (_postedMessages)
             {
+                _log.Debug($"Enqueueing message for sending {message.ToHexString()}");
+
                 _postedMessages.Enqueue(message);
 
                 if (!_isSendProcessing)
@@ -343,12 +345,15 @@ namespace Wist.Network.Communication
                 {
                     lock (_postedMessages)
                     {
-                        byte[] msg;
-                        if (_postedMessages.TryDequeue(out msg))
+                        if (_postedMessages.TryDequeue(out byte[] msg))
                         {
                             try
                             {
+                                _log.Debug($"Message being sent {msg.ToHexString()}");
+
                                 _currentPostMessage = GetEscapedPacketBytes(msg);
+
+                                _log.Debug($"Escaped message being sent {_currentPostMessage.ToHexString()}");
 
                                 _postMessageRemainedBytes = _currentPostMessage.Length;
                             }
@@ -450,9 +455,7 @@ namespace Wist.Network.Communication
                 {
                     while (_packets.Count > 0)
                     {
-                        byte[] currentBuf;
-
-                        if (!_packets.TryDequeue(out currentBuf))
+                        if (!_packets.TryDequeue(out byte[] currentBuf))
                             continue;
 
                         _communicationCountersService?.ParsingQueueSize.Decrement();

@@ -89,6 +89,7 @@ namespace Wist.BlockLattice.Core.Handlers
 
                 foreach (byte[] messagePacket in _messagePackets.GetConsumingEnumerable(_cancellationToken))
                 {
+                    _log.Debug($"Picked for handling flow packet {messagePacket.ToHexString()}");
                     _endToEndCountersService.MessagesQueueSize.Decrement();
                     _handlingFlows[iteration].PostMessage(messagePacket);
                 }

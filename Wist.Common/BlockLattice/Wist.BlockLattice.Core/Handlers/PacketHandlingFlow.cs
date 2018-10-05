@@ -48,11 +48,14 @@ namespace Wist.BlockLattice.Core.Handlers
 
         public void PostMessage(byte[] messagePacket)
         {
+            _log.Debug($"Posting to decoding packet {messagePacket.ToHexString()}");
             _decodeBlock.Post(messagePacket);
         }
 
         private byte[] DecodeMessage(byte[] messagePacket)
         {
+            _log.Debug($"Packet being decoded {messagePacket.ToHexString()}");
+
             MemoryStream memoryStream = new MemoryStream();
 
             bool dleDetected = false;
@@ -79,11 +82,17 @@ namespace Wist.BlockLattice.Core.Handlers
 
             _endToEndCountersService.DecodingThroughput.Increment();
 
+            byte[] decodedPacket = memoryStream.ToArray();
+
+            _log.Debug($"Decoded packet {decodedPacket.ToHexString()}");
+
             return memoryStream.ToArray();
         }
 
         private BlockBase ParseMessagePacket(byte[] messagePacket)
         {
+            _log.Debug($"Packet being parsed {messagePacket.ToHexString()}");
+
             BlockBase blockBase = null;
             PacketType packetType = (PacketType)BitConverter.ToUInt16(messagePacket, 0);
             int blockTypePos = Globals.PACKET_TYPE_LENGTH + Globals.SYNC_BLOCK_HEIGHT_LENGTH + Globals.NONCE_LENGTH + Globals.POW_HASH_SIZE + Globals.VERSION_LENGTH;
@@ -131,6 +140,8 @@ namespace Wist.BlockLattice.Core.Handlers
 
             _endToEndCountersService.ParsingThroughput.Increment();
 
+            _log.Debug($"Parsed block {blockBase.RawData.ToHexString()}");
+
             return blockBase;
         }
 
@@ -173,6 +184,8 @@ namespace Wist.BlockLattice.Core.Handlers
         {
             if (block != null)
             {
+                _log.Debug($"Block being dispatched {block.RawData.ToHexString()}");
+
                 if (!ValidateBlock(block))
                 {
                     return;

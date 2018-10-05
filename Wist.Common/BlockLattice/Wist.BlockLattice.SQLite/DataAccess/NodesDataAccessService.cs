@@ -117,9 +117,12 @@ namespace Wist.BlockLattice.SQLite.DataAccess
 
         public IEnumerable<NodeRecord> GetAllNodes()
         {
-            List<NodeRecord> nodes = _dataContext.Nodes.ToList();
+            lock (_sync)
+            {
+                List<NodeRecord> nodes = _dataContext.Nodes.ToList();
 
-            return nodes;
+                return nodes;
+            }
         }
 
         public NodeRecord GetNode(IKey key)

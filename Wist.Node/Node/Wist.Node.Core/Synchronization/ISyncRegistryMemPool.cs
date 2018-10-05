@@ -11,12 +11,14 @@ namespace Wist.Node.Core.Synchronization
     [ServiceContract]
     public interface ISyncRegistryMemPool
     {
-        IDisposable SubscribeOnRoundElapsed(ITargetBlock<RoundDescriptor> onRoundElapsed);
-
         void AddCandidateBlock(RegistryFullBlock registryFullBlock);
 
         void AddVotingBlock(RegistryConfidenceBlock confidenceBlock);
 
-        RegistryFullBlock GetMostConfidentFullBlock(RoundDescriptor roundDescriptor);
+        RegistryFullBlock GetMostConfidentFullBlock(ulong round);
+
+        void ResetRound(ulong round);
+
+        void SetLastCompletedSyncHeight(ulong syncHeight);
     }
 }

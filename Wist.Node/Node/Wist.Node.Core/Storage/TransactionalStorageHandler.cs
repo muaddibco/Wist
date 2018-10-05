@@ -20,12 +20,13 @@ namespace Wist.Node.Core.Storage
     [RegisterExtension(typeof(IBlocksHandler), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionalStorageHandler : StorageHandlerBase<TransactionalBlockBase>
     {
+        public const string NAME = "TransactionalStorage";
         public TransactionalStorageHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, IHashCalculationsRepository hashCalculationRepository, IChainDataServicesManager chainDataServicesManager) 
             : base(statesRepository, communicationServicesRegistry, rawPacketProvidersFactory, registryMemPool, configurationService, hashCalculationRepository, chainDataServicesManager)
         {
         }
 
-        public override string Name => "TransactionalStorage";
+        public override string Name => NAME;
 
         public override PacketType PacketType => PacketType.TransactionalChain;
     }

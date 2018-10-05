@@ -24,6 +24,8 @@ using Wist.Core.Synchronization;
 using Wist.BlockLattice.Core.DataModel.Synchronization;
 using Wist.BlockLattice.Core.Serializers.RawPackets;
 using Wist.Core.Logging;
+using Wist.Core.ExtensionMethods;
+using System.Runtime.CompilerServices;
 
 namespace Wist.Node.Core.Synchronization
 {
@@ -72,7 +74,6 @@ namespace Wist.Node.Core.Synchronization
             _powCalculation = hashCalculationsRepository.Create(Globals.POW_TYPE);
             _communicationServicesRegistry = communicationServicesRegistry;
             _syncRegistryMemPool = syncRegistryMemPool;
-            _syncRegistryMemPool.SubscribeOnRoundElapsed(new ActionBlock<RoundDescriptor>((Action<RoundDescriptor>)RoundEndedHandler));
             _nodesResolutionService = nodesResolutionService;
             _rawPacketProvidersFactory = rawPacketProvidersFactory;
             _synchronizationChainDataService = chainDataServicesManager.GetChainDataService(PacketType.Synchronization);
@@ -97,6 +98,7 @@ namespace Wist.Node.Core.Synchronization
 
         public void ProcessBlock(BlockBase blockBase)
         {
+            _logger.Debug($"{nameof(TransactionsRegistrySyncHandler)} - processing block {blockBase.RawData.ToHexString()}");
             RegistryBlockBase registryBlock = blockBase as RegistryBlockBase;
 
             if (registryBlock is RegistryFullBlock || registryBlock is RegistryConfidenceBlock)
@@ -109,6 +111,13 @@ namespace Wist.Node.Core.Synchronization
 
         private void SynchronizationStateChanged(string propName)
         {
+            _votingCyclesCancellation.Cancel();
+            _votingCyclesCancellation = new CancellationTokenSource();
+            _votingCyclesStarted = false;
+            if (CheckLeadershipParticipation())
+            {
+                LauchVotingSycles();
+            }
         }
 
         private void ProcessBlocks(CancellationToken ct)
@@ -117,13 +126,18 @@ namespace Wist.Node.Core.Synchronization
             {
                 try
                 {
-                    if (registryBlock is RegistryFullBlock transactionsFullBlock)
+                    _logger.Debug($"{nameof(TransactionsRegistrySyncHandler)} - picked up for processing block {registryBlock.RawData.ToHexString()}");
+
+                    lock (_syncRegistryMemPool)
                     {
-                        _syncRegistryMemPool.AddCandidateBlock(transactionsFullBlock);
-                    }
-                    else if (registryBlock is RegistryConfidenceBlock transactionsRegistryConfidenceBlock)
-                    {
-                        _syncRegistryMemPool.AddVotingBlock(transactionsRegistryConfidenceBlock);
+                        if (registryBlock is RegistryFullBlock transactionsFullBlock)
+                        {
+                            _syncRegistryMemPool.AddCandidateBlock(transactionsFullBlock);
+                        }
+                        else if (registryBlock is RegistryConfidenceBlock transactionsRegistryConfidenceBlock)
+                        {
+                            _syncRegistryMemPool.AddVotingBlock(transactionsRegistryConfidenceBlock);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -133,19 +147,71 @@ namespace Wist.Node.Core.Synchronization
             }
         }
 
-        private readonly CancellationTokenSource _votingCyclesCancellation = new CancellationTokenSource();
-        private readonly ManualResetEventSlim _votingCyclesEntrySwitch = new ManualResetEventSlim(false);
+        private CancellationTokenSource _votingCyclesCancellation = new CancellationTokenSource();
+        private readonly AutoResetEvent _votingCyclesEntrySwitch = new AutoResetEvent(false);
+        private bool _votingCyclesStarted;
+        private readonly object _votingCyclesLaunchSync = new object();
 
-        private void DoVotingCycles()
+        private bool CheckLeadershipParticipation()
         {
-            _votingCyclesEntrySwitch.Wait(); //will be set on arriving of SyncConfirmBlock to enter loop of votings
+            return true;
+        }
 
-            while(!_votingCyclesCancellation.IsCancellationRequested)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void LauchVotingSycles()
+        {
+            if (!_votingCyclesStarted)
             {
+                lock (_votingCyclesLaunchSync)
+                {
+                    if (!_votingCyclesStarted)
+                    {
+                        _votingCyclesStarted = true;
+
+                        Task.Factory.StartNew(() => DoVotingCycles(_votingCyclesCancellation.Token), _cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                    }
+                }
+            }
+        }
+
+        private void DoVotingCycles(CancellationToken votingCycleCt)
+        {
+            Thread.Sleep(3000); // Shift voting cycles
+            ulong round = 1;
+
+            ulong syncHeight = _synchronizationContext.LastBlockDescriptor.BlockHeight;
+
+            while (!_cancellationToken.IsCancellationRequested && !votingCycleCt.IsCancellationRequested)
+            {
+                // 1. check participation as leader 
                 Thread.Sleep(5000);
 
-                //Collect Votes
+                try
+                {
+                    RegistryFullBlock transactionsFullBlockMostConfident = null;
+
+                    lock (_syncRegistryMemPool)
+                    {
+                        transactionsFullBlockMostConfident = _syncRegistryMemPool.GetMostConfidentFullBlock(round);
+                        _syncRegistryMemPool.ResetRound(round++);
+                    }
+
+                    if (transactionsFullBlockMostConfident != null)
+                    {
+                        CreateAndDistributeConfirmationBlock(transactionsFullBlockMostConfident);
+
+                        DistributeAndSaveFullBlock(transactionsFullBlockMostConfident);
+                    }
+
+                    CreateAndDistributeCombinedBlock(transactionsFullBlockMostConfident);
+
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error("Failed to complete Round due to error", ex);
+                }
             }
+            _syncRegistryMemPool.SetLastCompletedSyncHeight(syncHeight);
         }
 
         // every round must last around 5 seconds
@@ -160,28 +226,6 @@ namespace Wist.Node.Core.Synchronization
                 return;
             }
 
-            try
-            {
-                RegistryFullBlock transactionsFullBlockMostConfident = _syncRegistryMemPool.GetMostConfidentFullBlock(roundDescriptor);
-
-                if (transactionsFullBlockMostConfident != null)
-                {
-                    CreateAndDistributeConfirmationBlock(roundDescriptor, transactionsFullBlockMostConfident);
-
-                    DistributeAndSaveFullBlock(transactionsFullBlockMostConfident);
-                }
-
-                CreateAndDistributeCombinedBlock(transactionsFullBlockMostConfident);
-
-            }
-            catch (Exception ex)
-            {
-                _logger.Error("Failed to complete Round due to error", ex);
-            }
-            finally
-            {
-                roundDescriptor?.Reset();
-            }
         }
 
         private void CreateAndDistributeCombinedBlock(RegistryFullBlock transactionsFullBlockMostConfident)
@@ -222,7 +266,7 @@ namespace Wist.Node.Core.Synchronization
             _registryChainDataService.Add(transactionsFullBlockMostConfident);
         }
 
-        private void CreateAndDistributeConfirmationBlock(RoundDescriptor roundDescriptor, RegistryFullBlock transactionsFullBlockMostConfident)
+        private void CreateAndDistributeConfirmationBlock(RegistryFullBlock transactionsFullBlockMostConfident)
         {
             RegistryConfirmationBlock registryConfirmationBlock = new RegistryConfirmationBlock
             {
