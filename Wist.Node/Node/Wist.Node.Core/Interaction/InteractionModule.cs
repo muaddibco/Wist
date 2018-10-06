@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
 using Wist.Core.Configuration;
 using Wist.Core.Logging;
 using Wist.Core.States;
@@ -11,6 +13,7 @@ using Wist.Proto.Model;
 
 namespace Wist.Node.Core.Interaction
 {
+    [RegisterExtension(typeof(IModule), Lifetime = LifetimeManagement.Singleton)]
     public class InteractionModule : ModuleBase
     {
         const string _host = "0.0.0.0";
