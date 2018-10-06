@@ -24,14 +24,15 @@ namespace Wist.Proto.Model {
     static ClassModelReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChBDbGFzc01vZGVsLnByb3RvEhBXaXN0LlByb3RvLk1vZGVsIi0KDUxhc3RT",
-            "eW5jQmxvY2sSDgoGSGVpZ2h0GAEgASgEEgwKBEhhc2gYAiABKAwyZQoLU3lu",
-            "Y01hbmFnZXISVgoQR2V0TGFzdFN5bmNCbG9jaxIfLldpc3QuUHJvdG8uTW9k",
-            "ZWwuTGFzdFN5bmNCbG9jaxofLldpc3QuUHJvdG8uTW9kZWwuTGFzdFN5bmNC",
-            "bG9jayIAYgZwcm90bzM="));
+            "ChBDbGFzc01vZGVsLnByb3RvEhBXaXN0LlByb3RvLk1vZGVsIgcKBUVtcHR5",
+            "Ii0KDUxhc3RTeW5jQmxvY2sSDgoGSGVpZ2h0GAEgASgEEgwKBEhhc2gYAiAB",
+            "KAwyXQoLU3luY01hbmFnZXISTgoQR2V0TGFzdFN5bmNCbG9jaxIXLldpc3Qu",
+            "UHJvdG8uTW9kZWwuRW1wdHkaHy5XaXN0LlByb3RvLk1vZGVsLkxhc3RTeW5j",
+            "QmxvY2siAGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::Wist.Proto.Model.Empty), global::Wist.Proto.Model.Empty.Parser, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Wist.Proto.Model.LastSyncBlock), global::Wist.Proto.Model.LastSyncBlock.Parser, new[]{ "Height", "Hash" }, null, null, null)
           }));
     }
@@ -39,6 +40,107 @@ namespace Wist.Proto.Model {
 
   }
   #region Messages
+  public sealed partial class Empty : pb::IMessage<Empty> {
+    private static readonly pb::MessageParser<Empty> _parser = new pb::MessageParser<Empty>(() => new Empty());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<Empty> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Wist.Proto.Model.ClassModelReflection.Descriptor.MessageTypes[0]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Empty() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Empty(Empty other) : this() {
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Empty Clone() {
+      return new Empty(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as Empty);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(Empty other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(Empty other) {
+      if (other == null) {
+        return;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+        }
+      }
+    }
+
+  }
+
   public sealed partial class LastSyncBlock : pb::IMessage<LastSyncBlock> {
     private static readonly pb::MessageParser<LastSyncBlock> _parser = new pb::MessageParser<LastSyncBlock>(() => new LastSyncBlock());
     private pb::UnknownFieldSet _unknownFields;
@@ -47,7 +149,7 @@ namespace Wist.Proto.Model {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Wist.Proto.Model.ClassModelReflection.Descriptor.MessageTypes[0]; }
+      get { return global::Wist.Proto.Model.ClassModelReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

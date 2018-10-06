@@ -2,8 +2,10 @@
 package Wist.Proto.Model;
 
 service SyncManager {
-	rpc GetLastSyncBlock(LastSyncBlock) returns (LastSyncBlock) {}
+	rpc GetLastSyncBlock(Empty) returns (LastSyncBlock) {}
 }
+
+message Empty {}
 
 message LastSyncBlock {
 	uint64 Height = 1;

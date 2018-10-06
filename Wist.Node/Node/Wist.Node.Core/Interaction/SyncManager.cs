@@ -16,7 +16,7 @@ namespace Wist.Node.Core.Interaction
             _synchronizationContext = synchronizationContext;
         }
 
-        public override Task<LastSyncBlock> GetLastSyncBlock(LastSyncBlock request, ServerCallContext context)
+        public override Task<LastSyncBlock> GetLastSyncBlock(Empty request, ServerCallContext context)
         {
             return Task.FromResult(new LastSyncBlock
             {

@@ -12,13 +12,14 @@ namespace Wist.Proto.Model {
   {
     static readonly string __ServiceName = "Wist.Proto.Model.SyncManager";
 
+    static readonly grpc::Marshaller<global::Wist.Proto.Model.Empty> __Marshaller_Wist_Proto_Model_Empty = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Wist.Proto.Model.Empty.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::Wist.Proto.Model.LastSyncBlock> __Marshaller_Wist_Proto_Model_LastSyncBlock = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Wist.Proto.Model.LastSyncBlock.Parser.ParseFrom);
 
-    static readonly grpc::Method<global::Wist.Proto.Model.LastSyncBlock, global::Wist.Proto.Model.LastSyncBlock> __Method_GetLastSyncBlock = new grpc::Method<global::Wist.Proto.Model.LastSyncBlock, global::Wist.Proto.Model.LastSyncBlock>(
+    static readonly grpc::Method<global::Wist.Proto.Model.Empty, global::Wist.Proto.Model.LastSyncBlock> __Method_GetLastSyncBlock = new grpc::Method<global::Wist.Proto.Model.Empty, global::Wist.Proto.Model.LastSyncBlock>(
         grpc::MethodType.Unary,
         __ServiceName,
         "GetLastSyncBlock",
-        __Marshaller_Wist_Proto_Model_LastSyncBlock,
+        __Marshaller_Wist_Proto_Model_Empty,
         __Marshaller_Wist_Proto_Model_LastSyncBlock);
 
     /// <summary>Service descriptor</summary>
@@ -30,7 +31,7 @@ namespace Wist.Proto.Model {
     /// <summary>Base class for server-side implementations of SyncManager</summary>
     public abstract partial class SyncManagerBase
     {
-      public virtual global::System.Threading.Tasks.Task<global::Wist.Proto.Model.LastSyncBlock> GetLastSyncBlock(global::Wist.Proto.Model.LastSyncBlock request, grpc::ServerCallContext context)
+      public virtual global::System.Threading.Tasks.Task<global::Wist.Proto.Model.LastSyncBlock> GetLastSyncBlock(global::Wist.Proto.Model.Empty request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -60,19 +61,19 @@ namespace Wist.Proto.Model {
       {
       }
 
-      public virtual global::Wist.Proto.Model.LastSyncBlock GetLastSyncBlock(global::Wist.Proto.Model.LastSyncBlock request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      public virtual global::Wist.Proto.Model.LastSyncBlock GetLastSyncBlock(global::Wist.Proto.Model.Empty request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
       {
         return GetLastSyncBlock(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
-      public virtual global::Wist.Proto.Model.LastSyncBlock GetLastSyncBlock(global::Wist.Proto.Model.LastSyncBlock request, grpc::CallOptions options)
+      public virtual global::Wist.Proto.Model.LastSyncBlock GetLastSyncBlock(global::Wist.Proto.Model.Empty request, grpc::CallOptions options)
       {
         return CallInvoker.BlockingUnaryCall(__Method_GetLastSyncBlock, null, options, request);
       }
-      public virtual grpc::AsyncUnaryCall<global::Wist.Proto.Model.LastSyncBlock> GetLastSyncBlockAsync(global::Wist.Proto.Model.LastSyncBlock request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      public virtual grpc::AsyncUnaryCall<global::Wist.Proto.Model.LastSyncBlock> GetLastSyncBlockAsync(global::Wist.Proto.Model.Empty request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
       {
         return GetLastSyncBlockAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
-      public virtual grpc::AsyncUnaryCall<global::Wist.Proto.Model.LastSyncBlock> GetLastSyncBlockAsync(global::Wist.Proto.Model.LastSyncBlock request, grpc::CallOptions options)
+      public virtual grpc::AsyncUnaryCall<global::Wist.Proto.Model.LastSyncBlock> GetLastSyncBlockAsync(global::Wist.Proto.Model.Empty request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_GetLastSyncBlock, null, options, request);
       }

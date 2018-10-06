@@ -140,7 +140,14 @@ namespace Wist.BlockLattice.Core.Handlers
 
             _endToEndCountersService.ParsingThroughput.Increment();
 
-            _log.Debug($"Parsed block {blockBase.RawData.ToHexString()}");
+            if (blockBase != null)
+            {
+                _log.Debug($"Parsed block {blockBase.RawData.ToHexString()}");
+            }
+            else
+            {
+                _log.Error($"Failed to parse block from message {messagePacket.ToHexString()}");
+            }
 
             return blockBase;
         }
