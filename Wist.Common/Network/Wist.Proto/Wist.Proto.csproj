@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.6.1" />
+    <PackageReference Include="Grpc" Version="1.15.0" />
+    <PackageReference Include="Grpc.Tools" Version="1.15.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Proto\ClassModel.proto">
+      <Generator></Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Generated\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="%UserProfile%\.nuget\packages\Grpc.Tools\1.15.0\tools\windows_x64\protoc.exe -I=$(ProjectDir)\Proto --csharp_out=$(ProjectDir)\Generated --grps_out=$(ProjectDir)\Generated  --plugin=protoc-gen-grps=%UserProfile%\.nuget\packages\Grpc.Tools\1.15.0\tools\windows_x64\grpc_csharp_plugin.exe $(ProjectDir)\Proto\ClassModel.proto" />
+  </Target>
+
+</Project>

@@ -1,0 +1,11 @@
+﻿syntax = "proto3";
+package Wist.Proto.Model;
+
+service SyncManager {
+	rpc GetLastSyncBlock(LastSyncBlock) returns (LastSyncBlock) {}
+}
+
+message LastSyncBlock {
+	uint64 Height = 1;
+	bytes Hash = 2;
+}
