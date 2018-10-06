@@ -31,7 +31,7 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
                 byte[] target = spanBody.Slice(0, Globals.DEFAULT_HASH_SIZE).ToArray();
                 ulong funds = BinaryPrimitives.ReadUInt64LittleEndian(spanBody.Span.Slice(Globals.DEFAULT_HASH_SIZE));
 
-                block = new TransferFundsBlockV1()
+                block = new TransferFundsBlock()
                 {
                     TargetOriginalHash = target,
                     UptodateFunds = funds,

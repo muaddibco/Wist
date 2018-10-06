@@ -68,6 +68,11 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                 throw new ArgumentNullException(nameof(key));
             }
 
+            if(!_keyIdentityMap.ContainsKey(key))
+            {
+                return false;
+            }
+
             return _dataContext.TransactionalGenesises.Any(g => g.Identity == _keyIdentityMap[key]);
         }
 

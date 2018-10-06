@@ -26,13 +26,11 @@ namespace Wist.Simulation.Load
     public class TransactionRegistrationSingleModule : LoadModuleBase
     {
         private readonly ISynchronizationContext _synchronizationContext;
-        private readonly IHashCalculation _proofOfWorkCalculation;
 
-        public TransactionRegistrationSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationsRepository proofOfWorkCalculationRepository, IHashCalculationsRepository hashCalculationRepository)
+        public TransactionRegistrationSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationsRepository hashCalculationRepository)
             : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository, hashCalculationRepository)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
-            _proofOfWorkCalculation = proofOfWorkCalculationRepository.Create(Globals.POW_TYPE);
         }
 
         public override string Name => nameof(TransactionRegistrationSingleModule);
@@ -43,16 +41,9 @@ namespace Wist.Simulation.Load
             byte[] syncHash = _synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE];
             string cmd = null;
 
-            BigInteger bigInteger = new BigInteger(syncHash);
-            ulong nonce = 1234;
-            bigInteger += nonce;
-            byte[] hashNonce = bigInteger.ToByteArray();
-            byte[] powHash = _proofOfWorkCalculation.CalculateHash(hashNonce);
+            byte[] powHash = GetPowHash(syncHash, 1234);
 
-
-            byte[] seedTarget = GetRandomSeed();
-            byte[] targetKeyBytes = Ed25519.PublicKeyFromSeed(seedTarget);
-            byte[] targetHash = CryptoHelper.ComputeHash(targetKeyBytes);
+            byte[] targetAddress = GetRandomTargetAddress();
 
             do
             {
@@ -69,7 +60,7 @@ namespace Wist.Simulation.Load
                         ReferencedBlockType = BlockTypes.Transaction_Confirm,
                         ReferencedHeight = 1234,
                         ReferencedBodyHash = new byte[Globals.DEFAULT_HASH_SIZE],
-                        ReferencedTargetHash = targetHash
+                        ReferencedTargetHash = targetAddress
                     }
                 };
 
@@ -79,7 +70,7 @@ namespace Wist.Simulation.Load
 
                 _communicationService.PostMessage(_keyTarget, signatureSupportSerializer);
 
-                if(_cancellationToken.IsCancellationRequested)
+                if (_cancellationToken.IsCancellationRequested)
                 {
                     break;
                 }

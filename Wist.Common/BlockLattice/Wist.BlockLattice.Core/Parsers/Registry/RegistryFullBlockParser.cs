@@ -38,7 +38,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
                 if (itemsCount > 0)
                 {
-                    registryRegisterPacketSize = ((spanBody.Length - 2 - Globals.NODE_PUBLIC_KEY_SIZE - Globals.SIGNATURE_SIZE) / itemsCount) - 2;
+                    registryRegisterPacketSize = ((spanBody.Length - 2 - Globals.DEFAULT_HASH_SIZE - Globals.NODE_PUBLIC_KEY_SIZE - Globals.SIGNATURE_SIZE) / itemsCount) - 2;
 
                     for (int i = 0; i < itemsCount; i++)
                     {

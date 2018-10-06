@@ -2,7 +2,7 @@
 
 namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
-    public class TransferFundsBlockV1 : TransactionalBlockBase
+    public class TransferFundsBlock : TransactionalBlockBase
     {
         public override ushort BlockType => BlockTypes.Transaction_TransferFunds;
 

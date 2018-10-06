@@ -21,7 +21,6 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
 
         protected override Memory<byte> ParseSyncLinked(ushort version, Memory<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase)
         {
-
             Memory<byte> spanPostBody = ParseTransactional(version, spanBody, out TransactionalBlockBase transactionalBlockBase);
             syncedBlockBase = transactionalBlockBase;
 

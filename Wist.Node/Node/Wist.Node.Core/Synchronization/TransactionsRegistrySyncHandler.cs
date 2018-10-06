@@ -132,10 +132,18 @@ namespace Wist.Node.Core.Synchronization
                     {
                         if (registryBlock is RegistryFullBlock transactionsFullBlock)
                         {
+                            if(transactionsFullBlock.TransactionHeaders.Count > 0)
+                            {
+
+                            }
                             _syncRegistryMemPool.AddCandidateBlock(transactionsFullBlock);
                         }
                         else if (registryBlock is RegistryConfidenceBlock transactionsRegistryConfidenceBlock)
                         {
+                            if(transactionsRegistryConfidenceBlock.BitMask.Length > 0)
+                            {
+
+                            }
                             _syncRegistryMemPool.AddVotingBlock(transactionsRegistryConfidenceBlock);
                         }
                     }

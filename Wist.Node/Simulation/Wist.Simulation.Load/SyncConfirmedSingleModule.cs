@@ -37,7 +37,7 @@ namespace Wist.Simulation.Load
 
             string cmd = null;
             byte[] prevHash = _synchronizationContext.LastBlockDescriptor?.Hash;
-            byte[] prevPowHash = _hashCalculation.CalculateHash(prevHash ?? new byte[Globals.DEFAULT_HASH_SIZE]);
+            byte[] prevPowHash = _proofOfWorkCalculation.CalculateHash(prevHash ?? new byte[Globals.DEFAULT_HASH_SIZE]);
             do
             {
                 unchecked
@@ -57,7 +57,7 @@ namespace Wist.Simulation.Load
                     signatureSupportSerializer.FillBodyAndRowBytes();
 
                     prevHash = CryptoHelper.ComputeHash(synchronizationConfirmedBlock.BodyBytes);
-                    prevPowHash = _hashCalculation.CalculateHash(prevHash);
+                    prevPowHash = _proofOfWorkCalculation.CalculateHash(prevHash);
 
                     _communicationService.PostMessage(_keyTarget, signatureSupportSerializer);
 

@@ -5,7 +5,7 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
-    public class AcceptFundsBlockV1 : TransactionalBlockBase
+    public class AcceptFundsBlock : TransactionalBlockBase
     {
         public override ushort BlockType => BlockTypes.Transaction_AcceptFunds;
 
