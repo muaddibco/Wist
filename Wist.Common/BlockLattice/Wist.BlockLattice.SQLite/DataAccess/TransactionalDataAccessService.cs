@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Wist.BlockLattice.DataModel;
-using Wist.Core.ExtensionMethods;
 using Z.EntityFramework.Plus;
-using Wist.BlockLattice.Core.Exceptions;
 using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 
@@ -15,7 +13,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
 
         #region Transactional Chain
 
-        public TransactionalGenesis GetTransactionalGenesisBlock(IKey key)
+        public TransactionalIdentity GetTransactionalIdentity(IKey key)
         {
             if (key == null)
             {
@@ -24,10 +22,15 @@ namespace Wist.BlockLattice.SQLite.DataAccess
 
             AccountIdentity accountIdentity = GetAccountIdentity(key);
 
-            return GetTransactionalGenesisBlock(accountIdentity);
+            if(accountIdentity == null)
+            {
+                return null;
+            }
+
+            return GetTransactionalIdentity(accountIdentity);
         }
 
-        public TransactionalGenesis GetTransactionalGenesisBlock(AccountIdentity accountIdentity)
+        public TransactionalIdentity GetTransactionalIdentity(AccountIdentity accountIdentity)
         {
             if (accountIdentity == null)
             {
@@ -36,32 +39,11 @@ namespace Wist.BlockLattice.SQLite.DataAccess
 
             lock (_sync)
             {
-                return _dataContext.TransactionalGenesises.FirstOrDefault(g => g.Identity == accountIdentity);
+                return _dataContext.TransactionalIdentities.FirstOrDefault(g => g.Identity == accountIdentity);
             }
         }
 
-        public void CreateTransactionalGenesisBlock(IKey key, ushort version, byte[] blockContent)
-        {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (IsGenesisBlockExists(key))
-            {
-                throw new GenesisBlockAlreadyExistException(key.ToString());
-            }
-
-            AddIdentity(key);
-
-            lock (_sync)
-            {
-                TransactionalGenesis account = new TransactionalGenesis() { Identity = _keyIdentityMap[key], BlockContent = blockContent };
-                _dataContext.TransactionalGenesises.AddAsync(account);
-            }
-        }
-
-        public bool IsGenesisBlockExists(IKey key)
+        public bool IsTransactionalIdentityExist(IKey key)
         {
             if (key == null)
             {
@@ -73,23 +55,25 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                 return false;
             }
 
-            return _dataContext.TransactionalGenesises.Any(g => g.Identity == _keyIdentityMap[key]);
+            return _dataContext.TransactionalIdentities.Any(g => g.Identity == _keyIdentityMap[key]);
         }
 
-        public TransactionalBlock GetLastTransactionalBlock(TransactionalGenesis transactionalGenesis)
+        public TransactionalIdentity AddTransactionalIdentity(AccountIdentity accountIdentity)
         {
-            if (transactionalGenesis == null)
+            lock(_sync)
             {
-                throw new ArgumentNullException(nameof(transactionalGenesis));
-            }
+                TransactionalIdentity transactionalIdentity = new TransactionalIdentity
+                {
+                    Identity = accountIdentity
+                };
 
-            lock (_sync)
-            {
-                return _dataContext.TransactionalBlocks.Where(b => b.Genesis == transactionalGenesis).OrderByDescending(b => b.BlockOrder).FirstOrDefault();
+                _dataContext.TransactionalIdentities.Add(transactionalIdentity);
+
+                return transactionalIdentity;
             }
         }
 
-        public void AddTransactionalBlock(IKey key, ushort blockType, byte[] blockContent)
+        public void AddTransactionalBlock(IKey key, ushort blockType, ulong blockHeight, byte[] blockContent)
         {
             if (key == null)
             {
@@ -101,27 +85,38 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                 throw new ArgumentNullException(nameof(blockContent));
             }
 
-            TransactionalGenesis transactionalGenesis = GetTransactionalGenesisBlock(key);
+            TransactionalIdentity transactionalIdentity = GetTransactionalIdentity(key);
 
-            if (transactionalGenesis == null)
+            if (transactionalIdentity == null)
             {
-                throw new GenesisBlockNotFoundException(key.ToString());
+                AccountIdentity accountIdentity = GetOrAddIdentity(key);
+                transactionalIdentity = AddTransactionalIdentity(accountIdentity);
             }
-
-            TransactionalBlock transactionalBlockLast = GetLastTransactionalBlock(transactionalGenesis);
-            byte[] contentHash = CryptoHelper.ComputeHash(blockContent);
 
             TransactionalBlock transactionalBlock = new TransactionalBlock()
             {
-                Genesis = transactionalGenesis,
+                Identity = transactionalIdentity,
                 BlockContent = blockContent,
-                BlockOrder = transactionalBlockLast.BlockOrder + 1,
+                BlockHeight = blockHeight,
                 BlockType = blockType
             };
 
             lock (_sync)
             {
                 _dataContext.TransactionalBlocks.Add(transactionalBlock);
+            }
+        }
+
+        public TransactionalBlock GetLastTransactionalBlock(TransactionalIdentity transactionalIdentity)
+        {
+            if (transactionalIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(transactionalIdentity));
+            }
+
+            lock (_sync)
+            {
+                return _dataContext.TransactionalBlocks.Where(b => b.Identity == transactionalIdentity).OrderByDescending(b => b.BlockHeight).FirstOrDefault();
             }
         }
 
@@ -134,11 +129,11 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                 throw new ArgumentNullException(nameof(accountIdentity));
             }
 
-            TransactionalGenesis transactionalGenesis = GetTransactionalGenesisBlock(accountIdentity);
+            TransactionalIdentity transactionalIdentity = GetTransactionalIdentity(accountIdentity);
 
-            if (transactionalGenesis != null)
+            if (transactionalIdentity != null)
             {
-                transactionalBlock = GetLastTransactionalBlock(transactionalGenesis);
+                transactionalBlock = GetLastTransactionalBlock(transactionalIdentity);
             }
 
             return transactionalBlock;
@@ -153,20 +148,20 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                 throw new ArgumentNullException(nameof(key));
             }
 
-            TransactionalGenesis transactionalGenesis = GetTransactionalGenesisBlock(key);
+            TransactionalIdentity transactionalIdentity = GetTransactionalIdentity(key);
 
-            if (transactionalGenesis != null)
+            if (transactionalIdentity != null)
             {
-                transactionalBlock = GetLastTransactionalBlock(transactionalGenesis);
+                transactionalBlock = GetLastTransactionalBlock(transactionalIdentity);
             }
 
 
             return transactionalBlock;
         }
 
-        public IEnumerable<TransactionalGenesis> GetAllGenesisBlocks()
+        public IEnumerable<TransactionalIdentity> GetAllTransctionalIdentities()
         {
-            return _dataContext.TransactionalGenesises;
+            return _dataContext.TransactionalIdentities;
         }
 
         #endregion Transactional Chain

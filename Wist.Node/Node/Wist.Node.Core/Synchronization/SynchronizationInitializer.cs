@@ -30,6 +30,8 @@ namespace Wist.Node.Core.Synchronization
             _logger = loggerService.GetLogger(typeof(SynchronizationInitializer).Name);
         }
 
+        public override ExtensionOrderPriorities Priority => ExtensionOrderPriorities.Normal;
+
         protected override void InitializeInner()
         {
             _logger.Info("Starting Synchronization Initializer");

@@ -17,6 +17,8 @@ namespace Wist.BlockLattice.SQLite
             _configuration = configurationService.Get<ISQLiteConfiguration>();
         }
 
+        public override ExtensionOrderPriorities Priority => ExtensionOrderPriorities.Highest;
+
         protected override void InitializeInner()
         {
             if(_configuration.WipeOnStart)

@@ -14,6 +14,8 @@ namespace Wist.Network.Topology
             _nodesResolutionService = nodesResolutionService;
         }
 
+        public override ExtensionOrderPriorities Priority => ExtensionOrderPriorities.Normal;
+
         protected override void InitializeInner()
         {
             _nodesResolutionService.Initialize();

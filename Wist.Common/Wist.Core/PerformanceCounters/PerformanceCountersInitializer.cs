@@ -11,6 +11,8 @@ namespace Wist.Core.PerformanceCounters
         private readonly IPerformanceCountersCategoryBase[] _performanceCountersCategoryBases;
         private readonly ILogger _log;
 
+        public override ExtensionOrderPriorities Priority => ExtensionOrderPriorities.Normal;
+
         public PerformanceCountersInitializer(IPerformanceCountersCategoryBase[] performanceCountersCategoryBases, ILoggerService loggerService)
         {
             _performanceCountersCategoryBases = performanceCountersCategoryBases;

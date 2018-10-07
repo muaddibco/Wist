@@ -13,15 +13,11 @@ namespace Wist.BlockLattice.Core.Interfaces
 
         bool DoesChainExist(IKey key);
 
-        GenesisBlockBase GetGenesisBlock(IKey key);
-
         BlockBase GetLastBlock(IKey key);
 
         IEnumerable<BlockBase> GetAllByKey(IKey key);
 
         BlockBase GetBlockByOrder(IKey key, uint order);
-
-        void CreateGenesisBlock(GenesisBlockBase genesisBlock);
 
         List<BlockBase> GetAllLastBlocksByType(ushort blockType);
 

@@ -13,9 +13,9 @@ namespace Wist.BlockLattice.DataModel
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long TransactionalBlockId { get; set; }
 
-        public TransactionalGenesis Genesis { get; set; }
+        public TransactionalIdentity Identity { get; set; }
 
-        public uint BlockOrder { get; set; }
+        public ulong BlockHeight { get; set; }
 
         public ushort BlockType { get; set; }
 

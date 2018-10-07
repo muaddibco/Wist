@@ -7,11 +7,6 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
     public class TransactionalBlockchain
     {
         /// <summary>
-        /// The very first block that entire transactional blockchain starts from
-        /// </summary>
-        public TransactionalGenesisBlock GenesisBlock { get; }
-
-        /// <summary>
         /// Collection of all blocks of transactional blockchain ordered by their BlockOrder value. 
         /// Values of sorted list are <see cref="HashSet<TransactionalBlockBase>"/> that is collection of 
         /// blocks with them same BlockOrder appeared because of unconventional forks

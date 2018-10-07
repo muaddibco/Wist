@@ -93,5 +93,90 @@ namespace Wist.Proto.Model {
     }
 
   }
+  public static partial class TransactionalChainManager
+  {
+    static readonly string __ServiceName = "Wist.Proto.Model.TransactionalChainManager";
+
+    static readonly grpc::Marshaller<global::Wist.Proto.Model.TransactionalBlockRequest> __Marshaller_Wist_Proto_Model_TransactionalBlockRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Wist.Proto.Model.TransactionalBlockRequest.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::Wist.Proto.Model.TransactionalBlockEssense> __Marshaller_Wist_Proto_Model_TransactionalBlockEssense = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Wist.Proto.Model.TransactionalBlockEssense.Parser.ParseFrom);
+
+    static readonly grpc::Method<global::Wist.Proto.Model.TransactionalBlockRequest, global::Wist.Proto.Model.TransactionalBlockEssense> __Method_GetLastTransactionalBlock = new grpc::Method<global::Wist.Proto.Model.TransactionalBlockRequest, global::Wist.Proto.Model.TransactionalBlockEssense>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "GetLastTransactionalBlock",
+        __Marshaller_Wist_Proto_Model_TransactionalBlockRequest,
+        __Marshaller_Wist_Proto_Model_TransactionalBlockEssense);
+
+    /// <summary>Service descriptor</summary>
+    public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
+    {
+      get { return global::Wist.Proto.Model.ClassModelReflection.Descriptor.Services[1]; }
+    }
+
+    /// <summary>Base class for server-side implementations of TransactionalChainManager</summary>
+    public abstract partial class TransactionalChainManagerBase
+    {
+      public virtual global::System.Threading.Tasks.Task<global::Wist.Proto.Model.TransactionalBlockEssense> GetLastTransactionalBlock(global::Wist.Proto.Model.TransactionalBlockRequest request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+    }
+
+    /// <summary>Client for TransactionalChainManager</summary>
+    public partial class TransactionalChainManagerClient : grpc::ClientBase<TransactionalChainManagerClient>
+    {
+      /// <summary>Creates a new client for TransactionalChainManager</summary>
+      /// <param name="channel">The channel to use to make remote calls.</param>
+      public TransactionalChainManagerClient(grpc::Channel channel) : base(channel)
+      {
+      }
+      /// <summary>Creates a new client for TransactionalChainManager that uses a custom <c>CallInvoker</c>.</summary>
+      /// <param name="callInvoker">The callInvoker to use to make remote calls.</param>
+      public TransactionalChainManagerClient(grpc::CallInvoker callInvoker) : base(callInvoker)
+      {
+      }
+      /// <summary>Protected parameterless constructor to allow creation of test doubles.</summary>
+      protected TransactionalChainManagerClient() : base()
+      {
+      }
+      /// <summary>Protected constructor to allow creation of configured clients.</summary>
+      /// <param name="configuration">The client configuration.</param>
+      protected TransactionalChainManagerClient(ClientBaseConfiguration configuration) : base(configuration)
+      {
+      }
+
+      public virtual global::Wist.Proto.Model.TransactionalBlockEssense GetLastTransactionalBlock(global::Wist.Proto.Model.TransactionalBlockRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return GetLastTransactionalBlock(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual global::Wist.Proto.Model.TransactionalBlockEssense GetLastTransactionalBlock(global::Wist.Proto.Model.TransactionalBlockRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.BlockingUnaryCall(__Method_GetLastTransactionalBlock, null, options, request);
+      }
+      public virtual grpc::AsyncUnaryCall<global::Wist.Proto.Model.TransactionalBlockEssense> GetLastTransactionalBlockAsync(global::Wist.Proto.Model.TransactionalBlockRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      {
+        return GetLastTransactionalBlockAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncUnaryCall<global::Wist.Proto.Model.TransactionalBlockEssense> GetLastTransactionalBlockAsync(global::Wist.Proto.Model.TransactionalBlockRequest request, grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncUnaryCall(__Method_GetLastTransactionalBlock, null, options, request);
+      }
+      /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
+      protected override TransactionalChainManagerClient NewInstance(ClientBaseConfiguration configuration)
+      {
+        return new TransactionalChainManagerClient(configuration);
+      }
+    }
+
+    /// <summary>Creates service definition that can be registered with a server</summary>
+    /// <param name="serviceImpl">An object implementing the server-side handling logic.</param>
+    public static grpc::ServerServiceDefinition BindService(TransactionalChainManagerBase serviceImpl)
+    {
+      return grpc::ServerServiceDefinition.CreateBuilder()
+          .AddMethod(__Method_GetLastTransactionalBlock, serviceImpl.GetLastTransactionalBlock).Build();
+    }
+
+  }
 }
 #endregion

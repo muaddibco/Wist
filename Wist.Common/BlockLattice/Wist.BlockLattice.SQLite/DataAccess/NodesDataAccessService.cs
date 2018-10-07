@@ -28,7 +28,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
 
             if (accountIdentity == null)
             {
-                AddIdentity(key);
+                GetOrAddIdentity(key);
 
                 accountIdentity = GetAccountIdentity(key);
             }

@@ -10,7 +10,6 @@
         public const ushort Registry_ConfidenceBlock = 4;
         public const ushort Registry_ConfirmationBlock = 5;
 
-        public const ushort Transaction_Genesis = 2;
         public const ushort Transaction_AcceptFunds = 3;
         public const ushort Transaction_TransferFunds = 4;
         public const ushort Transaction_Confirm = 5;

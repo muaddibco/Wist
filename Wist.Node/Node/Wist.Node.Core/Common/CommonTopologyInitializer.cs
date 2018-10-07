@@ -25,6 +25,8 @@ namespace Wist.Node.Core.Common
             _logger = loggerService.GetLogger(nameof(CommonTopologyInitializer));
         }
 
+        public override ExtensionOrderPriorities Priority => ExtensionOrderPriorities.AboveNormal;
+
         protected override void InitializeInner()
         {
             IEnumerable<BlockLattice.Core.DataModel.Nodes.Node> nodes = _nodesDataService.GetAll();

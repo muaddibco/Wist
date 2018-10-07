@@ -38,11 +38,6 @@ namespace Wist.BlockLattice.SQLite.DataServices
             }
         }
 
-        public void CreateGenesisBlock(GenesisBlockBase genesisBlock)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool DoesChainExist(IKey key)
         {
             throw new NotImplementedException();
@@ -88,11 +83,6 @@ namespace Wist.BlockLattice.SQLite.DataServices
         }
 
         public BlockBase GetBlockByOrder(IKey key, uint order)
-        {
-            throw new NotImplementedException();
-        }
-
-        public GenesisBlockBase GetGenesisBlock(IKey key)
         {
             throw new NotImplementedException();
         }

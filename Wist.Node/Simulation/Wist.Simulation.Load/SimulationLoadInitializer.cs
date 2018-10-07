@@ -16,6 +16,8 @@ namespace Wist.Simulation.Load
             _loadCountersService = performanceCountersRepository.GetInstance<LoadCountersService>();
         }
 
+        public override ExtensionOrderPriorities Priority => ExtensionOrderPriorities.Normal;
+
         protected override void InitializeInner()
         {
             _loadCountersService.Setup();

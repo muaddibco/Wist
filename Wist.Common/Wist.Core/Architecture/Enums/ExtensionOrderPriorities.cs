@@ -1,6 +1,6 @@
 ﻿namespace Wist.Core.Architecture.Enums
 {
-    public enum ExtensionOrderPriorities
+    public enum ExtensionOrderPriorities : int
     {
         Highest = 1000,
         Highest1 = 1100,

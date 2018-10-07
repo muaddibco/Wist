@@ -13,6 +13,8 @@ namespace Wist.BlockLattice.DataModel
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long AccountIdentityId { get; set; }
 
+        public ulong KeyHash { get; set; }
+
         public byte[] PublicKey { get; set; }
     }
 }

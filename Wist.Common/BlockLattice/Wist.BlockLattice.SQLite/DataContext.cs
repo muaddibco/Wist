@@ -1,8 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using Wist.BlockLattice.DataModel;
 using Wist.BlockLattice.SQLite.Configuration;
@@ -25,13 +21,9 @@ namespace Wist.BlockLattice.SQLite
 
         public DbSet<NodeRecord> Nodes { get; set; }
 
-        public DbSet<AccountBlock> AccountBlocks { get; set; }
-
-        public DbSet<AccountGenesis> AccountGenesises { get; set; }
-
         public DbSet<TransactionalBlock> TransactionalBlocks { get; set; }
 
-        public DbSet<TransactionalGenesis> TransactionalGenesises { get; set; }
+        public DbSet<TransactionalIdentity> TransactionalIdentities { get; set; }
 
         public DbSet<SynchronizationBlock> SynchronizationBlocks { get; set; }
 
@@ -53,6 +45,8 @@ namespace Wist.BlockLattice.SQLite
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<AccountIdentity>().HasIndex(a => a.KeyHash);
 
             //modelBuilder.Entity<TransactionsRegistryBlock>().HasKey(p => new { p.TransactionsRegistryBlockId, p.ShardId });
             //modelBuilder.Entity<TransactionalGenesis>().HasIndex("OriginalHash");

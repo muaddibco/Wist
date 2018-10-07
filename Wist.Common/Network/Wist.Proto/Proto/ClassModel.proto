@@ -5,9 +5,23 @@ service SyncManager {
 	rpc GetLastSyncBlock(Empty) returns (LastSyncBlock) {}
 }
 
+service TransactionalChainManager {
+	rpc GetLastTransactionalBlock(TransactionalBlockRequest) returns (TransactionalBlockEssense) {}
+}
+
 message Empty {}
 
 message LastSyncBlock {
 	uint64 Height = 1;
 	bytes Hash = 2;
+}
+
+message TransactionalBlockRequest {
+	bytes PublicKey = 1;
+}
+
+message TransactionalBlockEssense {
+	uint64 Height = 1;
+	bytes Hash = 2;	
+	uint64 UpToDateFunds = 3;
 }

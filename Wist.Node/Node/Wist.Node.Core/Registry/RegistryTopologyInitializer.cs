@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core;
 using Wist.Core.Architecture;
@@ -24,6 +22,8 @@ namespace Wist.Node.Core.Registry
             _nodesDataService = nodesDataService;
             _logger = loggerService.GetLogger(nameof(RegistryTopologyInitializer));
         }
+
+        public override ExtensionOrderPriorities Priority => ExtensionOrderPriorities.Normal;
 
         protected override void InitializeInner()
         {

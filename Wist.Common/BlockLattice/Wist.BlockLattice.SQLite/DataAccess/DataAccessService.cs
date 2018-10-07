@@ -115,7 +115,7 @@ namespace Wist.BlockLattice.SQLite.DataAccess
             return null;
         }
 
-        public bool AddIdentity(IKey key)
+        public AccountIdentity GetOrAddIdentity(IKey key)
         {
             AccountIdentity identity = GetAccountIdentity(key);
 
@@ -128,11 +128,9 @@ namespace Wist.BlockLattice.SQLite.DataAccess
                     _dataContext.AccountIdentities.Add(identity);
                     _keyIdentityMap.Add(key, identity);
                 }
-
-                return true;
             }
 
-            return false;
+            return identity;
         }
 
         #endregion Account Identities

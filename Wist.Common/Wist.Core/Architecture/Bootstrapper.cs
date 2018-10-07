@@ -14,6 +14,7 @@ using Wist.Core.Architecture.Registration;
 using Wist.Core.Architecture.UnityExtensions;
 using Wist.Core.Configuration;
 using Wist.Core.Logging;
+using System.Linq;
 
 namespace Wist.Core.Architecture
 {
@@ -70,7 +71,8 @@ namespace Wist.Core.Architecture
             try
             {
                 IEnumerable<IInitializer> initializers = Container.ResolveAll<IInitializer>();
-                foreach (IInitializer item in initializers)
+                IOrderedEnumerable<IInitializer> initializersOrdered = initializers.OrderBy(i => i.Priority);
+                foreach (IInitializer item in initializersOrdered)
                 {
                     _log.Info($"Running initializer {item.GetType().FullName}");
                     try

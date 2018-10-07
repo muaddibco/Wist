@@ -52,7 +52,7 @@ namespace Wist.Setup.Simulation
                 byte[] keyBytes = Ed25519.PublicKeyFromSeed(seed);
                 IKey key = _identityKeyProvider.GetKey(keyBytes);
 
-                DataAccessService.Instance.AddIdentity(key);
+                DataAccessService.Instance.GetOrAddIdentity(key);
 
                 if (DataAccessService.Instance.AddSeed(key, seed))
                 {

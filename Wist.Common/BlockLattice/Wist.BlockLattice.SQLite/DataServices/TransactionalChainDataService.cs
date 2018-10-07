@@ -31,48 +31,17 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public void Add(BlockBase block)
         {
-            if (block is TransactionalGenesisBlock transactionalGenesisBlock)
-            {
-                IKey key = transactionalGenesisBlock.Signer;
-                if (!DoesChainExist(key))
-                {
-                    CreateGenesisBlock(transactionalGenesisBlock);
-                }
-            }
-            else if(block is TransactionalBlockBase transactionalBlockBase)
+            if(block is TransactionalBlockBase transactionalBlockBase)
             {
                 IKey key = transactionalBlockBase.Signer;
 
-                if(DoesChainExist(key))
-                {
-                    DataAccessService.Instance.AddTransactionalBlock(key, transactionalBlockBase.BlockType, transactionalBlockBase.NonHeaderBytes.ToArray());
-                }
-            }
-        }
-
-        public void CreateGenesisBlock(GenesisBlockBase genesisBlock)
-        {
-            if (genesisBlock == null)
-            {
-                throw new ArgumentNullException(nameof(genesisBlock));
-            }
-
-            TransactionalGenesisBlock transactionalGenesisBlock = genesisBlock as TransactionalGenesisBlock;
-
-            if(transactionalGenesisBlock == null)
-            {
-                throw new ArgumentOutOfRangeException(nameof(genesisBlock));
-            }
-
-            using (ISignatureSupportSerializer serializer = _serializersFactory.Create(transactionalGenesisBlock))
-            {
-                DataAccessService.Instance.CreateTransactionalGenesisBlock(transactionalGenesisBlock.Signer, transactionalGenesisBlock.Version, transactionalGenesisBlock.NonHeaderBytes.ToArray());
+                DataAccessService.Instance.AddTransactionalBlock(key, transactionalBlockBase.BlockType, transactionalBlockBase.BlockHeight, transactionalBlockBase.NonHeaderBytes.ToArray());
             }
         }
 
         public bool DoesChainExist(IKey key)
         {
-            return DataAccessService.Instance.IsGenesisBlockExists(key);
+            return DataAccessService.Instance.IsTransactionalIdentityExist(key);
         }
 
         public BlockBase[] GetAllBlocks(IKey key)
@@ -85,47 +54,31 @@ namespace Wist.BlockLattice.SQLite.DataServices
             throw new NotImplementedException();
         }
 
-        public GenesisBlockBase GetGenesisBlock(IKey key)
-        {
-            TransactionalGenesis transactionalGenesis = DataAccessService.Instance.GetTransactionalGenesisBlock(key);
-
-            ITranslator<TransactionalGenesis, GenesisBlockBase> mapper = _mapperFactory.GetInstance<TransactionalGenesis, GenesisBlockBase>();
-
-            return mapper?.Translate(transactionalGenesis);
-        }
-
         public BlockBase GetLastBlock(IKey key)
         {
             TransactionalBlock transactionalBlock = DataAccessService.Instance.GetLastTransactionalBlock(key);
 
-            ITranslator<TransactionalBlock, TransactionalBlockBase> mapper = _mapperFactory.GetInstance<TransactionalBlock, TransactionalBlockBase>();
+            if (transactionalBlock != null)
+            {
+                ITranslator<TransactionalBlock, TransactionalBlockBase> mapper = _mapperFactory.GetInstance<TransactionalBlock, TransactionalBlockBase>();
 
-            BlockBase block = mapper?.Translate(transactionalBlock);
+                BlockBase block = mapper?.Translate(transactionalBlock);
 
-            return block;
+                return block;
+            }
+
+            return null;
         }
 
         public IEnumerable<T> GetAllLastBlocksByType<T>() where T : BlockBase
         {
             List<T> blocks = new List<T>();
 
-            if (typeof(T) == typeof(TransactionalGenesisBlock))
-            {
-                foreach (TransactionalGenesis genesis in DataAccessService.Instance.GetAllGenesisBlocks())
-                {
-                    ITranslator<TransactionalGenesis, TransactionalGenesisBlock> translator = _mapperFactory.GetInstance<TransactionalGenesis, TransactionalGenesisBlock>();
-
-                    TransactionalGenesisBlock block = translator?.Translate(genesis);
-
-                    blocks.Add(block as T);
-                }
-            }
-
             if(typeof(T) == typeof(TransactionalBlockBase))
             {
-                foreach (TransactionalGenesis genesis in DataAccessService.Instance.GetAllGenesisBlocks())
+                foreach (TransactionalIdentity transactionalIdentity in DataAccessService.Instance.GetAllTransctionalIdentities())
                 {
-                    TransactionalBlock transactionalBlock = DataAccessService.Instance.GetLastTransactionalBlock(genesis.Identity);
+                    TransactionalBlock transactionalBlock = DataAccessService.Instance.GetLastTransactionalBlock(transactionalIdentity);
 
                     ITranslator<TransactionalBlock, TransactionalBlockBase> translator = _mapperFactory.GetInstance<TransactionalBlock, TransactionalBlockBase>();
 
@@ -140,21 +93,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
 
         public List<BlockBase> GetAllLastBlocksByType(ushort blockType)
         {
-            List<BlockBase> blocks = new List<BlockBase>();
-
-            if(blockType == BlockTypes.Transaction_Genesis)
-            {
-                foreach (TransactionalGenesis genesis in DataAccessService.Instance.GetAllGenesisBlocks())
-                {
-                    ITranslator<TransactionalGenesis, TransactionalGenesisBlock> translator = _mapperFactory.GetInstance<TransactionalGenesis, TransactionalGenesisBlock>();
-
-                    BlockBase block = translator?.Translate(genesis);
-
-                    blocks.Add(block);
-                }
-            }
-
-            return blocks;
+            throw new NotImplementedException();
         }
 
         public IEnumerable<BlockBase> GetAllByKey(IKey key)
