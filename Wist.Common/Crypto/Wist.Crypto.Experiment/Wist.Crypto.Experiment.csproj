@@ -8,10 +8,11 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Wist.Crypto.Experiment</RootNamespace>
     <AssemblyName>Wist.Crypto.Experiment</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -61,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfidentialAssets\AssetRangeProof.cs" />
+    <Compile Include="ConfidentialAssets\BlindingFactors.cs" />
     <Compile Include="ConfidentialAssets\ConfidentialAssetsHelper.cs" />
     <Compile Include="ConfidentialAssets\EncryptedAssetID.cs" />
     <Compile Include="ConfidentialAssets\RingSignature.cs" />

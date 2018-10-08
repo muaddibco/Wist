@@ -51,7 +51,13 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 		and b = b[0]+256*b[1]+...+256^31 b[31].
 		B is the Ed25519 base point (x,4/5) with x positive.
 		*/
-
+        /// <summary>
+        /// r = a * A + b * B, B is the Ed25519 base point (x,4/5) with x positive.
+        /// </summary>
+        /// <param name="r"></param>
+        /// <param name="a">a = a[0]+256*a[1]+...+256^31 a[31]</param>
+        /// <param name="A"></param>
+        /// <param name="b">b = b[0]+256*b[1]+...+256^31 b[31]</param>
         public static void ge_double_scalarmult_vartime(out GroupElementP2 r, byte[] a, ref GroupElementP3 A, byte[] b)
         {
             GroupElementPreComp[] Bi = LookupTables.Base2;

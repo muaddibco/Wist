@@ -385,6 +385,12 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
             }
         }
 
+        /// <summary>
+        /// s = a + b
+        /// </summary>
+        /// <param name="s"></param>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
         public static void sc_add(byte[] s, byte[] a, byte[] b)
         {
             Int64 a0 = 2097151 & load_3(a, 0);
@@ -528,6 +534,12 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
             }
         }
 
+        /// <summary>
+        /// s = a - b
+        /// </summary>
+        /// <param name="s"></param>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
         internal static void sc_sub(byte[] s, byte[] a, byte[] b)
         {
             Int64 a0 = 2097151 & load_3(a, 0);

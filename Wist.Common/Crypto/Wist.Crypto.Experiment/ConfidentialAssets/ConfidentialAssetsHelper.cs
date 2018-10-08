@@ -4,6 +4,7 @@ using HashLib;
 using System;
 using System.Linq;
 using System.Security.Cryptography;
+using Wist.Core.Cryptography;
 
 namespace Wist.Crypto.Experiment.ConfidentialAssets
 {
@@ -382,7 +383,10 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
                     GroupOperations.ge_mul8(out GroupElementP1P1 p1P1, ref p2);
 
-                    GroupOperations.ge_p1p1_to_p3(out assetIdCommitment, ref p1P1);
+                    GroupOperations.ge_p1p1_to_p2(out p2, ref p1P1);
+                    byte[] s = new byte[32];
+                    GroupOperations.ge_tobytes(s, 0, ref p2);
+                    GroupOperations.ge_frombytes(out assetIdCommitment, s, 0);
                 }
             } while (!succeeded);
 
@@ -452,6 +456,37 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             GroupElementP3 blindedValueCommitment = CreateBlindedValueCommitmentFromBlindingFactor(assetCommitment, value, valueBlindingFactor);
 
             return blindedValueCommitment;
+        }
+
+        internal static byte[] BalanceBlindingFactors(BlindingFactors[] inputs, BlindingFactors[] outputs)
+        {
+            byte[] fInput = (byte[])ScalarOperations.zero.Clone();
+
+            if (inputs != null)
+            {
+                foreach (BlindingFactors blindingFactors in inputs)
+                {
+                    byte[] totalFactor = new byte[32];
+                    ScalarOperations.sc_muladd(totalFactor, CryptoHelper.GetScalar(blindingFactors.Value), blindingFactors.AssetBF, blindingFactors.ValueBF);
+                    ScalarOperations.sc_add(fInput, fInput, totalFactor);
+                }
+            }
+
+            byte[] fOutput = (byte[])ScalarOperations.zero.Clone();
+
+            if (outputs != null)
+            {
+                foreach (BlindingFactors blindingFactors in outputs)
+                {
+                    byte[] totalFactor = new byte[32];
+                    ScalarOperations.sc_muladd(totalFactor, CryptoHelper.GetScalar(blindingFactors.Value), blindingFactors.AssetBF, blindingFactors.ValueBF);
+                    ScalarOperations.sc_add(fOutput, fOutput, totalFactor);
+                }
+            }
+
+            ScalarOperations.sc_sub(fInput, fInput, fOutput);
+
+            return fInput;
         }
 
         #endregion Commitment Functions

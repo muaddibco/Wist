@@ -2,7 +2,7 @@
 
 namespace Chaos.NaCl.Internal.Ed25519Ref10
 {
-	/*
+    /*
 	ge means group element.
 
 	Here the group is the set of pairs (x,y) of field elements (see fe.h)
@@ -16,13 +16,19 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 	  ge_precomp (Duif): (y+x,y-x,2dxy)
 	*/
 
-	internal struct GroupElementP2
+    /// <summary>
+    /// Projective Group Point: (X:Y:Z) satisfying x=X/Z, y=Y/Z
+    /// </summary>
+    internal struct GroupElementP2
 	{
 		public FieldElement X;
 		public FieldElement Y;
 		public FieldElement Z;
 	} ;
 
+    /// <summary>
+    /// Extended Group Point: (X:Y:Z:T) satisfying x=X/Z, y=Y/Z, XY=ZT
+    /// </summary>
 	internal struct GroupElementP3
 	{
 		public FieldElement X;
@@ -31,6 +37,9 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 		public FieldElement T;
 	} ;
 
+    /// <summary>
+    /// Completed Group Point: ((X:Z),(Y:T)) satisfying x=X/Z, y=Y/T
+    /// </summary>
 	internal struct GroupElementP1P1
 	{
 		public FieldElement X;
@@ -39,6 +48,9 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 		public FieldElement T;
 	} ;
 
+    /// <summary>
+    /// Precomputed Group Point: (y+x,y-x,2dxy)
+    /// </summary>
 	internal struct GroupElementPreComp
 	{
 		public FieldElement yplusx;

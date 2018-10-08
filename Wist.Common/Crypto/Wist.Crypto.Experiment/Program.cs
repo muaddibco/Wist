@@ -103,6 +103,28 @@ namespace Wist.Crypto.Experiment
 
         static void Main(string[] args)
         {
+            ECParameters eCParameters = System.Security.Cryptography.ECDsa.Create().ExportExplicitParameters(true);
+            byte[] testSeed = GetRandomSeed();
+
+            
+
+            GroupElementP3 p3_qq = ConfidentialAssetsHelper.CreateNonblindedAssetCommitment(testSeed);
+            byte[] p3_bytes_1 = new byte[32];
+            GroupOperations.ge_p3_tobytes(p3_bytes_1, 0, ref p3_qq);
+            
+
+
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 p3test, testSeed, 0);
+            GroupOperations.ge_p3_to_p2(out GroupElementP2 p2test, ref p3test);
+            byte[] s1_p2 = new byte[32];
+            GroupOperations.ge_tobytes(s1_p2, 0, ref p2test);
+
+            byte[] s1 = new byte[32];
+            GroupOperations.ge_p3_tobytes(s1, 0, ref p3test);
+
+            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 p3test_1, s1, 0);
+            GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 p3test_2, s1_p2, 0);
+
             // 1. There is "record encryption key" - seems some random 32 byte array
             // 2. There is number of asset commitments from previous transaction where one of them is commitment of asset being transferred now
             // 3. Derive intermediate encryption key

@@ -4,11 +4,15 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
 {
 	internal static partial class GroupOperations
 	{
-		/*
+        /*
 		r = 2 * p
 		*/
-
-		public static void ge_p2_dbl(out GroupElementP1P1 r, ref GroupElementP2 p)
+        /// <summary>
+        /// r = 2 * p
+        /// </summary>
+        /// <param name="r"></param>
+        /// <param name="p"></param>
+        public static void ge_p2_dbl(out GroupElementP1P1 r, ref GroupElementP2 p)
 		{
 			FieldElement t0;
 

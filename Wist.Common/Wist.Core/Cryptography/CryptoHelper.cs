@@ -66,5 +66,14 @@ namespace Wist.Core.Cryptography
 
             return seed;
         }
+
+        public static byte[] GetScalar(ulong value)
+        {
+            byte[] scalar = new byte[32];
+
+            BitConverter.GetBytes(value).CopyTo(scalar, 0);
+
+            return scalar;
+        }
     }
 }
