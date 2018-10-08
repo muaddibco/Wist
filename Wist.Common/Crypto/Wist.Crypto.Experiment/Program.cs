@@ -104,6 +104,20 @@ namespace Wist.Crypto.Experiment
         static void Main(string[] args)
         {
 
+            byte[] msg1 = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeString("attack at dawn").GetBytes();
+            byte[] aliceKey = ConfidentialAssetsHelper.ReduceScalar64(HashFactory.Crypto.SHA3.CreateKeccak512().ComputeString("alice").GetBytes());
+            byte[] bobKey = ConfidentialAssetsHelper.ReduceScalar64(HashFactory.Crypto.SHA3.CreateKeccak512().ComputeString("bob").GetBytes());
+
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 alicePubkey, aliceKey, 0);
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 bobPubkey, bobKey, 0);
+
+            GroupElementP3[][] pubkeys = new GroupElementP3[][] { new GroupElementP3[] { alicePubkey, bobPubkey } };
+
+            BorromeanRingSignature borromeanRingSignature = ConfidentialAssetsHelper.CreateBorromeanRingSignature(msg1, pubkeys, new byte[][] { aliceKey }, new int[] { 0 });
+
+            bool brsRes = ConfidentialAssetsHelper.VerifyBorromeanRingSignature(borromeanRingSignature, msg1, pubkeys);
+
+
             TestGenerateRct();
 
 

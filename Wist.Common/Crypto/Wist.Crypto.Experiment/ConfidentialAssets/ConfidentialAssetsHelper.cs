@@ -108,8 +108,6 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 byte[] Rienc = new byte[32];
                 GroupOperations.ge_p3_tobytes(Rienc, 0, ref Ri);
 
-                GroupOperations.ge_frombytes(out GroupElementP3 testP3, Rienc, 0);
-
                 byte[] ei = ComputeE(Rienc, msg, i);//, wj);
                 //ei = StringToByteArray("fa0a00c10f5a7ebabaf71f72091dcd9443d6b74a1225ea68cacf5631ba734301");
                 if (i == 0)
@@ -580,6 +578,281 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
         #endregion Encrypt / Decrypt assetId
 
+        #region
+
+        internal static BorromeanRingSignature CreateBorromeanRingSignature(byte[] msg, GroupElementP3[][] pubkeys, byte[][] privkeys, int[] indexes)//, byte[][] payload)
+        {
+            int n = pubkeys.Length;
+
+            if(n < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pubkeys), "number of rings cannot be less than 1");
+            }
+
+            int m = pubkeys[0].Length;
+
+            if(m < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pubkeys), "number of signatures per ring cannot be less than 1");
+            }
+
+            if(privkeys.Length != n)
+            {
+                throw new ArgumentOutOfRangeException(nameof(privkeys), "number of secret keys must equal number of rings");
+            }
+
+            if(indexes.Length != n)
+            {
+                throw new ArgumentOutOfRangeException(nameof(indexes), "number of secret indexes must equal number of rings");
+            }
+
+            //if(payload.Length != n * m)
+            //{
+            //    throw new ArgumentOutOfRangeException(nameof(payload), "number of random elements must equal n*m (rings*signatures)");
+            //}
+
+            BorromeanRingSignature borromeanRingSignature = new BorromeanRingSignature();
+            ulong counter = 0;
+
+            while (true)
+            {
+                byte w;
+                byte[][][] s = new byte[n][][];
+                byte[][] k = new byte[n][];
+                byte[] mask = new byte[n];
+
+                IHash E = HashFactory.Crypto.SHA3.CreateKeccak512();
+                E.Initialize();
+
+                byte cnt = (byte)(counter & 0x0f);
+
+                byte[][] r = new byte[n * m][];
+                for (int i = 0; i < n * m; i++)
+                {
+                    r[i] = GetRandomSeed();
+                }
+
+                // 5. For `t` from `0` to `n-1` (each ring):
+                for (int t = 0; t < n; t++)
+                {
+                    s[t] = new byte[m][];
+
+                    // 5.1. Let `j = j[t]`
+                    int j = indexes[t];
+
+                    // 5.2. Let `x = r[m·t + j]` interpreted as a little-endian integer.
+                    byte[] x = r[m * t + j];
+
+                    // 5.3. Define `k[t]` as the lower 252 bits of `x`.
+                    k[t] = x;
+                    k[t][31] &= 0x0f;
+
+                    // 5.4. Define `mask[t]` as the higher 4 bits of `x`.
+                    mask[t] = (byte)(x[31] & 0xf0);
+
+                    // 5.5. Define `w[t,j]` as a byte with lower 4 bits set to zero and higher 4 bits equal `mask[t]`.
+                    w = mask[t];
+
+                    // 5.6. Calculate the initial e-value for the ring:
+
+                    // 5.6.1. Let `j’ = j+1 mod m`.
+                    int j1 = (j + 1) % m;
+
+                    // 5.6.2. Calculate `R[t,j’]` as the point `k[t]*G` and encode it as a 32-byte [public key](data.md#public-key).
+                    GroupOperations.ge_scalarmult_base(out GroupElementP3 R, k[t], 0);
+
+                    // 5.6.3. Calculate `e[t,j’] = SHA3-512(R[t, j’] || msg || t || j’ || w[t,j])` where `t` and `j’` are encoded as 64-bit little-endian integers. Interpret `e[t,j’]` as a little-endian integer reduced modulo `L`.
+                    byte[] e = ComputeInnerE(cnt, R, msg, (ulong)t, (ulong)j1, w);
+
+                    // 5.7. If `j ≠ m-1`, then for `i` from `j+1` to `m-1`:
+                    for (int i = j + 1; i < m; i++) // note that j+1 can be == m in which case loop is empty as we need it to be.
+                    {
+                        // 5.7.1. Calculate the forged s-value: `s[t,i] = r[m·t + i]`.
+                        s[t][i] = r[m * t + i];
+                        // 5.7.2. Define `z[t,i]` as `s[t,i]` with 4 most significant bits set to zero.
+                        byte[] z = s[t][i];
+                        z[31] &= 0xf;
+
+                        // 5.7.3. Define `w[t,i]` as a most significant byte of `s[t,i]` with lower 4 bits set to zero: `w[t,i] = s[t,i][31] & 0xf0`.
+                        w = (byte)(s[t][i][31] & 0xf0);
+
+                        // 5.7.4. Let `i’ = i+1 mod m`.
+                        int i1 = (i + 1) % m;
+
+                        byte[] Ri1 = new byte[32];
+                        GroupOperations.ge_scalarmult_base(out GroupElementP3 zG_P3, z, 0);
+                        GroupOperations.ge_p3_to_cached(out GroupElementCached pke_cached, ref pubkeys[t][i]);
+                        GroupOperations.ge_sub(out GroupElementP1P1 rP1P1, ref zG_P3, ref pke_cached);
+                        GroupOperations.ge_p1p1_to_p3(out GroupElementP3 rP3, ref rP1P1);
+
+                        e = ComputeInnerE(cnt, rP3, msg, (ulong)t, (ulong)i1, w);
+                    }
+
+                    E.TransformBytes(e);
+                }
+
+                // 6.2. Calculate `e0 = SHA3-512(E)`. Interpret `e0` as a little-endian integer reduced modulo `L`.
+                byte[] e0hash = E.TransformFinal().GetBytes();
+                byte[] e0 = ReduceScalar64(e0hash);
+
+                // 6.3. If `e0` is greater than 2<sup>252</sup>–1, then increment the `counter` and try again from step 2.
+                //      The chance of this happening is below 1 in 2<sup>124</sup>.
+                if ((e0[31] & 0xf0) != 0)
+                {
+                    counter++;
+                    continue;
+                }
+
+                // 7. For `t` from `0` to `n-1` (each ring):
+                for (int t = 0; t < n; t++)
+                {
+                    // 7.1. Let `j = j[t]`
+                    int j = indexes[t];
+
+                    // 7.2. Let `e[t,0] = e0`.
+                    byte[] e = (byte[])e0.Clone();
+
+                    // 7.3. If `j` is not zero, then for `i` from `0` to `j-1`:
+                    for (int i = 0; i < j; i++)
+                    {
+                        // 7.3.1. Calculate the forged s-value: `s[t,i] = r[m·t + i]`.
+                        s[t][i] = r[m * t + i];
+
+                        // 7.3.2. Define `z[t,i]` as `s[t,i]` with 4 most significant bits set to zero.
+                        byte[] z1 = s[t][i];
+                        z1[31] &= 0x0f;
+
+                        // 7.3.3. Define `w[t,i]` as a most significant byte of `s[t,i]` with lower 4 bits set to zero: `w[t,i] = s[t,i][31] & 0xf0`.
+                        w = (byte)(s[t][i][31] & 0xf0);
+
+                        // 7.3.4. Let `i’ = i+1 mod m`.
+                        int i1 = (i + 1) % m;
+
+                        // 7.3.5. Calculate point `R[t,i’] = z[t,i]*G - e[t,i]*P[t,i]` and encode it as a 32-byte [public key](data.md#public-key). If `i` is zero, use `e0` in place of `e[t,0]`.
+                        byte[] Ri1 = new byte[32];
+                        GroupOperations.ge_scalarmult_base(out GroupElementP3 zG_P3, z1, 0);
+                        GroupOperations.ge_p3_to_cached(out GroupElementCached pke_cached, ref pubkeys[t][i]);
+                        GroupOperations.ge_sub(out GroupElementP1P1 rP1P1, ref zG_P3, ref pke_cached);
+                        GroupOperations.ge_p1p1_to_p3(out GroupElementP3 rP3, ref rP1P1);
+
+                        // 7.3.6. Calculate `e[t,i’] = SHA3-512(R[t,i’] || msg || t || i’ || w[t,i])` where `t` and `i’` are encoded as 64-bit little-endian integers. Interpret `e[t,i’]` as a little-endian integer reduced modulo subgroup order `L`.
+                        e = ComputeInnerE(cnt, rP3, msg, (ulong)t, (ulong)i1, w);
+                    }
+
+                    // 7.4. Calculate the non-forged `z[t,j] = k[t] + p[t]*e[t,j] mod L` and encode it as a 32-byte little-endian integer.
+                    byte[] z = new byte[32];
+                    ScalarOperations.sc_muladd(z, privkeys[t], e, k[t]);
+
+                    // 7.5. If `z[t,j]` is greater than 2<sup>252</sup>–1, then increment the `counter` and try again from step 2.
+                    //      The chance of this happening is below 1 in 2<sup>124</sup>.
+                    if ((z[31] & 0xf0) != 0)
+                    {
+                        counter++;
+                        continue;
+                    }
+
+                    // 7.6. Define `s[t,j]` as `z[t,j]` with 4 high bits set to `mask[t]` bits.
+                    s[t][j] = z;
+                    s[t][j][31] |= mask[t];
+                }
+
+                // 8. Set low 4 bits of `counter` to top 4 bits of `e0`.
+                byte counterByte = (byte)(counter & 0xff);
+                e0[31] |= (byte)((counterByte << 4) & 0xf0);
+
+                // 9. Return the borromean ring signature: `{e,s[t,j]}`: `n*m+1` 32-byte elements
+                borromeanRingSignature.E = e0;
+                borromeanRingSignature.S = s;
+
+                break;
+            }
+
+            return borromeanRingSignature;
+        }
+
+        internal static bool VerifyBorromeanRingSignature(BorromeanRingSignature borromeanRingSignature, byte[] msg, GroupElementP3[][] pubkeys)
+        {
+            int n = pubkeys.Length;
+
+            if (n < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pubkeys), "number of rings cannot be less than 1");
+            }
+
+            int m = pubkeys[0].Length;
+
+            if (m < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pubkeys), "number of signatures per ring cannot be less than 1");
+            }
+
+            if(borromeanRingSignature.S.Length != n)
+            {
+                throw new ArgumentOutOfRangeException(nameof(borromeanRingSignature), $"number of s values {borromeanRingSignature.S.Length} does not match number of rings {n}");
+            }
+
+            IHash E = HashFactory.Crypto.SHA3.CreateKeccak512();
+            E.Initialize();
+
+            byte cnt = (byte)(borromeanRingSignature.E[31] >> 4);
+
+            byte[] e0 = (byte[])borromeanRingSignature.E.Clone();
+            e0[31] &= 0x0f;
+
+            for (int t = 0; t < n; t++)
+            {
+                if(borromeanRingSignature.S[t].Length != m)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(borromeanRingSignature), $"number of s values ({borromeanRingSignature.S[t].Length}) in ring {t} does not match m ({m})");
+                }
+
+                if(pubkeys[t].Length != m)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(pubkeys), $"number of pubkeys ({pubkeys[t].Length}) in ring {t} does not match m ({m})");
+                }
+
+                byte[] e = (byte[])e0.Clone();
+
+                // 4.2. For `i` from `0` to `m-1`:
+                for (int i = 0; i < m; i++)
+                {
+                    // 4.2.1. Calculate `z[t,i]` as `s[t,i]` with the most significant 4 bits set to zero.
+                    byte[] z = borromeanRingSignature.S[t][i];
+                    z[31] &= 0x0f;
+
+                    // 4.2.2. Calculate `w[t,i]` as a most significant byte of `s[t,i]` with lower 4 bits set to zero: `w[t,i] = s[t,i][31] & 0xf0`.
+                    byte w = (byte)(borromeanRingSignature.S[t][i][31] & 0xf0);
+
+                    // 4.2.3. Let `i’ = i+1 mod m`.
+                    int i1 = (i + 1) % m;
+
+                    // 4.2.4. Calculate point `R[t,i’] = z[t,i]·G - e[t,i]·P[t,i]` and encode it as a 32-byte [public key](data.md#public-key). Use `e0` instead of `e[t,0]` in each ring.
+                    byte[] Ri1 = new byte[32];
+                    GroupOperations.ge_scalarmult_base(out GroupElementP3 zG_P3, z, 0);
+                    GroupOperations.ge_p3_to_cached(out GroupElementCached pke_cached, ref pubkeys[t][i]);
+                    GroupOperations.ge_sub(out GroupElementP1P1 rP1P1, ref zG_P3, ref pke_cached);
+                    GroupOperations.ge_p1p1_to_p3(out GroupElementP3 rP3, ref rP1P1);
+
+                    // 4.2.5. Calculate `e[t,i’] = SHA3-512(R[t,i’] || msg || t || i’ || w[t,i])` where `t` and `i’` are encoded as 64-bit little-endian integers.
+                    // 4.2.6. Interpret `e[t,i’]` as a little-endian integer reduced modulo subgroup order `L`.
+                    e = ComputeInnerE(cnt, rP3, msg, (ulong)t, (ulong)i1, w);
+                }
+
+                // 4.3. Append `e[t,0]` to `E`: `E = E || e[t,0]`, where `e[t,0]` is encoded as a 32-byte little-endian integer.
+                E.TransformBytes(e);
+            }
+
+            // 5. Calculate `e’ = SHA3-512(E)` and interpret it as a little-endian integer reduced modulo subgroup order `L`, and then encoded as a little-endian 32-byte integer.
+            byte[] e1hash = E.TransformFinal().GetBytes();
+            byte[] e1 = ReduceScalar64(e1hash);
+
+            bool res = e1.Equals32(e0);
+
+            return res;
+        }
+
+        #endregion
+
         //TODO: have no idea yet what this is needed for :((((
         /// <summary>
         /// Find point on elliptic curve that is associated with original non blinded assetId
@@ -701,7 +974,16 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return res;
         }
 
-        private static byte[] ReduceScalar64(byte[] hash)
+        private static byte[] ComputeInnerE(byte cnt, GroupElementP3 p3, byte[] msg, ulong t, ulong i, byte w)
+        {
+            byte[] p3bytes = new byte[32];
+            GroupOperations.ge_p3_tobytes(p3bytes, 0, ref p3);
+            byte[] hash = FastHash512(new byte[] { cnt }, p3bytes, msg, BitConverter.GetBytes(t), BitConverter.GetBytes(i), new byte[] { w });
+
+            return ReduceScalar64(hash);
+        }
+
+        public static byte[] ReduceScalar64(byte[] hash)
         {
             ScalarOperations.sc_reduce(hash);
             byte[] res = new byte[32];
