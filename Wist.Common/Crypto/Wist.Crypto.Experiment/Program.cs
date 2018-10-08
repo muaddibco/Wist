@@ -103,7 +103,10 @@ namespace Wist.Crypto.Experiment
 
         static void Main(string[] args)
         {
-            ECParameters eCParameters = System.Security.Cryptography.ECDsa.Create().ExportExplicitParameters(true);
+
+            TestGenerateRct();
+
+
             byte[] testSeed = GetRandomSeed();
 
             
@@ -375,12 +378,32 @@ namespace Wist.Crypto.Experiment
             return seed;
         }
 
+        private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expandedPrivateKey, out byte[] publicKey)
+        {
+            seed = GetRandomSeed();
+
+            Ed25519.KeyPairFromSeed(out publicKey, out expandedPrivateKey, seed);
+        }
+
         private static BitArray GetAmountBits(ulong a)
         {
             byte[] bytes = BitConverter.GetBytes(a);
             BitArray bitArray = new BitArray(bytes);
 
             return bitArray;
+        }
+
+        private static void TestGenerateRct()
+        {
+            List<ulong> amounts = new List<ulong> { 100 };
+            GetRandomSeedAndPublicKey(out byte[] destSk, out byte[] destExpandedSk, out byte[] destPk);
+            KeysList destinations = new KeysList { new Key(destPk) };
+
+            Key commitment = new Key();
+            Key blindingFactor = new Key();
+            RangeSig rangeSig = GetRangeSig(commitment, blindingFactor, 100);
+
+            bool testRangeSig = VerifyRangeSig(commitment, rangeSig);
         }
 
         #region Confidential Ring Signatures
@@ -614,8 +637,8 @@ namespace Wist.Crypto.Experiment
         ///   thus this proves that "amount" is in [0, 2^64]
         ///   mask is a such that C = aG + bH, and b = amount
         /// </summary>
-        /// <param name="c">An output value that will hold Pedersen Commitment associated with the certain amount</param>
-        /// <param name="mask">will hold the blinding factor value used in the calculation of this Pedersen Commitment</param>
+        /// <param name="commitment">An output value that will hold Pedersen Commitment associated with the certain amount</param>
+        /// <param name="blindingFactor">will hold the blinding factor value used in the calculation of this Pedersen Commitment</param>
         /// <param name="amount">is the output amount for which the Pedersen Commitment will be calculated</param>
         /// <returns></returns>
         private static RangeSig GetRangeSig(Key commitment, Key blindingFactor, ulong amount)
@@ -676,20 +699,17 @@ namespace Wist.Crypto.Experiment
                     // faster equivalent of:
                     // subKeys(CiH[i], as.Ci[i], H2[i]);
                     // addKeys(Ctmp, Ctmp, as.Ci[i]);
-                    GroupElementCached cached;
-                    GroupElementP3 p3;
-                    GroupElementP1P1 p1;
-                    if (GroupOperations.ge_frombytes_negate_vartime(out p3, H2.Keys[i].Bytes, 0) != 0)
+                    if (GroupOperations.ge_frombytes(out GroupElementP3 p3, H2.Keys[i].Bytes, 0) != 0)
                     {
                         throw new Exception("point conv failed");
                     }
-                    GroupOperations.ge_p3_to_cached(out cached, ref p3);
-                    if (GroupOperations.ge_frombytes_negate_vartime(out asCi[i], rangeSig.Ci.Keys[i].Bytes, 0) != 0)
+                    GroupOperations.ge_p3_to_cached(out GroupElementCached cached, ref p3);
+                    if (GroupOperations.ge_frombytes(out asCi[i], rangeSig.Ci.Keys[i].Bytes, 0) != 0)
                     {
                         throw new Exception("point conv failed");
                     }
 
-                    GroupOperations.ge_sub(out p1, ref asCi[i], ref cached);
+                    GroupOperations.ge_sub(out GroupElementP1P1 p1, ref asCi[i], ref cached);
                     GroupOperations.ge_p3_to_cached(out cached, ref asCi[i]);
                     GroupOperations.ge_p1p1_to_p3(out CiH[i], ref p1);
                     GroupOperations.ge_add(out p1, ref Ctmp_p3, ref cached);
@@ -919,18 +939,14 @@ namespace Wist.Crypto.Experiment
                 ScalarmultBase(L[naught].Keys[ii], alpha.Keys[ii]);
                 if (naught == 0)
                 {
-
                     bb.S1.Keys[ii].Bytes = GetRandomSeed();
-                    c.Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(L[naught].Keys[ii].Bytes).GetBytes();
+                    c = Hash2Scalar(L[naught].Keys[ii]);
                     ScalarmulBaseAddKeys2(L[prime].Keys[ii], bb.S1.Keys[ii], c, P2.Keys[ii]);
                 }
             }
-            byte[] buf = new byte[64 * 32];
-            for (int i = 0; i < 64; i++)
-            {
-                Array.Copy(L[1].Keys[i].Bytes, 0, buf, 32 * i, L[1].Keys[i].Bytes.Length);
-            }
-            bb.Ee.Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes(); //or L[1]..
+
+            bb.Ee = Hash2Scalar(L[1]); //or L[1]..
+
             Key LL = new Key(), cc = new Key();
             for (jj = 0; jj < 64; jj++)
             {
@@ -942,10 +958,11 @@ namespace Wist.Crypto.Experiment
                 {
                     bb.S0.Keys[jj].Bytes = GetRandomSeed();
                     ScalarmulBaseAddKeys2(LL, bb.S0.Keys[jj], bb.Ee, commitmentsPerBit.Keys[jj]); //different L0
-                    cc.Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(LL.Bytes).GetBytes();
+                    cc = Hash2Scalar(LL);
                     ScalarOperations.sc_mulsub(bb.S1.Keys[jj].Bytes, blindingFactorsPerBit.Keys[jj].Bytes, cc.Bytes, alpha.Keys[jj].Bytes);
                 }
             }
+
             return bb;
         }
 
@@ -955,26 +972,19 @@ namespace Wist.Crypto.Experiment
             Key64 Lv1 = new Key64();
             Key chash = new Key(), LL = new Key();
             int ii = 0;
-            GroupElementP2 p2;
             for (ii = 0; ii < 64; ii++)
             {
                 // equivalent of: addKeys2(LL, bb.s0[ii], bb.ee, P1[ii]);
-                GroupOperations.ge_double_scalarmult_vartime(out p2, bb.Ee.Bytes, ref P1[ii], bb.S0.Keys[ii].Bytes);
+                GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 p2, bb.Ee.Bytes, ref P1[ii], bb.S0.Keys[ii].Bytes);
                 GroupOperations.ge_tobytes(LL.Bytes, 0, ref p2);
-                chash.Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(LL.Bytes).GetBytes();
+                chash = Hash2Scalar(LL);
                 // equivalent of: addKeys2(Lv1[ii], bb.s1[ii], chash, P2[ii]);
                 GroupOperations.ge_double_scalarmult_vartime(out p2, chash.Bytes, ref P2[ii], bb.S1.Keys[ii].Bytes);
                 GroupOperations.ge_tobytes(Lv1.Keys[ii].Bytes, 0, ref p2);
             }
-            byte[] buf = new byte[64 * 32];
-            for (int i = 0; i < 64; i++)
-            {
-                Array.Copy(Lv1.Keys[i].Bytes, 0, buf, 32 * i, Lv1.Keys[i].Bytes.Length);
-            }
-            Key eeComputed = new Key
-            {
-                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes() //hash function fine
-            };
+
+            Key eeComputed = Hash2Scalar(Lv1);
+
             return EqualKeys(eeComputed, bb.Ee);
         }
 
@@ -983,12 +993,12 @@ namespace Wist.Crypto.Experiment
             GroupElementP3[] P1_p3 = new GroupElementP3[64], P2_p3 = new GroupElementP3[64];
             for (int i = 0; i < 64; ++i)
             {
-                if (GroupOperations.ge_frombytes_negate_vartime(out P1_p3[i], P1.Keys[i].Bytes, 0) != 0)
+                if (GroupOperations.ge_frombytes(out P1_p3[i], P1.Keys[i].Bytes, 0) != 0)
                 {
                     throw new ArgumentException();
                 }
 
-                if (GroupOperations.ge_frombytes_negate_vartime(out P2_p3[i], P2.Keys[i].Bytes, 0) != 0)
+                if (GroupOperations.ge_frombytes(out P2_p3[i], P2.Keys[i].Bytes, 0) != 0)
                 {
                     throw new ArgumentException();
                 }
@@ -1415,7 +1425,7 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentNullException(nameof(B));
             }
 
-            if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 A2, A.Bytes, 0) != 0)
+            if (GroupOperations.ge_frombytes(out GroupElementP3 A2, A.Bytes, 0) != 0)
             {
                 throw new ArgumentException(nameof(A));
             }
@@ -1448,13 +1458,11 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentNullException(nameof(bPoint));
             }
 
-            GroupElementP2 rv;
-            GroupElementP3 bPointP3;
-            if (GroupOperations.ge_frombytes_negate_vartime(out bPointP3, bPoint.Bytes, 0) != 0)
+            if (GroupOperations.ge_frombytes(out GroupElementP3 bPointP3, bPoint.Bytes, 0) != 0)
             {
                 throw new ArgumentException(nameof(bPoint), $"Failed to convert to {nameof(GroupElementP3)}");
             }
-            GroupOperations.ge_double_scalarmult_vartime(out rv, a.Bytes, ref bPointP3, b.Bytes);
+            GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 rv, a.Bytes, ref bPointP3, b.Bytes);
             GroupOperations.ge_tobytes(aGbB.Bytes, 0, ref rv);
         }
 
@@ -1481,11 +1489,11 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentNullException(nameof(b));
             }
 
-            if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 aP3, a.Bytes, 0) != 0)
+            if (GroupOperations.ge_frombytes(out GroupElementP3 aP3, a.Bytes, 0) != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(a), $"Failed to convert to {nameof(GroupElementP3)}");
             }
-            if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 bP3, b.Bytes, 0) != 0)
+            if (GroupOperations.ge_frombytes(out GroupElementP3 bP3, b.Bytes, 0) != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(b), $"Failed to convert to {nameof(GroupElementP3)}");
             }
@@ -1574,11 +1582,11 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentNullException(nameof(b));
             }
 
-            if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 aP3, a.Bytes, 0) != 0)
+            if (GroupOperations.ge_frombytes(out GroupElementP3 aP3, a.Bytes, 0) != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(a), $"Failed to convert to {nameof(GroupElementP3)}");
             }
-            if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 bP3, b.Bytes, 0) != 0)
+            if (GroupOperations.ge_frombytes(out GroupElementP3 bP3, b.Bytes, 0) != 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(b), $"Failed to convert to {nameof(GroupElementP3)}");
             }
@@ -1707,6 +1715,29 @@ namespace Wist.Crypto.Experiment
             ScalarOperations.sc_sub(masked.Amount, masked.Amount, sharedSec2.Bytes);
         }
 
+        private static Key Hash2Scalar(Key key)
+        {
+            byte[] hash = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(key.Bytes).GetBytes();
+            ScalarOperations.sc_reduce32(hash);
+
+            return new Key(hash);
+        }
+
+        private static Key Hash2Scalar(Key64 keys)
+        {
+            byte[] buf = new byte[64 * 32];
+            int i = 0;
+            foreach (Key key in keys.Keys)
+            {
+                Array.Copy(key.Bytes, 0, buf, 32 * i++, 32);
+            }
+
+            byte[] hash = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes();
+            ScalarOperations.sc_reduce32(hash);
+
+            return new Key(hash);
+        }
+
         private static Key FastHash(KeysList keys)
         {
             byte[] buf = new byte[keys.Count * 32];
@@ -1718,7 +1749,7 @@ namespace Wist.Crypto.Experiment
 
             Key res = new Key
             {
-                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes()
+                Bytes = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes()
             };
 
             return res;
