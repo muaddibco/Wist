@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using Wist.Client.Common.Entities;
 using Wist.Client.Common.Interfaces;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
+using Wist.Core.Identity;
 
 namespace Wist.Client.Common.Communication
 {
@@ -16,6 +20,7 @@ namespace Wist.Client.Common.Communication
     /// </classDetails>
     /// <summary>
     /// </summary>
+    [RegisterDefaultImplementation(typeof(INetworkManager), Lifetime = LifetimeManagement.Singleton)]
     public class NetworkManager : INetworkManager
     {
         //============================================================================
@@ -24,7 +29,7 @@ namespace Wist.Client.Common.Communication
 
         private INetworkAdapter _networkAdapter;
 
-        private readonly IDictionary<byte[], ulong> _heightsDictionary;
+        private readonly IDictionary<IKey, ulong> _heightsDictionary;
 
         //============================================================================
         //                                  C'TOR
@@ -34,7 +39,7 @@ namespace Wist.Client.Common.Communication
         {
             _networkAdapter = networkAdapter;
 
-            _heightsDictionary = new Dictionary<byte[], ulong>();
+            _heightsDictionary = new Dictionary<IKey, ulong>();
         }
 
         //============================================================================
@@ -43,20 +48,25 @@ namespace Wist.Client.Common.Communication
 
         #region ============ PUBLIC FUNCTIONS =============  
 
-        public ICollection<IPAddress> StorageEndpoints { get; set; }
-
-        public ICollection<IPAddress> RegistrationEndpoints { get; set; }
-
         public void InitializeNetwork()
         {
-            StorageEndpoints = _networkAdapter.GetIPAddressesOfStorageEndpoints();
-
-            RegistrationEndpoints = _networkAdapter.GetIPAddressesOfRegistrationEndpoints();
+           
         }
 
         public ulong GetCurrentHeight(Account account)
         {
             return _heightsDictionary[account.PrivateKey];
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public bool SendBlock(byte[] data, Account account, IKey targetKey)
+        {
+            _networkAdapter.SendBlock(data, account.Key, targetKey);
+            
+            return true;
         }
 
         #endregion

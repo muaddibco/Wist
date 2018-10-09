@@ -1,9 +1,6 @@
-﻿using RestSharp;
-using Wist.Common.Interfaces;
-using Wist.Core.Architecture;
-using Wist.Core.Architecture.Enums;
+﻿using System;
 
-namespace Wist.Common.Communication
+namespace Wist.Client.Common.Exceptions
 {
     /// <classDetails>   
     ///*****************************************************************
@@ -11,28 +8,24 @@ namespace Wist.Common.Communication
     /// 
     ///  Author       : Ami
     ///       
-    ///  Date         : 9/15/2018 10:26:06 AM      
+    ///  Date         : 10/9/2018 11:36:04 PM      
     /// *****************************************************************/
     /// </classDetails>
     /// <summary>
-    /// bla bla
     /// </summary>
-    [RegisterDefaultImplementation(typeof(IRestfulClient), Lifetime = LifetimeManagement.Singleton)]
-    public class RestfulClient : IRestfulClient
+    public class UnknownTypeException : Exception
     {
         //============================================================================
         //                                 MEMBERS
         //============================================================================
 
-        private readonly RestClient _restClient;
-
         //============================================================================
         //                                  C'TOR
         //============================================================================
 
-        public RestfulClient()
+        public UnknownTypeException()
         {
-            _restClient = new RestClient("baseUrl");
+
         }
 
         //============================================================================

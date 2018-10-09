@@ -1,6 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Grpc.Core;
+using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using Wist.Client.Common.Interfaces;
+using Wist.Core.Architecture;
+using Wist.Core.Architecture.Enums;
+using Wist.Core.Identity;
 
 namespace Wist.Client.Common.Communication
 {
@@ -16,6 +21,7 @@ namespace Wist.Client.Common.Communication
     /// <summary>
     /// Network adapter for outside services from wist core projects
     /// </summary>
+    [RegisterDefaultImplementation(typeof(INetworkAdapter), Lifetime = LifetimeManagement.Singleton)]
     public class NetworkAdapter :  INetworkAdapter
     {
         //============================================================================
@@ -24,6 +30,8 @@ namespace Wist.Client.Common.Communication
 
         private INetworkSynchronizer _networkSynchronizer;
 
+        private IDictionary<IPAddress, bool> _sentAckDictionary;
+
         //============================================================================
         //                                  C'TOR
         //============================================================================
@@ -31,6 +39,8 @@ namespace Wist.Client.Common.Communication
         public NetworkAdapter(INetworkSynchronizer networkSynchronizer)
         {
             _networkSynchronizer = networkSynchronizer;
+
+            _sentAckDictionary = new Dictionary<IPAddress, bool>();
         }
 
         //============================================================================
@@ -70,6 +80,14 @@ namespace Wist.Client.Common.Communication
         public ulong GetCurrentHeightOfAccount(byte[] privateKey)
         {
             throw new System.NotImplementedException();
+        }
+
+        public void SendBlock(byte[] data, IKey privateKey, IKey targetKey)
+        {
+            Parallel.ForEach(GetIPAddressesOfStorageEndpoints(), (ipAddress) =>
+            {
+                _networkSynchronizer.SendData(ipAddress, 5050, ChannelCredentials.Insecure, privateKey, targetKey);
+            });   
         }
 
         #endregion

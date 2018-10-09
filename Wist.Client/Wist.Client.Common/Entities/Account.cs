@@ -1,4 +1,5 @@
 ﻿using Wist.BlockLattice.Core.DataModel;
+using Wist.Core.Identity;
 
 namespace Wist.Client.Common.Entities
 {
@@ -19,7 +20,7 @@ namespace Wist.Client.Common.Entities
         //                                 MEMBERS
         //============================================================================
 
-        public byte[] PrivateKey { get; set; }
+        public IKey PrivateKey { get; set; }
 
         //============================================================================
         //                                  C'TOR
