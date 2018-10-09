@@ -90,11 +90,6 @@ namespace Wist.Network.Communication
                     _communicationCountersService?.ParsingQueueSize.Increment();
                     _packets.Enqueue(packet);
                 }
-                else
-                {
-
-                }
-
                 if (!_isBusy)
                 {
                     ParseReceivedData();
@@ -129,7 +124,7 @@ namespace Wist.Network.Communication
 
         public void AcceptSocket(Socket acceptSocket)
         {
-            _communicationCountersService?.CommunicationChannels.Increment();
+            _communicationCountersService?.CommunicationChannels?.Increment();
 
             _log.Info($"Socket accepted by Communication channel.  Remote endpoint = {IPAddress.Parse(((IPEndPoint)acceptSocket.LocalEndPoint).Address.ToString())}:{((IPEndPoint)acceptSocket.LocalEndPoint).Port.ToString()}");
 
@@ -137,8 +132,8 @@ namespace Wist.Network.Communication
             {
                 RemoteIPAddress = ((IPEndPoint)acceptSocket.RemoteEndPoint).Address;
             }
-
             _socketReceiveAsyncEventArgs.AcceptSocket = acceptSocket;
+
             _socketSendAsyncEventArgs.AcceptSocket = acceptSocket;
 
             _socketAcceptedEvent.Set();

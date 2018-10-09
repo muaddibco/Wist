@@ -85,19 +85,19 @@ namespace Wist.BlockLattice.Core.Handlers
 
             try
             {
-                _endToEndCountersService.ParallelParsers.Increment();
+                _endToEndCountersService?.ParallelParsers?.Increment();
 
                 foreach (byte[] messagePacket in _messagePackets.GetConsumingEnumerable(_cancellationToken))
                 {
                     _log.Debug($"Picked for handling flow packet {messagePacket.ToHexString()}");
-                    _endToEndCountersService.MessagesQueueSize.Decrement();
+                    _endToEndCountersService?.MessagesQueueSize?.Decrement();
                     _handlingFlows[iteration].PostMessage(messagePacket);
                 }
             }
             finally
             {
                 _log.Debug("Parse function finished");
-                _endToEndCountersService.ParallelParsers.Decrement();
+                _endToEndCountersService?.ParallelParsers?.Decrement();
             }
         }
     }

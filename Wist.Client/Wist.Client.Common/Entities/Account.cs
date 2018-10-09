@@ -1,4 +1,6 @@
-﻿namespace Wist.Client.Common.Entities
+﻿using Wist.BlockLattice.Core.DataModel;
+
+namespace Wist.Client.Common.Entities
 {
     /// <classDetails>   
     ///*****************************************************************
@@ -11,7 +13,7 @@
     /// </classDetails>
     /// <summary>
     /// </summary>
-    public class Account
+    public class Account : AccountBase
     {
         //============================================================================
         //                                 MEMBERS
