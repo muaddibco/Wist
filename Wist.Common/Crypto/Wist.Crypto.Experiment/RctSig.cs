@@ -46,7 +46,7 @@ namespace Wist.Crypto.Experiment
     {
     }
 
-    public class Key
+    public class Key : ICloneable
     {
         public Key(byte[] bytes)
         {
@@ -77,6 +77,8 @@ namespace Wist.Crypto.Experiment
                 _bytes = value;
             }
         }
+
+        public object Clone() => new Key((byte[])_bytes.Clone());
     }
 
     public class Key64
@@ -114,12 +116,56 @@ namespace Wist.Crypto.Experiment
 
     public class KeysList : List<Key>
     {
+        public KeysList()
+        {
 
+        }
+
+        public KeysList(int rows)
+        {
+            for (int i = 0; i < rows; i++)
+            {
+                Add(new Key());
+            }
+        }
+
+        public KeysList(List<Key> keys)
+        {
+            foreach (Key key in keys)
+            {
+                Add(new Key((byte[])key.Bytes.Clone()));
+            }
+        }
     }
 
     public class KeysMatrix : List<KeysList>
     {
+        public KeysMatrix()
+        {
 
+        }
+
+        public KeysMatrix(int cols, int rows)
+        {
+            for (int i = 0; i < cols; i++)
+            {
+                KeysList keys = new KeysList();
+                Add(keys);
+                for (int j = 0; j < rows; j++)
+                {
+                    keys.Add(new Key());
+                }
+            }
+        }
+
+        public KeysMatrix(int cols, KeysList keysTemplate)
+        {
+            for (int i = 0; i < cols; i++)
+            {
+                KeysList keys = new KeysList(keysTemplate);
+                Add(keys);
+            }
+        }
     }
 
     public class BoroSig
@@ -167,12 +213,16 @@ namespace Wist.Crypto.Experiment
 
     //just contains the necessary keys to represent MLSAG sigs
     //c.f. https://eprint.iacr.org/2015/1098
-    public struct MgSig
+    public class MgSig
     {
         private KeysMatrix _ss;
         private Key _cc;
-
         private KeysList _ii;
+
+        public MgSig()
+        {
+            CC = new Key();
+        }
 
         public KeysMatrix SS { get => _ss; set => _ss = value; }
         public Key CC { get => _cc; set => _cc = value; }

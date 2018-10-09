@@ -67,21 +67,12 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
             GroupElementCached[] Ai = new GroupElementCached[8]; /* A,3A,5A,7A,9A,11A,13A,15A */
             GroupElementP1P1 t;
             GroupElementP3 u;
-            GroupElementP3 A2;
             int i;
 
             slide(aslide, a);
             slide(bslide, b);
 
-            ge_p3_to_cached(out Ai[0], ref A);
-            ge_p3_dbl(out t, ref A); ge_p1p1_to_p3(out A2, ref t);
-            ge_add(out t, ref A2, ref Ai[0]); ge_p1p1_to_p3(out u, ref t); ge_p3_to_cached(out Ai[1], ref u);
-            ge_add(out t, ref A2, ref Ai[1]); ge_p1p1_to_p3(out u, ref t); ge_p3_to_cached(out Ai[2], ref u);
-            ge_add(out t, ref A2, ref Ai[2]); ge_p1p1_to_p3(out u, ref t); ge_p3_to_cached(out Ai[3], ref u);
-            ge_add(out t, ref A2, ref Ai[3]); ge_p1p1_to_p3(out u, ref t); ge_p3_to_cached(out Ai[4], ref u);
-            ge_add(out t, ref A2, ref Ai[4]); ge_p1p1_to_p3(out u, ref t); ge_p3_to_cached(out Ai[5], ref u);
-            ge_add(out t, ref A2, ref Ai[5]); ge_p1p1_to_p3(out u, ref t); ge_p3_to_cached(out Ai[6], ref u);
-            ge_add(out t, ref A2, ref Ai[6]); ge_p1p1_to_p3(out u, ref t); ge_p3_to_cached(out Ai[7], ref u);
+            ge_dsm_precomp(Ai, ref A);
 
             ge_p2_0(out r);
 

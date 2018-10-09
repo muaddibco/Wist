@@ -8,7 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
+using Wist.Crypto.Experiment.Monero;
 using System.Buffers.Binary;
 using Org.BouncyCastle.Crypto.Digests;
 using Wist.Crypto.Experiment.ConfidentialAssets;
@@ -103,6 +103,13 @@ namespace Wist.Crypto.Experiment
 
         static void Main(string[] args)
         {
+            unit_tests();
+            test_ring_signature();
+            //TestRctMG();
+
+
+            //TestGenerateRct();
+
 
             byte[] msg1 = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeString("attack at dawn").GetBytes();
             byte[] aliceKey = ConfidentialAssetsHelper.ReduceScalar64(HashFactory.Crypto.SHA3.CreateKeccak512().ComputeString("alice").GetBytes());
@@ -117,8 +124,6 @@ namespace Wist.Crypto.Experiment
 
             bool brsRes = ConfidentialAssetsHelper.VerifyBorromeanRingSignature(borromeanRingSignature, msg1, pubkeys);
 
-
-            TestGenerateRct();
 
 
             byte[] testSeed = GetRandomSeed();
@@ -310,7 +315,7 @@ namespace Wist.Crypto.Experiment
             byte[] assetDenom = GetRandomSeed();
         }
 
-        private GroupElementP3 GetAssetCommitment(ulong amount, ulong assetId, out byte[] blindingSeed)
+        private static GroupElementP3 GetAssetCommitment(ulong amount, ulong assetId, out byte[] blindingSeed)
         {
             GroupElementP3 blindingP3;
             GetRandomBlinding(out blindingP3, out blindingSeed);
@@ -322,7 +327,7 @@ namespace Wist.Crypto.Experiment
             return commitmentP3;
         }
 
-        private GroupElementP3 GetCommitment(GroupElementP3 blindingP3, GroupElementP3 assetAmountP3)
+        private static GroupElementP3 GetCommitment(GroupElementP3 blindingP3, GroupElementP3 assetAmountP3)
         {
             GroupElementCached assetAmountChached;
             GroupOperations.ge_p3_to_cached(out assetAmountChached, ref assetAmountP3);
@@ -359,7 +364,7 @@ namespace Wist.Crypto.Experiment
                 hasher.Update(assetIdSeed, 0, assetIdSeed.Length);
                 hasher.Update(counterBytes, 0, counterBytes.Length);
                 byte[] hashBytes = hasher.Finish();
-                res = GroupOperations.ge_frombytes_negate_vartime(out assetP3, hashBytes, 0);
+                res = GroupOperations.ge_frombytes(out assetP3, hashBytes, 0);
             } while (res != 0);
             //GroupOperations.ge_scalarmult_base(out assetP3, assetIdSeed, 0);
 
@@ -384,15 +389,43 @@ namespace Wist.Crypto.Experiment
             blindingP3 = GetBlinding(blindingSeed);
         }
 
-        private static byte[] GetRandomSeed()
+        private static byte[] GetRandomSeed(bool reduced = false)
         {
             byte[] seed = new byte[32];
-            RNGCryptoServiceProvider.Create().GetNonZeroBytes(seed);
+            if (!reduced)
+            {
+                RNGCryptoServiceProvider.Create().GetNonZeroBytes(seed);
+            }
+            else
+            {
+                byte[] limit = { 0xe3, 0x6a, 0x67, 0x72, 0x8b, 0xce, 0x13, 0x29, 0x8f, 0x30, 0x82, 0x8c, 0x0b, 0xa4, 0x10, 0x39, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf0 };
+                bool isZero = false, less32 = false;
+                do
+                {
+                    RNGCryptoServiceProvider.Create().GetNonZeroBytes(seed);
+                    isZero = ScalarOperations.sc_isnonzero(seed) == 0;
+                    less32 = Less32(seed, limit);
+                } while (isZero && !less32);
+
+                ScalarOperations.sc_reduce32(seed);
+            }
 
             return seed;
         }
 
-        private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expandedPrivateKey, out byte[] publicKey)
+        private static bool Less32(byte[] k0, byte[] k1)
+        {
+            for (int n = 31; n >= 0; --n)
+            {
+                if (k0[n] < k1[n])
+                    return true;
+                if (k0[n] > k1[n])
+                    return false;
+            }
+            return false;
+        }
+
+private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expandedPrivateKey, out byte[] publicKey)
         {
             seed = GetRandomSeed();
 
@@ -407,6 +440,48 @@ namespace Wist.Crypto.Experiment
             return bitArray;
         }
 
+        private static void TestRctMG()
+        {
+            Key keyMsg = new Key { Bytes = GetRandomSeed() };
+
+            GetRandomSeedAndPublicKey(out byte[] myPrevSeed, out byte[] myPrevExpandedSeed, out byte[] myPrevPublicKey);
+            GetRandomSeedAndPublicKey(out byte[] aliceSeed, out byte[] aliceExpandedSeed, out byte[] alicePublicKey);
+            GetRandomSeedAndPublicKey(out byte[] bobSeed, out byte[] bobExpandedSeed, out byte[] bobPublicKey);
+
+            GroupElementP3 myPrevCommitmentP3 = GetAssetCommitment(1, 1, out byte[] myPrevBlinding);
+            GroupElementP3 aliceCommitmentP3 = GetAssetCommitment(1, 2, out byte[] aliceBlinding);
+            GroupElementP3 bobCommitmentP3 = GetAssetCommitment(1, 3, out byte[] bobBlinding);
+
+            byte[] myPrevCommitment = new byte[32];
+            byte[] aliceCommitment = new byte[32];
+            byte[] bobCommitment = new byte[32];
+
+            GroupOperations.ge_p3_tobytes(myPrevCommitment, 0, ref myPrevCommitmentP3);
+            GroupOperations.ge_p3_tobytes(aliceCommitment, 0, ref aliceCommitmentP3);
+            GroupOperations.ge_p3_tobytes(bobCommitment, 0, ref bobCommitmentP3);
+
+            CtKeyMatrix pubs = new CtKeyMatrix() {
+                new CtKeyList { new CtKey { Dest = new Key(myPrevPublicKey), Mask = new Key(myPrevCommitment) } },
+                new CtKeyList { new CtKey { Dest = new Key(alicePublicKey), Mask = new Key(aliceCommitment) } },
+                new CtKeyList { new CtKey { Dest = new Key(bobPublicKey), Mask = new Key(bobCommitment) } }
+            };
+
+            GetRandomSeedAndPublicKey(out byte[] newSeed, out byte[] newExpandedSeed, out byte[] newPublicKey);
+
+            GroupElementP3 myNewCommitmentP3 = GetAssetCommitment(1, 1, out byte[] myNewBlinding);
+            byte[] myNewCommitment = new byte[32];
+            GroupOperations.ge_p3_tobytes(myNewCommitment, 0, ref myNewCommitmentP3);
+
+
+            CtKeyList inSk = new CtKeyList { new CtKey { Dest = new Key(myPrevSeed), Mask = new Key(myPrevBlinding) } };
+            CtKeyList outSk = new CtKeyList { new CtKey { Dest = new Key(newSeed), Mask = new Key(myNewBlinding) } };
+            CtKeyList outPk = new CtKeyList { new CtKey { Dest = new Key(newPublicKey), Mask = new Key(myNewCommitment) } };
+
+            MgSig mgSig = ProveRctMG(keyMsg, pubs, inSk, outSk, outPk, 0);
+
+            bool res = VerRctMG(mgSig, pubs, outPk, keyMsg);
+        }
+
         private static void TestGenerateRct()
         {
             List<ulong> amounts = new List<ulong> { 100 };
@@ -418,6 +493,97 @@ namespace Wist.Crypto.Experiment
             RangeSig rangeSig = GetRangeSig(commitment, blindingFactor, 100);
 
             bool testRangeSig = VerifyRangeSig(commitment, rangeSig);
+        }
+
+        private static void unit_tests()
+        {
+            GroupElementCached[] gsm = new GroupElementCached[8];
+
+            byte[] seed = GetRandomSeed(true);
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 seedP3, seed, 0);
+
+            GroupOperations.ge_dsm_precomp(gsm, ref seedP3);
+
+            byte[] seed1 = GetRandomSeed();
+            byte[] seed2 = GetRandomSeed();
+
+            GroupOperations.ge_double_scalarmult_precomp_vartime(out GroupElementP2 p2_1, seed1, seedP3, seed2, gsm);
+            GroupOperations.ge_scalarmult_p3(out GroupElementP3 p3_2_1, seed1, ref seedP3);
+            GroupOperations.ge_scalarmult_p3(out GroupElementP3 p3_2_2, seed2, ref seedP3);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached r, ref p3_2_2);
+            GroupOperations.ge_add(out GroupElementP1P1 p1P1, ref p3_2_1, ref r);
+            GroupOperations.ge_p1p1_to_p2(out GroupElementP2 p2_2, ref p1P1);
+
+            byte[] p2_1_bytes = new byte[32], p2_2_bytes = new byte[32];
+
+            GroupOperations.ge_tobytes(p2_1_bytes, 0, ref p2_1);
+            GroupOperations.ge_tobytes(p2_2_bytes, 0, ref p2_2);
+
+            GroupElementP3 p3Hashed = Hash2Point("3c128ec5c955ea189a5789df2c892e94193a534a9d5801b8f75df870bc492a69".HexStringToByteArray());
+            byte[] p3HashedBytes = new byte[32];
+            GroupOperations.ge_p3_tobytes(p3HashedBytes, 0, ref p3Hashed);
+            byte[] p3HashedExpected = "59eef5ee9df0f681df5b5c67ead1f06b059a8a843837b67f20cce15779608170".HexStringToByteArray();
+            bool p3HashedEqual = p3HashedExpected.Equals32(p3HashedBytes);
+
+            byte[] hash = "8661153f5f856b46f83e9e225777656cd95584ab16396fa03749ec64e957283b".HexStringToByteArray();
+            byte[] sk = "156d7f2e20899371404b87d612c3587ffe9fba294bafbbc99bb1695e3275230e".HexStringToByteArray();
+            byte[] imageExpexted = "03ec63d7f1b722f551840b2725c76620fa457c805cbbf2ee941a6bf4cfb6d06c".HexStringToByteArray();
+            byte[] image = GenerateKeyImage(hash, sk);
+
+            GroupOperations.ge_frombytes(out GroupElementP3 p3_5, imageExpexted, 0);
+            byte[] image2 = new byte[32];
+            GroupOperations.ge_p3_tobytes(image2, 0, ref p3_5);
+
+            bool res = imageExpexted.Equals32(image);
+
+            int res1 = ScalarOperations.sc_check("ac10e070c8574ef374bdd1c5dbe9bacfd927f9ae0705cf08018ff865f6092d0f".HexStringToByteArray());
+            int res2 = ScalarOperations.sc_check("fa939388e8cb0ffc5c776cc517edc2a9457c11a89820a7bee91654ce2e2fb300".HexStringToByteArray());
+            int res3 = ScalarOperations.sc_check("18fd66f7a0874de792f12a1b2add7d294100ea454537ae5794d0abc91dbf098a".HexStringToByteArray());
+
+            byte[] hash1Actual = Hash2Scalar("59d28aeade98016722948bf596af0b7deb5dd641f1aa2a906bd4e1".HexStringToByteArray());
+            byte[] hash1Expected = "7d0b25809fc4032a81dd5b0f721a2b21f7f68157c834374f580876f5d91f7409".HexStringToByteArray();
+            res = hash1Expected.Equals32(hash1Actual);
+
+            res1 = GroupOperations.ge_frombytes(out GroupElementP3 p3_1, "c2cb3cf3840aa9893e00ec77093d3d44dba7da840b51c48462072d58d8efd183".HexStringToByteArray(), 0);
+            res2 = GroupOperations.ge_frombytes(out GroupElementP3 p3_2, "bd85a61bae0c101d826cbed54b1290f941d26e70607a07fc6f0ad611eb8f70a6".HexStringToByteArray(), 0);
+
+            byte[] sk1 = "b2f420097cd63cdbdf834d090b1e604f08acf0af5a3827d0887863aaa4cc4406".HexStringToByteArray();
+            byte[] sk2 = "f264699c939208870fecebc013b773b793dd18ea39dbe1cb712a19a692fdb000".HexStringToByteArray();
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 pk1, sk1, 0);
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 pk2, sk2, 0);
+            byte[] pk1actual = new byte[32];
+            byte[] pk2actual = new byte[32];
+            byte[] pk1expected = "d764c19d6c14280315d81eb8f2fc777582941047918f52f8dcef8225e9c92c52".HexStringToByteArray();
+            byte[] pk2expected = "bcb483f075d37658b854d4b9968fafae976e5532ca99879479c85ef5da1deead".HexStringToByteArray();
+            GroupOperations.ge_p3_tobytes(pk1actual, 0, ref pk1);
+            GroupOperations.ge_p3_tobytes(pk2actual, 0, ref pk2);
+            bool bres1 = pk1expected.Equals32(pk1actual);
+            bool bres2 = pk2expected.Equals32(pk2actual);
+
+            Signature signature = generate_signature("f63c961bb5086f07773645716d9013a5169590fd7033a3bc9be571c7442c4c98".HexStringToByteArray(), "b8970905fbeaa1d0fd89659bab506c2f503e60670b7afd1cb56a4dfe8383f38f".HexStringToByteArray(), "7bb35441e077be8bb8d77d849c926bf1dd0e696c1c83017e648c20513d2d6907".HexStringToByteArray());
+            bool sigRes = check_signature("f63c961bb5086f07773645716d9013a5169590fd7033a3bc9be571c7442c4c98".HexStringToByteArray(), "b8970905fbeaa1d0fd89659bab506c2f503e60670b7afd1cb56a4dfe8383f38f".HexStringToByteArray(), signature);
+            
+
+        }
+
+        private static void test_ring_signature()
+        {
+            byte[] msg = GetRandomSeed(true);
+            byte[] mySk = GetRandomSeed(true);
+            byte[] sk1 = GetRandomSeed(true);
+            byte[] sk2 = GetRandomSeed(true);
+
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 myPkP3, mySk, 0);
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 pk1P3, sk1, 0);
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 pk2P3, sk2, 0);
+
+            byte[] pk1 = new byte[32], pk2 = new byte[32];
+            GroupOperations.ge_p3_tobytes(pk1, 0, ref pk1P3);
+            GroupOperations.ge_p3_tobytes(pk2, 0, ref pk2P3);
+
+            GroupElementP3 key_image = GenerateKeyImage(myPkP3, mySk);
+            Signature[] signatures = generate_ring_signature(msg, key_image, new GroupElementP3[] { pk1P3, key_image, pk2P3 }, mySk, 1);
+            bool res = check_ring_signature(msg, key_image, new GroupElementP3[] { pk1P3, key_image, pk2P3 }, signatures);
         }
 
         #region Confidential Ring Signatures
@@ -795,35 +961,18 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentException(nameof(outSk), $"Bad {nameof(outSk)}/{nameof(outPk)} size");
             }
 
-            KeysList sk = new KeysList();
+            KeysList sk = new KeysList(rows + 1);
+
+            KeysList tmp = new KeysList(rows + 1);
             for (int k = 0; k < rows + 1; k++)
             {
-                sk.Add(new Key());
+                tmp[k].Bytes = (byte[])I.Bytes.Clone();
             }
 
-            KeysList tmp = new KeysList();
-            for (int k = 0; k < rows + 1; k++)
-            {
-                Key key = new Key();
-                Array.Copy(I.Bytes, 0, key.Bytes, 0, I.Bytes.Length);
-                tmp.Add(key);
-            }
-
-            KeysMatrix M = new KeysMatrix();
+            KeysMatrix M = new KeysMatrix(cols, tmp);
             //create the matrix to mg sig
             for (int i = 0; i < cols; i++)
             {
-                KeysList keys = new KeysList();
-                for (int j = 0; j < rows + 1; j++)
-                {
-                    Key key = new Key();
-                    keys.Add(key);
-
-                    if (j == rows)
-                    {
-                        Array.Copy(I.Bytes, 0, key.Bytes, 0, I.Bytes.Length);
-                    }
-                }
                 for (int j = 0; j < rows; j++)
                 {
                     M[i][j] = pubs[i][j].Dest;
@@ -896,21 +1045,18 @@ namespace Wist.Crypto.Experiment
             KeysList tmp = new KeysList();
             for (int k = 0; k < rows + 1; k++)
             {
-                Key key = new Key();
-                Array.Copy(I.Bytes, 0, key.Bytes, 0, I.Bytes.Length);
+                Key key = new Key((byte[])I.Bytes.Clone());
                 tmp.Add(key);
             }
 
+            KeysMatrix M = new KeysMatrix(cols, tmp);
 
-            KeysMatrix M = new KeysMatrix();
             //create the matrix to mg sig
             for (int j = 0; j < rows; j++)
             {
-                M.Add(new KeysList());
                 for (int i = 0; i < cols; i++)
                 {
-                    M[i].Add(new Key());
-                    M[i][j] = pubs[i][j].Dest;
+                    M[i][j] = (Key)pubs[i][j].Dest.Clone();
                     ScalarmulBaseAddKeys(M[i][rows], M[i][rows], pubs[i][j].Mask); //add Ci in last row
                 }
             }
@@ -1075,48 +1221,15 @@ namespace Wist.Crypto.Experiment
                 Ip.Add(new GroupElementCached[8]);
             }
 
-            mgSig.II = new KeysList();
-            for (int k = 0; k < dsRows; k++)
+            mgSig.II = new KeysList(dsRows);
+            KeysList alpha = new KeysList(rows);
+            KeysList aG = new KeysList(rows);
+            mgSig.SS = new KeysMatrix(cols, rows);
+            KeysList aHP = new KeysList(dsRows);
+            KeysList toHash = new KeysList(1 + 3 * dsRows + 2 * (rows - dsRows))
             {
-                mgSig.II.Add(new Key());
-            }
-
-            KeysList alpha = new KeysList();
-            for (int k = 0; k < rows; k++)
-            {
-                alpha.Add(new Key());
-            }
-
-            KeysList aG = new KeysList();
-            for (int k = 0; k < rows; k++)
-            {
-                aG.Add(new Key());
-            }
-
-            mgSig.SS = new KeysMatrix();
-            for (int k = 0; k < cols; k++)
-            {
-                KeysList keys = new KeysList();
-                for (int m = 0; m < rows; m++)
-                {
-                    keys.Add(new Key());
-                }
-                mgSig.SS.Add(keys);
-            }
-
-            KeysList aHP = new KeysList();
-            for (int k = 0; k < dsRows; k++)
-            {
-                aHP.Add(new Key());
-            }
-
-            KeysList toHash = new KeysList();
-            for (int k = 0; k < 1 + 3 * dsRows + 2 * (rows - dsRows); k++)
-            {
-                toHash.Add(new Key());
-            }
-
-            toHash[0] = message;
+                [0] = message
+            };
 
             for (i = 0; i < dsRows; i++)
             {
@@ -1151,9 +1264,11 @@ namespace Wist.Crypto.Experiment
             {
                 for (int k = 0; k < rows; k++)
                 {
-                    mgSig.SS[i].Add(new Key { Bytes = GetRandomSeed() });
+                    mgSig.SS[i][k].Bytes = GetRandomSeed(true);
                 }
+
                 Array.Clear(c.Bytes, 0, 32);
+
                 for (j = 0; j < dsRows; j++)
                 {
                     ScalarmulBaseAddKeys2(L, mgSig.SS[i][j], c_old, pk[i][j]);
@@ -1163,12 +1278,14 @@ namespace Wist.Crypto.Experiment
                     toHash[3 * j + 2] = L;
                     toHash[3 * j + 3] = R;
                 }
+
                 for (j = dsRows, ii = 0; j < rows; j++, ii++)
                 {
                     ScalarmulBaseAddKeys2(L, mgSig.SS[i][j], c_old, pk[i][j]);
                     toHash[ndsRows + 2 * ii + 1] = pk[i][j];
                     toHash[ndsRows + 2 * ii + 2] = L;
                 }
+
                 Mlsag_Hash(toHash, out c);
                 Array.Copy(c.Bytes, 0, c_old.Bytes, 0, c.Bytes.Length);
                 i = (i + 1) % cols;
@@ -1239,7 +1356,8 @@ namespace Wist.Crypto.Experiment
             {
                 for (int j = 0; j < rv.SS[i].Count; ++j)
                 {
-                    if (ScalarOperations.sc_check(rv.SS[i][j].Bytes) != 0)
+                    int scCheck = ScalarOperations.sc_check(rv.SS[i][j].Bytes);
+                    if (scCheck != 0)
                     {
                         throw new ArgumentException(nameof(rv.SS), $"Bad {rv.SS} slot");
                     }
@@ -1361,6 +1479,7 @@ namespace Wist.Crypto.Experiment
             for (int j = 0; j < rows; j++)
             {
                 ScalarOperations.sc_mulsub(ss[j].Bytes, c.Bytes, xx[j].Bytes, alpha[j].Bytes);
+                int res = ScalarOperations.sc_check(ss[j].Bytes);
             }
 
             return true;
@@ -1368,15 +1487,20 @@ namespace Wist.Crypto.Experiment
 
         private static bool Mlsag_Hash(KeysList toHash, out Key hash)
         {
-            byte[] buf = new byte[toHash.Count * 32];
-            for (int i = 0; i < toHash.Count; i++)
+            IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak256();
+            hasher.Initialize();
+
+            foreach (Key key in toHash)
             {
-                Array.Copy(toHash[i].Bytes, 0, buf, i * 32, 32);
+                hasher.TransformBytes(key.Bytes);
             }
+
             hash = new Key
             {
-                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes()
+                Bytes = hasher.TransformFinal().GetBytes()
             };
+
+            ScalarOperations.sc_reduce32(hash.Bytes);
             return true;
         }
 
@@ -1512,14 +1636,11 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentOutOfRangeException(nameof(b), $"Failed to convert to {nameof(GroupElementP3)}");
             }
 
-            GroupElementCached bCached;
-            GroupOperations.ge_p3_to_cached(out bCached, ref bP3);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached bCached, ref bP3);
 
-            GroupElementP1P1 abP1P1;
-            GroupOperations.ge_add(out abP1P1, ref aP3, ref bCached);
+            GroupOperations.ge_add(out GroupElementP1P1 abP1P1, ref aP3, ref bCached);
 
-            GroupElementP3 abP3;
-            GroupOperations.ge_p1p1_to_p3(out abP3, ref abP1P1);
+            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 abP3, ref abP1P1);
 
             GroupOperations.ge_p3_tobytes(ab.Bytes, 0, ref abP3);
         }
@@ -1537,10 +1658,9 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentNullException(nameof(a));
             }
 
-            GroupElementP3 point;
             Array.Copy(a.Bytes, 0, aG.Bytes, 0, a.Bytes.Length);
             ScalarOperations.sc_reduce32(aG.Bytes);
-            GroupOperations.ge_scalarmult_base(out point, aG.Bytes, 0);
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 point, aG.Bytes, 0);
             GroupOperations.ge_p3_tobytes(aG.Bytes, 0, ref point);
         }
 
@@ -1562,13 +1682,11 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentNullException(nameof(a));
             }
 
-            GroupElementP3 A;
-            GroupElementP2 R;
-            if (GroupOperations.ge_frombytes_negate_vartime(out A, P.Bytes, 0) != 0)
+            if (GroupOperations.ge_frombytes(out GroupElementP3 A, P.Bytes, 0) != 0)
             {
                 throw new ArgumentException();
             }
-            GroupOperations.ge_scalarmult(out R, a.Bytes, ref A);
+            GroupOperations.ge_scalarmult(out GroupElementP2 R, a.Bytes, ref A);
             GroupOperations.ge_tobytes(aP.Bytes, 0, ref R);
         }
 
@@ -1605,14 +1723,11 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentOutOfRangeException(nameof(b), $"Failed to convert to {nameof(GroupElementP3)}");
             }
 
-            GroupElementCached bCached;
-            GroupOperations.ge_p3_to_cached(out bCached, ref bP3);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached bCached, ref bP3);
 
-            GroupElementP1P1 abP1P1;
-            GroupOperations.ge_sub(out abP1P1, ref aP3, ref bCached);
+            GroupOperations.ge_sub(out GroupElementP1P1 abP1P1, ref aP3, ref bCached);
 
-            GroupElementP3 abP3;
-            GroupOperations.ge_p1p1_to_p3(out abP3, ref abP1P1);
+            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 abP3, ref abP1P1);
 
             GroupOperations.ge_p3_tobytes(ab.Bytes, 0, ref abP3);
         }
@@ -1639,7 +1754,7 @@ namespace Wist.Crypto.Experiment
         {
             sk = new Key
             {
-                Bytes = GetRandomSeed()
+                Bytes = GetRandomSeed(true)
             };
 
             pk = new Key();
@@ -1649,14 +1764,11 @@ namespace Wist.Crypto.Experiment
         private static Key HashToPoint(Key hh)
         {
             Key pointk = new Key();
-            GroupElementP2 point;
-            GroupElementP1P1 point2;
-            GroupElementP3 res;
-            Key h = new Key();
-            h.Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(hh.Bytes).GetBytes();
-            GroupOperations.ge_fromfe_frombytes_vartime(out point, h.Bytes, 0);
-            GroupOperations.ge_mul8(out point2, ref point);
-            GroupOperations.ge_p1p1_to_p3(out res, ref point2);
+            
+            Key h = FastHash(hh);
+            GroupOperations.ge_fromfe_frombytes_vartime(out GroupElementP2 point, h.Bytes, 0);
+            GroupOperations.ge_mul8(out GroupElementP1P1 point2, ref point);
+            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 res, ref point2);
             GroupOperations.ge_p3_tobytes(pointk.Bytes, 0, ref res);
             return pointk;
         }
@@ -1676,7 +1788,7 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentOutOfRangeException(nameof(rv), "Expected exactly 8 items");
             }
 
-            if (GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 B2, B.Bytes, 0) != 0)
+            if (GroupOperations.ge_frombytes(out GroupElementP3 B2, B.Bytes, 0) != 0)
             {
                 throw new ArgumentException(nameof(B));
             }
@@ -1692,15 +1804,8 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentNullException(nameof(sharedSec));
             }
 
-            Key sharedSec1 = new Key
-            {
-                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sharedSec.Bytes).GetBytes()
-            };
-
-            Key sharedSec2 = new Key
-            {
-                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sharedSec1.Bytes).GetBytes()
-            };
+            Key sharedSec1 = FastHash(sharedSec);
+            Key sharedSec2 = FastHash(sharedSec1);
 
             //encode
             ScalarOperations.sc_add(unmasked.Mask, unmasked.Mask, sharedSec1.Bytes);
@@ -1714,19 +1819,20 @@ namespace Wist.Crypto.Experiment
                 throw new ArgumentNullException(nameof(sharedSec));
             }
 
-            Key sharedSec1 = new Key
-            {
-                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sharedSec.Bytes).GetBytes()
-            };
-
-            Key sharedSec2 = new Key
-            {
-                Bytes = HashLib.HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sharedSec1.Bytes).GetBytes()
-            };
+            Key sharedSec1 = FastHash(sharedSec);
+            Key sharedSec2 = FastHash(sharedSec1);
 
             //decode
             ScalarOperations.sc_sub(masked.Mask, masked.Mask, sharedSec1.Bytes);
             ScalarOperations.sc_sub(masked.Amount, masked.Amount, sharedSec2.Bytes);
+        }
+
+        private static byte[] Hash2Scalar(byte[] key)
+        {
+            byte[] hash = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(key).GetBytes();
+            ScalarOperations.sc_reduce32(hash);
+
+            return hash;
         }
 
         private static Key Hash2Scalar(Key key)
@@ -1739,14 +1845,14 @@ namespace Wist.Crypto.Experiment
 
         private static Key Hash2Scalar(Key64 keys)
         {
-            byte[] buf = new byte[64 * 32];
-            int i = 0;
+            IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak256();
+            hasher.Initialize();
             foreach (Key key in keys.Keys)
             {
-                Array.Copy(key.Bytes, 0, buf, 32 * i++, 32);
+                hasher.TransformBytes(key.Bytes);
             }
 
-            byte[] hash = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes();
+            byte[] hash = hasher.TransformFinal().GetBytes();
             ScalarOperations.sc_reduce32(hash);
 
             return new Key(hash);
@@ -1754,19 +1860,30 @@ namespace Wist.Crypto.Experiment
 
         private static Key FastHash(KeysList keys)
         {
-            byte[] buf = new byte[keys.Count * 32];
-            int i = 0;
+            IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak256();
+            hasher.Initialize();
+
             foreach (Key key in keys)
             {
-                Array.Copy(key.Bytes, 0, buf, 32 * i++, 32);
+                hasher.TransformBytes(key.Bytes);
             }
 
             Key res = new Key
             {
-                Bytes = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(buf).GetBytes()
+                Bytes = hasher.TransformFinal().GetBytes()
             };
 
+            ScalarOperations.sc_reduce32(res.Bytes);
+
             return res;
+        }
+
+        private static Key FastHash(Key hh)
+        {
+            Key key = new Key { Bytes = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(hh.Bytes).GetBytes() };
+            ScalarOperations.sc_reduce32(key.Bytes);
+
+            return key;
         }
 
         private static Key get_pre_mlsag_hash(RctSig rv)
@@ -1810,6 +1927,197 @@ namespace Wist.Crypto.Experiment
         {
             GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, k, 0);
             return p3;
+        }
+
+        private static byte[] GenerateKeyImage(byte[] hash, byte[] sk)
+        {
+            GroupElementP3 p3 = Hash2Point(hash);
+            GroupOperations.ge_scalarmult(out GroupElementP2 p2, sk, ref p3);
+            byte[] image = new byte[32];
+            GroupOperations.ge_tobytes(image, 0, ref p2);
+
+            return image;
+        }
+
+        private static GroupElementP3 GenerateKeyImage(GroupElementP3 pkP3, byte[] sk)
+        {
+            byte[] pkP3bytes = new byte[32];
+            GroupOperations.ge_p3_tobytes(pkP3bytes, 0, ref pkP3);
+            GroupElementP3 p3 = Hash2Point(pkP3bytes);
+            GroupOperations.ge_scalarmult_p3(out GroupElementP3 p2, sk, ref p3);
+            //byte[] image = new byte[32];
+            //GroupOperations.ge_tobytes(image, 0, ref p2);
+            
+            return p2;
+        }
+
+        private static GroupElementP3 Hash2Point(byte[] hashed)
+        {
+            byte[] hashValue = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(hashed).GetBytes();
+            //byte[] hashValue = HashFactory.Crypto.SHA3.CreateKeccak512().ComputeBytes(hashed).GetBytes();
+            ScalarOperations.sc_reduce32(hashValue);
+            GroupOperations.ge_fromfe_frombytes_vartime(out GroupElementP2 p2, hashValue, 0);
+            GroupOperations.ge_mul8(out GroupElementP1P1 p1p1, ref p2);
+            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 p3, ref p1p1);
+            return p3;
+        }
+        private static GroupElementP3 Hash2Point(GroupElementP3 point)
+        {
+            byte[] hashed = new byte[32];
+            GroupOperations.ge_p3_tobytes(hashed, 0, ref point);
+            byte[] hashValue = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(hashed).GetBytes();
+            ScalarOperations.sc_reduce32(hashValue);
+            GroupOperations.ge_fromfe_frombytes_vartime(out GroupElementP2 p2, hashValue, 0);
+            GroupOperations.ge_mul8(out GroupElementP1P1 p1p1, ref p2);
+            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 p3, ref p1p1);
+            return p3;
+        }
+
+        private static Signature[] generate_ring_signature(byte[] msg, GroupElementP3 key_image, GroupElementP3[] pubs, byte[] sec, int secIndex)
+        {
+            Signature[] signatures = new Signature[pubs.Length];
+
+            //GroupOperations.ge_frombytes(out GroupElementP3 imageP3, key_image, 0);
+
+            GroupElementCached[] image_pre = new GroupElementCached[8];
+            GroupOperations.ge_dsm_precomp(image_pre, ref key_image);
+
+            byte[] sum = new byte[32], k = null, h = null;
+            //buf->h = prefix_hash;
+
+            IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak256();
+            hasher.TransformBytes(msg);
+
+            for (int i = 0; i < pubs.Length; i++)
+            {
+                signatures[i] = new Signature();
+
+                if (i == secIndex)
+                {
+                    k = GetRandomSeed(true);
+                    GroupOperations.ge_scalarmult_base(out GroupElementP3 tmp3, k, 0);
+                    byte[] tmp3bytes = new byte[32];
+                    GroupOperations.ge_p3_tobytes(tmp3bytes, 0, ref tmp3);
+                    hasher.TransformBytes(tmp3bytes);
+                    tmp3 = Hash2Point(pubs[i]);
+                    GroupOperations.ge_scalarmult(out GroupElementP2 tmp2, k, ref tmp3);
+                    byte[] tmp2bytes = new byte[32];
+                    GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+                    hasher.TransformBytes(tmp2bytes);
+                }
+                else
+                {
+                    signatures[i].C = GetRandomSeed(true);
+                    signatures[i].R = GetRandomSeed(true);
+                    //GroupOperations.ge_frombytes(out GroupElementP3 tmp3, pubs[i], 0);
+                    GroupElementP3 tmp3 = pubs[i];
+                    GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 tmp2, signatures[i].C, ref tmp3, signatures[i].R);
+                    byte[] tmp2bytes = new byte[32];
+                    GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+                    hasher.TransformBytes(tmp2bytes);
+                    GroupOperations.ge_double_scalarmult_precomp_vartime(out tmp2, signatures[i].R, tmp3, signatures[i].C, image_pre);
+                    tmp2bytes = new byte[32];
+                    GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+                    hasher.TransformBytes(tmp2bytes);
+                    ScalarOperations.sc_add(sum, sum, signatures[i].C);
+                }
+            }
+
+            h = hasher.TransformFinal().GetBytes();
+            ScalarOperations.sc_sub(signatures[secIndex].C, h, sum);
+            ScalarOperations.sc_mulsub(signatures[secIndex].R, signatures[secIndex].C, sec, k);
+
+            return signatures;
+        }
+
+        private static bool check_ring_signature(byte[] msg, GroupElementP3 key_image, GroupElementP3[] pubs, Signature[] signatures)
+        {
+            //GroupOperations.ge_frombytes(out GroupElementP3 image_unp, key_image, 0);
+
+            GroupElementCached[] image_pre = new GroupElementCached[8];
+            GroupOperations.ge_dsm_precomp(image_pre, ref key_image);
+            byte[] sum = new byte[32];
+
+            IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak256();
+            hasher.TransformBytes(msg);
+
+            for (int i = 0; i < pubs.Length; i++)
+            {
+                if (ScalarOperations.sc_check(signatures[i].C) != 0 || ScalarOperations.sc_check(signatures[i].R) != 0)
+                    return false;
+
+                //GroupOperations.ge_frombytes(out GroupElementP3 tmp3, pubs[i], 0);
+                GroupElementP3 tmp3 = pubs[i];
+                GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 tmp2, signatures[i].C, ref tmp3, signatures[i].R);
+                byte[] tmp2bytes = new byte[32];
+                hasher.TransformBytes(tmp2bytes);
+                tmp3 = Hash2Point(pubs[i]);
+                GroupOperations.ge_double_scalarmult_precomp_vartime(out tmp2, signatures[i].R, tmp3, signatures[i].C, image_pre);
+                tmp2bytes = new byte[32];
+                hasher.TransformBytes(tmp2bytes);
+                ScalarOperations.sc_add(sum, sum, signatures[i].C);
+            }
+
+            byte[] h = hasher.TransformFinal().GetBytes();
+            ScalarOperations.sc_sub(h, h, sum);
+
+            int res = ScalarOperations.sc_isnonzero(h);
+
+            return res == 0;
+        }
+
+        private static Signature generate_signature(byte[] msg, byte[] pub, byte[] sec)
+        {
+            Signature signature = new Signature();
+            do
+            {
+                IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak256();
+                hasher.Initialize();
+                hasher.TransformBytes(msg);
+                hasher.TransformBytes(pub);
+                byte[] k = GetRandomSeed(true);
+                GroupOperations.ge_scalarmult_base(out GroupElementP3 tmp3, k, 0);
+                byte[] tmp3bytes = new byte[32];
+                GroupOperations.ge_p3_tobytes(tmp3bytes, 0, ref tmp3);
+                hasher.TransformBytes(tmp3bytes);
+
+                signature.C = hasher.TransformFinal().GetBytes();
+
+                if (ScalarOperations.sc_isnonzero(signature.C) == 0)
+                {
+                    continue;
+                }
+
+                signature.R = new byte[32];
+                ScalarOperations.sc_mulsub(signature.R, signature.C, sec, k);
+                if (ScalarOperations.sc_isnonzero(signature.R) == 0)
+                {
+                    continue;
+                }
+
+                break;
+            } while (true);
+
+            return signature;
+        }
+
+        private static bool check_signature(byte[] msg, byte[] pub, Signature signature)
+        {
+            IHash hash = HashFactory.Crypto.SHA3.CreateKeccak256();
+            hash.TransformBytes(msg);
+            hash.TransformBytes(pub);
+            GroupOperations.ge_frombytes(out GroupElementP3 tmp3, pub, 0);
+            GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 tmp2, signature.C, ref tmp3, signature.R);
+            byte[] tmp2bytes = new byte[32];
+            GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+            hash.TransformBytes(tmp2bytes);
+
+            byte[] c = hash.TransformFinal().GetBytes();
+            ScalarOperations.sc_sub(c, c, signature.C);
+
+            int res = ScalarOperations.sc_isnonzero(c);
+
+            return res == 0;
         }
     }
 }

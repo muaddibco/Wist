@@ -87,8 +87,8 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
                     return -1;
                 }
                 FieldOperations.fe_mul(out h.X, ref h.X, ref LookupTables.sqrtm1);
-
-                FieldOperations.fe_reduce(out h.X, ref h.X);
+                
+                FieldOperations.fe_reduce(out h.X, ref h.X); 
             }
 
             if (FieldOperations.fe_isnegative(ref h.X) != (data[offset + 31] >> 7))
