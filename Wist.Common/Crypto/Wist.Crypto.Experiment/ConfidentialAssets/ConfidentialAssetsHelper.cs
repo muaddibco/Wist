@@ -143,14 +143,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                     ulong i1 = (i + 1) % n;
 
                     // 5.6. Calculate `R[i’] = z[i]*G - e[i]*P[i]` and encode it as a 32-byte public key.
-                    byte[] Ri1 = new byte[32];
-                    GroupOperations.ge_scalarmult_base(out GroupElementP3 zG_P3, z, 0);
-                    //GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 pk_P3, pks[i], 0);
-                    //GroupOperations.ge_scalarmult_p3(out GroupElementP3 pke_P3, ei, ref pk_P3);
-                    GroupOperations.ge_p3_to_cached(out GroupElementCached pke_cached, ref pks[i]);
-                    GroupOperations.ge_sub(out GroupElementP1P1 rP1P1, ref zG_P3, ref pke_cached);
-                    GroupOperations.ge_p1p1_to_p3(out GroupElementP3 rP3, ref rP1P1);
-                    GroupOperations.ge_p3_tobytes(Ri1, 0, ref rP3);
+                    byte[] Ri1 = ScalarMultSub(pks, i, z);
 
                     // 5.7. Calculate `e[i’] = SHA3-512(R[i’] || msg || i’)` where `i’` is encoded as a 64-bit little-endian integer.
                     // Interpret `e[i’]` as a little-endian integer.
@@ -195,6 +188,17 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
             // 9. Return the ring signature `{e[0], s[0], ..., s[n-1]}`, total `n+1` 32-byte elements.
             return ringSignature;
+        }
+
+        private static byte[] ScalarMultSub(GroupElementP3[] pks, ulong i, byte[] z)
+        {
+            byte[] Ri1 = new byte[32];
+            GroupOperations.ge_scalarmult_base(out GroupElementP3 zG_P3, z, 0);
+            GroupOperations.ge_p3_to_cached(out GroupElementCached pke_cached, ref pks[i]);
+            GroupOperations.ge_sub(out GroupElementP1P1 rP1P1, ref zG_P3, ref pke_cached);
+            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 rP3, ref rP1P1);
+            GroupOperations.ge_p3_tobytes(Ri1, 0, ref rP3);
+            return Ri1;
         }
 
         internal static bool VerifyRingSignature(RingSignature ringSignature, byte[] msg, GroupElementP3[] pks)

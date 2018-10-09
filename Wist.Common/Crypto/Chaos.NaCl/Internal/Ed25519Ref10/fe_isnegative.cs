@@ -14,9 +14,9 @@ namespace Chaos.NaCl.Internal.Ed25519Ref10
         //int fe_isnegative(const fe f)
         public static int fe_isnegative(ref FieldElement f)
         {
-            FieldElement fr;
-            fe_reduce(out fr, ref f);
-            return fr.x0 & 1;
+            byte[] b = new byte[32];
+            fe_tobytes(b, 0, ref f);
+            return b[0] & 1;
         }
     }
 }

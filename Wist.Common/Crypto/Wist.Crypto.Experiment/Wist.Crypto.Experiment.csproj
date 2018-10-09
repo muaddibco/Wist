@@ -67,6 +67,7 @@
     <Compile Include="ConfidentialAssets\ConfidentialAssetsHelper.cs" />
     <Compile Include="ConfidentialAssets\EncryptedAssetID.cs" />
     <Compile Include="ConfidentialAssets\RingSignature.cs" />
+    <Compile Include="Monero\Signature.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RctSig.cs" />
