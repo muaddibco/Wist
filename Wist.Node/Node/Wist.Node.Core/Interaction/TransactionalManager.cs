@@ -20,7 +20,7 @@ namespace Wist.Node.Core.Interaction
 
         public TransactionalChainManagerImpl(IChainDataServicesManager chainDataServicesManager, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository)
         {
-            _chainDataService = chainDataServicesManager.GetChainDataService(PacketType.TransactionalChain);
+            _chainDataService = chainDataServicesManager.GetChainDataService(PacketType.Transactional);
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
             _hashCalculation = hashCalculationsRepository.Create(Globals.DEFAULT_HASH);
         }

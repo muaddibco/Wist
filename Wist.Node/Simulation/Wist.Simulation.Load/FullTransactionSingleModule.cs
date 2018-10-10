@@ -82,7 +82,7 @@ namespace Wist.Simulation.Load
                     PowHash = powHash,
                     TransactionHeader = new TransactionHeader
                     {
-                        ReferencedPacketType = PacketType.TransactionalChain,
+                        ReferencedPacketType = PacketType.Transactional,
                         ReferencedBlockType = BlockTypes.Transaction_TransferFunds,
                         ReferencedHeight = blockHeight,
                         ReferencedBodyHash = _hashCalculation.CalculateHash(transferFundsBlock.NonHeaderBytes),

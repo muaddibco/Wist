@@ -381,8 +381,13 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
                 if (succeeded)
                 {
-                    GroupOperations.ge_p3_to_p2(out GroupElementP2 p2, ref p3);
+                    GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 p2_1, ScalarOperations.cofactor, ref p3, ScalarOperations.zero);
+                    byte[] s1 = new byte[32];
+                    GroupOperations.ge_tobytes(s1, 0, ref p2_1);
+                    GroupOperations.ge_frombytes(out assetIdCommitment, s1, 0);
 
+
+                    GroupOperations.ge_p3_to_p2(out GroupElementP2 p2, ref p3);
                     GroupOperations.ge_mul8(out GroupElementP1P1 p1P1, ref p2);
 
                     GroupOperations.ge_p1p1_to_p2(out p2, ref p1P1);
@@ -565,12 +570,14 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             blindingFactor = Xor256(encryptedAssetID.BlindingFactor, span.Slice(32).ToArray());
 
             GroupElementP3 nonblindedAssetCommitment = CreateNonblindedAssetCommitment(assetId);
-            GroupOperations.ge_p3_to_cached(out GroupElementCached assetIdCached, ref nonblindedAssetCommitment);
-            GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, blindingFactor, 0);
-            GroupOperations.ge_add(out GroupElementP1P1 p1p1, ref p3, ref assetIdCached);
-            GroupOperations.ge_p1p1_to_p3(out p3, ref p1p1);
+            GroupElementP3 assetCommitmentBlinded = BlindAssetCommitment(nonblindedAssetCommitment, blindingFactor);
+            //GroupOperations.ge_p3_to_cached(out GroupElementCached assetIdCached, ref nonblindedAssetCommitment);
+            //GroupOperations.ge_scalarmult_base(out GroupElementP3 p3, blindingFactor, 0);
+            //GroupOperations.ge_add(out GroupElementP1P1 p1p1, ref p3, ref assetIdCached);
+            //GroupOperations.ge_p1p1_to_p3(out p3, ref p1p1);
             byte[] assetCommitmentTemp = new byte[32];
-            GroupOperations.ge_p3_tobytes(assetCommitmentTemp, 0, ref p3);
+            //GroupOperations.ge_p3_tobytes(assetCommitmentTemp, 0, ref p3);
+            GroupOperations.ge_p3_tobytes(assetCommitmentTemp, 0, ref assetCommitmentBlinded);
 
             if(!assetCommitmentTemp.Equals32(assetCommitmentOriginal))
             {
@@ -921,7 +928,6 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             //byte[] hashValue = hash.ComputeBytes(buf).GetBytes();
 
             //return hashValue;
-            hash.Initialize();
             for (int i = 0; i < bytes.Length; i++)
             {
                 hash.TransformBytes(bytes[i]);

@@ -17,7 +17,7 @@ namespace Wist.BlockLattice.Core.Parsers.Transactional
             _proofOfWorkCalculationRepository = proofOfWorkCalculationRepository;
         }
 
-        public override PacketType PacketType => PacketType.TransactionalChain;
+        public override PacketType PacketType => PacketType.Transactional;
 
         protected override Memory<byte> ParseSyncLinked(ushort version, Memory<byte> spanBody, out SyncedLinkedBlockBase syncedBlockBase)
         {

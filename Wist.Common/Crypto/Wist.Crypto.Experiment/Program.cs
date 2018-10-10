@@ -103,12 +103,15 @@ namespace Wist.Crypto.Experiment
 
         static void Main(string[] args)
         {
+
+            TestAssetRangeProofs();
+
+            TestGenerateRct();
+            TestRctMG();
             test_ring_signature();
             unit_tests();
-            //TestRctMG();
 
 
-            //TestGenerateRct();
 
 
             byte[] msg1 = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeString("attack at dawn").GetBytes();
@@ -128,12 +131,12 @@ namespace Wist.Crypto.Experiment
 
             byte[] testSeed = GetRandomSeed();
 
-            
+
 
             GroupElementP3 p3_qq = ConfidentialAssetsHelper.CreateNonblindedAssetCommitment(testSeed);
             byte[] p3_bytes_1 = new byte[32];
             GroupOperations.ge_p3_tobytes(p3_bytes_1, 0, ref p3_qq);
-            
+
 
 
             GroupOperations.ge_scalarmult_base(out GroupElementP3 p3test, testSeed, 0);
@@ -146,73 +149,6 @@ namespace Wist.Crypto.Experiment
 
             GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 p3test_1, s1, 0);
             GroupOperations.ge_frombytes_negate_vartime(out GroupElementP3 p3test_2, s1_p2, 0);
-
-            // 1. There is "record encryption key" - seems some random 32 byte array
-            // 2. There is number of asset commitments from previous transaction where one of them is commitment of asset being transferred now
-            // 3. Derive intermediate encryption key
-            // 4. Derive asset encryption key
-            // 5. Derive value encryption key - omit for now, assume value is always equals 1
-            // 6. Create non blinded asset commitment
-            // 7. Find index of asset commitment being transferred among all previous commitments
-            // 8. Create blinded asset commitment
-            // 9. Encrypt asset id
-            // 10. Create asset range proof
-            // 11. Produce asset descriptor
-            byte[] sbytes = Encoding.ASCII.GetBytes("attack at dawn");
-            byte[] tempHash = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sbytes).GetBytes();
-
-            byte[] msg = new byte[] { 193, 222, 123, 49, 108, 175, 213, 232, 128, 114, 199, 60, 226, 220, 117, 65, 100, 159, 13, 194, 216, 126, 93, 35, 116, 173, 235, 165, 38, 84, 212, 68 };
-            byte[] sk1 = new byte[] { 246, 184, 86, 53, 187, 51, 80, 143, 98, 224, 82, 139, 168, 34, 131, 77, 204, 201, 70, 229, 10, 204, 229, 179, 233, 164, 163, 45, 94, 201, 206, 6 };
-            byte[] sk2 = GetRandomSeed();
-            byte[][] pks = new byte[1][];
-            GroupElementP3[] pks1 = new GroupElementP3[1];
-            pks1[0] = MultiplyBasePoint(sk1);
-            //pks[1] = MultiplyBasePoint(sk2);
-
-            RingSignature rs = ConfidentialAssetsHelper.CreateRingSignature(msg, pks1, 0, sk1);
-            bool res1 = ConfidentialAssetsHelper.VerifyRingSignature(rs, msg, pks1);
-
-            int totalAssets = 1;
-            int transferredAssetIndex = 0;
-            byte[][] assetIds = new byte[totalAssets][];
-
-            for (int i = 0; i < totalAssets; i++)
-            {
-                assetIds[i] = GetRandomSeed();
-            }
-
-            GroupElementP3[] nonBlindedAssetCommitments = new GroupElementP3[totalAssets];
-
-            for (int i = 0; i < totalAssets; i++)
-            {
-                nonBlindedAssetCommitments[i] = ConfidentialAssetsHelper.CreateNonblindedAssetCommitment(assetIds[i]);
-            }
-
-            byte[][] blindingFactors = new byte[totalAssets][];
-            for (int i = 0; i < totalAssets; i++)
-            {
-                blindingFactors[i] = GetRandomSeed();
-            }
-
-            GroupElementP3[] blindedAssetCommitments = new GroupElementP3[totalAssets];
-            for (int i = 0; i < totalAssets; i++)
-            {
-                blindedAssetCommitments[i] = ConfidentialAssetsHelper.BlindAssetCommitment(nonBlindedAssetCommitments[i], blindingFactors[i]);
-            }
-
-            byte[] recordEncryptionKey = GetRandomSeed();
-            byte[] iek = ConfidentialAssetsHelper.DeriveIntermediateKey(recordEncryptionKey);
-            byte[] aek = ConfidentialAssetsHelper.DeriveAssetKey(iek);
-
-            GroupElementP3 newBlindedAssetCommitment = ConfidentialAssetsHelper.CreateBlindedAssetCommitment(blindedAssetCommitments[transferredAssetIndex], blindingFactors[transferredAssetIndex], aek, out byte[] newBlindingFactor);
-            EncryptedAssetID encryptedAssetID = ConfidentialAssetsHelper.EncryptAssetId(assetIds[transferredAssetIndex], newBlindedAssetCommitment, newBlindingFactor, aek);
-            AssetRangeProof assetRangeProof = ConfidentialAssetsHelper.CreateAssetRangeProof(newBlindedAssetCommitment, encryptedAssetID, blindedAssetCommitments, transferredAssetIndex, newBlindingFactor);
-
-            bool res = ConfidentialAssetsHelper.VerifyAssetRangeProof(assetRangeProof, newBlindedAssetCommitment, encryptedAssetID);
-
-
-
-
 
             return;
             // Confidential Transaction Commitment:
@@ -313,6 +249,75 @@ namespace Wist.Crypto.Experiment
             byte[] diff1 = Ed25519.PublicKeyFromSeed(blindingDiffBytes);
 
             byte[] assetDenom = GetRandomSeed();
+        }
+
+        private static void TestAssetRangeProofs()
+        {
+            // 1. There is "record encryption key" - seems some random 32 byte array
+            // 2. There is number of asset commitments from previous transaction where one of them is commitment of asset being transferred now
+            // 3. Derive intermediate encryption key
+            // 4. Derive asset encryption key
+            // 5. Derive value encryption key - omit for now, assume value is always equals 1
+            // 6. Create non blinded asset commitment
+            // 7. Find index of asset commitment being transferred among all previous commitments
+            // 8. Create blinded asset commitment
+            // 9. Encrypt asset id
+            // 10. Create asset range proof
+            // 11. Produce asset descriptor
+            byte[] sbytes = Encoding.ASCII.GetBytes("attack at dawn");
+            byte[] tempHash = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sbytes).GetBytes();
+
+            byte[] msg = new byte[] { 193, 222, 123, 49, 108, 175, 213, 232, 128, 114, 199, 60, 226, 220, 117, 65, 100, 159, 13, 194, 216, 126, 93, 35, 116, 173, 235, 165, 38, 84, 212, 68 };
+            byte[] sk1 = new byte[] { 246, 184, 86, 53, 187, 51, 80, 143, 98, 224, 82, 139, 168, 34, 131, 77, 204, 201, 70, 229, 10, 204, 229, 179, 233, 164, 163, 45, 94, 201, 206, 6 };
+            byte[] sk2 = GetRandomSeed();
+            byte[][] pks = new byte[1][];
+            GroupElementP3[] pks1 = new GroupElementP3[1];
+            pks1[0] = MultiplyBasePoint(sk1);
+            //pks[1] = MultiplyBasePoint(sk2);
+
+            RingSignature rs = ConfidentialAssetsHelper.CreateRingSignature(msg, pks1, 0, sk1);
+            bool res1 = ConfidentialAssetsHelper.VerifyRingSignature(rs, msg, pks1);
+
+            int totalAssets = 1;
+            int transferredAssetIndex = 0;
+            byte[][] assetIds = new byte[totalAssets][];
+
+            for (int i = 0; i < totalAssets; i++)
+            {
+                assetIds[i] = new byte[32];// GetRandomSeed();
+                assetIds[i][0] = (byte)i;
+            }
+
+            GroupElementP3[] nonBlindedAssetCommitments = new GroupElementP3[totalAssets];
+
+            for (int i = 0; i < totalAssets; i++)
+            {
+                nonBlindedAssetCommitments[i] = ConfidentialAssetsHelper.CreateNonblindedAssetCommitment(assetIds[i]);
+            }
+
+            byte[][] blindingFactors = new byte[totalAssets][];
+            for (int i = 0; i < totalAssets; i++)
+            {
+                blindingFactors[i] = new byte[32];// GetRandomSeed();
+            }
+
+            GroupElementP3[] blindedAssetCommitments = new GroupElementP3[totalAssets];
+            for (int i = 0; i < totalAssets; i++)
+            {
+                blindedAssetCommitments[i] = ConfidentialAssetsHelper.BlindAssetCommitment(nonBlindedAssetCommitments[i], blindingFactors[i]);
+            }
+
+            byte[] recordEncryptionKey = new byte[32];// GetRandomSeed();
+            recordEncryptionKey[0] = 1;
+            byte[] iek = ConfidentialAssetsHelper.DeriveIntermediateKey(recordEncryptionKey);
+            byte[] aek = ConfidentialAssetsHelper.DeriveAssetKey(iek);
+
+            GroupElementP3 newBlindedAssetCommitment = ConfidentialAssetsHelper.CreateBlindedAssetCommitment(nonBlindedAssetCommitments[transferredAssetIndex], blindingFactors[transferredAssetIndex], aek, out byte[] newBlindingFactor);
+            EncryptedAssetID encryptedAssetID = ConfidentialAssetsHelper.EncryptAssetId(assetIds[transferredAssetIndex], newBlindedAssetCommitment, newBlindingFactor, aek);
+            AssetRangeProof assetRangeProof = ConfidentialAssetsHelper.CreateAssetRangeProof(newBlindedAssetCommitment, encryptedAssetID, blindedAssetCommitments, transferredAssetIndex, newBlindingFactor);
+            bool res = ConfidentialAssetsHelper.VerifyAssetRangeProof(assetRangeProof, newBlindedAssetCommitment, encryptedAssetID);
+            byte[] decrytedBlindingFactor;
+            byte[] assetId = ConfidentialAssetsHelper.DecryptAssetId(encryptedAssetID, newBlindedAssetCommitment, aek, out decrytedBlindingFactor);
         }
 
         private static GroupElementP3 GetAssetCommitment(ulong amount, ulong assetId, out byte[] blindingSeed)
@@ -569,21 +574,40 @@ private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expand
         private static void test_ring_signature()
         {
             byte[] msg = GetRandomSeed(true);
+
+            // OTKP (one time private key) => x = H_s(aR) + b
+            // a => secret key of A
+            // b => secret key of B
+            // Receiver's complete Public Key is (A, B)
+            // OTKP gets obtained from Destination Key => D = H_s(rA)G + B, where 'r' is TX output's secret key, TX public key is R = rG
             byte[] mySk = GetRandomSeed(true);
+
+
             byte[] sk1 = GetRandomSeed(true);
             byte[] sk2 = GetRandomSeed(true);
 
+            // One Time Public Key => P = x * G
             GroupOperations.ge_scalarmult_base(out GroupElementP3 myPkP3, mySk, 0);
+
             GroupOperations.ge_scalarmult_base(out GroupElementP3 pk1P3, sk1, 0);
             GroupOperations.ge_scalarmult_base(out GroupElementP3 pk2P3, sk2, 0);
 
-            byte[] pk1 = new byte[32], pk2 = new byte[32];
+            byte[] myPk = new byte[32], pk1 = new byte[32], pk2 = new byte[32];
             GroupOperations.ge_p3_tobytes(pk1, 0, ref pk1P3);
             GroupOperations.ge_p3_tobytes(pk2, 0, ref pk2P3);
+            GroupOperations.ge_p3_tobytes(myPk, 0, ref myPkP3);
+
+            // Key Image => I = xH_p(P)
 
             GroupElementP3 key_image = GenerateKeyImage(myPkP3, mySk);
+            byte[] kiBytes = new byte[32];
+            GroupOperations.ge_p3_tobytes(kiBytes, 0, ref key_image);
+
             Signature[] signatures = generate_ring_signature(msg, key_image, new GroupElementP3[] { pk1P3, myPkP3, pk2P3 }, mySk, 1);
+            Signature[] signatures1 = generate_ring_signature(msg, key_image, new byte[][] { pk1, myPk, pk2 }, mySk, 1);
+
             bool res = check_ring_signature(msg, key_image, new GroupElementP3[] { pk1P3, myPkP3, pk2P3 }, signatures);
+            bool res1 = check_ring_signature(msg, kiBytes, new byte[][] { pk1, myPk, pk2 }, signatures1);
         }
 
         #region Confidential Ring Signatures
@@ -1761,18 +1785,6 @@ private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expand
             ScalarmultBase(pk, sk);
         }
 
-        private static Key HashToPoint(Key hh)
-        {
-            Key pointk = new Key();
-            
-            Key h = FastHash(hh);
-            GroupOperations.ge_fromfe_frombytes_vartime(out GroupElementP2 point, h.Bytes, 0);
-            GroupOperations.ge_mul8(out GroupElementP1P1 point2, ref point);
-            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 res, ref point2);
-            GroupOperations.ge_p3_tobytes(pointk.Bytes, 0, ref res);
-            return pointk;
-        }
-
 
         //Does some precomputation to make addKeys3 more efficient
         // input B a curve point and output a ge_dsmp which has precomputation applied
@@ -1972,6 +1984,18 @@ private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expand
             return p3;
         }
 
+        private static Key HashToPoint(Key hh)
+        {
+            Key pointk = new Key();
+
+            Key h = FastHash(hh);
+            GroupOperations.ge_fromfe_frombytes_vartime(out GroupElementP2 point, h.Bytes, 0);
+            GroupOperations.ge_mul8(out GroupElementP1P1 point2, ref point);
+            GroupOperations.ge_p1p1_to_p3(out GroupElementP3 res, ref point2);
+            GroupOperations.ge_p3_tobytes(pointk.Bytes, 0, ref res);
+            return pointk;
+        }
+
         private static Signature[] generate_ring_signature(byte[] msg, GroupElementP3 key_image, GroupElementP3[] pubs, byte[] sec, int secIndex)
         {
             Signature[] signatures = new Signature[pubs.Length];
@@ -2010,6 +2034,65 @@ private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expand
                     signatures[i].R = GetRandomSeed(true);
                     //GroupOperations.ge_frombytes(out GroupElementP3 tmp3, pubs[i], 0);
                     GroupElementP3 tmp3 = pubs[i];
+                    GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 tmp2, signatures[i].C, ref tmp3, signatures[i].R);
+                    byte[] tmp2bytes = new byte[32];
+                    GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+                    hasher.TransformBytes(tmp2bytes);
+                    tmp3 = Hash2Point(pubs[i]);
+                    GroupOperations.ge_double_scalarmult_precomp_vartime(out tmp2, signatures[i].R, tmp3, signatures[i].C, image_pre);
+                    tmp2bytes = new byte[32];
+                    GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+                    hasher.TransformBytes(tmp2bytes);
+                    ScalarOperations.sc_add(sum, sum, signatures[i].C);
+                }
+            }
+
+            h = hasher.TransformFinal().GetBytes();
+            ScalarOperations.sc_sub(signatures[secIndex].C, h, sum);
+            ScalarOperations.sc_reduce32(signatures[secIndex].C);
+            ScalarOperations.sc_mulsub(signatures[secIndex].R, signatures[secIndex].C, sec, k);
+            ScalarOperations.sc_reduce32(signatures[secIndex].R);
+
+            return signatures;
+        }
+
+        private static Signature[] generate_ring_signature(byte[] msg, GroupElementP3 key_image, byte[][] pubs, byte[] sec, int secIndex)
+        {
+            Signature[] signatures = new Signature[pubs.Length];
+
+            //GroupOperations.ge_frombytes(out GroupElementP3 imageP3, key_image, 0);
+
+            GroupElementCached[] image_pre = new GroupElementCached[8];
+            GroupOperations.ge_dsm_precomp(image_pre, ref key_image);
+
+            byte[] sum = new byte[32], k = null, h = null;
+            //buf->h = prefix_hash;
+
+            IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak256();
+            hasher.TransformBytes(msg);
+
+            for (int i = 0; i < pubs.Length; i++)
+            {
+                signatures[i] = new Signature();
+
+                if (i == secIndex)
+                {
+                    k = GetRandomSeed(true);
+                    GroupOperations.ge_scalarmult_base(out GroupElementP3 tmp3, k, 0);
+                    byte[] tmp3bytes = new byte[32];
+                    GroupOperations.ge_p3_tobytes(tmp3bytes, 0, ref tmp3);
+                    hasher.TransformBytes(tmp3bytes);
+                    tmp3 = Hash2Point(pubs[i]);
+                    GroupOperations.ge_scalarmult(out GroupElementP2 tmp2, k, ref tmp3);
+                    byte[] tmp2bytes = new byte[32];
+                    GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+                    hasher.TransformBytes(tmp2bytes);
+                }
+                else
+                {
+                    signatures[i].C = GetRandomSeed(true);
+                    signatures[i].R = GetRandomSeed(true);
+                    GroupOperations.ge_frombytes(out GroupElementP3 tmp3, pubs[i], 0);
                     GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 tmp2, signatures[i].C, ref tmp3, signatures[i].R);
                     byte[] tmp2bytes = new byte[32];
                     GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
@@ -2071,6 +2154,43 @@ private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expand
             return res == 0;
         }
 
+        private static bool check_ring_signature(byte[] msg, byte[] key_image, byte[][] pubs, Signature[] signatures)
+        {
+            GroupOperations.ge_frombytes(out GroupElementP3 image_unp, key_image, 0);
+
+            GroupElementCached[] image_pre = new GroupElementCached[8];
+            GroupOperations.ge_dsm_precomp(image_pre, ref image_unp);
+            byte[] sum = new byte[32];
+
+            IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak256();
+            hasher.TransformBytes(msg);
+
+            for (int i = 0; i < pubs.Length; i++)
+            {
+                if (ScalarOperations.sc_check(signatures[i].C) != 0 || ScalarOperations.sc_check(signatures[i].R) != 0)
+                    return false;
+
+                GroupOperations.ge_frombytes(out GroupElementP3 tmp3, pubs[i], 0);
+                GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 tmp2, signatures[i].C, ref tmp3, signatures[i].R);
+                byte[] tmp2bytes = new byte[32];
+                GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+                hasher.TransformBytes(tmp2bytes);
+                tmp3 = Hash2Point(pubs[i]);
+                GroupOperations.ge_double_scalarmult_precomp_vartime(out tmp2, signatures[i].R, tmp3, signatures[i].C, image_pre);
+                tmp2bytes = new byte[32];
+                GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+                hasher.TransformBytes(tmp2bytes);
+                ScalarOperations.sc_add(sum, sum, signatures[i].C);
+            }
+
+            byte[] h = hasher.TransformFinal().GetBytes();
+            ScalarOperations.sc_reduce32(h);
+            ScalarOperations.sc_sub(h, h, sum);
+
+            int res = ScalarOperations.sc_isnonzero(h);
+
+            return res == 0;
+        }
         private static Signature generate_signature(byte[] msg, byte[] pub, byte[] sec)
         {
             Signature signature = new Signature();

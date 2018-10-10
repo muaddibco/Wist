@@ -22,11 +22,11 @@ namespace Wist.Node.Core.Rating
         private Dictionary<IKey, DposDescriptor> _dposDescriptors = new Dictionary<IKey, DposDescriptor>();
         private Dictionary<IKey, List<DposDescriptor>> _votesForCandidates;
 
-        public PacketType PacketType => PacketType.TransactionalChain;
+        public PacketType PacketType => PacketType.Transactional;
 
         public TransactionalChainRatingContributionProvider(IChainDataServicesManager chainDataServicesManager, INodesDataService nodesDataService)
         {
-            _chainDataService = chainDataServicesManager.GetChainDataService(PacketType.TransactionalChain);
+            _chainDataService = chainDataServicesManager.GetChainDataService(PacketType.Transactional);
             _nodesDataService = nodesDataService;
             _topNodeKeys = new List<IKey>();
         }
