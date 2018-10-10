@@ -103,8 +103,8 @@ namespace Wist.Crypto.Experiment
 
         static void Main(string[] args)
         {
-            unit_tests();
             test_ring_signature();
+            unit_tests();
             //TestRctMG();
 
 
@@ -582,8 +582,8 @@ private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expand
             GroupOperations.ge_p3_tobytes(pk2, 0, ref pk2P3);
 
             GroupElementP3 key_image = GenerateKeyImage(myPkP3, mySk);
-            Signature[] signatures = generate_ring_signature(msg, key_image, new GroupElementP3[] { pk1P3, key_image, pk2P3 }, mySk, 1);
-            bool res = check_ring_signature(msg, key_image, new GroupElementP3[] { pk1P3, key_image, pk2P3 }, signatures);
+            Signature[] signatures = generate_ring_signature(msg, key_image, new GroupElementP3[] { pk1P3, myPkP3, pk2P3 }, mySk, 1);
+            bool res = check_ring_signature(msg, key_image, new GroupElementP3[] { pk1P3, myPkP3, pk2P3 }, signatures);
         }
 
         #region Confidential Ring Signatures
@@ -1942,8 +1942,7 @@ private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expand
         private static GroupElementP3 GenerateKeyImage(GroupElementP3 pkP3, byte[] sk)
         {
             byte[] pkP3bytes = new byte[32];
-            GroupOperations.ge_p3_tobytes(pkP3bytes, 0, ref pkP3);
-            GroupElementP3 p3 = Hash2Point(pkP3bytes);
+            GroupElementP3 p3 = Hash2Point(pkP3);
             GroupOperations.ge_scalarmult_p3(out GroupElementP3 p2, sk, ref p3);
             //byte[] image = new byte[32];
             //GroupOperations.ge_tobytes(image, 0, ref p2);
@@ -2015,6 +2014,7 @@ private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expand
                     byte[] tmp2bytes = new byte[32];
                     GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
                     hasher.TransformBytes(tmp2bytes);
+                    tmp3 = Hash2Point(pubs[i]);
                     GroupOperations.ge_double_scalarmult_precomp_vartime(out tmp2, signatures[i].R, tmp3, signatures[i].C, image_pre);
                     tmp2bytes = new byte[32];
                     GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
@@ -2025,7 +2025,9 @@ private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expand
 
             h = hasher.TransformFinal().GetBytes();
             ScalarOperations.sc_sub(signatures[secIndex].C, h, sum);
+            ScalarOperations.sc_reduce32(signatures[secIndex].C);
             ScalarOperations.sc_mulsub(signatures[secIndex].R, signatures[secIndex].C, sec, k);
+            ScalarOperations.sc_reduce32(signatures[secIndex].R);
 
             return signatures;
         }
@@ -2050,15 +2052,18 @@ private static void GetRandomSeedAndPublicKey(out byte[] seed, out byte[] expand
                 GroupElementP3 tmp3 = pubs[i];
                 GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 tmp2, signatures[i].C, ref tmp3, signatures[i].R);
                 byte[] tmp2bytes = new byte[32];
+                GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
                 hasher.TransformBytes(tmp2bytes);
                 tmp3 = Hash2Point(pubs[i]);
                 GroupOperations.ge_double_scalarmult_precomp_vartime(out tmp2, signatures[i].R, tmp3, signatures[i].C, image_pre);
                 tmp2bytes = new byte[32];
+                GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
                 hasher.TransformBytes(tmp2bytes);
                 ScalarOperations.sc_add(sum, sum, signatures[i].C);
             }
 
             byte[] h = hasher.TransformFinal().GetBytes();
+            ScalarOperations.sc_reduce32(h);
             ScalarOperations.sc_sub(h, h, sum);
 
             int res = ScalarOperations.sc_isnonzero(h);
