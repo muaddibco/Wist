@@ -284,13 +284,13 @@ namespace Wist.Crypto.Experiment
             bool res2 = ConfidentialAssetsHelper.VerifyRingSignature(rs2, msg, pks1, 1);
             bool res3 = ConfidentialAssetsHelper.VerifyRingSignature(rs3, msg, pks1, 2);
 
-            int totalAssets = 1;
-            int transferredAssetIndex = 0;
+            int totalAssets = 3;
+            int transferredAssetIndex = 1;
             byte[][] assetIds = new byte[totalAssets][];
 
             for (int i = 0; i < totalAssets; i++)
             {
-                assetIds[i] = new byte[32];// GetRandomSeed();
+                assetIds[i] = GetRandomSeed();
                 assetIds[i][0] = (byte)i;
             }
 
@@ -304,7 +304,7 @@ namespace Wist.Crypto.Experiment
             byte[][] blindingFactors = new byte[totalAssets][];
             for (int i = 0; i < totalAssets; i++)
             {
-                blindingFactors[i] = new byte[32];// GetRandomSeed();
+                blindingFactors[i] = GetRandomSeed();
             }
 
             GroupElementP3[] blindedAssetCommitments = new GroupElementP3[totalAssets];
@@ -313,17 +313,17 @@ namespace Wist.Crypto.Experiment
                 blindedAssetCommitments[i] = ConfidentialAssetsHelper.BlindAssetCommitment(nonBlindedAssetCommitments[i], blindingFactors[i]);
             }
 
-            byte[] recordEncryptionKey = new byte[32];// GetRandomSeed();
-            recordEncryptionKey[0] = 1;
+            byte[] recordEncryptionKey = GetRandomSeed();
+            //recordEncryptionKey[0] = 1;
             byte[] iek = ConfidentialAssetsHelper.DeriveIntermediateKey(recordEncryptionKey);
             byte[] aek = ConfidentialAssetsHelper.DeriveAssetKey(iek);
 
-            GroupElementP3 newBlindedAssetCommitment = ConfidentialAssetsHelper.CreateBlindedAssetCommitment(nonBlindedAssetCommitments[transferredAssetIndex], blindingFactors[transferredAssetIndex], aek, out byte[] newBlindingFactor);
+            GroupElementP3 newBlindedAssetCommitment = ConfidentialAssetsHelper.CreateBlindedAssetCommitment(blindedAssetCommitments[transferredAssetIndex], blindingFactors[transferredAssetIndex], aek, out byte[] newBlindingFactor);
             EncryptedAssetID encryptedAssetID = ConfidentialAssetsHelper.EncryptAssetId(assetIds[transferredAssetIndex], newBlindedAssetCommitment, newBlindingFactor, aek);
             AssetRangeProof assetRangeProof = ConfidentialAssetsHelper.CreateAssetRangeProof(newBlindedAssetCommitment, encryptedAssetID, blindedAssetCommitments, transferredAssetIndex, newBlindingFactor);
             bool res = ConfidentialAssetsHelper.VerifyAssetRangeProof(assetRangeProof, newBlindedAssetCommitment, encryptedAssetID);
-            byte[] decrytedBlindingFactor;
-            byte[] assetId = ConfidentialAssetsHelper.DecryptAssetId(encryptedAssetID, newBlindedAssetCommitment, aek, out decrytedBlindingFactor);
+            //byte[] decrytedBlindingFactor;
+            //byte[] assetId = ConfidentialAssetsHelper.DecryptAssetId(encryptedAssetID, newBlindedAssetCommitment, aek, out decrytedBlindingFactor);
         }
 
         private static GroupElementP3 GetAssetCommitment(ulong amount, ulong assetId, out byte[] blindingSeed)
