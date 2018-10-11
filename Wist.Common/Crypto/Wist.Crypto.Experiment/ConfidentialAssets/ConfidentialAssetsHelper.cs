@@ -76,10 +76,25 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 //{
                 //    shakeDigest.BlockUpdate(EncodePoint(pk), 0, 32);
                 //}
+                string[][] s_r =
+                {
+                    new string[]
+                    {
+                        "805f7b62d2d2c5fc1c5b473774e8aaf6ca57109c594359c5788b20de2d65a451","9943d46be56f3231e0b465748c56836ed261ee45b157f59dd9f359ab6a61d757",""
+                    },
+                    new string[]
+                    {
+                        "3212556130fbd7124282398074f179d65ed69356f6c031d94c560c3b2dcff975","89f771d0d185441690110d5b915821baeb483e494d2dd55782822327863b6d1a",""
+                    },
+                    new string[]
+                    {
+                        "6355e95f940192b7ccf9bb4c983a1782f767145655743753750f1ba212ad9410","3236c19443686c570a2fbcfd4d62b21a8c362d7a491a6f8106508d8f9aa2baac",""
+                    },
+                };
 
                 for (int m = 0; m < (int)n - 1; m++)
                 {
-                    r[m] = GetRandomSeed();// new byte[32];
+                    r[m] = GetRandomSeed();//s_r[j][m].HexStringToByteArray();// GetRandomSeed();// new byte[32];
                     //shakeDigest.DoOutput(r[m], 0, 32);
                 }
 
@@ -94,6 +109,8 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 nonce = GetRandomSeed();
                 ScalarOperations.sc_reduce32(nonce);
                 byte[] k = nonce;
+                //k = j == 0 ? "986cb32f12c9f79b1947c5d67816dee292d6e90c728fd4fe83e43cec38e82603".HexStringToByteArray() : j == 1 ? "3b8a60cce7570d272e0c5e23d52cfc935fd8dbe2854737a7b1e21f3727e2df08".HexStringToByteArray() : "378166d12f716cb5cb7c63e3b1549345ad81a179f1ea33273c724b029effa70b".HexStringToByteArray();
+                mask[0] = (byte)(j == 0 ? 253 : j == 1 ? 231 : 104);
 
                 // 4. Calculate the initial e-value, let `i = j+1 mod n`:
                 ulong i = ((ulong)j + 1L) % n;
@@ -102,13 +119,15 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 GroupOperations.ge_scalarmult_base(out GroupElementP3 Ri, k, 0);
 
                 // 4.2. Define `w[j]` as `mask` with lower 4 bits set to zero: `w[j] = mask & 0xf0`.
-                //byte wj = (byte)(mask[0] & 0xf0);
+                byte wj = (byte)(mask[0] & 0xf0);
 
                 // 4.3. Calculate `e[i] = SHA3-512(R[i] || msg || i)` where `i` is encoded as a 64-bit little-endian integer. Interpret `e[i]` as a little-endian integer reduced modulo `L`.
                 byte[] Rienc = new byte[32];
                 GroupOperations.ge_p3_tobytes(Rienc, 0, ref Ri);
 
                 byte[] ei = ComputeE(Rienc, msg, i);//, wj);
+                string s_ei = j == 0 ? "f38c74f0e1655d2eb8aff03e4f35d3fff6781d95dceee8e0652347ad95c62309" : j == 1 ? "41196abe8f5e39d7408da165a5cfc6cc0af79702048581178ab1b95591f3450c" : "f3d5e3b6d181756454ba4e0a72aa1f8bb08907961a4cefe95d3177a2f8a7930e";
+                //ei = s_ei.HexStringToByteArray();
                 //ei = StringToByteArray("fa0a00c10f5a7ebabaf71f72091dcd9443d6b74a1225ea68cacf5631ba734301");
                 if (i == 0)
                 {
@@ -143,11 +162,31 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                     ulong i1 = (i + 1) % n;
 
                     // 5.6. Calculate `R[i’] = z[i]*G - e[i]*P[i]` and encode it as a 32-byte public key.
-                    byte[] Ri1 = ScalarMultSub(pks, i, z);
+
+                    byte[] nei = NegateScalar(ei);
+                    GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 p2, nei, ref pks[i], z);
+                    byte[] Ri1 = new byte[32];
+                    GroupOperations.ge_tobytes(Ri1, 0, ref p2);
+                    //byte[] Ri1 = ScalarMultSub(pks, ei, z);
 
                     // 5.7. Calculate `e[i’] = SHA3-512(R[i’] || msg || i’)` where `i’` is encoded as a 64-bit little-endian integer.
                     // Interpret `e[i’]` as a little-endian integer.
                     ei = ComputeE(Ri1, msg, i1);//, wi);
+
+                    switch (j)
+                    {
+                        case 0:
+                            s_ei = step == 1 ? "741940d078c7b6ff8e6775ba068687f1877eda45fd19052560be10febd3eb406" : "d2da942b6957a0406468ddfef63837a30362e2bf147dd6999f26e10a7c66000c";
+                            break;
+                        case 1:
+                            s_ei = step == 1 ? "755c8ddec50106899c0eddede35345708fd5fbf1f72c8a994728112e7e989f0b" : "ec80106da0bbbfe04d857caad199715a4fab49fd16a1888b75c3aef17ac5090b";
+                            break;
+                        default:
+                            s_ei = step == 1 ? "74b8a362b955eda625b5b0dc0826d938011e69ca7a474634c56b9db1fb734405" : "04e1c9f1b04cc665d7927a49be0fb98942956768fa8d6f71f6a867fdd8bc8503";
+                            break;
+                    }
+                    //ei = s_ei.HexStringToByteArray();
+
                     if (i1 == 0)
                     {
                         e0[0] = new byte[32];
@@ -190,6 +229,14 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return ringSignature;
         }
 
+        private static byte[] NegateScalar(byte[] s)
+        {
+            byte[] res = new byte[32];
+            ScalarOperations.sc_muladd(res, ScalarOperations.negone, s, ScalarOperations.zero);
+
+            return res;
+        }
+
         private static byte[] ScalarMultSub(GroupElementP3[] pks, ulong i, byte[] z)
         {
             byte[] Ri1 = new byte[32];
@@ -201,7 +248,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return Ri1;
         }
 
-        internal static bool VerifyRingSignature(RingSignature ringSignature, byte[] msg, GroupElementP3[] pks)
+        internal static bool VerifyRingSignature(RingSignature ringSignature, byte[] msg, GroupElementP3[] pks, int index = -1)
         {
             if(ringSignature.S.Length != pks.Length)
             {
@@ -212,6 +259,26 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             ulong n = (ulong)pks.Length;
             byte[] e = ringSignature.E;
 
+            string[] s_e = new string[3];
+            switch (index)
+            {
+                case 0:
+                    s_e[0] = "f38c74f0e1655d2eb8aff03e4f35d3fff6781d95dceee8e0652347ad95c62309";
+                    s_e[1] = "741940d078c7b6ff8e6775ba068687f1877eda45fd19052560be10febd3eb406";
+                    s_e[2] = "d2da942b6957a0406468ddfef63837a30362e2bf147dd6999f26e10a7c66000c";
+                    break;
+                case 1:
+                    s_e[0] = "ec80106da0bbbfe04d857caad199715a4fab49fd16a1888b75c3aef17ac5090b";
+                    s_e[1] = "41196abe8f5e39d7408da165a5cfc6cc0af79702048581178ab1b95591f3450c";
+                    s_e[2] = "755c8ddec50106899c0eddede35345708fd5fbf1f72c8a994728112e7e989f0b";
+                    break;
+                default:
+                    s_e[0] = "74b8a362b955eda625b5b0dc0826d938011e69ca7a474634c56b9db1fb734405";
+                    s_e[1] = "04e1c9f1b04cc665d7927a49be0fb98942956768fa8d6f71f6a867fdd8bc8503";
+                    s_e[2] = "f3d5e3b6d181756454ba4e0a72aa1f8bb08907961a4cefe95d3177a2f8a7930e";
+                    break;
+            }
+
             for (ulong i = 0; i < n; i++)
             {
                 // 1. Define `z[i]` as `s[i]` with the most significant 4 bits set to zero (see note below).
@@ -220,7 +287,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 z[31] &= 0x0f;
 
                 // 2. Define `w[i]` as a most significant byte of `s[i]` with lower 4 bits set to zero: `w[i] = s[i][31] & 0xf0`.
-                byte w = (byte)(ringSignature.S[i][31] & 0xf0);
+                //byte w = (byte)(ringSignature.S[i][31] & 0xf0);
 
                 // 3. Calculate `R[i+1] = z[i]*G - e[i]*P[i]` and encode it as a 32-byte public key.
                 byte[] R = new byte[32];
@@ -230,18 +297,16 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
                 //GroupOperations.ge_sub(out GroupElementP1P1 rP1P1, ref zG_P3, ref pke_cached);
                 //GroupOperations.ge_p1p1_to_p3(out GroupElementP3 rP3, ref rP1P1);
                 //GroupOperations.ge_p3_tobytes(R, 0, ref rP3);
-                byte[] s = new byte[32];
-                ScalarOperations.sc_muladd(s, ScalarOperations.negone, e, ScalarOperations.zero);
-                GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 p2, s, ref pks[i], z);
-                byte[] p2bytes = new byte[32];
-                GroupOperations.ge_tobytes(p2bytes, 0, ref p2);
-                GroupOperations.ge_frombytes(out GroupElementP3 p3, p2bytes, 0);
-
-                GroupOperations.ge_p3_tobytes(R, 0, ref p3);
+                byte[] ne = NegateScalar(e);
+                
+                GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 p2, ne, ref pks[i], z);
+                //byte[] p2bytes = new byte[32];
+                GroupOperations.ge_tobytes(R, 0, ref p2);
 
                 // 4. Calculate `e[i+1] = SHA3-512(R[i+1] || msg || i+1)` where `i+1` is encoded as a 64-bit little-endian integer.
                 // 5. Interpret `e[i+1]` as a little-endian integer reduced modulo subgroup order `L`.
                 e = ComputeE(R, msg, (ulong)((i + 1) % n));//, w);
+                //e = s_e[i].HexStringToByteArray();
             }
 
             return e.Equals32(ringSignature.E);

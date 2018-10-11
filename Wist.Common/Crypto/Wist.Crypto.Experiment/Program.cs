@@ -267,16 +267,22 @@ namespace Wist.Crypto.Experiment
             byte[] sbytes = Encoding.ASCII.GetBytes("attack at dawn");
             byte[] tempHash = HashFactory.Crypto.SHA3.CreateKeccak256().ComputeBytes(sbytes).GetBytes();
 
-            byte[] msg = new byte[] { 193, 222, 123, 49, 108, 175, 213, 232, 128, 114, 199, 60, 226, 220, 117, 65, 100, 159, 13, 194, 216, 126, 93, 35, 116, 173, 235, 165, 38, 84, 212, 68 };
-            byte[] sk1 = new byte[] { 246, 184, 86, 53, 187, 51, 80, 143, 98, 224, 82, 139, 168, 34, 131, 77, 204, 201, 70, 229, 10, 204, 229, 179, 233, 164, 163, 45, 94, 201, 206, 6 };
-            byte[] sk2 = GetRandomSeed();
-            byte[][] pks = new byte[1][];
-            GroupElementP3[] pks1 = new GroupElementP3[1];
+            byte[] msg = GetRandomSeed(); //"c1de7b316cafd5e88072c73ce2dc7541649f0dc2d87e5d2374adeba52654d444".HexStringToByteArray();// new byte[] { 193, 222, 123, 49, 108, 175, 213, 232, 128, 114, 199, 60, 226, 220, 117, 65, 100, 159, 13, 194, 216, 126, 93, 35, 116, 173, 235, 165, 38, 84, 212, 68 };
+            byte[] sk1 = GetRandomSeed(); //"f6b85635bb33508f62e0528ba822834dccc946e50acce5b3e9a4a32d5ec9ce06".HexStringToByteArray(); // GetRandomSeed(true); //new byte[] { 246, 184, 86, 53, 187, 51, 80, 143, 98, 224, 82, 139, 168, 34, 131, 77, 204, 201, 70, 229, 10, 204, 229, 179, 233, 164, 163, 45, 94, 201, 206, 6 };
+            byte[] sk2 = GetRandomSeed(); //"6085c8d4c7f69a9a3ba89a4c6aefecd23d87f240d52e08a6a34891c9dd040802".HexStringToByteArray();// GetRandomSeed(true);
+            byte[] sk3 = GetRandomSeed(); //"e71366c3248e1a27cb70ef271358afc7c355f462e088725226d118ef072e2007".HexStringToByteArray();//  GetRandomSeed(true);
+            byte[][] pks = new byte[3][];
+            GroupElementP3[] pks1 = new GroupElementP3[3];
             pks1[0] = MultiplyBasePoint(sk1);
-            //pks[1] = MultiplyBasePoint(sk2);
+            pks1[1] = MultiplyBasePoint(sk2);
+            pks1[2] = MultiplyBasePoint(sk3);
 
-            RingSignature rs = ConfidentialAssetsHelper.CreateRingSignature(msg, pks1, 0, sk1);
-            bool res1 = ConfidentialAssetsHelper.VerifyRingSignature(rs, msg, pks1);
+            RingSignature rs1 = ConfidentialAssetsHelper.CreateRingSignature(msg, pks1, 0, sk1);
+            RingSignature rs2 = ConfidentialAssetsHelper.CreateRingSignature(msg, pks1, 1, sk2);
+            RingSignature rs3 = ConfidentialAssetsHelper.CreateRingSignature(msg, pks1, 2, sk3);
+            bool res1 = ConfidentialAssetsHelper.VerifyRingSignature(rs1, msg, pks1, 0);
+            bool res2 = ConfidentialAssetsHelper.VerifyRingSignature(rs2, msg, pks1, 1);
+            bool res3 = ConfidentialAssetsHelper.VerifyRingSignature(rs3, msg, pks1, 2);
 
             int totalAssets = 1;
             int transferredAssetIndex = 0;
