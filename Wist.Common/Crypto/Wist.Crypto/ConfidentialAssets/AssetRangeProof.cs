@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Chaos.NaCl.Internal.Ed25519Ref10;
 
-namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
+namespace Wist.Crypto.ConfidentialAssets
 {
-    public class SurjectionProof
+    public class AssetRangeProof
     {
         private byte[][] _h;
         private RingSignature _rs;
 
-        public SurjectionProof()
+        public AssetRangeProof()
         {
             _h = new byte[0][];
             _rs = new RingSignature();
         }
 
         internal byte[][] H { get => _h; set => _h = value; }
-
         public RingSignature Rs { get => _rs; set => _rs = value; }
     }
 }

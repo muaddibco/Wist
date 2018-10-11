@@ -232,7 +232,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         private static byte[] NegateScalar(byte[] s)
         {
             byte[] res = new byte[32];
-            ScalarOperations.sc_muladd(res, ScalarOperations.negone, s, ScalarOperations.zero);
+            ScalarOperations.sc_negate(res, s);
 
             return res;
         }
@@ -316,18 +316,16 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
         #region Range Proofs
 
-        internal static byte[] CalcAssetRangeProofMsg(GroupElementP3 assetCommitment, EncryptedAssetID encryptedAssetID, GroupElementP3[] candidateAssetCommitments)
+        internal static byte[] CalcAssetRangeProofMsg(GroupElementP3 assetCommitment, GroupElementP3[] candidateAssetCommitments)
         {
             IHash hash = HashFactory.Crypto.CreateSHA256();
-            hash.Initialize();
-            hash.TransformByte(0x55);
             hash.TransformBytes(EncodePoint(assetCommitment));
             foreach (GroupElementP3 candidate in candidateAssetCommitments)
             {
                 hash.TransformBytes(EncodePoint(candidate));
             }
-            hash.TransformBytes(encryptedAssetID.AssetId);
-            hash.TransformBytes(encryptedAssetID.BlindingFactor);
+            //hash.TransformBytes(encryptedAssetID.AssetId);
+            //hash.TransformBytes(encryptedAssetID.BlindingFactor);
 
             byte[] msg = hash.TransformFinal().GetBytes();
 
@@ -385,9 +383,9 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="j">index of input commitment among all input commitments that belong to sender and transferred to recipient</param>
         /// <param name="blindingFactor">Blinding factor used for creation Asset Commitment being sent to recipient</param>
         /// <returns></returns>
-        internal static AssetRangeProof CreateAssetRangeProof(GroupElementP3 assetCommitment, EncryptedAssetID encryptedAssetID, GroupElementP3[] candidateAssetCommitments, int j, byte[] blindingFactor)
+        internal static AssetRangeProof CreateAssetRangeProof(GroupElementP3 assetCommitment, GroupElementP3[] candidateAssetCommitments, int j, byte[] blindingFactor)
         {
-            byte[] msg = CalcAssetRangeProofMsg(assetCommitment, encryptedAssetID, candidateAssetCommitments);
+            byte[] msg = CalcAssetRangeProofMsg(assetCommitment, candidateAssetCommitments);
             GroupElementP3[] pubkeys = CalcAssetRangeProofPubkeys(assetCommitment, candidateAssetCommitments);
 
             RingSignature ringSignature = CreateRingSignature(msg, pubkeys, j, blindingFactor);
@@ -401,9 +399,9 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return assetRangeProof;
         }
 
-        internal static bool VerifyAssetRangeProof(AssetRangeProof assetRangeProof, GroupElementP3 assetCommitment, EncryptedAssetID encryptedAssetID)
+        internal static bool VerifyAssetRangeProof(AssetRangeProof assetRangeProof, GroupElementP3 assetCommitment)
         {
-            byte[] msg = CalcAssetRangeProofMsg(assetCommitment, encryptedAssetID, assetRangeProof.H);
+            byte[] msg = CalcAssetRangeProofMsg(assetCommitment, assetRangeProof.H);
 
             GroupElementP3[] pubkeys = CalcAssetRangeProofPubkeys(assetCommitment, assetRangeProof.H);
 
@@ -976,23 +974,6 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
         private static byte[] FastHash(byte[][] bytes, IHash hash)
         {
-            //int size = 0;
-            //for (int i = 0; i < bytes.Length; i++)
-            //{
-            //    size += bytes[0].Length;
-            //}
-
-            //byte[] buf = new byte[size];
-            //int pos = 0;
-            //for (int i = 0; i < bytes.Length; i++)
-            //{
-            //    Array.Copy(bytes[i], 0, buf, pos, bytes[i].Length);
-            //    pos += bytes[i].Length;
-            //}
-
-            //byte[] hashValue = hash.ComputeBytes(buf).GetBytes();
-
-            //return hashValue;
             for (int i = 0; i < bytes.Length; i++)
             {
                 hash.TransformBytes(bytes[i]);
