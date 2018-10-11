@@ -13,7 +13,7 @@ namespace Wist.BlockLattice.SQLite.Mappers.Transactional
 
         public TransactionalMapperBase(IBlockParsersRepositoriesRepository blockParsersFactoriesRepository)
         {
-            _blockParsersRepository = blockParsersFactoriesRepository.GetBlockParsersRepository(PacketType.TransactionalChain);
+            _blockParsersRepository = blockParsersFactoriesRepository.GetBlockParsersRepository(PacketType.Transactional);
         }
     }
 }

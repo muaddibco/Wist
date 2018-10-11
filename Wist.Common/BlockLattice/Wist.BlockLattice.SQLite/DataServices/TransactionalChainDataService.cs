@@ -20,7 +20,7 @@ namespace Wist.BlockLattice.SQLite.DataServices
         private readonly ITranslatorsRepository _mapperFactory;
         private readonly ISignatureSupportSerializersFactory _serializersFactory;
 
-        public PacketType ChainType => PacketType.TransactionalChain;
+        public PacketType ChainType => PacketType.Transactional;
 
 
         public TransactionalChainDataService(ITranslatorsRepository mapperFactory, ISignatureSupportSerializersFactory serializersFactory)

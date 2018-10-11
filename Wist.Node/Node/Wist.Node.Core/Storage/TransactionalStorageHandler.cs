@@ -28,6 +28,6 @@ namespace Wist.Node.Core.Storage
 
         public override string Name => NAME;
 
-        public override PacketType PacketType => PacketType.TransactionalChain;
+        public override PacketType PacketType => PacketType.Transactional;
     }
 }

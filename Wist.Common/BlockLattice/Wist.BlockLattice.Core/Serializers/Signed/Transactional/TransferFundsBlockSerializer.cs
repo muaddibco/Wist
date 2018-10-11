@@ -14,7 +14,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Transactional
     {
         public TransferFundsBlockSerializer(ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, 
             IHashCalculationsRepository hashCalculationsRepository) 
-            : base(PacketType.TransactionalChain, BlockTypes.Transaction_TransferFunds, cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository)
+            : base(PacketType.Transactional, BlockTypes.Transaction_TransferFunds, cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository)
         {
         }
 

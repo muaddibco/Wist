@@ -14,6 +14,6 @@ namespace Wist.BlockLattice.Core.Parsers.Factories
         {
         }
 
-        public override PacketType PacketType => PacketType.TransactionalChain;
+        public override PacketType PacketType => PacketType.Transactional;
     }
 }

@@ -183,7 +183,7 @@ namespace Wist.Node.Core.Tests
 
         private static SortedList<ushort, RegistryRegisterBlock> GetTransactionHeaders(ulong syncBlockHeight, ulong blockHeight, uint nonce, ushort expectedCount)
         {
-            PacketType expectedReferencedPacketType = PacketType.TransactionalChain;
+            PacketType expectedReferencedPacketType = PacketType.Transactional;
             ushort expectedReferencedBlockType = BlockTypes.Transaction_TransferFunds;
             ulong expectedReferencedHeight = 123466774;
 

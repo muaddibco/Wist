@@ -68,7 +68,7 @@ namespace Wist.Node.Core.Synchronization
             _synchronizationBlocks = new BlockingCollection<SynchronizationBlockBase>();
             _retransmittedBlocks = new BlockingCollection<SynchronizationBlockRetransmissionV1>();
             _synchronizationBlocksByHeight = new Dictionary<ulong, Dictionary<IKey, List<SynchronizationBlockRetransmissionV1>>>();
-            _nodesRatingProvider = nodesRatingProvidersFactory.GetInstance(PacketType.TransactionalChain);
+            _nodesRatingProvider = nodesRatingProvidersFactory.GetInstance(PacketType.Transactional);
         }
 
         public string Name => NAME;

@@ -7,7 +7,7 @@ namespace Wist.BlockLattice.Core.DataModel.Transactional
 {
     public abstract class TransactionalBlockBase : SyncedLinkedBlockBase
     {
-        public override PacketType PacketType => PacketType.TransactionalChain;
+        public override PacketType PacketType => PacketType.Transactional;
 
         /// <summary>
         /// Up to date funds at last transactional block

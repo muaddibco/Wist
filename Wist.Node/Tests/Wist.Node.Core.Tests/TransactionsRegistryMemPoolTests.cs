@@ -68,7 +68,7 @@ namespace Wist.Node.Core.Tests
             {
                 RegistryRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
                     synchronizationContext.LastBlockDescriptor.BlockHeight, 1, null, i,
-                    new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = i, ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.DEFAULT_HASH_SIZE] },
+                    new TransactionHeader { ReferencedPacketType = PacketType.Transactional, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = i, ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.DEFAULT_HASH_SIZE] },
                     privateKey);
 
                 RegistryRegisterBlockSerializer serializer = new RegistryRegisterBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository);
@@ -135,7 +135,7 @@ namespace Wist.Node.Core.Tests
             {
                 RegistryRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
                     synchronizationContext.LastBlockDescriptor.BlockHeight, 1, null, heights[i],
-                    new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = heights[i], ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.DEFAULT_HASH_SIZE] },
+                    new TransactionHeader { ReferencedPacketType = PacketType.Transactional, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = heights[i], ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.DEFAULT_HASH_SIZE] },
                     privateKey);
 
                 RegistryRegisterBlockSerializer serializer = new RegistryRegisterBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository);
@@ -207,7 +207,7 @@ namespace Wist.Node.Core.Tests
             {
                 RegistryRegisterBlock transactionRegisterBlock = PacketsBuilder.GetTransactionRegisterBlock(
                     synchronizationContext.LastBlockDescriptor.BlockHeight, 1, null, heights[i],
-                    new TransactionHeader { ReferencedPacketType = PacketType.TransactionalChain, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = heights[i], ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.DEFAULT_HASH_SIZE] },
+                    new TransactionHeader { ReferencedPacketType = PacketType.Transactional, ReferencedBlockType = BlockTypes.Transaction_TransferFunds, ReferencedHeight = heights[i], ReferencedBodyHash = new byte[Globals.POW_HASH_SIZE], ReferencedTargetHash = new byte[Globals.DEFAULT_HASH_SIZE] },
                     privateKey);
 
                 RegistryRegisterBlockSerializer serializer = new RegistryRegisterBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationsRepository);

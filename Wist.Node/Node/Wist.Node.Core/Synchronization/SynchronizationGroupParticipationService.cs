@@ -35,7 +35,7 @@ namespace Wist.Node.Core.Synchronization
             INodesRatingProviderFactory nodesRatingProvidersFactory, ILoggerService loggerService)
         {
             _synchronizationProducer = synchronizationProducer;
-            _nodesRatingProvider = nodesRatingProvidersFactory.GetInstance(PacketType.TransactionalChain);
+            _nodesRatingProvider = nodesRatingProvidersFactory.GetInstance(PacketType.Transactional);
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _accountState = statesRepository.GetInstance<IAccountState>();
             _synchronizationGroupState = statesRepository.GetInstance<ISynchronizationGroupState>();

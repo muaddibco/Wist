@@ -2,10 +2,11 @@
 {
     public enum PacketType : ushort
     {
-        Registry = 0,
-        AccountChain = 1,
-        TransactionalChain = 2,
-        Storage = 3,
+        Transactional = 1,
+        UtxoConfidential = 2,
+
+        Storage = ushort.MaxValue - 2,
+        Registry = ushort.MaxValue - 1,
         Synchronization = ushort.MaxValue
     }
 }

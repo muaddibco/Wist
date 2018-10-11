@@ -1,5 +1,3 @@
-﻿using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-[assembly: InternalsVisibleToAttribute("Wist.Crypto.Experiment")]
-[assembly: InternalsVisibleToAttribute("Wist.Crypto")]
+﻿using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo("Wist.Crypto.Experiment")]
+[assembly: InternalsVisibleTo("Wist.Crypto")]
