@@ -28,7 +28,6 @@ namespace WistWallet.Base.Mobile.ViewModels
 
         public ViewModelLocator()
         {
-            
             SimpleIoc.Default.Register<IPaymentViewModel, PaymentViewModelMobile>();
             SimpleIoc.Default.Register<IVoteViewModelMobile, VoteViewModelMobile>();
         }

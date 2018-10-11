@@ -20,7 +20,7 @@ namespace Wist.Client.Common.Entities
         //                                 MEMBERS
         //============================================================================
 
-        public IKey PrivateKey { get; set; }
+        public byte[] PrivateKey { get; set; }
 
         //============================================================================
         //                                  C'TOR

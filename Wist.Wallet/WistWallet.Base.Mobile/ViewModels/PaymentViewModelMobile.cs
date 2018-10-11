@@ -45,7 +45,7 @@ namespace WistWallet.Base.Mobile.ViewModels
         public override ICommand SendPaymentCommand =>
             new Command(() =>
             {
-                byte[] test = new byte[] { 1, 1 };
+                byte[] privateKey = new byte[] { 1, 1 };
 
                 DependencyService.Get<INotificationService>().ShowMessage("Heeeeeeeeeeeello");
 
@@ -53,7 +53,9 @@ namespace WistWallet.Base.Mobile.ViewModels
 
                 INetworkManager networkManager = mobileContext?.GetNetworkManager();
 
-                ulong height = networkManager.GetCurrentHeight(mobileContext.WalletAccounts.ToList().FirstOrDefault(a => a.PrivateKey == test));
+                byte[] data = new byte[] { 1, 1, 1 };
+
+                networkManager.SendBlock(data, mobileContext.WalletAccounts.ToList().FirstOrDefault(k => k.PrivateKey == privateKey), privateKey);
             });
 
         #endregion

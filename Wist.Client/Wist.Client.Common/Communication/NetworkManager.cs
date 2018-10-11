@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
 using Wist.Client.Common.Entities;
 using Wist.Client.Common.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
+using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 
 namespace Wist.Client.Common.Communication
@@ -29,17 +29,21 @@ namespace Wist.Client.Common.Communication
 
         private INetworkAdapter _networkAdapter;
 
-        private readonly IDictionary<IKey, ulong> _heightsDictionary;
+        private ICryptoService _cryptoService;
+
+        private readonly IDictionary<byte[], ulong> _heightsDictionary;
 
         //============================================================================
         //                                  C'TOR
         //============================================================================
 
-        public NetworkManager(INetworkAdapter networkAdapter)
+        public NetworkManager(INetworkAdapter networkAdapter, ICryptoService cryptoService)
         {
             _networkAdapter = networkAdapter;
 
-            _heightsDictionary = new Dictionary<IKey, ulong>();
+            _cryptoService = cryptoService;
+
+            _heightsDictionary = new Dictionary<byte[], ulong>();
         }
 
         //============================================================================
@@ -67,6 +71,11 @@ namespace Wist.Client.Common.Communication
             _networkAdapter.SendBlock(data, account.Key, targetKey);
             
             return true;
+        }
+
+        public bool SendBlock(byte[] data, Account account, byte[] targetKey)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

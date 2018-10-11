@@ -11,6 +11,6 @@ namespace Wist.Client.Common.Interfaces
 
         ulong GetCurrentHeight(Account account);
 
-        bool SendBlock(byte[] data, Account account, IKey targetKey);
+        bool SendBlock(byte[] data, Account account, byte[] targetKey);
     }
 }
