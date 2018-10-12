@@ -9,32 +9,12 @@ using Wist.Core.Identity;
 
 namespace Wist.Client.Common.Communication
 {
-    /// <classDetails>   
-    ///*****************************************************************
-    ///  Machine Name : AMI-PC
-    /// 
-    ///  Author       : Ami
-    ///       
-    ///  Date         : 9/29/2018 9:09:15 PM      
-    /// *****************************************************************/
-    /// </classDetails>
-    /// <summary>
-    /// Network adapter for outside services from wist core projects
-    /// </summary>
     [RegisterDefaultImplementation(typeof(INetworkAdapter), Lifetime = LifetimeManagement.Singleton)]
     public class NetworkAdapter :  INetworkAdapter
     {
-        //============================================================================
-        //                                 MEMBERS
-        //============================================================================
-
         private INetworkSynchronizer _networkSynchronizer;
 
         private IDictionary<IPAddress, bool> _sentAckDictionary;
-
-        //============================================================================
-        //                                  C'TOR
-        //============================================================================
 
         public NetworkAdapter(INetworkSynchronizer networkSynchronizer)
         {
@@ -42,10 +22,6 @@ namespace Wist.Client.Common.Communication
 
             _sentAckDictionary = new Dictionary<IPAddress, bool>();
         }
-
-        //============================================================================
-        //                                FUNCTIONS
-        //============================================================================
 
         #region ============ PUBLIC FUNCTIONS =============  
 

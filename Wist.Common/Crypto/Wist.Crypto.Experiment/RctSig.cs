@@ -241,13 +241,8 @@ namespace Wist.Crypto.Experiment
     // the purpose of the ECDH exchange
     public class EcdhTuple
     {
-        private byte[] _mask;
-        private byte[] _amount;
-        private byte[] _senderPk;
-
-        public byte[] Mask { get => _mask; set => _mask = value; }
-        public byte[] Amount { get => _amount; set => _amount = value; }
-        public byte[] SenderPk { get => _senderPk; set => _senderPk = value; }
+        public byte[] Mask { get; set; }
+        public byte[] Amount { get; set; }
     };
 
     public class RctSigBase

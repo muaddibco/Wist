@@ -104,9 +104,9 @@ namespace Wist.Crypto.Experiment
         static void Main(string[] args)
         {
 
+            TestGenerateRct();
             TestAssetRangeProofs();
 
-            TestGenerateRct();
             TestRctMG();
             test_ring_signature();
             unit_tests();

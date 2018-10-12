@@ -1,19 +1,14 @@
-﻿using Chaos.NaCl.Internal.Ed25519Ref10;
-
-namespace Wist.Crypto.ConfidentialAssets
+﻿namespace Wist.Crypto.ConfidentialAssets
 {
     public class AssetRangeProof
     {
-        private byte[][] _h;
-        private RingSignature _rs;
-
         public AssetRangeProof()
         {
-            _h = new byte[0][];
-            _rs = new RingSignature();
+            AssetCommitments = new byte[0][];
+            Rs = new RingSignature();
         }
 
-        internal byte[][] H { get => _h; set => _h = value; }
-        public RingSignature Rs { get => _rs; set => _rs = value; }
+        internal byte[][] AssetCommitments { get; set; }
+        public RingSignature Rs { get; set; }
     }
 }

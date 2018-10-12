@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Wist.BlockLattice.Core.Enums;
+﻿using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
@@ -11,6 +8,10 @@ namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
         public override PacketType PacketType => PacketType.UtxoConfidential;
 
         public IKey KeyImage { get; set; }
+
+        public byte[] DestinationKey { get; set; }
+
+        public byte[] TransactionPublicKey { get; set; }
 
         public IKey[] PublicKeys { get; set; }
 

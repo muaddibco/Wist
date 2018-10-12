@@ -19,7 +19,7 @@ namespace Wist.Crypto.ConfidentialAssets
 
             AssetRangeProof assetRangeProof = new AssetRangeProof
             {
-                H = candidateAssetCommitments,
+                AssetCommitments = candidateAssetCommitments,
                 Rs = ringSignature
             };
 
@@ -48,7 +48,7 @@ namespace Wist.Crypto.ConfidentialAssets
         public static bool VerifyAssetRangeProof(AssetRangeProof assetRangeProof, byte[] assetCommitment)
         {
             GroupOperations.ge_frombytes(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
-            GroupElementP3[] candidateAssetCommitmentsP3 = TranslatePoints(assetRangeProof.H);
+            GroupElementP3[] candidateAssetCommitmentsP3 = TranslatePoints(assetRangeProof.AssetCommitments);
 
             byte[] msg = CalcAssetRangeProofMsg(assetCommitmentP3, candidateAssetCommitmentsP3);
 

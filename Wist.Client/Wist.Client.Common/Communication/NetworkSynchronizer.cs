@@ -15,31 +15,12 @@ using Wist.Proto.Model;
 
 namespace Wist.Client.Common.Communication
 {
-    /// <classDetails>   
-    ///*****************************************************************
-    ///  Machine Name : AMI-PC
-    /// 
-    ///  Author       : Ami
-    ///       
-    ///  Date         : 9/30/2018 4:31:57 PM      
-    /// *****************************************************************/
-    /// </classDetails>
-    /// <summary>
-    /// </summary>
     [RegisterDefaultImplementation(typeof(INetworkSynchronizer), Lifetime = LifetimeManagement.Singleton)]
     public class NetworkSynchronizer : INetworkSynchronizer
     {
-        //============================================================================
-        //                                 MEMBERS
-        //============================================================================
-
         IBlockCreator _blockCreator;
         ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
         ICommunicationService _communicationService;
-
-        //============================================================================
-        //                                  C'TOR
-        //============================================================================
 
         public NetworkSynchronizer(
             IBlockCreator blockCreator,
@@ -50,10 +31,6 @@ namespace Wist.Client.Common.Communication
             _signatureSupportSerializersFactory = signatureSupportSerializersFactory;
             _communicationService = communicationService;
         }
-
-        //============================================================================
-        //                                FUNCTIONS
-        //============================================================================
 
         #region ============ PUBLIC FUNCTIONS =============  
 

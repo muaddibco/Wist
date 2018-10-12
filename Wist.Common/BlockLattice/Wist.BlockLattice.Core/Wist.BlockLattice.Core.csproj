@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Crypto\Wist.Crypto\Wist.Crypto.csproj" />
     <ProjectReference Include="..\..\Wist.Core\Wist.Core.csproj" />
   </ItemGroup>
 
