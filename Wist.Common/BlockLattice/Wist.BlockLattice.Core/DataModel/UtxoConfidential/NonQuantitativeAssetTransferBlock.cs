@@ -1,4 +1,5 @@
 ﻿using Wist.BlockLattice.Core.Enums;
+using Wist.Core.Cryptography;
 using Wist.Crypto.ConfidentialAssets;
 
 namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
@@ -11,7 +12,7 @@ namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
 
         public byte[] AssetCommitment { get; set; }
 
-        public AssetRangeProof AssetRangeProof { get; set; }
+        public SurjectionProof AssetRangeProof { get; set; }
 
         public EcdhTupleCA EcdhTuple { get; set; }
     }

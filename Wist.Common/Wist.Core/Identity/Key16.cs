@@ -5,6 +5,8 @@ namespace Wist.Core.Identity
 {
     public class Key16 : IKey
     {
+        private Memory<byte> _value;
+
         public Key16()
         {
 
@@ -18,9 +20,19 @@ namespace Wist.Core.Identity
         /// <summary>
         /// Byte array of length of 16 bytes
         /// </summary>
-        public Memory<byte> Value { get; set; } //TODO: need to add length check at setter
+        public Memory<byte> Value
+        {
+            get => _value;
+            set
+            {
+                _value = value;
+                ArraySegment = _value.ToArraySegment();
+            }
+        } //TODO: need to add length check at setter
 
         public int Length => 16;
+
+        public ArraySegment<byte> ArraySegment { get; private set; }
 
         public bool Equals(IKey x, IKey y)
         {
@@ -62,7 +74,7 @@ namespace Wist.Core.Identity
 
         public bool Equals(IKey other)
         {
-            if(other == null)
+            if (other == null)
             {
                 return false;
             }

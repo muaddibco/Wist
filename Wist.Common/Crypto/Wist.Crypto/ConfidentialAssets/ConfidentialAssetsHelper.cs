@@ -9,15 +9,15 @@ namespace Wist.Crypto.ConfidentialAssets
 {
     public static class ConfidentialAssetsHelper
     {
-        public static AssetRangeProof CreateAssetRangeProof(byte[] assetCommitment, byte[][] candidateAssetCommitments, int index, byte[] blindingFactor)
+        public static SurjectionProof CreateAssetRangeProof(byte[] assetCommitment, byte[][] candidateAssetCommitments, int index, byte[] blindingFactor)
         {
             GroupOperations.ge_frombytes(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
 
             GroupElementP3[] candidateAssetCommitmentsP3 = TranslatePoints(candidateAssetCommitments);
 
-            RingSignature ringSignature = CreateAssetRangeProof(assetCommitmentP3, candidateAssetCommitmentsP3, index, blindingFactor);
+            BorromeanRingSignature ringSignature = CreateAssetRangeProof(assetCommitmentP3, candidateAssetCommitmentsP3, index, blindingFactor);
 
-            AssetRangeProof assetRangeProof = new AssetRangeProof
+            SurjectionProof assetRangeProof = new SurjectionProof
             {
                 AssetCommitments = candidateAssetCommitments,
                 Rs = ringSignature
@@ -35,17 +35,17 @@ namespace Wist.Crypto.ConfidentialAssets
         /// <param name="j">index of input commitment among all input commitments that belong to sender and transferred to recipient</param>
         /// <param name="blindingFactor">Blinding factor used for creation Asset Commitment being sent to recipient</param>
         /// <returns></returns>
-        internal static RingSignature CreateAssetRangeProof(GroupElementP3 assetCommitment, GroupElementP3[] candidateAssetCommitments, int j, byte[] blindingFactor)
+        internal static BorromeanRingSignature CreateAssetRangeProof(GroupElementP3 assetCommitment, GroupElementP3[] candidateAssetCommitments, int j, byte[] blindingFactor)
         {
             byte[] msg = CalcAssetRangeProofMsg(assetCommitment, candidateAssetCommitments);
             GroupElementP3[] pubkeys = CalcAssetRangeProofPubkeys(assetCommitment, candidateAssetCommitments);
 
-            RingSignature ringSignature = CreateRingSignature(msg, pubkeys, j, blindingFactor);
+            BorromeanRingSignature ringSignature = CreateRingSignature(msg, pubkeys, j, blindingFactor);
 
             return ringSignature;
         }
 
-        public static bool VerifyAssetRangeProof(AssetRangeProof assetRangeProof, byte[] assetCommitment)
+        public static bool VerifyAssetRangeProof(SurjectionProof assetRangeProof, byte[] assetCommitment)
         {
             GroupOperations.ge_frombytes(out GroupElementP3 assetCommitmentP3, assetCommitment, 0);
             GroupElementP3[] candidateAssetCommitmentsP3 = TranslatePoints(assetRangeProof.AssetCommitments);
@@ -75,9 +75,9 @@ namespace Wist.Crypto.ConfidentialAssets
         /// <param name="j">index of public key that its secret key is provided in argument "sk"</param>
         /// <param name="sk">secret key for public key with index j</param>
         /// <returns></returns>
-        internal static RingSignature CreateRingSignature(byte[] msg, GroupElementP3[] pks, int j, byte[] sk)
+        internal static BorromeanRingSignature CreateRingSignature(byte[] msg, GroupElementP3[] pks, int j, byte[] sk)
         {
-            RingSignature ringSignature = null;
+            BorromeanRingSignature ringSignature = null;
 
             if (msg == null)
             {
@@ -96,12 +96,12 @@ namespace Wist.Crypto.ConfidentialAssets
 
             if (pks.Length == 0)
             {
-                ringSignature = new RingSignature();
+                ringSignature = new BorromeanRingSignature();
                 return ringSignature;
             }
 
             ulong n = (ulong)pks.Length;
-            ringSignature = new RingSignature((int)n);
+            ringSignature = new BorromeanRingSignature((int)n);
 
             // 1. Let `counter = 0`.
             ulong counter = 0;
@@ -225,7 +225,7 @@ namespace Wist.Crypto.ConfidentialAssets
             return ringSignature;
         }
 
-        internal static bool VerifyRingSignature(RingSignature ringSignature, byte[] msg, GroupElementP3[] pks)
+        internal static bool VerifyRingSignature(BorromeanRingSignature ringSignature, byte[] msg, GroupElementP3[] pks)
         {
             if (ringSignature.S.Length != pks.Length)
             {

@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 namespace Wist.Crypto.Experiment.ConfidentialAssets
 {
-    public class AssetRangeProof
+    public class SurjectionProof
     {
         private GroupElementP3[] _h;
-        private RingSignature _rs;
+        private BorromeanRingSignature _rs;
 
-        public AssetRangeProof()
+        public SurjectionProof()
         {
             _h = new GroupElementP3[0];
-            _rs = new RingSignature();
+            _rs = new BorromeanRingSignature();
         }
 
         internal GroupElementP3[] H { get => _h; set => _h = value; }
-        public RingSignature Rs { get => _rs; set => _rs = value; }
+        public BorromeanRingSignature Rs { get => _rs; set => _rs = value; }
     }
 }

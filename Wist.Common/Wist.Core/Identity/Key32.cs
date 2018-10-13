@@ -8,6 +8,8 @@ namespace Wist.Core.Identity
     /// </summary>
     public class Key32 : IKey
     {
+        private Memory<byte> _value;
+
         public Key32()
         {
 
@@ -21,9 +23,19 @@ namespace Wist.Core.Identity
         /// <summary>
         /// Byte array of length of 32 bytes
         /// </summary>
-        public Memory<byte> Value { get; set; } //TODO: need to add length check at setter
+        public Memory<byte> Value
+        {
+            get => _value;
+            set
+            {
+                _value = value;
+                ArraySegment = _value.ToArraySegment();
+            }
+        } //TODO: need to add length check at setter
 
         public int Length => 32;
+
+        public ArraySegment<byte> ArraySegment { get; private set; }
 
         public bool Equals(IKey x, IKey y)
         {
@@ -72,5 +84,5 @@ namespace Wist.Core.Identity
 
             return Value.Equals32(other.Value);
         }
-   }
+    }
 }

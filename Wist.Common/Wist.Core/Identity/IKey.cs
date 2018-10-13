@@ -13,5 +13,7 @@ namespace Wist.Core.Identity
         int Length { get; }
 
         Memory<byte> Value { get; set; }
+
+        ArraySegment<byte> ArraySegment { get; }
     }
 }

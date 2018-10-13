@@ -1,4 +1,8 @@
-﻿namespace Wist.Crypto.Experiment.ConfidentialAssets
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Wist.Core.Cryptography
 {
     public class RingSignature
     {

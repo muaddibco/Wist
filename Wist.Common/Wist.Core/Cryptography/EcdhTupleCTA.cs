@@ -1,5 +1,5 @@
-﻿namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
-{
+﻿namespace Wist.Core.Cryptography
+{ 
     /// <summary>
     /// data for passing the amount and asset to the receiver secretly
     /// If the pedersen commitment to an amount of asset is C = aG + bH,

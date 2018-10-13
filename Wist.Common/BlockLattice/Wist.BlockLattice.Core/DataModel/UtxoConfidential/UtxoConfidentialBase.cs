@@ -1,4 +1,5 @@
 ﻿using Wist.BlockLattice.Core.Enums;
+using Wist.Core.Cryptography;
 using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
@@ -24,23 +25,6 @@ namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
 
         public IKey[] PublicKeys { get; set; }
 
-        public Signature[] Signatures { get; set; }
-
-        public class Signature
-        {
-            public Signature()
-            {
-            }
-
-            /// <summary>
-            /// 32 byte array
-            /// </summary>
-            public byte[] C { get; set; }
-
-            /// <summary>
-            /// 32 byte array
-            /// </summary>
-            public byte[] R { get; set; }
-        }
+        public RingSignature[] Signatures { get; set; }
     }
 }

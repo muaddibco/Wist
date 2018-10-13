@@ -28,9 +28,9 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="j">index of public key that its secret key is provided in argument "sk"</param>
         /// <param name="sk">secret key for public key with index j</param>
         /// <returns></returns>
-        internal static RingSignature CreateRingSignature(byte[] msg, GroupElementP3[] pks, int j, byte[] sk)
+        internal static BorromeanRingSignature CreateRingSignature(byte[] msg, GroupElementP3[] pks, int j, byte[] sk)
         {
-            RingSignature ringSignature = null;
+            BorromeanRingSignature ringSignature = null;
 
             if (msg == null)
             {
@@ -49,12 +49,12 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
             if(pks.Length == 0)
             {
-                ringSignature = new RingSignature();
+                ringSignature = new BorromeanRingSignature();
                 return ringSignature;
             }
 
             ulong n = (ulong)pks.Length;
-            ringSignature = new RingSignature((int)n);
+            ringSignature = new BorromeanRingSignature((int)n);
 
             // 1. Let `counter = 0`.
             ulong counter = 0;
@@ -248,7 +248,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return Ri1;
         }
 
-        internal static bool VerifyRingSignature(RingSignature ringSignature, byte[] msg, GroupElementP3[] pks, int index = -1)
+        internal static bool VerifyRingSignature(BorromeanRingSignature ringSignature, byte[] msg, GroupElementP3[] pks, int index = -1)
         {
             if(ringSignature.S.Length != pks.Length)
             {
@@ -383,14 +383,14 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
         /// <param name="j">index of input commitment among all input commitments that belong to sender and transferred to recipient</param>
         /// <param name="blindingFactor">Blinding factor used for creation Asset Commitment being sent to recipient</param>
         /// <returns></returns>
-        internal static AssetRangeProof CreateAssetRangeProof(GroupElementP3 assetCommitment, GroupElementP3[] candidateAssetCommitments, int j, byte[] blindingFactor)
+        internal static SurjectionProof CreateAssetRangeProof(GroupElementP3 assetCommitment, GroupElementP3[] candidateAssetCommitments, int j, byte[] blindingFactor)
         {
             byte[] msg = CalcAssetRangeProofMsg(assetCommitment, candidateAssetCommitments);
             GroupElementP3[] pubkeys = CalcAssetRangeProofPubkeys(assetCommitment, candidateAssetCommitments);
 
-            RingSignature ringSignature = CreateRingSignature(msg, pubkeys, j, blindingFactor);
+            BorromeanRingSignature ringSignature = CreateRingSignature(msg, pubkeys, j, blindingFactor);
 
-            AssetRangeProof assetRangeProof = new AssetRangeProof
+            SurjectionProof assetRangeProof = new SurjectionProof
             {
                 H = candidateAssetCommitments,
                 Rs = ringSignature
@@ -399,7 +399,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return assetRangeProof;
         }
 
-        internal static bool VerifyAssetRangeProof(AssetRangeProof assetRangeProof, GroupElementP3 assetCommitment)
+        internal static bool VerifyAssetRangeProof(SurjectionProof assetRangeProof, GroupElementP3 assetCommitment)
         {
             byte[] msg = CalcAssetRangeProofMsg(assetCommitment, assetRangeProof.H);
 
@@ -654,7 +654,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
 
         #region
 
-        internal static BorromeanRingSignature CreateBorromeanRingSignature(byte[] msg, GroupElementP3[][] pubkeys, byte[][] privkeys, int[] indexes)//, byte[][] payload)
+        internal static BorromeanRingSignatureEx CreateBorromeanRingSignature(byte[] msg, GroupElementP3[][] pubkeys, byte[][] privkeys, int[] indexes)//, byte[][] payload)
         {
             int n = pubkeys.Length;
 
@@ -685,7 +685,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             //    throw new ArgumentOutOfRangeException(nameof(payload), "number of random elements must equal n*m (rings*signatures)");
             //}
 
-            BorromeanRingSignature borromeanRingSignature = new BorromeanRingSignature();
+            BorromeanRingSignatureEx borromeanRingSignature = new BorromeanRingSignatureEx();
             ulong counter = 0;
 
             while (true)
@@ -844,7 +844,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return borromeanRingSignature;
         }
 
-        internal static bool VerifyBorromeanRingSignature(BorromeanRingSignature borromeanRingSignature, byte[] msg, GroupElementP3[][] pubkeys)
+        internal static bool VerifyBorromeanRingSignature(BorromeanRingSignatureEx borromeanRingSignature, byte[] msg, GroupElementP3[][] pubkeys)
         {
             int n = pubkeys.Length;
 

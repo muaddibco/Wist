@@ -24,6 +24,16 @@ namespace Wist.Core.ExtensionMethods
             return result;
         }
 
+        public static ArraySegment<byte> ToArraySegment(this Memory<byte> arr)
+        {
+            if (!MemoryMarshal.TryGetArray(arr, out ArraySegment<byte> byteArray))
+            {
+                throw new FailedToMarshalToByteArrayException(nameof(arr));
+            }
+
+            return byteArray;
+        }
+
         public static unsafe string ToHexString(this Memory<byte> arr, int offset = 0, int length = 0)
         {
             if (!MemoryMarshal.TryGetArray(arr, out ArraySegment<byte> byteArray))

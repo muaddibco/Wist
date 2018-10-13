@@ -63,9 +63,10 @@
   <ItemGroup>
     <Compile Include="ConfidentialAssets\AssetRangeProof.cs" />
     <Compile Include="ConfidentialAssets\BlindingFactors.cs" />
-    <Compile Include="ConfidentialAssets\BorromeanRingSignature.cs" />
+    <Compile Include="ConfidentialAssets\BorromeanRingSignatureEx.cs" />
     <Compile Include="ConfidentialAssets\ConfidentialAssetsHelper.cs" />
     <Compile Include="ConfidentialAssets\EncryptedAssetID.cs" />
+    <Compile Include="ConfidentialAssets\BorromeanRingSignature.cs" />
     <Compile Include="ConfidentialAssets\RingSignature.cs" />
     <Compile Include="Monero\Signature.cs" />
     <Compile Include="Program.cs" />

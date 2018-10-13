@@ -1,4 +1,4 @@
-﻿namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
+﻿namespace Wist.Core.Cryptography
 {
     /// <summary>
     /// data for passing the asset to the receiver secretly
