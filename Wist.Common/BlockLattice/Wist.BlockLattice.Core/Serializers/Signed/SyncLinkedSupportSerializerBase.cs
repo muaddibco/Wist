@@ -6,7 +6,7 @@ using Wist.Core.Cryptography;
 using Wist.Core.HashCalculations;
 using Wist.Core.Identity;
 
-namespace Wist.BlockLattice.Core.Serializers
+namespace Wist.BlockLattice.Core.Serializers.Signed
 {
     public abstract class SyncLinkedSupportSerializerBase<T> : SyncSupportSerializerBase<T> where T : SyncedLinkedBlockBase
     {

@@ -26,7 +26,7 @@ namespace Wist.Core.States
 
         public void Initialize()
         {
-            AccountKey = _cryptoService.Key;
+            AccountKey = _cryptoService.PublicKey;
         }
 
         public IDisposable SubscribeOnStateChange(ITargetBlock<string> targetBlock)

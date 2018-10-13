@@ -113,7 +113,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.Returns(new Key32() { Value = publicKey });
+            cryptoService.PublicKey.Returns(new Key32() { Value = publicKey });
 
             IIdentityKeyProvider transactionIdentityKeyProvider = Substitute.For<IIdentityKeyProvider>();
             transactionIdentityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
@@ -194,7 +194,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.Returns(new Key32() { Value = publicKey });
+            cryptoService.PublicKey.Returns(new Key32() { Value = publicKey });
 
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
             identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
@@ -274,7 +274,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.Returns(new Key32() { Value = publicKey });
+            cryptoService.PublicKey.Returns(new Key32() { Value = publicKey });
 
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
             identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
@@ -320,7 +320,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.Returns(new Key32() { Value = publicKey });
+            cryptoService.PublicKey.Returns(new Key32() { Value = publicKey });
 
             byte[] expectedSignature;
             ushort expectedCount = 1000;
@@ -469,7 +469,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.Returns(new Key32() { Value = publicKey });
+            cryptoService.PublicKey.Returns(new Key32() { Value = publicKey });
 
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
             identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));
@@ -540,7 +540,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.Returns(new Key32() { Value = publicKey });
+            cryptoService.PublicKey.Returns(new Key32() { Value = publicKey });
 
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
             identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key16(c.ArgAt<Memory<byte>>(0)));

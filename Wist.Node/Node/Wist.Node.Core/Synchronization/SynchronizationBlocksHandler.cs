@@ -38,7 +38,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISynchronizationProducer _synchronizationProducer;
         private readonly INodeContext _nodeContext;
         private readonly IAccountState _accountState;
-        private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
+        private readonly ISerializersFactory _signatureSupportSerializersFactory;
         private readonly ICryptoService _cryptoService;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IIdentityKeyProvider _identityKeyProvider;
@@ -53,7 +53,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly BlockingCollection<SynchronizationBlockRetransmissionV1> _retransmittedBlocks;
         
 
-        public SynchronizationBlocksHandler(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, 
+        public SynchronizationBlocksHandler(IStatesRepository statesRepository, ISynchronizationProducer synchronizationProducer, ISerializersFactory signatureSupportSerializersFactory, 
             ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, INodesRatingProviderFactory nodesRatingProvidersFactory, IServerCommunicationServicesRegistry communicationServicesRegistry)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
@@ -193,7 +193,7 @@ namespace Wist.Node.Core.Synchronization
                 Signatures = new byte[0][] //retransmittedSyncBlocks.Select(b => b.ConfirmationSignature).ToArray()
             };
 
-            ISignatureSupportSerializer confirmationBlockSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);
+            ISerializer confirmationBlockSerializer = _signatureSupportSerializersFactory.Create(synchronizationConfirmedBlock);
 
             _communicationService.PostMessage(_neighborhoodState.GetAllNeighbors(), confirmationBlockSerializer);
         }

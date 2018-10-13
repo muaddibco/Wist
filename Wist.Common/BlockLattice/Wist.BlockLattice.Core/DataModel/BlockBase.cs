@@ -12,9 +12,9 @@ namespace Wist.BlockLattice.Core.DataModel
     {
         public abstract PacketType PacketType { get; }
 
-        public abstract ushort BlockType { get; }
-
         public abstract ushort Version { get; }
+
+        public abstract ushort BlockType { get; }
 
         /// <summary>
         /// Bytes of packet (without signature and public key)

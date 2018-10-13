@@ -40,7 +40,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly ISyncShardsManager _syncShardsManager;
         private readonly IIdentityKeyProvider _transactionHashKey;
         private readonly ICryptoService _cryptoService;
-        private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
+        private readonly ISerializersFactory _signatureSupportSerializersFactory;
         private readonly IHashCalculation _defaultTransactionHashCalculation;
         private readonly IHashCalculation _powCalculation;
         private readonly ISyncRegistryNeighborhoodState _syncRegistryNeighborhoodState;
@@ -58,7 +58,7 @@ namespace Wist.Node.Core.Synchronization
         private CancellationToken _cancellationToken;
 
         public TransactionsRegistrySyncHandler(IStatesRepository statesRepository, ISyncShardsManager syncShardsManager, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, 
-            ICryptoService cryptoService, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, 
+            ICryptoService cryptoService, ISerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, 
             IServerCommunicationServicesRegistry communicationServicesRegistry, ISyncRegistryMemPool syncRegistryMemPool, INodesResolutionService nodesResolutionService,
             IChainDataServicesManager chainDataServicesManager, IRawPacketProvidersFactory rawPacketProvidersFactory, ILoggerService loggerService)
         {
@@ -253,7 +253,7 @@ namespace Wist.Node.Core.Synchronization
                 BlockHashes = new byte[][] { fullBlockHash }
             };
 
-            ISignatureSupportSerializer combinedBlockSerializer = _signatureSupportSerializersFactory.Create(synchronizationRegistryCombinedBlock);
+            ISerializer combinedBlockSerializer = _signatureSupportSerializersFactory.Create(synchronizationRegistryCombinedBlock);
             combinedBlockSerializer.FillBodyAndRowBytes();
 
             IEnumerable<IKey> storageLayerKeys = _nodesResolutionService.GetStorageNodeKeys(combinedBlockSerializer);
@@ -285,7 +285,7 @@ namespace Wist.Node.Core.Synchronization
             };
 
             ShardDescriptor shardDescriptor = _syncShardsManager.GetShardDescriptorByRound((int)transactionsFullBlockMostConfident.BlockHeight);
-            ISignatureSupportSerializer registryConfirmationBlockSerializer = _signatureSupportSerializersFactory.Create(registryConfirmationBlock);
+            ISerializer registryConfirmationBlockSerializer = _signatureSupportSerializersFactory.Create(registryConfirmationBlock);
 
             _communicationService.PostMessage(_syncRegistryNeighborhoodState.GetAllNeighbors(), registryConfirmationBlockSerializer);
         }

@@ -294,7 +294,7 @@ namespace Wist.BlockLattice.Core.Tests
 
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.Returns(new Key32() { Value = publicKey });
+            cryptoService.PublicKey.Returns(new Key32() { Value = publicKey });
 
             byte[] expectedSignature;
             ushort expectedCount = 1000;

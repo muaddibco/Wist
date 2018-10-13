@@ -27,7 +27,7 @@ namespace Wist.Simulation.Load
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly IHashCalculation _proofOfWorkCalculation;
 
-        public TransactionRegistrationLoadModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationsRepository proofOfWorkCalculationRepository, IHashCalculationsRepository hashCalculationRepository)
+        public TransactionRegistrationLoadModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IStatesRepository statesRepository, IHashCalculationsRepository proofOfWorkCalculationRepository, IHashCalculationsRepository hashCalculationRepository)
             : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository, hashCalculationRepository)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
@@ -98,7 +98,7 @@ namespace Wist.Simulation.Load
                     }
                 };
 
-                ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionRegisterBlock);
+                ISerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionRegisterBlock);
                 _communicationService.PostMessage(_keyTarget, signatureSupportSerializer);
 
                 _loadCountersService.SentMessages.Increment();

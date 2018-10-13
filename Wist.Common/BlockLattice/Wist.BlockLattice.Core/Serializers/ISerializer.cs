@@ -6,13 +6,13 @@ using Wist.Core.Communication;
 namespace Wist.BlockLattice.Core.Serializers
 {
     [ExtensionPoint]
-    public interface ISignatureSupportSerializer : IPacketProvider, ITransactionKeyProvider
+    public interface ISerializer : IPacketProvider, ITransactionKeyProvider
     {
         PacketType PacketType { get; }
 
         ushort BlockType { get; }
 
-        void Initialize(SignedBlockBase signedBlockBase);
+        void Initialize(BlockBase blockBase);
 
         void FillBodyAndRowBytes();
     }

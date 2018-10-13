@@ -5,7 +5,7 @@ using Wist.Core.Architecture;
 namespace Wist.BlockLattice.Core.Serializers
 {
     [ServiceContract]
-    public interface ISignatureSupportSerializersFactory : IFactory<ISignatureSupportSerializer, SignedBlockBase>
+    public interface ISerializersFactory : IFactory<ISerializer, BlockBase>
     {
     }
 }

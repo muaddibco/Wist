@@ -57,7 +57,7 @@ namespace Wist.Node.Core.Tests
             cryptoService.ComputeTransactionKey(new Memory<byte>()).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<Memory<byte>>().ToArray()).GetBytes());
             cryptoService.ComputeTransactionKey(new byte[0]).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.ReturnsForAnyArgs(new Key32(publicKey));
+            cryptoService.PublicKey.ReturnsForAnyArgs(new Key32(publicKey));
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
             ulong expectedCount = 10;
@@ -120,7 +120,7 @@ namespace Wist.Node.Core.Tests
             cryptoService.ComputeTransactionKey(new Memory<byte>()).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<Memory<byte>>().ToArray()).GetBytes());
             cryptoService.ComputeTransactionKey(new byte[0]).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.ReturnsForAnyArgs(new Key32(publicKey));
+            cryptoService.PublicKey.ReturnsForAnyArgs(new Key32(publicKey));
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
 
@@ -192,7 +192,7 @@ namespace Wist.Node.Core.Tests
             cryptoService.ComputeTransactionKey(new Memory<byte>()).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<Memory<byte>>().ToArray()).GetBytes());
             cryptoService.ComputeTransactionKey(new byte[0]).ReturnsForAnyArgs(c => transactionKeyHash.ComputeBytes(c.Arg<byte[]>()).GetBytes());
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.ReturnsForAnyArgs(new Key32(publicKey));
+            cryptoService.PublicKey.ReturnsForAnyArgs(new Key32(publicKey));
 
             TransactionRegistryMemPool transactionRegistryMemPool = new TransactionRegistryMemPool(loggerService, identityKeyProvidersRegistry, cryptoService, statesRepository, new TransactionsRegistryHelper(cryptoService, identityKeyProvidersRegistry));
 

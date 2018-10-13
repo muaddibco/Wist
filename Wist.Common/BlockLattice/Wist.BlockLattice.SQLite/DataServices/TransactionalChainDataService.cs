@@ -18,12 +18,12 @@ namespace Wist.BlockLattice.SQLite.DataServices
     public class TransactionalChainDataService : IChainDataService
     {
         private readonly ITranslatorsRepository _mapperFactory;
-        private readonly ISignatureSupportSerializersFactory _serializersFactory;
+        private readonly ISerializersFactory _serializersFactory;
 
         public PacketType ChainType => PacketType.Transactional;
 
 
-        public TransactionalChainDataService(ITranslatorsRepository mapperFactory, ISignatureSupportSerializersFactory serializersFactory)
+        public TransactionalChainDataService(ITranslatorsRepository mapperFactory, ISerializersFactory serializersFactory)
         {
             _mapperFactory = mapperFactory;
             _serializersFactory = serializersFactory;

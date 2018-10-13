@@ -35,7 +35,7 @@ namespace Wist.Node.Core.Registry
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
         private readonly IRegistryMemPool _registryMemPool;
         private readonly IConfigurationService _configurationService;
-        private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
+        private readonly ISerializersFactory _signatureSupportSerializersFactory;
         private readonly IRegistryGroupState _registryGroupState;
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly IHashCalculation _defaulHashCalculation;
@@ -47,7 +47,7 @@ namespace Wist.Node.Core.Registry
 
         public TransactionsRegistryHandler(IStatesRepository statesRepository, IServerCommunicationServicesRegistry communicationServicesRegistry, 
             IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, 
-            IHashCalculationsRepository hashCalculationRepository, ISignatureSupportSerializersFactory signatureSupportSerializersFactory)
+            IHashCalculationsRepository hashCalculationRepository, ISerializersFactory signatureSupportSerializersFactory)
         {
             _registrationBlocks = new BlockingCollection<RegistryRegisterBlock>();
             _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
@@ -150,7 +150,7 @@ namespace Wist.Node.Core.Registry
 
         private void SendConfidence(RegistryConfidenceBlock transactionsRegistryConfidenceBlock)
         {
-            ISignatureSupportSerializer confidenceBlockSerializer = _signatureSupportSerializersFactory.Create(transactionsRegistryConfidenceBlock);
+            ISerializer confidenceBlockSerializer = _signatureSupportSerializersFactory.Create(transactionsRegistryConfidenceBlock);
             _tcpCommunicationService.PostMessage(_registryGroupState.SyncLayerNode, confidenceBlockSerializer);
         }
 

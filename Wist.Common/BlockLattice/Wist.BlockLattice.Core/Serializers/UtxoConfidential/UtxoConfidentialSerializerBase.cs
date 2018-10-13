@@ -1,33 +1,36 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using Wist.BlockLattice.Core.DataModel;
+using System.Text;
+using Wist.BlockLattice.Core.DataModel.UtxoConfidential;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Cryptography;
 using Wist.Core.HashCalculations;
 using Wist.Core.Identity;
 
-namespace Wist.BlockLattice.Core.Serializers.Signed
+namespace Wist.BlockLattice.Core.Serializers.UtxoConfidential
 {
-    public abstract class SignatureSupportSerializerBase<T> : SerializerBase<T> where T : SignedBlockBase
+    public abstract class UtxoConfidentialSerializerBase<T> : SerializerBase<T> where T : UtxoConfidentialBase
     {
         protected readonly ICryptoService _cryptoService;
         protected readonly IIdentityKeyProvider _transactionKeyIdentityKeyProvider;
         protected readonly IHashCalculation _transactionKeyHashCalculation;
 
-        public SignatureSupportSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository)
+        public UtxoConfidentialSerializerBase(PacketType packetType, ushort blockType, ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository) 
             : base(packetType, blockType)
         {
-                _cryptoService = cryptoService;
-                _transactionKeyIdentityKeyProvider = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
-                _transactionKeyHashCalculation = hashCalculationsRepository.Create(HashType.MurMur);
+            _cryptoService = cryptoService;
+            _transactionKeyIdentityKeyProvider = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
+            _transactionKeyHashCalculation = hashCalculationsRepository.Create(HashType.MurMur);
         }
 
         protected virtual void WriteHeader(BinaryWriter bw)
         {
             bw.Write((ushort)PacketType);
+            bw.Write(_block.SyncBlockHeight);
+            bw.Write(_block.Nonce);
+            bw.Write(_block.PowHash);
         }
-
-        protected abstract void WriteBody(BinaryWriter bw);
 
         public override void FillBodyAndRowBytes()
         {
@@ -45,6 +48,8 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             _bytesFilled = true;
         }
 
+        protected abstract void WriteBody(BinaryWriter bw);
+
         #region Private Functions
 
         private void FillHeader()
@@ -60,6 +65,10 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             pos = _memoryStream.Position;
             _binaryWriter.Write(_block.Version);
             _binaryWriter.Write(_block.BlockType);
+
+            _binaryWriter.Write(_block.KeyImage.Value.ToArray());
+            _binaryWriter.Write(_block.TransactionPublicKey);
+            _binaryWriter.Write(_block.DestinationKey);
 
             WriteBody(_binaryWriter);
 
@@ -79,8 +88,6 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
 
             Memory<byte> memory = _memoryStream.ToArray();
 
-            _block.Signature = memory.Slice(memory.Length - signature.Length - signer.Length, signature.Length);
-            _block.Signer = _cryptoService.PublicKey;
             _block.RawData = memory;
             _block.BodyBytes = memory.Slice((int)pos, (int)bodyLength);
             _block.NonHeaderBytes = memory.Slice((int)pos);
@@ -88,7 +95,6 @@ namespace Wist.BlockLattice.Core.Serializers.Signed
             byte[] hash = _transactionKeyHashCalculation.CalculateHash(_block.RawData.ToArray());
             _block.Key = _transactionKeyIdentityKeyProvider.GetKey(hash);
         }
-        
         #endregion Private Functions
     }
 }

@@ -9,7 +9,7 @@ using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
 {
-    [RegisterExtension(typeof(ISignatureSupportSerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterExtension(typeof(ISerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class RegistryShortBlockSerializer : SyncSupportSerializerBase<RegistryShortBlock>
     {
         public RegistryShortBlockSerializer(ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationsRepository) 

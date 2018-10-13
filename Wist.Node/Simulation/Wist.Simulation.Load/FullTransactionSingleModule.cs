@@ -32,7 +32,7 @@ namespace Wist.Simulation.Load
     {
         public FullTransactionSingleModule(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, 
             IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, 
-            ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, 
+            ISerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, 
             ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IHashCalculationsRepository hashCalculationRepository) 
             : base(loggerService, clientCommunicationServiceRepository, configurationService, identityKeyProvidersRegistry, signatureSupportSerializersFactory, nodesDataService, cryptoService, performanceCountersRepository, hashCalculationRepository)
         {
@@ -71,7 +71,7 @@ namespace Wist.Simulation.Load
                     UptodateFunds = transactionalBlockEssense.UpToDateFunds > 0 ? transactionalBlockEssense.UpToDateFunds - blockHeight : 100000
                 };
 
-                ISignatureSupportSerializer transferFundsSerializer = _signatureSupportSerializersFactory.Create(transferFundsBlock);
+                ISerializer transferFundsSerializer = _signatureSupportSerializersFactory.Create(transferFundsBlock);
                 transferFundsSerializer.FillBodyAndRowBytes();
 
                 RegistryRegisterBlock transactionRegisterBlock = new RegistryRegisterBlock
@@ -90,7 +90,7 @@ namespace Wist.Simulation.Load
                     }
                 };
 
-                ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionRegisterBlock);
+                ISerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionRegisterBlock);
 
                 _log.Info($"Sending message: {signatureSupportSerializer.GetBytes().ToHexString()}");
 

@@ -23,7 +23,7 @@ namespace Wist.Simulation.Load
     {
         protected readonly ICommunicationService _communicationService;
         protected readonly IConfigurationService _configurationService;
-        protected readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
+        protected readonly ISerializersFactory _signatureSupportSerializersFactory;
         protected readonly INodesDataService _nodesDataService;
         protected readonly ICryptoService _cryptoService;
         protected readonly IIdentityKeyProvider _identityKeyProvider;
@@ -35,7 +35,7 @@ namespace Wist.Simulation.Load
         protected IKey _key;
         protected IKey _keyTarget;
 
-        public LoadModuleBase(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISignatureSupportSerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IHashCalculationsRepository hashCalculationRepository)
+        public LoadModuleBase(ILoggerService loggerService, IClientCommunicationServiceRepository clientCommunicationServiceRepository, IConfigurationService configurationService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ISerializersFactory signatureSupportSerializersFactory, INodesDataService nodesDataService, ICryptoService cryptoService, IPerformanceCountersRepository performanceCountersRepository, IHashCalculationsRepository hashCalculationRepository)
             : base(loggerService)
         {
             _communicationService = clientCommunicationServiceRepository.GetInstance(nameof(TcpClientCommunicationService));
@@ -73,7 +73,7 @@ namespace Wist.Simulation.Load
             _communicationService.Init(new SocketSettings(clientTcpCommunicationConfiguration.MaxConnections, clientTcpCommunicationConfiguration.ReceiveBufferSize, clientTcpCommunicationConfiguration.ListeningPort, System.Net.Sockets.AddressFamily.InterNetwork));
             _communicationService.Start();
 
-            _key = _cryptoService.Key;
+            _key = _cryptoService.PublicKey;
         }
 
         public static byte[] GetRandomSeed()

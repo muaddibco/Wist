@@ -9,7 +9,7 @@ using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.Serializers.Signed.Transactional
 {
-    [RegisterExtension(typeof(ISignatureSupportSerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
+    [RegisterExtension(typeof(ISerializer), Lifetime = LifetimeManagement.TransientPerResolve)]
     public class TransferFundsBlockSerializer : SyncLinkedSupportSerializerBase<TransferFundsBlock>
     {
         public TransferFundsBlockSerializer(ICryptoService cryptoService, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, 

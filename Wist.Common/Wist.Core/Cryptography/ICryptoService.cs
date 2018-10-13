@@ -9,7 +9,7 @@ namespace Wist.Core.Cryptography
     [ServiceContract]
     public interface ICryptoService
     {
-        IKey Key { get; }
+        IKey PublicKey { get; }
         /// <summary>
         /// Signs message using Private Key of current Node
         /// </summary>

@@ -44,7 +44,7 @@ namespace Wist.Node.Core.Tests
 
             IHashCalculation hashCalculationDefault = new Keccak256HashCalculation();
             IHashCalculation hashCalculationMurMur = new MurMurHashCalculation();
-            ISignatureSupportSerializersFactory signatureSupportSerializersFactory = Substitute.For<ISignatureSupportSerializersFactory>();
+            ISerializersFactory signatureSupportSerializersFactory = Substitute.For<ISerializersFactory>();
             IHashCalculationsRepository hashCalculationsRepository = Substitute.For<IHashCalculationsRepository>();
             IIdentityKeyProvider identityKeyProviderTransactionKey = Substitute.For<IIdentityKeyProvider>();
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
@@ -234,7 +234,7 @@ namespace Wist.Node.Core.Tests
             byte[] publicKey;
             Ed25519.KeyPairFromSeed(out publicKey, out expandedPrivateKey, privateKey);
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
-            cryptoService.Key.Returns(new Key32() { Value = publicKey });
+            cryptoService.PublicKey.Returns(new Key32() { Value = publicKey });
             return cryptoService;
         }
 

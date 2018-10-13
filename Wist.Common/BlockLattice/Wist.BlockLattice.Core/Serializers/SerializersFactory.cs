@@ -1,43 +1,41 @@
 ﻿using CommonServiceLocator;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.Enums;
 using Wist.BlockLattice.Core.Exceptions;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
 namespace Wist.BlockLattice.Core.Serializers
 {
-    [RegisterDefaultImplementation(typeof(ISignatureSupportSerializersFactory), Lifetime = LifetimeManagement.Singleton)]
-    public class SignatureSupportSerializersFactory : ISignatureSupportSerializersFactory
+    [RegisterDefaultImplementation(typeof(ISerializersFactory), Lifetime = LifetimeManagement.Singleton)]
+    public class SerializersFactory : ISerializersFactory
     {
-        private readonly Dictionary<PacketType, Dictionary<ushort, Stack<ISignatureSupportSerializer>>> _serializersCache;
+        private readonly Dictionary<PacketType, Dictionary<ushort, Stack<ISerializer>>> _serializersCache;
         private readonly object _sync = new object();
 
-        public SignatureSupportSerializersFactory(ISignatureSupportSerializer[] signatureSupportSerializers)
+        public SerializersFactory(ISerializer[] signatureSupportSerializers)
         {
-            _serializersCache = new Dictionary<PacketType, Dictionary<ushort, Stack<ISignatureSupportSerializer>>>();
+            _serializersCache = new Dictionary<PacketType, Dictionary<ushort, Stack<ISerializer>>>();
 
             foreach (var signatureSupportSerializer in signatureSupportSerializers)
             {
                 if(!_serializersCache.ContainsKey(signatureSupportSerializer.PacketType))
                 {
-                    _serializersCache.Add(signatureSupportSerializer.PacketType, new Dictionary<ushort, Stack<ISignatureSupportSerializer>>());
+                    _serializersCache.Add(signatureSupportSerializer.PacketType, new Dictionary<ushort, Stack<ISerializer>>());
                 }
 
                 if(!_serializersCache[signatureSupportSerializer.PacketType].ContainsKey(signatureSupportSerializer.BlockType))
                 {
-                    _serializersCache[signatureSupportSerializer.PacketType].Add(signatureSupportSerializer.BlockType, new Stack<ISignatureSupportSerializer>());
+                    _serializersCache[signatureSupportSerializer.PacketType].Add(signatureSupportSerializer.BlockType, new Stack<ISerializer>());
                 }
 
                 _serializersCache[signatureSupportSerializer.PacketType][signatureSupportSerializer.BlockType].Push(signatureSupportSerializer);
             }
         }
 
-        private ISignatureSupportSerializer Create(PacketType packetType, ushort blockType)
+        private ISerializer Create(PacketType packetType, ushort blockType)
         {
             if(!_serializersCache.ContainsKey(packetType))
             {
@@ -51,7 +49,7 @@ namespace Wist.BlockLattice.Core.Serializers
 
             lock(_sync)
             {
-                ISignatureSupportSerializer serializer = null;
+                ISerializer serializer = null;
 
                 if(_serializersCache[packetType][blockType].Count > 1)
                 {
@@ -59,8 +57,8 @@ namespace Wist.BlockLattice.Core.Serializers
                 }
                 else
                 {
-                    ISignatureSupportSerializer template = _serializersCache[packetType][blockType].Pop();
-                    serializer = (ISignatureSupportSerializer)ServiceLocator.Current.GetInstance(template.GetType());
+                    ISerializer template = _serializersCache[packetType][blockType].Pop();
+                    serializer = (ISerializer)ServiceLocator.Current.GetInstance(template.GetType());
                     _serializersCache[packetType][blockType].Push(template);
                 }
 
@@ -68,20 +66,20 @@ namespace Wist.BlockLattice.Core.Serializers
             }
         }
 
-        public ISignatureSupportSerializer Create(SignedBlockBase block)
+        public ISerializer Create(BlockBase block)
         {
             if (block == null)
             {
                 throw new ArgumentNullException(nameof(block));
             }
 
-            ISignatureSupportSerializer serializer = Create(block.PacketType, block.BlockType);
+            ISerializer serializer = Create(block.PacketType, block.BlockType);
             serializer.Initialize(block);
 
             return serializer;
         }
 
-        public void Utilize(ISignatureSupportSerializer serializer)
+        public void Utilize(ISerializer serializer)
         {
             if (serializer == null)
             {

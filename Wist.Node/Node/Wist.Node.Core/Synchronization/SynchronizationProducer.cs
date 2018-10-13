@@ -18,7 +18,7 @@ namespace Wist.Node.Core.Synchronization
     [RegisterDefaultImplementation(typeof(ISynchronizationProducer), Lifetime = LifetimeManagement.Singleton)]
     public class SynchronizationProducer : ISynchronizationProducer
     {
-        private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
+        private readonly ISerializersFactory _signatureSupportSerializersFactory;
         private readonly INodeContext _nodeContext;
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly ISynchronizationGroupState _synchronizationGroupState;
@@ -29,7 +29,7 @@ namespace Wist.Node.Core.Synchronization
         private ulong _lastLaunchedSyncBlockOrder = 0;
         private CancellationTokenSource _syncProducingCancellation = null;
 
-        public SynchronizationProducer(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, 
+        public SynchronizationProducer(ISerializersFactory signatureSupportSerializersFactory, IStatesRepository statesRepository, 
             IServerCommunicationServicesRegistry communicationServicesRegistry, IConfigurationService configurationService, 
             IHashCalculationsRepository hashCalculationsRepository)
         {
@@ -83,7 +83,7 @@ namespace Wist.Node.Core.Synchronization
                                 PowHash = _proofOfWorkCalculation.CalculateHash(_synchronizationContext.LastBlockDescriptor?.Hash ?? new byte[Globals.DEFAULT_HASH_SIZE])
                             };
 
-                            using (ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock))
+                            using (ISerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(synchronizationBlock))
                             {
                                 _communicationService.PostMessage(_synchronizationGroupState.GetAllNeighbors(), signatureSupportSerializer);
                                 _lastLaunchedSyncBlockOrder = synchronizationBlock.BlockHeight;

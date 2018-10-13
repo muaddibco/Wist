@@ -26,7 +26,7 @@ namespace Wist.Node.Core.Synchronization
         private readonly IIdentityKeyProvider _transactionHashKey;
 
         private readonly Subject<RoundDescriptor> _subject = new Subject<RoundDescriptor>();
-        private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
+        private readonly ISerializersFactory _signatureSupportSerializersFactory;
         private readonly ICryptoService _cryptoService;
         private readonly ISynchronizationContext _synchronizationContext;
         private readonly ILogger _logger;
@@ -34,7 +34,7 @@ namespace Wist.Node.Core.Synchronization
         private ulong _lastCompletedSyncHeight = 0;
         private ulong _lastCompletedRound = 0;
 
-        public SyncRegistryMemPool(ISignatureSupportSerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, 
+        public SyncRegistryMemPool(ISerializersFactory signatureSupportSerializersFactory, IHashCalculationsRepository hashCalculationsRepository, 
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IStatesRepository statesRepository, ILoggerService loggerService)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();

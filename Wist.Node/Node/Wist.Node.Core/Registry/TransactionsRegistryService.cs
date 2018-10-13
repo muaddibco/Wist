@@ -33,7 +33,7 @@ namespace Wist.Node.Core.Registry
         private readonly ICryptoService _cryptoService;
         private readonly IConfigurationService _configurationService;
         private readonly IServerCommunicationServicesRegistry _serverCommunicationServicesRegistry;
-        private readonly ISignatureSupportSerializersFactory _signatureSupportSerializersFactory;
+        private readonly ISerializersFactory _signatureSupportSerializersFactory;
         private readonly ITransactionsRegistryHelper _transactionsRegistryHelper;
         private readonly IHashCalculation _powCalculation;
         private readonly IHashCalculation _hashCalculation;
@@ -46,7 +46,7 @@ namespace Wist.Node.Core.Registry
         public TransactionsRegistryService(IStatesRepository statesRepository, IPredicatesRepository predicatesRepository, IRegistryMemPool registryMemPool, 
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, ICryptoService cryptoService, IConfigurationService configurationService, 
             IServerCommunicationServicesRegistry serverCommunicationServicesRegistry, IPerformanceCountersRepository performanceCountersRepository, 
-            ISignatureSupportSerializersFactory signatureSupportSerializersFactory, ITransactionsRegistryHelper transactionsRegistryHelper, IHashCalculationsRepository hashCalculationsRepository)
+            ISerializersFactory signatureSupportSerializersFactory, ITransactionsRegistryHelper transactionsRegistryHelper, IHashCalculationsRepository hashCalculationsRepository)
         {
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
@@ -156,8 +156,8 @@ namespace Wist.Node.Core.Registry
             RegistryFullBlock transactionsFullBlock = tuple.Item1;
             RegistryShortBlock transactionsShortBlock = tuple.Item2;
 
-            ISignatureSupportSerializer fullBlockSerializer = _signatureSupportSerializersFactory.Create(transactionsFullBlock);
-            ISignatureSupportSerializer shortBlockSerializer = _signatureSupportSerializersFactory.Create(transactionsShortBlock);
+            ISerializer fullBlockSerializer = _signatureSupportSerializersFactory.Create(transactionsFullBlock);
+            ISerializer shortBlockSerializer = _signatureSupportSerializersFactory.Create(transactionsShortBlock);
 
             shortBlockSerializer.FillBodyAndRowBytes();
             transactionsFullBlock.ShortBlockHash = _hashCalculation.CalculateHash(transactionsShortBlock.BodyBytes);
@@ -184,7 +184,7 @@ namespace Wist.Node.Core.Registry
         private void SendTransactionsShortBlock(Tuple<RegistryFullBlock, RegistryShortBlock> tuple)
         {
             RegistryShortBlock transactionsShortBlock = tuple.Item2;
-            ISignatureSupportSerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionsShortBlock);
+            ISerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionsShortBlock);
             _tcpCommunicationService.PostMessage(_registryGroupState.GetAllNeighbors(), signatureSupportSerializer);
         }
     }
