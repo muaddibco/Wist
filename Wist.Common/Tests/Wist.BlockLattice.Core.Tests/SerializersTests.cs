@@ -188,7 +188,7 @@ namespace Wist.BlockLattice.Core.Tests
                     ReferencedBlockType = expectedReferencedBlockType,
                     ReferencedHeight = expectedReferencedHeight,
                     ReferencedBodyHash = expectedReferencedBodyHash,
-                    ReferencedTargetHash = expectedTarget
+                    ReferencedTarget = expectedTarget
                 }
             };
 
@@ -340,7 +340,7 @@ namespace Wist.BlockLattice.Core.Tests
                         ReferencedBlockType = expectedReferencedBlockType,
                         ReferencedHeight = expectedReferencedHeight,
                         ReferencedBodyHash = BinaryBuilder.GetDefaultHash(473826643 + i),
-                        ReferencedTargetHash = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
+                        ReferencedTarget = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
                     }
                 };
 

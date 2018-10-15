@@ -14,6 +14,7 @@ using Wist.Core.Logging;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.BlockLattice.Core;
+using Wist.Node.Core.Registry.SourceKeys;
 
 namespace Wist.Node.Core.Registry
 {
@@ -29,10 +30,10 @@ namespace Wist.Node.Core.Registry
     [RegisterDefaultImplementation(typeof(IRegistryMemPool), Lifetime = LifetimeManagement.Singleton)]
     public class TransactionRegistryMemPool : IRegistryMemPool
     {
-        private readonly Dictionary<ulong, Dictionary<IKey, Dictionary<ulong, List<IKey>>>> _transactionHeadersPerAccountPerHeight;
+        private readonly Dictionary<ulong, Dictionary<ITransactionSourceKey, List<IKey>>> _transactionKeyBySourceKeys;
         private readonly Dictionary<ulong, SortedDictionary<int, RegistryRegisterBlock>> _transactionRegisterBlocksOrdered;
-        private readonly Dictionary<ulong, Dictionary<IKey, int>> _transactionOrderByTransactionHash;
-        private readonly Dictionary<ulong, Dictionary<IKey, Tuple<IKey, ulong>>> _transactionSenderAndHeightByTransactionHash;
+        private readonly Dictionary<ulong, Dictionary<IKey, int>> _transactionOrderByTransactionKey;
+        private readonly Dictionary<ulong, Dictionary<IKey, ITransactionSourceKey>> _transactionSourceKeyByTransactionKey;
         private readonly Dictionary<ulong, int> _transactionsIndicies;
 
         // Key of this dictionary is hash of concatenation of Public Key of sender and Height of transaction
@@ -65,10 +66,10 @@ namespace Wist.Node.Core.Registry
             _logger = loggerService.GetLogger(nameof(TransactionRegistryMemPool));
             _transactionsIndicies = new Dictionary<ulong, int>();
             _transactionRegisterBlocksOrdered = new Dictionary<ulong, SortedDictionary<int, RegistryRegisterBlock>>();
-            _transactionHeadersPerAccountPerHeight = new Dictionary<ulong, Dictionary<IKey, Dictionary<ulong, List<IKey>>>>();
+            _transactionKeyBySourceKeys = new Dictionary<ulong, Dictionary<ITransactionSourceKey, List<IKey>>>();
             _transactionsShortBlocks = new Dictionary<ulong, Dictionary<ulong, HashSet<RegistryShortBlock>>>();
-            _transactionOrderByTransactionHash = new Dictionary<ulong, Dictionary<IKey, int>>();
-            _transactionSenderAndHeightByTransactionHash = new Dictionary<ulong, Dictionary<IKey, Tuple<IKey, ulong>>>();
+            _transactionOrderByTransactionKey = new Dictionary<ulong, Dictionary<IKey, int>>();
+            _transactionSourceKeyByTransactionKey = new Dictionary<ulong, Dictionary<IKey, ITransactionSourceKey>>();
             _cryptoService = cryptoService;
             _transactionsRegistryHelper = transactionsRegistryHelper;
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
@@ -82,30 +83,31 @@ namespace Wist.Node.Core.Registry
                 {
                     _transactionsIndicies.Add(transactionRegisterBlock.SyncBlockHeight, 0);
                     _transactionRegisterBlocksOrdered.Add(transactionRegisterBlock.SyncBlockHeight, new SortedDictionary<int, RegistryRegisterBlock>());
-                    _transactionHeadersPerAccountPerHeight.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, Dictionary<ulong, List<IKey>>>());
-                    _transactionOrderByTransactionHash.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, int>());
-                    _transactionSenderAndHeightByTransactionHash.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, Tuple<IKey, ulong>>());
+                    _transactionKeyBySourceKeys.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<ITransactionSourceKey, List<IKey>>());
+                    _transactionOrderByTransactionKey.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, int>());
+                    _transactionSourceKeyByTransactionKey.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, ITransactionSourceKey>());
                 }
 
                 IKey transactionTwiceHashedKey = _transactionsRegistryHelper.GetTransactionRegistryTwiceHashedKey(transactionRegisterBlock);
+                
 
-                if (!_transactionOrderByTransactionHash[transactionRegisterBlock.SyncBlockHeight].ContainsKey(transactionTwiceHashedKey))
+                if (!_transactionOrderByTransactionKey[transactionRegisterBlock.SyncBlockHeight].ContainsKey(transactionTwiceHashedKey))
                 {
                     _transactionRegisterBlocksOrdered[transactionRegisterBlock.SyncBlockHeight].Add(_transactionsIndicies[transactionRegisterBlock.SyncBlockHeight], transactionRegisterBlock);
-                    _transactionOrderByTransactionHash[transactionRegisterBlock.SyncBlockHeight].Add(transactionTwiceHashedKey, _transactionsIndicies[transactionRegisterBlock.SyncBlockHeight]);
+                    _transactionOrderByTransactionKey[transactionRegisterBlock.SyncBlockHeight].Add(transactionTwiceHashedKey, _transactionsIndicies[transactionRegisterBlock.SyncBlockHeight]);
 
-                    if(!_transactionHeadersPerAccountPerHeight[transactionRegisterBlock.SyncBlockHeight].ContainsKey(transactionRegisterBlock.Signer))
+                    if(!_transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight].ContainsKey(transactionRegisterBlock.Signer))
                     {
-                        _transactionHeadersPerAccountPerHeight[transactionRegisterBlock.SyncBlockHeight].Add(transactionRegisterBlock.Signer, new Dictionary<ulong, List<IKey>>());
+                        _transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight].Add(transactionRegisterBlock.Signer, new Dictionary<ulong, List<IKey>>());
                     }
 
-                    if(!_transactionHeadersPerAccountPerHeight[transactionRegisterBlock.SyncBlockHeight][transactionRegisterBlock.Signer].ContainsKey(transactionRegisterBlock.BlockHeight))
+                    if(!_transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight][transactionRegisterBlock.Signer].ContainsKey(transactionRegisterBlock.BlockHeight))
                     {
-                        _transactionHeadersPerAccountPerHeight[transactionRegisterBlock.SyncBlockHeight][transactionRegisterBlock.Signer].Add(transactionRegisterBlock.BlockHeight, new List<IKey>());
+                        _transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight][transactionRegisterBlock.Signer].Add(transactionRegisterBlock.BlockHeight, new List<IKey>());
                     }
 
-                    _transactionHeadersPerAccountPerHeight[transactionRegisterBlock.SyncBlockHeight][transactionRegisterBlock.Signer][transactionRegisterBlock.BlockHeight].Add(transactionTwiceHashedKey);
-                    _transactionSenderAndHeightByTransactionHash[transactionRegisterBlock.SyncBlockHeight].Add(transactionTwiceHashedKey, new Tuple<IKey, ulong>(transactionRegisterBlock.Signer, transactionRegisterBlock.BlockHeight));
+                    _transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight][transactionRegisterBlock.Signer][transactionRegisterBlock.BlockHeight].Add(transactionTwiceHashedKey);
+                    _transactionSourceKeyByTransactionKey[transactionRegisterBlock.SyncBlockHeight].Add(transactionTwiceHashedKey, new Tuple<IKey, ulong>(transactionRegisterBlock.Signer, transactionRegisterBlock.BlockHeight));
 
                     _transactionsIndicies[transactionRegisterBlock.SyncBlockHeight]++;
                     return true;
@@ -137,7 +139,7 @@ namespace Wist.Node.Core.Registry
         {
             lock(_sync)
             {
-                bool[] bools = transactionsShortBlock.TransactionHeaderHashes.Select(kvp => _transactionOrderByTransactionHash[transactionsShortBlock.SyncBlockHeight].ContainsKey(kvp.Value)).ToArray();
+                bool[] bools = transactionsShortBlock.TransactionHeaderHashes.Select(kvp => _transactionOrderByTransactionKey[transactionsShortBlock.SyncBlockHeight].ContainsKey(kvp.Value)).ToArray();
                 BitArray bitArray = bools.ToBitArray();
 
                 bitMask = new byte[bitArray.Length / 8 + ((bitArray.Length % 8 > 0) ? 1 : 0)];
@@ -150,7 +152,7 @@ namespace Wist.Node.Core.Registry
                 {
                     if(bools[i++])
                     {
-                        int transactionHeaderOrder = _transactionOrderByTransactionHash[transactionsShortBlock.SyncBlockHeight][transactionsShortBlock.TransactionHeaderHashes[key]];
+                        int transactionHeaderOrder = _transactionOrderByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionsShortBlock.TransactionHeaderHashes[key]];
                         RegistryRegisterBlock registryRegisterBlock = _transactionRegisterBlocksOrdered[transactionsShortBlock.SyncBlockHeight][transactionHeaderOrder];
                         IKey registryRegisterBlockKey = _transactionsRegistryHelper.GetTransactionRegistryHashKey(registryRegisterBlock);
                         BigInteger bigInteger = new BigInteger(registryRegisterBlockKey.Value.ToArray());
@@ -171,22 +173,21 @@ namespace Wist.Node.Core.Registry
         {
             lock (_sync)
             {
-                if (_transactionOrderByTransactionHash.ContainsKey(transactionsShortBlock.SyncBlockHeight))
+                if (_transactionOrderByTransactionKey.ContainsKey(transactionsShortBlock.SyncBlockHeight))
                 {
-                    IEnumerable<IKey> mutualTransactionKeys = _transactionOrderByTransactionHash[transactionsShortBlock.SyncBlockHeight].Keys.Where(k => transactionsShortBlock.TransactionHeaderHashes.Values.Contains(k));
+                    IEnumerable<IKey> mutualTransactionKeys = _transactionOrderByTransactionKey[transactionsShortBlock.SyncBlockHeight].Keys.Where(k => transactionsShortBlock.TransactionHeaderHashes.Values.Contains(k));
 
-                    foreach (IKey key in mutualTransactionKeys)
+                    foreach (IKey transactionKey in mutualTransactionKeys)
                     {
-
-                        _transactionHeadersPerAccountPerHeight[transactionsShortBlock.SyncBlockHeight][_transactionSenderAndHeightByTransactionHash[transactionsShortBlock.SyncBlockHeight][key].Item1].Remove(_transactionSenderAndHeightByTransactionHash[transactionsShortBlock.SyncBlockHeight][key].Item2);
-                        if(_transactionHeadersPerAccountPerHeight[transactionsShortBlock.SyncBlockHeight][_transactionSenderAndHeightByTransactionHash[transactionsShortBlock.SyncBlockHeight][key].Item1].Count == 0)
+                        _transactionKeyBySourceKeys[transactionsShortBlock.SyncBlockHeight][_transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey].Item1].Remove(_transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey].Item2);
+                        if(_transactionKeyBySourceKeys[transactionsShortBlock.SyncBlockHeight][_transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey].Item1].Count == 0)
                         {
-                            _transactionHeadersPerAccountPerHeight[transactionsShortBlock.SyncBlockHeight].Remove(_transactionSenderAndHeightByTransactionHash[transactionsShortBlock.SyncBlockHeight][key].Item1);
+                            _transactionKeyBySourceKeys[transactionsShortBlock.SyncBlockHeight].Remove(_transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey].Item1);
                         }
 
-                        _transactionSenderAndHeightByTransactionHash[transactionsShortBlock.SyncBlockHeight].Remove(key);
-                        _transactionRegisterBlocksOrdered[transactionsShortBlock.SyncBlockHeight].Remove(_transactionOrderByTransactionHash[transactionsShortBlock.SyncBlockHeight][key]);
-                        _transactionOrderByTransactionHash[transactionsShortBlock.SyncBlockHeight].Remove(key);
+                        _transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight].Remove(transactionKey);
+                        _transactionRegisterBlocksOrdered[transactionsShortBlock.SyncBlockHeight].Remove(_transactionOrderByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey]);
+                        _transactionOrderByTransactionKey[transactionsShortBlock.SyncBlockHeight].Remove(transactionKey);
                     }
                 }
             }

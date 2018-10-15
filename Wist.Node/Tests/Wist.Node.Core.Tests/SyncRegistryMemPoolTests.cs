@@ -202,7 +202,7 @@ namespace Wist.Node.Core.Tests
                         ReferencedBlockType = expectedReferencedBlockType,
                         ReferencedHeight = expectedReferencedHeight,
                         ReferencedBodyHash = BinaryBuilder.GetDefaultHash(473826643 + j),
-                        ReferencedTargetHash = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
+                        ReferencedTarget = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
                     }
                 };
 

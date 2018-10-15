@@ -9,9 +9,12 @@ namespace Wist.Core.Cryptography
         IKey PublicViewKey { get; }
         IKey PublicSpendKey { get; }
 
+        void Initialize(byte[] privateViewKey, byte[] privateSpendKey);
+
+        void GetRandomKeyPair(out byte[] secretKey, out byte[] publicKey);
+
         RingSignature[] Sign(byte[] msg, byte[] keyImage, IKey[] publicKeys, byte[] secretKey, int index);
 
-        void Initialize(byte[] privateViewKey, byte[] privateSpendKey);
-        void GetRandomKeyPair(out byte[] secretKey, out byte[] publicKey);
+        bool Verify(byte[] msg, byte[] keyImage, IKey[] publicKeys, RingSignature[] signatures);
     }
 }

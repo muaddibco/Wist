@@ -86,7 +86,7 @@ namespace Wist.Simulation.Load
                         ReferencedBlockType = BlockTypes.Transaction_TransferFunds,
                         ReferencedHeight = blockHeight,
                         ReferencedBodyHash = _hashCalculation.CalculateHash(transferFundsBlock.NonHeaderBytes),
-                        ReferencedTargetHash = targetAddress
+                        ReferencedTarget = targetAddress
                     }
                 };
 

@@ -14,7 +14,7 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public byte[] ReferencedBodyHash { get; set; }
 
-        public byte[] ReferencedTargetHash { get; set; }
+        public byte[] ReferencedTarget { get; set; }
 
         public bool Equals(TransactionHeader x, TransactionHeader y)
         {

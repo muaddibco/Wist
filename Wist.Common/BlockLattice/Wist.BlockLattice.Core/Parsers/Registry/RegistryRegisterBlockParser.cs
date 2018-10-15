@@ -40,7 +40,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
                         ReferencedBlockType = referencedBlockType,
                         ReferencedHeight = referencedBlockHeight,
                         ReferencedBodyHash = referencedBlockHash,
-                        ReferencedTargetHash = referencedTargetHash
+                        ReferencedTarget = referencedTargetHash
                     }
                 };
 

@@ -23,6 +23,19 @@ namespace Wist.Crypto
 
         public IKey PublicSpendKey { get; private set; }
 
+
+        public void GetRandomKeyPair(out byte[] secretKey, out byte[] publicKey)
+        {
+            secretKey = GetRandomSeed(true);
+            publicKey = GetPublicKey(secretKey);
+        }
+
+        public void Initialize(byte[] privateViewKey, byte[] privateSpendKey)
+        {
+            PublicViewKey = _identityKeyProvider.GetKey(GetPublicKey(privateViewKey));
+            PublicSpendKey = _identityKeyProvider.GetKey(GetPublicKey(privateSpendKey));
+        }
+
         public RingSignature[] Sign(byte[] msg, byte[] keyImage, IKey[] publicKeys, byte[] secretKey, int index)
         {
             RingSignature[] signatures = new RingSignature[publicKeys.Length];
@@ -82,18 +95,44 @@ namespace Wist.Crypto
             return signatures;
         }
 
-        public void GetRandomKeyPair(out byte[] secretKey, out byte[] publicKey)
+        public bool Verify(byte[] msg, byte[] keyImage, IKey[] publicKeys, RingSignature[] signatures)
         {
-            secretKey = GetRandomSeed(true);
-            publicKey = GetPublicKey(secretKey);
-        }
+            byte[][] pubs = publicKeys.Select(pk => pk.Value.ToArray()).ToArray();
+            GroupOperations.ge_frombytes(out GroupElementP3 image_unp, keyImage, 0);
 
-        public void Initialize(byte[] privateViewKey, byte[] privateSpendKey)
-        {
-            PublicViewKey = _identityKeyProvider.GetKey(GetPublicKey(privateViewKey));
-            PublicSpendKey = _identityKeyProvider.GetKey(GetPublicKey(privateSpendKey));
-        }
+            GroupElementCached[] image_pre = new GroupElementCached[8];
+            GroupOperations.ge_dsm_precomp(image_pre, ref image_unp);
+            byte[] sum = new byte[32];
 
+            IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak256();
+            hasher.TransformBytes(msg);
+
+            for (int i = 0; i < pubs.Length; i++)
+            {
+                if (ScalarOperations.sc_check(signatures[i].C) != 0 || ScalarOperations.sc_check(signatures[i].R) != 0)
+                    return false;
+
+                GroupOperations.ge_frombytes(out GroupElementP3 tmp3, pubs[i], 0);
+                GroupOperations.ge_double_scalarmult_vartime(out GroupElementP2 tmp2, signatures[i].C, ref tmp3, signatures[i].R);
+                byte[] tmp2bytes = new byte[32];
+                GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+                hasher.TransformBytes(tmp2bytes);
+                tmp3 = Hash2Point(pubs[i]);
+                GroupOperations.ge_double_scalarmult_precomp_vartime(out tmp2, signatures[i].R, tmp3, signatures[i].C, image_pre);
+                tmp2bytes = new byte[32];
+                GroupOperations.ge_tobytes(tmp2bytes, 0, ref tmp2);
+                hasher.TransformBytes(tmp2bytes);
+                ScalarOperations.sc_add(sum, sum, signatures[i].C);
+            }
+
+            byte[] h = hasher.TransformFinal().GetBytes();
+            ScalarOperations.sc_reduce32(h);
+            ScalarOperations.sc_sub(h, h, sum);
+
+            int res = ScalarOperations.sc_isnonzero(h);
+
+            return res == 0;
+        }
         #region Private Functions
 
         private static byte[] GetRandomSeed(bool reduced = false)
@@ -152,6 +191,7 @@ namespace Wist.Crypto
 
             return pk;
         }
+
 
         #endregion Private Functions
     }

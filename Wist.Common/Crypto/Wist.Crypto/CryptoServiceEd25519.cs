@@ -12,19 +12,19 @@ namespace Wist.Crypto
     public class CryptoServiceEd25519 : ICryptoService
     {
         private byte[] _expandedPrivateKey;
-        private readonly IHashCalculation _hashCalculation;
+        private readonly IHashCalculation _transactionKeyCalculation;
         private readonly IIdentityKeyProvider _identityKeyProvider;
 
         public CryptoServiceEd25519(IHashCalculationsRepository hashCalculationRepository, IIdentityKeyProvidersRegistry identityKeyProvidersRegistry)
         {
-            _hashCalculation = hashCalculationRepository.Create(HashType.MurMur);
+            _transactionKeyCalculation = hashCalculationRepository.Create(HashType.MurMur);
             _identityKeyProvider = identityKeyProvidersRegistry.GetInstance();
         }
 
         public IKey PublicKey { get; private set; }
 
-        public byte[] ComputeTransactionKey(byte[] bytes) => _hashCalculation.CalculateHash(bytes);
-        public byte[] ComputeTransactionKey(Memory<byte> bytes) => _hashCalculation.CalculateHash(bytes);
+        public byte[] ComputeTransactionKey(byte[] bytes) => _transactionKeyCalculation.CalculateHash(bytes);
+        public byte[] ComputeTransactionKey(Memory<byte> bytes) => _transactionKeyCalculation.CalculateHash(bytes);
 
         public void Initialize(byte[] privateKey)
         {

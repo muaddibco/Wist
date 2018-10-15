@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Wist.BlockLattice.Core.DataModel.Registry.SourceKeys;
 using Wist.BlockLattice.Core.Enums;
-using Wist.Core.Cryptography;
-using Wist.Core.Identity;
 
 namespace Wist.BlockLattice.Core.DataModel.Registry
 {
-    public class RegistryRegisterBlock : RegistryBlockBase, IEqualityComparer<RegistryRegisterBlock>
+    public class RegistryRegisterBlock : RegistryBlockBase, IEqualityComparer<RegistryRegisterBlock>, ITransactionRegistryBlock<AccountSourceKey>
     {
         public override ushort BlockType => BlockTypes.Registry_Register;
 
         public override ushort Version => 1;
 
         public TransactionHeader TransactionHeader { get; set; }
+
+        public ITransactionSourceKey<AccountSourceKey> TransactionSourceKey => new AccountSourceKey(this);
 
         public bool Equals(RegistryRegisterBlock x, RegistryRegisterBlock y)
         {
