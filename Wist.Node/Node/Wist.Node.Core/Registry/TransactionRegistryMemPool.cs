@@ -14,7 +14,7 @@ using Wist.Core.Logging;
 using Wist.Core.States;
 using Wist.Core.Synchronization;
 using Wist.BlockLattice.Core;
-using Wist.Node.Core.Registry.SourceKeys;
+using Wist.BlockLattice.Core.DataModel.Registry.SourceKeys;
 
 namespace Wist.Node.Core.Registry
 {
@@ -96,18 +96,13 @@ namespace Wist.Node.Core.Registry
                     _transactionRegisterBlocksOrdered[transactionRegisterBlock.SyncBlockHeight].Add(_transactionsIndicies[transactionRegisterBlock.SyncBlockHeight], transactionRegisterBlock);
                     _transactionOrderByTransactionKey[transactionRegisterBlock.SyncBlockHeight].Add(transactionTwiceHashedKey, _transactionsIndicies[transactionRegisterBlock.SyncBlockHeight]);
 
-                    if(!_transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight].ContainsKey(transactionRegisterBlock.Signer))
+                    if(!_transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight].ContainsKey(transactionRegisterBlock.TransactionSourceKey))
                     {
-                        _transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight].Add(transactionRegisterBlock.Signer, new Dictionary<ulong, List<IKey>>());
+                        _transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight].Add(transactionRegisterBlock.TransactionSourceKey, new List<IKey>());
                     }
 
-                    if(!_transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight][transactionRegisterBlock.Signer].ContainsKey(transactionRegisterBlock.BlockHeight))
-                    {
-                        _transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight][transactionRegisterBlock.Signer].Add(transactionRegisterBlock.BlockHeight, new List<IKey>());
-                    }
-
-                    _transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight][transactionRegisterBlock.Signer][transactionRegisterBlock.BlockHeight].Add(transactionTwiceHashedKey);
-                    _transactionSourceKeyByTransactionKey[transactionRegisterBlock.SyncBlockHeight].Add(transactionTwiceHashedKey, new Tuple<IKey, ulong>(transactionRegisterBlock.Signer, transactionRegisterBlock.BlockHeight));
+                    _transactionKeyBySourceKeys[transactionRegisterBlock.SyncBlockHeight][transactionRegisterBlock.TransactionSourceKey].Add(transactionTwiceHashedKey);
+                    _transactionSourceKeyByTransactionKey[transactionRegisterBlock.SyncBlockHeight].Add(transactionTwiceHashedKey, transactionRegisterBlock.TransactionSourceKey);
 
                     _transactionsIndicies[transactionRegisterBlock.SyncBlockHeight]++;
                     return true;
@@ -160,8 +155,6 @@ namespace Wist.Node.Core.Registry
                     }
                 }
 
-                //Dictionary<IKey, RegistryRegisterBlock> mutualValues = _transactionRegistryByTransactionHash[transactionsShortBlock.SyncBlockHeight].Where(kvp => transactionsShortBlock.TransactionHeaderHashes.Values.Contains(kvp.Key)).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
                 byte[] sumBytes = bigIntegerSum.ToByteArray().Take(Globals.TRANSACTION_KEY_HASH_SIZE).ToArray();
                 byte[] returnValue = new byte[Globals.TRANSACTION_KEY_HASH_SIZE];
                 Array.Copy(sumBytes, 0, returnValue, 0, sumBytes.Length);
@@ -179,11 +172,7 @@ namespace Wist.Node.Core.Registry
 
                     foreach (IKey transactionKey in mutualTransactionKeys)
                     {
-                        _transactionKeyBySourceKeys[transactionsShortBlock.SyncBlockHeight][_transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey].Item1].Remove(_transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey].Item2);
-                        if(_transactionKeyBySourceKeys[transactionsShortBlock.SyncBlockHeight][_transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey].Item1].Count == 0)
-                        {
-                            _transactionKeyBySourceKeys[transactionsShortBlock.SyncBlockHeight].Remove(_transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey].Item1);
-                        }
+                        _transactionKeyBySourceKeys[transactionsShortBlock.SyncBlockHeight].Remove(_transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey]);
 
                         _transactionSourceKeyByTransactionKey[transactionsShortBlock.SyncBlockHeight].Remove(transactionKey);
                         _transactionRegisterBlocksOrdered[transactionsShortBlock.SyncBlockHeight].Remove(_transactionOrderByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionKey]);

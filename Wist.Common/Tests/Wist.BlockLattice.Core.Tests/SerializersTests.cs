@@ -182,14 +182,10 @@ namespace Wist.BlockLattice.Core.Tests
                 Nonce = nonce,
                 PowHash = powHash,
                 BlockHeight = blockHeight,
-                TransactionHeader = new TransactionHeader
-                {
-                    ReferencedPacketType = expectedReferencedPacketType,
-                    ReferencedBlockType = expectedReferencedBlockType,
-                    ReferencedHeight = expectedReferencedHeight,
-                    ReferencedBodyHash = expectedReferencedBodyHash,
-                    ReferencedTarget = expectedTarget
-                }
+                ReferencedPacketType = expectedReferencedPacketType,
+                ReferencedBlockType = expectedReferencedBlockType,
+                ReferencedBodyHash = expectedReferencedBodyHash,
+                ReferencedTarget = expectedTarget
             };
 
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
@@ -334,14 +330,10 @@ namespace Wist.BlockLattice.Core.Tests
                     Nonce = nonce + i,
                     PowHash = BinaryBuilder.GetPowHash(1234 + i),
                     BlockHeight = blockHeight,
-                    TransactionHeader = new TransactionHeader
-                    {
-                        ReferencedPacketType = expectedReferencedPacketType,
-                        ReferencedBlockType = expectedReferencedBlockType,
-                        ReferencedHeight = expectedReferencedHeight,
-                        ReferencedBodyHash = BinaryBuilder.GetDefaultHash(473826643 + i),
-                        ReferencedTarget = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
-                    }
+                    ReferencedPacketType = expectedReferencedPacketType,
+                    ReferencedBlockType = expectedReferencedBlockType,
+                    ReferencedBodyHash = BinaryBuilder.GetDefaultHash(473826643 + i),
+                    ReferencedTarget = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
                 };
 
                 IIdentityKeyProvider transactionIdentityKeyProvider = Substitute.For<IIdentityKeyProvider>();

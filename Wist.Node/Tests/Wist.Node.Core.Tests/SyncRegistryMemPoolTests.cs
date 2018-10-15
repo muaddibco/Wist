@@ -196,14 +196,10 @@ namespace Wist.Node.Core.Tests
                     Nonce = nonce + j,
                     PowHash = BinaryBuilder.GetPowHash(1234 + j),
                     BlockHeight = blockHeight,
-                    TransactionHeader = new TransactionHeader
-                    {
-                        ReferencedPacketType = expectedReferencedPacketType,
-                        ReferencedBlockType = expectedReferencedBlockType,
-                        ReferencedHeight = expectedReferencedHeight,
-                        ReferencedBodyHash = BinaryBuilder.GetDefaultHash(473826643 + j),
-                        ReferencedTarget = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
-                    }
+                    ReferencedPacketType = expectedReferencedPacketType,
+                    ReferencedBlockType = expectedReferencedBlockType,
+                    ReferencedBodyHash = BinaryBuilder.GetDefaultHash(473826643 + j),
+                    ReferencedTarget = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
                 };
 
                 ICryptoService cryptoService = GetRandomCryptoService();

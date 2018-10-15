@@ -88,14 +88,10 @@ namespace Wist.Simulation.Load
                     Signer = _key,
                     Nonce = 1234,
                     PowHash = powHash,
-                    TransactionHeader = new TransactionHeader
-                    {
-                        ReferencedPacketType = PacketType.Transactional,
-                        ReferencedBlockType = BlockTypes.Transaction_TransferFunds,
-                        ReferencedHeight = 1234,
-                        ReferencedBodyHash = new byte[Globals.DEFAULT_HASH_SIZE],
-                        ReferencedTarget = targetHash
-                    }
+                    ReferencedPacketType = PacketType.Transactional,
+                    ReferencedBlockType = BlockTypes.Transaction_TransferFunds,
+                    ReferencedBodyHash = new byte[Globals.DEFAULT_HASH_SIZE],
+                    ReferencedTarget = targetHash
                 };
 
                 ISerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionRegisterBlock);

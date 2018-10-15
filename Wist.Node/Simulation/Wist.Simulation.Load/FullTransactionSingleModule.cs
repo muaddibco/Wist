@@ -80,14 +80,10 @@ namespace Wist.Simulation.Load
                     BlockHeight = blockHeight,
                     Nonce = nonce,
                     PowHash = powHash,
-                    TransactionHeader = new TransactionHeader
-                    {
-                        ReferencedPacketType = PacketType.Transactional,
-                        ReferencedBlockType = BlockTypes.Transaction_TransferFunds,
-                        ReferencedHeight = blockHeight,
-                        ReferencedBodyHash = _hashCalculation.CalculateHash(transferFundsBlock.NonHeaderBytes),
-                        ReferencedTarget = targetAddress
-                    }
+                    ReferencedPacketType = PacketType.Transactional,
+                    ReferencedBlockType = BlockTypes.Transaction_TransferFunds,
+                    ReferencedBodyHash = _hashCalculation.CalculateHash(transferFundsBlock.NonHeaderBytes),
+                    ReferencedTarget = targetAddress
                 };
 
                 ISerializer signatureSupportSerializer = _signatureSupportSerializersFactory.Create(transactionRegisterBlock);

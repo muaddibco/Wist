@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Wist.BlockLattice.Core;
 using Wist.BlockLattice.Core.DataModel.Registry;
+using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Identity;
 using Wist.Node.Core.Registry;
 
@@ -9,7 +10,8 @@ namespace Wist.Node.Core.Tests
 {
     public static class PacketsBuilder
     {
-        public static RegistryRegisterBlock GetTransactionRegisterBlock(ulong syncBlockHeight, uint nonce, byte[] powHash, ulong blockHeight, TransactionHeader transactionHeader, byte[] privateKey)
+        public static RegistryRegisterBlock GetTransactionRegisterBlock(ulong syncBlockHeight, uint nonce, byte[] powHash, ulong blockHeight, PacketType referencedPacketType, 
+            ushort referencedBlockType, byte[] referencedBlockHash, byte[] referencedTarget, byte[] privateKey)
         {
             byte[] publicKey = Ed25519.PublicKeyFromSeed(privateKey);
             RegistryRegisterBlock transactionRegisterBlock = new RegistryRegisterBlock
@@ -18,7 +20,10 @@ namespace Wist.Node.Core.Tests
                 Nonce = nonce,
                 PowHash = powHash??new byte[Globals.POW_HASH_SIZE],
                 BlockHeight = blockHeight,
-                TransactionHeader = transactionHeader,
+                ReferencedPacketType = referencedPacketType,
+                ReferencedBlockType = referencedBlockType,
+                ReferencedBodyHash = referencedBlockHash,
+                ReferencedTarget = referencedTarget,
                 Signer = new Key32(publicKey)
             };
 

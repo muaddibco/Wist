@@ -177,11 +177,10 @@ namespace Wist.BlockLattice.Core.Tests
             Assert.Equal(version, block.Version);
             Assert.Equal(blockHeight, block.BlockHeight);
 
-            Assert.Equal(expectedReferencedPacketType, block.TransactionHeader.ReferencedPacketType);
-            Assert.Equal(expectedReferencedBlockType, block.TransactionHeader.ReferencedBlockType);
-            Assert.Equal(expectedReferencedHeight, block.TransactionHeader.ReferencedHeight);
-            Assert.Equal(expectedReferencedBodyHash, block.TransactionHeader.ReferencedBodyHash);
-            Assert.Equal(expectedTarget, block.TransactionHeader.ReferencedTarget);
+            Assert.Equal(expectedReferencedPacketType, block.ReferencedPacketType);
+            Assert.Equal(expectedReferencedBlockType, block.ReferencedBlockType);
+            Assert.Equal(expectedReferencedBodyHash, block.ReferencedBodyHash);
+            Assert.Equal(expectedTarget, block.ReferencedTarget);
 
             Assert.Equal(publicKey, block.Signer.Value.ToArray());
             Assert.Equal(expectedSignature, block.Signature.ToArray());
@@ -309,14 +308,10 @@ namespace Wist.BlockLattice.Core.Tests
                     Nonce = nonce + i,
                     PowHash = BinaryBuilder.GetPowHash(1234 + i),
                     BlockHeight = blockHeight,
-                    TransactionHeader = new TransactionHeader
-                    {
-                        ReferencedPacketType = expectedReferencedPacketType,
-                        ReferencedBlockType = expectedReferencedBlockType,
-                        ReferencedHeight = expectedReferencedHeight,
-                        ReferencedBodyHash = BinaryBuilder.GetDefaultHash(473826643 + i),
-                        ReferencedTarget = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
-                    }
+                    ReferencedPacketType = expectedReferencedPacketType,
+                    ReferencedBlockType = expectedReferencedBlockType,
+                    ReferencedBodyHash = BinaryBuilder.GetDefaultHash(473826643 + i),
+                    ReferencedTarget = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey())
                 };
 
                 RegistryRegisterBlockSerializer serializer1 = new RegistryRegisterBlockSerializer(cryptoService, identityKeyProvidersRegistry, hashCalculationRepository);
@@ -369,11 +364,10 @@ namespace Wist.BlockLattice.Core.Tests
                 Assert.Equal(item.Value.PowHash, block.TransactionHeaders[item.Key].PowHash);
                 Assert.Equal(item.Value.BlockHeight, block.TransactionHeaders[item.Key].BlockHeight);
                 Assert.Equal(item.Value.BlockType, block.TransactionHeaders[item.Key].BlockType);
-                Assert.Equal(item.Value.TransactionHeader.ReferencedPacketType, block.TransactionHeaders[item.Key].TransactionHeader.ReferencedPacketType);
-                Assert.Equal(item.Value.TransactionHeader.ReferencedBlockType, block.TransactionHeaders[item.Key].TransactionHeader.ReferencedBlockType);
-                Assert.Equal(item.Value.TransactionHeader.ReferencedHeight, block.TransactionHeaders[item.Key].TransactionHeader.ReferencedHeight);
-                Assert.Equal(item.Value.TransactionHeader.ReferencedBodyHash, block.TransactionHeaders[item.Key].TransactionHeader.ReferencedBodyHash);
-                Assert.Equal(item.Value.TransactionHeader.ReferencedTarget, block.TransactionHeaders[item.Key].TransactionHeader.ReferencedTarget);
+                Assert.Equal(item.Value.ReferencedPacketType, block.TransactionHeaders[item.Key].ReferencedPacketType);
+                Assert.Equal(item.Value.ReferencedBlockType, block.TransactionHeaders[item.Key].ReferencedBlockType);
+                Assert.Equal(item.Value.ReferencedBodyHash, block.TransactionHeaders[item.Key].ReferencedBodyHash);
+                Assert.Equal(item.Value.ReferencedTarget, block.TransactionHeaders[item.Key].ReferencedTarget);
                 Assert.Equal(item.Value.Signature.ToArray(), block.TransactionHeaders[item.Key].Signature.ToArray());
                 Assert.Equal(item.Value.Signer, block.TransactionHeaders[item.Key].Signer);
             }
