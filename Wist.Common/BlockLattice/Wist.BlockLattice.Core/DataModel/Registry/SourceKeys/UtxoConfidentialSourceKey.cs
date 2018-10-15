@@ -5,26 +5,63 @@ namespace Wist.BlockLattice.Core.DataModel.Registry.SourceKeys
 {
     public class UtxoConfidentialSourceKey : ITransactionSourceKey<UtxoConfidentialSourceKey>
     {
+        private readonly UtxoConfidentialBase _utxoConfidentialBase;
+
         public UtxoConfidentialSourceKey(UtxoConfidentialBase utxoConfidentialBase)
         {
-            KeyImage = utxoConfidentialBase.KeyImage;
+            _utxoConfidentialBase = utxoConfidentialBase;
         }
 
-        public IKey KeyImage { get; private set; }
+        public IKey KeyImage => _utxoConfidentialBase.KeyImage;
 
-        public bool Equals(UtxoConfidentialSourceKey other)
+        public bool Equals(ITransactionSourceKey x, ITransactionSourceKey y)
         {
-            return KeyImage.Equals(other.KeyImage);
+            if(x == null && y == null)
+            {
+                return true;
+            }
+
+            if(x is UtxoConfidentialSourceKey utxoConfidentialSourceKey1 && y is UtxoConfidentialSourceKey utxoConfidentialSourceKey2)
+            {
+                return utxoConfidentialSourceKey1.KeyImage.Equals(utxoConfidentialSourceKey2.KeyImage);
+            }
+
+            return false;
         }
 
-        public bool Equals(UtxoConfidentialSourceKey x, UtxoConfidentialSourceKey y)
+        public bool Equals(ITransactionSourceKey other)
         {
-            return x.KeyImage.Equals(y.KeyImage);
+            if(other is UtxoConfidentialSourceKey utxoConfidentialSourceKey)
+            {
+                return KeyImage.Equals(utxoConfidentialSourceKey.KeyImage);
+            }
+
+            return false;
         }
 
-        public int GetHashCode(UtxoConfidentialSourceKey obj)
+        public int GetHashCode(ITransactionSourceKey obj)
+        {
+            if(obj is UtxoConfidentialSourceKey utxoConfidentialSourceKey)
+            {
+                return utxoConfidentialSourceKey.KeyImage.GetHashCode();
+            }
+
+            return 0;
+        }
+
+        public override int GetHashCode()
         {
             return KeyImage.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is UtxoConfidentialSourceKey utxoConfidentialSourceKey)
+            {
+                return KeyImage.Equals(utxoConfidentialSourceKey.KeyImage);
+            }
+
+            return false;
         }
     }
 }

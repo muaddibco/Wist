@@ -6,9 +6,9 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Registry
 {
-    public interface ITransactionRegistryBlock<T>
+    public interface ITransactionRegistryBlock
     {
-        ITransactionSourceKey<T> TransactionSourceKey { get; }
+        ITransactionSourceKey TransactionSourceKey { get; }
 
         PacketType ReferencedPacketType { get; set; }
 

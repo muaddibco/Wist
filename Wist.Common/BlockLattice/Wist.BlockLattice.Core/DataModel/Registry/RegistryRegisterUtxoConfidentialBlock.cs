@@ -4,7 +4,7 @@ using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Registry
 {
-    public class RegistryRegisterUtxoConfidentialBlock : UtxoConfidentialBase, ITransactionRegistryBlock<UtxoConfidentialSourceKey>
+    public class RegistryRegisterUtxoConfidentialBlock : UtxoConfidentialBase, ITransactionRegistryBlock
     {
         public override PacketType PacketType => PacketType.Registry;
 
@@ -12,7 +12,7 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public override ushort BlockType => BlockTypes.Registry_RegisterUtxoConfidential;
 
-        public ITransactionSourceKey<UtxoConfidentialSourceKey> TransactionSourceKey => new UtxoConfidentialSourceKey(this);
+        public ITransactionSourceKey TransactionSourceKey => new UtxoConfidentialSourceKey(this);
 
         public PacketType ReferencedPacketType { get; set; }
 

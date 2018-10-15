@@ -4,41 +4,67 @@ namespace Wist.BlockLattice.Core.DataModel.Registry.SourceKeys
 {
     public class AccountSourceKey : ITransactionSourceKey<AccountSourceKey>
     {
+        private readonly SyncedBlockBase _blockBase;
+
         public AccountSourceKey(SyncedBlockBase blockBase)
         {
-            Signer = blockBase.Signer;
-            Height = blockBase.BlockHeight;
+            _blockBase = blockBase;
         }
 
+        public IKey Signer => _blockBase.Signer;
 
-        public IKey Signer { get; private set; }
-        public ulong Height { get; private set; }
+        public ulong Height => _blockBase.BlockHeight;
 
-        public bool Initialize(BlockBase blockBase)
+        public bool Equals(ITransactionSourceKey x, ITransactionSourceKey y)
         {
-            if(blockBase is RegistryBlockBase registryBlockBase)
+            if(x == null && y == null)
             {
-                Signer = registryBlockBase.Signer;
-                Height = registryBlockBase.BlockHeight;    
                 return true;
+            }
+
+            if(x is AccountSourceKey accountSourceKey1 && y is AccountSourceKey accountSourceKey2)
+            {
+                return accountSourceKey1.Signer.Equals(accountSourceKey2.Signer) && accountSourceKey1.Height == accountSourceKey2.Height;
+
             }
 
             return false;
         }
 
-        public bool Equals(AccountSourceKey other)
+        public bool Equals(ITransactionSourceKey other)
         {
-            return Signer.Equals(other.Signer) && Height == other.Height;
+            if(other is AccountSourceKey accountSourceKey)
+            {
+                return Signer.Equals(accountSourceKey.Signer) && Height == accountSourceKey.Height;
+            }
+
+            return false;
         }
 
-        public bool Equals(AccountSourceKey x, AccountSourceKey y)
+        public int GetHashCode(ITransactionSourceKey obj)
         {
-            return x.Signer.Equals(y.Signer) && x.Height == y.Height;
+            if (obj is AccountSourceKey accountSourceKey)
+            {
+                return accountSourceKey.Signer.GetHashCode() ^ accountSourceKey.Height.GetHashCode();
+            }
+
+            return 0;
         }
 
-        public int GetHashCode(AccountSourceKey obj)
+        public override int GetHashCode()
         {
-            return obj.Signer.GetHashCode() ^ obj.Height.GetHashCode();
+            return Signer.GetHashCode() ^ Height.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is AccountSourceKey accountSourceKey)
+            {
+                return Signer.Equals(accountSourceKey.Signer) && Height == accountSourceKey.Height;
+            }
+
+            return false;
+
         }
     }
 }

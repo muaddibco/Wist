@@ -83,7 +83,7 @@ namespace Wist.Node.Core.Registry
                 {
                     _transactionsIndicies.Add(transactionRegisterBlock.SyncBlockHeight, 0);
                     _transactionRegisterBlocksOrdered.Add(transactionRegisterBlock.SyncBlockHeight, new SortedDictionary<int, RegistryRegisterBlock>());
-                    _transactionKeyBySourceKeys.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<ITransactionSourceKey, List<IKey>>());
+                    _transactionKeyBySourceKeys.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<ITransactionSourceKey, List<IKey>>(new TransactionSourceKeyComparer()));
                     _transactionOrderByTransactionKey.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, int>());
                     _transactionSourceKeyByTransactionKey.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, ITransactionSourceKey>());
                 }
