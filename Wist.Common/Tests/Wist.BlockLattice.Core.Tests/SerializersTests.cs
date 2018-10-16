@@ -162,7 +162,6 @@ namespace Wist.BlockLattice.Core.Tests
                 {
                     bw.Write((ushort)expectedReferencedPacketType);
                     bw.Write(expectedReferencedBlockType);
-                    bw.Write(expectedReferencedHeight);
                     bw.Write(expectedReferencedBodyHash);
                     bw.Write(expectedTarget);
                 }

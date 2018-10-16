@@ -135,7 +135,6 @@ namespace Wist.BlockLattice.Core.Tests
 
             PacketType expectedReferencedPacketType = PacketType.Transactional;
             ushort expectedReferencedBlockType = BlockTypes.Transaction_TransferFunds;
-            ulong expectedReferencedHeight = 123466774;
             byte[] expectedReferencedBodyHash = BinaryBuilder.GetDefaultHash(473826643);
             byte[] expectedTarget = BinaryBuilder.GetDefaultHash(BinaryBuilder.GetRandomPublicKey());
 
@@ -154,7 +153,6 @@ namespace Wist.BlockLattice.Core.Tests
                 {
                     bw.Write((ushort)expectedReferencedPacketType);
                     bw.Write(expectedReferencedBlockType);
-                    bw.Write(expectedReferencedHeight);
                     bw.Write(expectedReferencedBodyHash);
                     bw.Write(expectedTarget);
                 }

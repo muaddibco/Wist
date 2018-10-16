@@ -29,8 +29,8 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
             {
                 PacketType referencedPacketType = (PacketType)BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span);
                 ushort referencedBlockType = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span.Slice(2));
-                byte[] referencedBlockHash = spanBody.Slice(12, Globals.DEFAULT_HASH_SIZE).ToArray();
-                byte[] referencedTargetHash = spanBody.Slice(12 + Globals.DEFAULT_HASH_SIZE, Globals.DEFAULT_HASH_SIZE).ToArray();
+                byte[] referencedBlockHash = spanBody.Slice(4, Globals.DEFAULT_HASH_SIZE).ToArray();
+                byte[] referencedTargetHash = spanBody.Slice(4 + Globals.DEFAULT_HASH_SIZE, Globals.DEFAULT_HASH_SIZE).ToArray();
                 RegistryRegisterBlock transactionRegisterBlock = new RegistryRegisterBlock
                 {
                         ReferencedPacketType = referencedPacketType,
@@ -41,7 +41,7 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
 
                 syncedBlockBase = transactionRegisterBlock;
 
-                return spanBody.Slice(12 + Globals.DEFAULT_HASH_SIZE + Globals.DEFAULT_HASH_SIZE);
+                return spanBody.Slice(4 + Globals.DEFAULT_HASH_SIZE + Globals.DEFAULT_HASH_SIZE);
             }
 
             throw new BlockVersionNotSupportedException(version, BlockType);
