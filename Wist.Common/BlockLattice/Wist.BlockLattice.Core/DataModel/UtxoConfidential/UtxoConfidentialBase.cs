@@ -19,8 +19,6 @@ namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
 
         public IKey KeyImage { get; set; }
 
-        public byte[] TransactionPublicKey { get; set; }
-
         public byte[] DestinationKey { get; set; }
 
         public IKey[] PublicKeys { get; set; }

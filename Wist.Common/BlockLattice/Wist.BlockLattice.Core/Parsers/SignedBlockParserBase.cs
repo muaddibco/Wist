@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using Wist.BlockLattice.Core.DataModel;
 using Wist.Core.Identity;
-using Wist.Core.HashCalculations;
 
 namespace Wist.BlockLattice.Core.Parsers
 {

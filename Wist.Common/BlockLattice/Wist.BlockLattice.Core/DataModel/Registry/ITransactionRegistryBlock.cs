@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Wist.BlockLattice.Core.DataModel.Registry.SourceKeys;
+﻿using Wist.BlockLattice.Core.DataModel.Registry.SourceKeys;
 using Wist.BlockLattice.Core.Enums;
 
 namespace Wist.BlockLattice.Core.DataModel.Registry
 {
-    public interface ITransactionRegistryBlock
+    public interface ITransactionRegistryBlock : IBlockBase
     {
         ulong SyncBlockHeight { get; }
 
@@ -19,9 +16,5 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
         byte[] ReferencedBodyHash { get; }
 
         byte[] ReferencedTarget { get; }
-
-        Memory<byte> BodyBytes { get; }
-
-        Memory<byte> RawData { get; }
     }
 }

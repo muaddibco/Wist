@@ -8,7 +8,7 @@ namespace Wist.BlockLattice.Core.DataModel
     /// <summary>
     /// All blocks in all types of chains must inherit from this base class
     /// </summary>
-    public abstract class BlockBase : Entity
+    public abstract class BlockBase : Entity, IBlockBase
     {
         public abstract PacketType PacketType { get; }
 

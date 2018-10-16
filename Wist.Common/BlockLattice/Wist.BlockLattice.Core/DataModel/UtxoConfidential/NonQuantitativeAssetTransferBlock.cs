@@ -4,7 +4,7 @@ using Wist.Crypto.ConfidentialAssets;
 
 namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
 {
-    public class NonQuantitativeAssetTransferBlock : UtxoConfidentialBase
+    public class NonQuantitativeAssetTransferBlock : UtxoConfidentialContentBase
     {
         public override ushort BlockType => BlockTypes.UtxoConfidential_NonQuantitativeAssetTransfer;
 

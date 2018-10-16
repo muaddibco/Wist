@@ -46,9 +46,9 @@ namespace Wist.BlockLattice.Core.Serializers.UtxoConfidential
 
             FillHeader();
 
-            FillBody(out long pos, out long bodyLength, out byte[] secretKey);
+            FillBody(out long pos, out long bodyLength);
 
-            FinalizeTransaction(pos, bodyLength, secretKey);
+            FinalizeTransaction(pos, bodyLength);
 
             _bytesFilled = true;
         }
@@ -65,16 +65,13 @@ namespace Wist.BlockLattice.Core.Serializers.UtxoConfidential
             WriteHeader(_binaryWriter);
         }
 
-        private void FillBody(out long pos, out long bodyLength, out byte[] secretKey)
+        private void FillBody(out long pos, out long bodyLength)
         {
             pos = _memoryStream.Position;
             _binaryWriter.Write(_block.Version);
             _binaryWriter.Write(_block.BlockType);
 
             _binaryWriter.Write(_block.KeyImage.Value.ToArray());
-            _cryptoService.GetRandomKeyPair(out secretKey, out byte[] publicKey);
-            _block.TransactionPublicKey = publicKey;
-            _binaryWriter.Write(_block.TransactionPublicKey);
             _binaryWriter.Write(_block.DestinationKey);
 
             WriteBody(_binaryWriter);
@@ -82,7 +79,7 @@ namespace Wist.BlockLattice.Core.Serializers.UtxoConfidential
             bodyLength = _memoryStream.Position - pos;
         }
 
-        private void FinalizeTransaction(long pos, long bodyLength, byte[] secretKey)
+        private void FinalizeTransaction(long pos, long bodyLength)
         {
             _memoryStream.Seek(pos, SeekOrigin.Begin);
 

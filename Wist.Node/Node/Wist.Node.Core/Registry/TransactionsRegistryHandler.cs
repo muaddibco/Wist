@@ -19,7 +19,6 @@ using Wist.Core.States;
 using Wist.Node.Core.Common;
 using Wist.BlockLattice.Core.Serializers;
 using Wist.Core.Synchronization;
-using Wist.Core.ExtensionMethods;
 
 namespace Wist.Node.Core.Registry
 {
@@ -30,7 +29,7 @@ namespace Wist.Node.Core.Registry
 
         private readonly ITargetBlock<RegistryShortBlock> _transactionsRegistryConfidenceFlow;
         private readonly ITargetBlock<RegistryConfirmationBlock> _confirmationBlockFlow;
-        private readonly BlockingCollection<RegistryRegisterBlock> _registrationBlocks;
+        private readonly BlockingCollection<ITransactionRegistryBlock> _registrationBlocks;
         private readonly IServerCommunicationServicesRegistry _communicationServicesRegistry;
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
         private readonly IRegistryMemPool _registryMemPool;
@@ -49,7 +48,7 @@ namespace Wist.Node.Core.Registry
             IRawPacketProvidersFactory rawPacketProvidersFactory, IRegistryMemPool registryMemPool, IConfigurationService configurationService, 
             IHashCalculationsRepository hashCalculationRepository, ISerializersFactory signatureSupportSerializersFactory)
         {
-            _registrationBlocks = new BlockingCollection<RegistryRegisterBlock>();
+            _registrationBlocks = new BlockingCollection<ITransactionRegistryBlock>();
             _registryGroupState = statesRepository.GetInstance<IRegistryGroupState>();
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
             _nodeContext = statesRepository.GetInstance<INodeContext>();
@@ -87,7 +86,7 @@ namespace Wist.Node.Core.Registry
         public void ProcessBlock(BlockBase blockBase)
         {
 
-            if (blockBase is RegistryRegisterBlock transactionRegisterBlock)
+            if (blockBase is ITransactionRegistryBlock transactionRegisterBlock)
             {
                 _registrationBlocks.Add(transactionRegisterBlock);
             }
@@ -107,7 +106,7 @@ namespace Wist.Node.Core.Registry
 
         private void ProcessBlocks(CancellationToken ct)
         {
-            foreach (RegistryRegisterBlock transactionRegisterBlock in _registrationBlocks.GetConsumingEnumerable(ct))
+            foreach (ITransactionRegistryBlock transactionRegisterBlock in _registrationBlocks.GetConsumingEnumerable(ct))
             {
                 if(_timer == null)
                 {

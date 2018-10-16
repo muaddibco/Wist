@@ -1,5 +1,4 @@
 ﻿using Wist.BlockLattice.Core.DataModel;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 using Wist.Core.HashCalculations;
@@ -12,7 +11,7 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
     public class RawPacketProvider : IRawPacketProvider
     {
         private bool _disposed = false; // To detect redundant calls
-        private BlockBase _blockBase;
+        private IBlockBase _blockBase;
         private readonly IRawPacketProvidersFactory _rawPacketProvidersFactory;
         private readonly IHashCalculation _transactionKeyHashCalculation;
         private readonly IIdentityKeyProvider _transactionKeyIdentityKeyProvider;
@@ -29,7 +28,7 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
             return _blockBase?.RawData.ToArray();
         }
 
-        public void Initialize(BlockBase blockBase)
+        public void Initialize(IBlockBase blockBase)
         {
             _disposed = false;
             _blockBase = blockBase;

@@ -7,6 +7,6 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
     [ExtensionPoint]
     public interface IRawPacketProvider : IPacketProvider, ITransactionKeyProvider
     {
-        void Initialize(BlockBase blockBase);
+        void Initialize(IBlockBase blockBase);
     }
 }

@@ -33,10 +33,10 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
                 byte[] referencedTargetHash = spanBody.Slice(4 + Globals.DEFAULT_HASH_SIZE, Globals.DEFAULT_HASH_SIZE).ToArray();
                 RegistryRegisterBlock transactionRegisterBlock = new RegistryRegisterBlock
                 {
-                        ReferencedPacketType = referencedPacketType,
-                        ReferencedBlockType = referencedBlockType,
-                        ReferencedBodyHash = referencedBlockHash,
-                        ReferencedTarget = referencedTargetHash
+                    ReferencedPacketType = referencedPacketType,
+                    ReferencedBlockType = referencedBlockType,
+                    ReferencedBodyHash = referencedBlockHash,
+                    ReferencedTarget = referencedTargetHash
                 };
 
                 syncedBlockBase = transactionRegisterBlock;

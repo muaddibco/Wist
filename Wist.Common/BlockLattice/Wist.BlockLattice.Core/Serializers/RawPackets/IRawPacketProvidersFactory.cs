@@ -7,6 +7,6 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
     [ServiceContract]
     public interface IRawPacketProvidersFactory : IFactory<IRawPacketProvider>
     {
-        IRawPacketProvider Create(BlockBase blockBase);
+        IRawPacketProvider Create(IBlockBase blockBase);
     }
 }

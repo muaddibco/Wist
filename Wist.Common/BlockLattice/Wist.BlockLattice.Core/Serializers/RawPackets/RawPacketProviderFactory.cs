@@ -1,7 +1,6 @@
 ﻿using Unity;
 using System.Collections.Generic;
 using Wist.BlockLattice.Core.DataModel;
-using Wist.BlockLattice.Core.Interfaces;
 using Wist.Core.Architecture;
 using Wist.Core.Architecture.Enums;
 
@@ -33,7 +32,7 @@ namespace Wist.BlockLattice.Core.Serializers.RawPackets
             }
         }
 
-        public IRawPacketProvider Create(BlockBase blockBase)
+        public IRawPacketProvider Create(IBlockBase blockBase)
         {
             IRawPacketProvider rawPacketProvider = Create();
 
