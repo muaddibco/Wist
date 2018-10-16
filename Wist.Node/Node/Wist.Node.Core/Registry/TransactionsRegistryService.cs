@@ -59,8 +59,8 @@ namespace Wist.Node.Core.Registry
             _transactionsRegistryHelper = transactionsRegistryHelper;
             _powCalculation = hashCalculationsRepository.Create(Globals.POW_TYPE);
             _hashCalculation = hashCalculationsRepository.Create(Globals.DEFAULT_HASH);
-            TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>> deduplicateAndOrderTransactionRegisterBlocksBlock = new TransformBlock<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>((Func<IRegistryMemPool, SortedList<ushort, RegistryRegisterBlock>>)DeduplicateAndOrderTransactionRegisterBlocks);
-            TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>((Func<SortedList<ushort, RegistryRegisterBlock>, RegistryFullBlock>)ProduceTransactionsFullBlock);
+            TransformBlock<IRegistryMemPool, SortedList<ushort, ITransactionRegistryBlock>> deduplicateAndOrderTransactionRegisterBlocksBlock = new TransformBlock<IRegistryMemPool, SortedList<ushort, ITransactionRegistryBlock>>((Func<IRegistryMemPool, SortedList<ushort, ITransactionRegistryBlock>>)DeduplicateAndOrderTransactionRegisterBlocks);
+            TransformBlock<SortedList<ushort, ITransactionRegistryBlock>, RegistryFullBlock> produceTransactionsFullBlock = new TransformBlock<SortedList<ushort, ITransactionRegistryBlock>, RegistryFullBlock>((Func<SortedList<ushort, ITransactionRegistryBlock>, RegistryFullBlock>)ProduceTransactionsFullBlock);
             ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>> sendTransactionsBlocks = new ActionBlock<Tuple<RegistryFullBlock, RegistryShortBlock>>((Action<Tuple<RegistryFullBlock, RegistryShortBlock>>)SendTransactionsBlocks);
             TransformBlock<RegistryFullBlock, Tuple<RegistryFullBlock, RegistryShortBlock>> produceTransactionsShortBlock = new TransformBlock<RegistryFullBlock, Tuple<RegistryFullBlock, RegistryShortBlock>>((Func<RegistryFullBlock, Tuple<RegistryFullBlock, RegistryShortBlock>>)ProduceTransactionsShortBlock);
 
@@ -128,14 +128,14 @@ namespace Wist.Node.Core.Registry
             _timer?.Dispose();
         }
 
-        private SortedList<ushort, RegistryRegisterBlock> DeduplicateAndOrderTransactionRegisterBlocks(IRegistryMemPool memPool)
+        private SortedList<ushort, ITransactionRegistryBlock> DeduplicateAndOrderTransactionRegisterBlocks(IRegistryMemPool memPool)
         {
-            SortedList<ushort, RegistryRegisterBlock> transactionRegisterBlocks = memPool.DequeueBulk(-1);
+            SortedList<ushort, ITransactionRegistryBlock> transactionRegisterBlocks = memPool.DequeueBulk(-1);
 
             return transactionRegisterBlocks;
         }
 
-        private RegistryFullBlock ProduceTransactionsFullBlock(SortedList<ushort, RegistryRegisterBlock> transactionRegisterBlocks)
+        private RegistryFullBlock ProduceTransactionsFullBlock(SortedList<ushort, ITransactionRegistryBlock> transactionRegisterBlocks)
         {
             RegistryFullBlock transactionsFullBlock = new RegistryFullBlock
             {

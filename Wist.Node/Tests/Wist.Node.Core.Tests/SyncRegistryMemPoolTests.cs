@@ -76,7 +76,7 @@ namespace Wist.Node.Core.Tests
                 ICryptoService cryptoService1 = GetRandomCryptoService();
                 ushort expectedCount = 1000;
 
-                SortedList<ushort, RegistryRegisterBlock> transactionHeaders = GetTransactionHeaders(syncBlockHeight, blockHeight, nonce, expectedCount);
+                SortedList<ushort, ITransactionRegistryBlock> transactionHeaders = GetTransactionHeaders(syncBlockHeight, blockHeight, nonce, expectedCount);
                 SortedList<ushort, IKey> transactionHeaderKeys = GetTransactionHeaderKeys(hashCalculationTransactionKey, transactionHeaders);
 
                 RegistryShortBlock registryShortBlock = new RegistryShortBlock
@@ -165,13 +165,13 @@ namespace Wist.Node.Core.Tests
             Assert.Equal(expectedMostConfidentKey, actualMostConfidentKey);
         }
 
-        private static SortedList<ushort, IKey> GetTransactionHeaderKeys(IHashCalculation hashCalculationTransactionKey, SortedList<ushort, RegistryRegisterBlock> transactionHeaders)
+        private static SortedList<ushort, IKey> GetTransactionHeaderKeys(IHashCalculation hashCalculationTransactionKey, SortedList<ushort, ITransactionRegistryBlock> transactionHeaders)
         {
             SortedList<ushort, IKey> transactionHeaderKeys = new SortedList<ushort, IKey>(transactionHeaders.Count);
 
             foreach (ushort order in transactionHeaders.Keys)
             {
-                RegistryRegisterBlock registryRegisterBlock = transactionHeaders[order];
+                ITransactionRegistryBlock registryRegisterBlock = transactionHeaders[order];
                 byte[] hashBytes = hashCalculationTransactionKey.CalculateHash(registryRegisterBlock.BodyBytes);
                 IKey key = new Key16(hashBytes);
 
@@ -181,13 +181,12 @@ namespace Wist.Node.Core.Tests
             return transactionHeaderKeys;
         }
 
-        private static SortedList<ushort, RegistryRegisterBlock> GetTransactionHeaders(ulong syncBlockHeight, ulong blockHeight, uint nonce, ushort expectedCount)
+        private static SortedList<ushort, ITransactionRegistryBlock> GetTransactionHeaders(ulong syncBlockHeight, ulong blockHeight, uint nonce, ushort expectedCount)
         {
             PacketType expectedReferencedPacketType = PacketType.Transactional;
             ushort expectedReferencedBlockType = BlockTypes.Transaction_TransferFunds;
-            ulong expectedReferencedHeight = 123466774;
 
-            SortedList<ushort, RegistryRegisterBlock> transactionHeaders = new SortedList<ushort, RegistryRegisterBlock>(expectedCount);
+            SortedList<ushort, ITransactionRegistryBlock> transactionHeaders = new SortedList<ushort, ITransactionRegistryBlock>(expectedCount);
             for (ushort j = 0; j < expectedCount; j++)
             {
                 RegistryRegisterBlock registryRegisterBlock = new RegistryRegisterBlock

@@ -31,7 +31,7 @@ namespace Wist.Node.Core.Registry
     public class TransactionRegistryMemPool : IRegistryMemPool
     {
         private readonly Dictionary<ulong, Dictionary<ITransactionSourceKey, List<IKey>>> _transactionKeyBySourceKeys;
-        private readonly Dictionary<ulong, SortedDictionary<int, RegistryRegisterBlock>> _transactionRegisterBlocksOrdered;
+        private readonly Dictionary<ulong, SortedDictionary<int, ITransactionRegistryBlock>> _transactionRegisterBlocksOrdered;
         private readonly Dictionary<ulong, Dictionary<IKey, int>> _transactionOrderByTransactionKey;
         private readonly Dictionary<ulong, Dictionary<IKey, ITransactionSourceKey>> _transactionSourceKeyByTransactionKey;
         private readonly Dictionary<ulong, int> _transactionsIndicies;
@@ -65,7 +65,7 @@ namespace Wist.Node.Core.Registry
             _transactionHashKey = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
             _logger = loggerService.GetLogger(nameof(TransactionRegistryMemPool));
             _transactionsIndicies = new Dictionary<ulong, int>();
-            _transactionRegisterBlocksOrdered = new Dictionary<ulong, SortedDictionary<int, RegistryRegisterBlock>>();
+            _transactionRegisterBlocksOrdered = new Dictionary<ulong, SortedDictionary<int, ITransactionRegistryBlock>>();
             _transactionKeyBySourceKeys = new Dictionary<ulong, Dictionary<ITransactionSourceKey, List<IKey>>>();
             _transactionsShortBlocks = new Dictionary<ulong, Dictionary<ulong, HashSet<RegistryShortBlock>>>();
             _transactionOrderByTransactionKey = new Dictionary<ulong, Dictionary<IKey, int>>();
@@ -75,14 +75,14 @@ namespace Wist.Node.Core.Registry
             _synchronizationContext = statesRepository.GetInstance<ISynchronizationContext>();
         }
         
-        public bool EnqueueTransactionRegisterBlock(RegistryRegisterBlock transactionRegisterBlock)
+        public bool EnqueueTransactionRegisterBlock(ITransactionRegistryBlock transactionRegisterBlock)
         {
             lock(_sync)
             {
                 if(!_transactionsIndicies.ContainsKey(transactionRegisterBlock.SyncBlockHeight))
                 {
                     _transactionsIndicies.Add(transactionRegisterBlock.SyncBlockHeight, 0);
-                    _transactionRegisterBlocksOrdered.Add(transactionRegisterBlock.SyncBlockHeight, new SortedDictionary<int, RegistryRegisterBlock>());
+                    _transactionRegisterBlocksOrdered.Add(transactionRegisterBlock.SyncBlockHeight, new SortedDictionary<int, ITransactionRegistryBlock>());
                     _transactionKeyBySourceKeys.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<ITransactionSourceKey, List<IKey>>(new TransactionSourceKeyComparer()));
                     _transactionOrderByTransactionKey.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, int>());
                     _transactionSourceKeyByTransactionKey.Add(transactionRegisterBlock.SyncBlockHeight, new Dictionary<IKey, ITransactionSourceKey>());
@@ -148,7 +148,7 @@ namespace Wist.Node.Core.Registry
                     if(bools[i++])
                     {
                         int transactionHeaderOrder = _transactionOrderByTransactionKey[transactionsShortBlock.SyncBlockHeight][transactionsShortBlock.TransactionHeaderHashes[key]];
-                        RegistryRegisterBlock registryRegisterBlock = _transactionRegisterBlocksOrdered[transactionsShortBlock.SyncBlockHeight][transactionHeaderOrder];
+                        ITransactionRegistryBlock registryRegisterBlock = _transactionRegisterBlocksOrdered[transactionsShortBlock.SyncBlockHeight][transactionHeaderOrder];
                         IKey registryRegisterBlockKey = _transactionsRegistryHelper.GetTransactionRegistryHashKey(registryRegisterBlock);
                         BigInteger bigInteger = new BigInteger(registryRegisterBlockKey.Value.ToArray());
                         bigIntegerSum += bigInteger;
@@ -183,9 +183,9 @@ namespace Wist.Node.Core.Registry
         }
 
         //TODO: need to understand whether it is needed to pass height of Sync Block or automatically take latest one?
-        public SortedList<ushort, RegistryRegisterBlock> DequeueBulk(int maxCount)
+        public SortedList<ushort, ITransactionRegistryBlock> DequeueBulk(int maxCount)
         {
-            SortedList<ushort, RegistryRegisterBlock> items = new SortedList<ushort, RegistryRegisterBlock>();
+            SortedList<ushort, ITransactionRegistryBlock> items = new SortedList<ushort, ITransactionRegistryBlock>();
             lock(_sync)
             {
                 ulong syncBlockHeight = _synchronizationContext.LastBlockDescriptor?.BlockHeight ?? 0;
@@ -196,7 +196,7 @@ namespace Wist.Node.Core.Registry
 
                     foreach (int orderKey in _transactionRegisterBlocksOrdered[syncBlockHeight].Keys)
                     {
-                        RegistryRegisterBlock transactionRegisterBlock = _transactionRegisterBlocksOrdered[syncBlockHeight][orderKey];
+                        ITransactionRegistryBlock transactionRegisterBlock = _transactionRegisterBlocksOrdered[syncBlockHeight][orderKey];
 
                         items.Add(order++, transactionRegisterBlock);
 

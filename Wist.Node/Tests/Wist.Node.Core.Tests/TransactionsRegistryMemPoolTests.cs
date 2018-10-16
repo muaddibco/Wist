@@ -76,12 +76,12 @@ namespace Wist.Node.Core.Tests
                 transactionRegistryMemPool.EnqueueTransactionRegisterBlock(transactionRegisterBlock);
             }
 
-            SortedList<ushort, RegistryRegisterBlock> actualBlocks = transactionRegistryMemPool.DequeueBulk(-1);
+            SortedList<ushort, ITransactionRegistryBlock> actualBlocks = transactionRegistryMemPool.DequeueBulk(-1);
 
             Assert.Equal(expectedCount, (ushort)actualBlocks.Count);
             for (ushort i = 0; i < (ushort)expectedCount; i++)
             {
-                Assert.Equal(expectedBlocks[i].BlockHeight, actualBlocks[i].BlockHeight);
+                Assert.Equal(expectedBlocks[i].BlockHeight, ((RegistryRegisterBlock)actualBlocks[i]).BlockHeight);
             }
         }
 
@@ -147,12 +147,12 @@ namespace Wist.Node.Core.Tests
                 transactionRegistryMemPool.EnqueueTransactionRegisterBlock(transactionRegisterBlock);
             }
 
-            SortedList<ushort, RegistryRegisterBlock> actualBlocks = transactionRegistryMemPool.DequeueBulk(-1);
+            SortedList<ushort, ITransactionRegistryBlock> actualBlocks = transactionRegistryMemPool.DequeueBulk(-1);
 
             Assert.Equal(expectedBlocks.Count, actualBlocks.Count);
             for (ushort i = 0; i < (ushort)expectedBlocks.Count; i++)
             {
-                Assert.Equal(expectedBlocks[i].BlockHeight, actualBlocks[i].BlockHeight);
+                Assert.Equal(expectedBlocks[i].BlockHeight, ((RegistryRegisterBlock)actualBlocks[i]).BlockHeight);
             }
         }
 

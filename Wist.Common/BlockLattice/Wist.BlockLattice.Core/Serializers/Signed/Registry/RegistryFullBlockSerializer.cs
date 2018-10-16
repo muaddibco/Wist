@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Wist.BlockLattice.Core.DataModel;
 using Wist.BlockLattice.Core.DataModel.Registry;
 using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Architecture;
@@ -29,7 +30,7 @@ namespace Wist.BlockLattice.Core.Serializers.Signed.Registry
             foreach (var item in _block.TransactionHeaders)
             {
                 bw.Write(item.Key);
-                _transactionRegisterBlockSerializer.Initialize(item.Value);
+                _transactionRegisterBlockSerializer.Initialize(item.Value as BlockBase);
                 bw.Write(_transactionRegisterBlockSerializer.GetBytes());
             }
 

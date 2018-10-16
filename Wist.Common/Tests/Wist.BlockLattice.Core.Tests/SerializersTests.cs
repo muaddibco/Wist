@@ -320,7 +320,7 @@ namespace Wist.BlockLattice.Core.Tests
             byte[] expectedSignature;
             ushort expectedCount = 1000;
 
-            SortedList<ushort, RegistryRegisterBlock> transactionHeaders = new SortedList<ushort, RegistryRegisterBlock>();
+            SortedList<ushort, ITransactionRegistryBlock> transactionHeaders = new SortedList<ushort, ITransactionRegistryBlock>();
             for (ushort i = 0; i < expectedCount; i++)
             {
                 RegistryRegisterBlock registryRegisterBlock = new RegistryRegisterBlock

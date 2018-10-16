@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommonServiceLocator;
+using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using Wist.BlockLattice.Core.DataModel;
@@ -16,10 +17,12 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
     public class RegistryFullBlockParser : SyncedBlockParserBase
     {
         private readonly RegistryRegisterBlockParser _registryRegisterBlockParser;
+        private readonly Lazy<IBlockParsersRepositoriesRepository> _blockParsersRepositoriesRepository;
 
         public RegistryFullBlockParser(IIdentityKeyProvidersRegistry identityKeyProvidersRegistry, IHashCalculationsRepository hashCalculationRepository) : base(identityKeyProvidersRegistry, hashCalculationRepository)
         {
             _registryRegisterBlockParser = new RegistryRegisterBlockParser(identityKeyProvidersRegistry, hashCalculationRepository);
+            _blockParsersRepositoriesRepository = new Lazy<IBlockParsersRepositoriesRepository>(() => ServiceLocator.Current.GetInstance<IBlockParsersRepositoriesRepository>());
         }
 
         public override ushort BlockType => BlockTypes.Registry_FullBlock;
@@ -33,25 +36,34 @@ namespace Wist.BlockLattice.Core.Parsers.Registry
                 RegistryFullBlock transactionsFullBlock = new RegistryFullBlock();
                 ushort itemsCount = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span);
 
-                transactionsFullBlock.TransactionHeaders = new SortedList<ushort, RegistryRegisterBlock>(itemsCount);
+                transactionsFullBlock.TransactionHeaders = new SortedList<ushort, ITransactionRegistryBlock>(itemsCount);
                 int registryRegisterPacketSize = 0;
+                int readBytes = 2;
 
                 if (itemsCount > 0)
                 {
+                    BlockParserBase.GetPacketAndBlockTypes(spanBody.Slice(readBytes), out PacketType packetType, out ushort blockType);
+                    IBlockParsersRepository blockParsersRepository = _blockParsersRepositoriesRepository.Value.GetBlockParsersRepository(packetType);
+                    IBlockParser blockParser = blockParsersRepository.GetInstance(blockType);
                     registryRegisterPacketSize = ((spanBody.Length - 2 - Globals.DEFAULT_HASH_SIZE - Globals.NODE_PUBLIC_KEY_SIZE - Globals.SIGNATURE_SIZE) / itemsCount) - 2;
 
                     for (int i = 0; i < itemsCount; i++)
                     {
                         ushort order = BinaryPrimitives.ReadUInt16LittleEndian(spanBody.Span.Slice(2 + i * (registryRegisterPacketSize + 2)));
-                        byte[] registryRegisterPacket = spanBody.Slice(2 + i * (registryRegisterPacketSize + 2) + 2, registryRegisterPacketSize).ToArray();
+                        readBytes += 2;
 
-                        RegistryRegisterBlock registryRegisterBlock = (RegistryRegisterBlock)_registryRegisterBlockParser.Parse(registryRegisterPacket);
+                        BlockBase block = blockParser.Parse(spanBody.Slice(readBytes));
 
-                        transactionsFullBlock.TransactionHeaders.Add(order, registryRegisterBlock);
+                        readBytes += block?.RawData.Length ?? 0;
+
+                        if (block is ITransactionRegistryBlock transactionRegistryBlock)
+                        {
+                            transactionsFullBlock.TransactionHeaders.Add(order, transactionRegistryBlock);
+                        }
                     }
                 }
 
-                transactionsFullBlock.ShortBlockHash = spanBody.Slice(2 + itemsCount * (registryRegisterPacketSize + 2), Globals.DEFAULT_HASH_SIZE).ToArray();
+                transactionsFullBlock.ShortBlockHash = spanBody.Slice(readBytes, Globals.DEFAULT_HASH_SIZE).ToArray();
 
                 syncedBlockBase = transactionsFullBlock;
 

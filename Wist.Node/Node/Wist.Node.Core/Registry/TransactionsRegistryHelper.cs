@@ -18,14 +18,14 @@ namespace Wist.Node.Core.Registry
             _transactionHashKey = identityKeyProvidersRegistry.GetTransactionsIdenityKeyProvider();
         }
 
-        public IKey GetTransactionRegistryHashKey(RegistryRegisterBlock registryRegisterBlock)
+        public IKey GetTransactionRegistryHashKey(ITransactionRegistryBlock registryRegisterBlock)
         {
             IKey key = _transactionHashKey.GetKey(_cryptoService.ComputeTransactionKey(registryRegisterBlock.RawData));
 
             return key;
         }
 
-        public IKey GetTransactionRegistryTwiceHashedKey(RegistryRegisterBlock registryRegisterBlock)
+        public IKey GetTransactionRegistryTwiceHashedKey(ITransactionRegistryBlock registryRegisterBlock)
         {
             byte[] hash = _cryptoService.ComputeTransactionKey(_cryptoService.ComputeTransactionKey(registryRegisterBlock.RawData));
             IKey key = _transactionHashKey.GetKey(hash);

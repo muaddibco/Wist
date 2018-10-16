@@ -9,7 +9,7 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 
         public override ushort Version => 1;
 
-        public SortedList<ushort, RegistryRegisterBlock> TransactionHeaders { get; set; }
+        public SortedList<ushort, ITransactionRegistryBlock> TransactionHeaders { get; set; }
 
         public byte[] ShortBlockHash { get; set; }
     }

@@ -19,6 +19,9 @@ using Wist.Core.Cryptography;
 using System.Collections.Generic;
 using Wist.BlockLattice.Core.Serializers.Signed.Registry;
 using System.Linq;
+using Wist.BlockLattice.Core.Parsers;
+using CommonServiceLocator;
+using Unity;
 
 namespace Wist.BlockLattice.Core.Tests
 {
@@ -267,9 +270,16 @@ namespace Wist.BlockLattice.Core.Tests
             IIdentityKeyProvider identityKeyProvider = Substitute.For<IIdentityKeyProvider>();
             IIdentityKeyProvidersRegistry identityKeyProvidersRegistry = Substitute.For<IIdentityKeyProvidersRegistry>();
             IHashCalculationsRepository hashCalculationRepository = Substitute.For<IHashCalculationsRepository>();
+            IBlockParsersRepositoriesRepository blockParsersRepositoriesRepository = Substitute.For<IBlockParsersRepositoriesRepository>();
+            IBlockParsersRepository blockParsersRepository = Substitute.For<IBlockParsersRepository>();
 
             identityKeyProvidersRegistry.GetInstance().Returns(identityKeyProvider);
             identityKeyProvider.GetKey(null).ReturnsForAnyArgs(c => new Key32() { Value = c.Arg<Memory<byte>>() });
+            IBlockParser blockParser = new RegistryRegisterBlockParser(identityKeyProvidersRegistry, hashCalculationRepository);
+
+            ServiceLocator.Current.GetInstance<IUnityContainer>().RegisterInstance(blockParsersRepositoriesRepository);
+            blockParsersRepositoriesRepository.GetBlockParsersRepository(PacketType.Registry).ReturnsForAnyArgs(blockParsersRepository);
+            blockParsersRepository.GetInstance(0).ReturnsForAnyArgs(blockParser);
 
             ulong syncBlockHeight = 1;
             uint nonce = 4;
@@ -280,20 +290,16 @@ namespace Wist.BlockLattice.Core.Tests
 
             PacketType expectedReferencedPacketType = PacketType.Transactional;
             ushort expectedReferencedBlockType = BlockTypes.Transaction_TransferFunds;
-            ulong expectedReferencedHeight = 123466774;
 
             byte[] body;
 
             byte[] privateKey = CryptoHelper.GetRandomSeed();
-            byte[] expandedPrivateKey;
-            byte[] publicKey;
-            Ed25519.KeyPairFromSeed(out publicKey, out expandedPrivateKey, privateKey);
+            Ed25519.KeyPairFromSeed(out byte[] publicKey, out byte[] expandedPrivateKey, privateKey);
 
             ICryptoService cryptoService = Substitute.For<ICryptoService>();
             cryptoService.Sign(null).ReturnsForAnyArgs(c => Ed25519.Sign(c.Arg<byte[]>(), expandedPrivateKey));
             cryptoService.PublicKey.Returns(new Key32() { Value = publicKey });
 
-            byte[] expectedSignature;
             ushort expectedCount = 1000;
             byte[] expectedShortBlockHash;
 
@@ -342,7 +348,7 @@ namespace Wist.BlockLattice.Core.Tests
                 PacketType.Registry,
                 syncBlockHeight,
                 nonce, powHash, version,
-                BlockTypes.Registry_FullBlock, blockHeight, prevHash, body, privateKey, out expectedSignature);
+                BlockTypes.Registry_FullBlock, blockHeight, prevHash, body, privateKey, out byte[] expectedSignature);
 
             RegistryFullBlockParser registryFullBlockParser = new RegistryFullBlockParser(identityKeyProvidersRegistry, hashCalculationRepository);
             RegistryFullBlock block = (RegistryFullBlock)registryFullBlockParser.Parse(packet);
@@ -355,19 +361,20 @@ namespace Wist.BlockLattice.Core.Tests
 
             foreach (var item in transactionHeaders)
             {
+                RegistryRegisterBlock registryRegisterBlock = (RegistryRegisterBlock)block.TransactionHeaders[item.Key];
                 Assert.True(block.TransactionHeaders.ContainsKey(item.Key));
-                Assert.Equal(item.Value.PacketType, block.TransactionHeaders[item.Key].PacketType);
-                Assert.Equal(item.Value.SyncBlockHeight, block.TransactionHeaders[item.Key].SyncBlockHeight);
-                Assert.Equal(item.Value.Nonce, block.TransactionHeaders[item.Key].Nonce);
-                Assert.Equal(item.Value.PowHash, block.TransactionHeaders[item.Key].PowHash);
-                Assert.Equal(item.Value.BlockHeight, block.TransactionHeaders[item.Key].BlockHeight);
-                Assert.Equal(item.Value.BlockType, block.TransactionHeaders[item.Key].BlockType);
-                Assert.Equal(item.Value.ReferencedPacketType, block.TransactionHeaders[item.Key].ReferencedPacketType);
-                Assert.Equal(item.Value.ReferencedBlockType, block.TransactionHeaders[item.Key].ReferencedBlockType);
-                Assert.Equal(item.Value.ReferencedBodyHash, block.TransactionHeaders[item.Key].ReferencedBodyHash);
-                Assert.Equal(item.Value.ReferencedTarget, block.TransactionHeaders[item.Key].ReferencedTarget);
-                Assert.Equal(item.Value.Signature.ToArray(), block.TransactionHeaders[item.Key].Signature.ToArray());
-                Assert.Equal(item.Value.Signer, block.TransactionHeaders[item.Key].Signer);
+                Assert.Equal(item.Value.PacketType, registryRegisterBlock.PacketType);
+                Assert.Equal(item.Value.SyncBlockHeight, registryRegisterBlock.SyncBlockHeight);
+                Assert.Equal(item.Value.Nonce, registryRegisterBlock.Nonce);
+                Assert.Equal(item.Value.PowHash, registryRegisterBlock.PowHash);
+                Assert.Equal(item.Value.BlockHeight, registryRegisterBlock.BlockHeight);
+                Assert.Equal(item.Value.BlockType, registryRegisterBlock.BlockType);
+                Assert.Equal(item.Value.ReferencedPacketType, registryRegisterBlock.ReferencedPacketType);
+                Assert.Equal(item.Value.ReferencedBlockType, registryRegisterBlock.ReferencedBlockType);
+                Assert.Equal(item.Value.ReferencedBodyHash, registryRegisterBlock.ReferencedBodyHash);
+                Assert.Equal(item.Value.ReferencedTarget, registryRegisterBlock.ReferencedTarget);
+                Assert.Equal(item.Value.Signature.ToArray(), registryRegisterBlock.Signature.ToArray());
+                Assert.Equal(item.Value.Signer, registryRegisterBlock.Signer);
             }
 
             Assert.Equal(expectedShortBlockHash, block.ShortBlockHash);

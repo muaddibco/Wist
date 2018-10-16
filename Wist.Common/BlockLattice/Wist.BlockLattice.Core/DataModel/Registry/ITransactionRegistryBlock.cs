@@ -8,14 +8,20 @@ namespace Wist.BlockLattice.Core.DataModel.Registry
 {
     public interface ITransactionRegistryBlock
     {
+        ulong SyncBlockHeight { get; }
+
         ITransactionSourceKey TransactionSourceKey { get; }
 
-        PacketType ReferencedPacketType { get; set; }
+        PacketType ReferencedPacketType { get; }
 
-        ushort ReferencedBlockType { get; set; }
+        ushort ReferencedBlockType { get; }
 
-        byte[] ReferencedBodyHash { get; set; }
+        byte[] ReferencedBodyHash { get; }
 
-        byte[] ReferencedTarget { get; set; }
+        byte[] ReferencedTarget { get; }
+
+        Memory<byte> BodyBytes { get; }
+
+        Memory<byte> RawData { get; }
     }
 }
