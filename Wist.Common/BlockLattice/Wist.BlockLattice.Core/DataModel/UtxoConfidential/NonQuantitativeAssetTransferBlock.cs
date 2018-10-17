@@ -1,6 +1,5 @@
 ﻿using Wist.BlockLattice.Core.Enums;
 using Wist.Core.Cryptography;
-using Wist.Crypto.ConfidentialAssets;
 
 namespace Wist.BlockLattice.Core.DataModel.UtxoConfidential
 {

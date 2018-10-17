@@ -248,7 +248,7 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return Ri1;
         }
 
-        internal static bool VerifyRingSignature(BorromeanRingSignature ringSignature, byte[] msg, GroupElementP3[] pks, int index = -1)
+        internal static bool VerifyRingSignature(BorromeanRingSignature ringSignature, byte[] msg, GroupElementP3[] pks)
         {
             if(ringSignature.S.Length != pks.Length)
             {
@@ -259,25 +259,6 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             ulong n = (ulong)pks.Length;
             byte[] e = ringSignature.E;
 
-            string[] s_e = new string[3];
-            switch (index)
-            {
-                case 0:
-                    s_e[0] = "f38c74f0e1655d2eb8aff03e4f35d3fff6781d95dceee8e0652347ad95c62309";
-                    s_e[1] = "741940d078c7b6ff8e6775ba068687f1877eda45fd19052560be10febd3eb406";
-                    s_e[2] = "d2da942b6957a0406468ddfef63837a30362e2bf147dd6999f26e10a7c66000c";
-                    break;
-                case 1:
-                    s_e[0] = "ec80106da0bbbfe04d857caad199715a4fab49fd16a1888b75c3aef17ac5090b";
-                    s_e[1] = "41196abe8f5e39d7408da165a5cfc6cc0af79702048581178ab1b95591f3450c";
-                    s_e[2] = "755c8ddec50106899c0eddede35345708fd5fbf1f72c8a994728112e7e989f0b";
-                    break;
-                default:
-                    s_e[0] = "74b8a362b955eda625b5b0dc0826d938011e69ca7a474634c56b9db1fb734405";
-                    s_e[1] = "04e1c9f1b04cc665d7927a49be0fb98942956768fa8d6f71f6a867fdd8bc8503";
-                    s_e[2] = "f3d5e3b6d181756454ba4e0a72aa1f8bb08907961a4cefe95d3177a2f8a7930e";
-                    break;
-            }
 
             for (ulong i = 0; i < n; i++)
             {
@@ -357,6 +338,25 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return pubKeys;
         }
 
+        internal static GroupElementP3[] CalcIARPPubKeys(GroupElementP3 assetCommitment, GroupElementP3[] allAssetCommitments, byte[] h, GroupElementP3[] issuanceKeys)
+        {
+            GroupElementP3[] pubKeys = new GroupElementP3[allAssetCommitments.Length];
+
+            for (int i = 0; i < allAssetCommitments.Length; i++)
+            {
+                GroupOperations.ge_p3_to_cached(out GroupElementCached elementCached, ref allAssetCommitments[i]);
+                GroupOperations.ge_sub(out GroupElementP1P1 p1P1, ref assetCommitment, ref elementCached);
+                GroupOperations.ge_p1p1_to_p3(out pubKeys[i], ref p1P1);
+
+                GroupOperations.ge_scalarmult_p3(out GroupElementP3 p3, h, ref issuanceKeys[i]);
+                GroupOperations.ge_p3_to_cached(out elementCached, ref p3);
+                GroupOperations.ge_add(out p1P1, ref pubKeys[i], ref elementCached);
+                GroupOperations.ge_p1p1_to_p3(out pubKeys[i], ref p1P1);
+            }
+
+            return pubKeys;
+        }
+
         /// <summary>
         /// Calculates blinding factor that will be used for creating blinded Asset Commitment that will be set in output
         /// </summary>
@@ -410,7 +410,111 @@ namespace Wist.Crypto.Experiment.ConfidentialAssets
             return res;
         }
 
+        internal static SurjectionProof CreateIssuanceSurjectionProof(GroupElementP3 assetCommitment, byte[] c, byte[][] assetIds, GroupElementP3[] issuanceKeys, int index, byte[] issuancePrivateKey)
+        {
+            int n = assetIds.Length;
 
+            if(n == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(assetIds), "list of non-blinded asset IDs is empty");
+            }
+
+            if(n != issuanceKeys.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(issuanceKeys), "lists of non-blinded asset IDs and issuance keys are not of the same length");
+            }
+
+            if(index < 0 || index >= n)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), "designated index is out of bounds");
+            }
+
+            GroupElementP3[] nonBlindedAssetCommitments = new GroupElementP3[n];
+            for (int i = 0; i < n; i++)
+            {
+                nonBlindedAssetCommitments[i] = CreateNonblindedAssetCommitment(assetIds[i]);
+            }
+
+            IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak512();
+            for (int i = 0; i < n; i++)
+            {
+                byte[] a = new byte[32];
+                GroupOperations.ge_p3_tobytes(a, 0, ref nonBlindedAssetCommitments[i]);
+                hasher.TransformBytes(a);
+            }
+            for (int i = 0; i < n; i++)
+            {
+                byte[] a = new byte[32];
+                GroupOperations.ge_p3_tobytes(a, 0, ref issuanceKeys[i]);
+                hasher.TransformBytes(a);
+            }
+
+            Span<byte> span = new Span<byte>(hasher.TransformFinal().GetBytes());
+            byte[] msg = span.Slice(0, 32).ToArray();
+            byte[] h = span.Slice(32, 32).ToArray();
+            ScalarOperations.sc_reduce32(h);
+
+            GroupElementP3[] pubKeys = CalcIARPPubKeys(assetCommitment, nonBlindedAssetCommitments, h, issuanceKeys);
+
+            byte[] p = new byte[32];
+            ScalarOperations.sc_muladd(p, h, issuancePrivateKey, c);
+
+            BorromeanRingSignature borromeanRingSignature = CreateRingSignature(msg, pubKeys, index, p);
+
+            SurjectionProof surjectionProof = new SurjectionProof
+            {
+                H = issuanceKeys,
+                Rs = borromeanRingSignature
+            };
+
+            return surjectionProof;
+        }
+
+        internal static bool VerifyIssuanceSurjectionProof(SurjectionProof surjectionProof, GroupElementP3 assetCommitment, byte[][] assetIds)
+        {
+            int n = assetIds.Length;
+
+            if (n == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(assetIds), "list of non-blinded asset IDs is empty");
+            }
+
+            if (n != surjectionProof.H.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(surjectionProof), "number of issuance keys does not match length of assetID list");
+            }
+
+            GroupElementP3[] nonBlindedAssetCommitments = new GroupElementP3[n];
+            for (int i = 0; i < n; i++)
+            {
+                nonBlindedAssetCommitments[i] = CreateNonblindedAssetCommitment(assetIds[i]);
+            }
+
+            IHash hasher = HashFactory.Crypto.SHA3.CreateKeccak512();
+            for (int i = 0; i < n; i++)
+            {
+                byte[] a = new byte[32];
+                GroupOperations.ge_p3_tobytes(a, 0, ref nonBlindedAssetCommitments[i]);
+                hasher.TransformBytes(a);
+            }
+            for (int i = 0; i < n; i++)
+            {
+                byte[] a = new byte[32];
+                GroupOperations.ge_p3_tobytes(a, 0, ref surjectionProof.H[i]);
+                hasher.TransformBytes(a);
+            }
+
+            Span<byte> span = new Span<byte>(hasher.TransformFinal().GetBytes());
+            byte[] msg = span.Slice(0, 32).ToArray();
+            byte[] h = span.Slice(32, 32).ToArray();
+            ScalarOperations.sc_reduce32(h);
+
+            GroupElementP3[] pubKeys = CalcIARPPubKeys(assetCommitment, nonBlindedAssetCommitments, h, surjectionProof.H);
+
+            bool res = VerifyRingSignature(surjectionProof.Rs, msg, pubKeys);
+
+            return res;
+        }
 
         #endregion Range Proofs
 

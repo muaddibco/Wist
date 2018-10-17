@@ -103,6 +103,7 @@ namespace Wist.Crypto.Experiment
 
         static void Main(string[] args)
         {
+            TestIssuanceProofs();
 
             TestGenerateRct();
             TestAssetRangeProofs();
@@ -251,6 +252,30 @@ namespace Wist.Crypto.Experiment
             byte[] assetDenom = GetRandomSeed();
         }
 
+        private static void TestIssuanceProofs()
+        {
+            int totalAssets = 9;
+            int transferredAssetIndex = 4;
+            byte[][] assetIds = new byte[totalAssets][];
+            byte[][] issuanceSecretKeys = new byte[totalAssets][];
+            GroupElementP3[] issuanceKeys = new GroupElementP3[totalAssets];
+            GroupElementP3[] nonBlindedAssetCommitments = new GroupElementP3[totalAssets];
+
+            for (int i = 0; i < totalAssets; i++)
+            {
+                assetIds[i] = GetRandomSeed(true);
+                nonBlindedAssetCommitments[i] = ConfidentialAssetsHelper.CreateNonblindedAssetCommitment(assetIds[i]);
+                issuanceSecretKeys[i] = GetRandomSeed(true);
+                GroupOperations.ge_scalarmult_base(out issuanceKeys[i], issuanceSecretKeys[i], 0);
+            }
+
+            byte[] blindingFactor = new byte[32];
+            GroupElementP3 blindedAssetCommitment = ConfidentialAssetsHelper.BlindAssetCommitment(nonBlindedAssetCommitments[transferredAssetIndex], blindingFactor);
+
+            SurjectionProof surjectionProof = ConfidentialAssetsHelper.CreateIssuanceSurjectionProof(blindedAssetCommitment, blindingFactor, assetIds, issuanceKeys, transferredAssetIndex, issuanceSecretKeys[transferredAssetIndex]);
+            bool res = ConfidentialAssetsHelper.VerifyIssuanceSurjectionProof(surjectionProof, blindedAssetCommitment, assetIds);
+        }
+
         private static void TestAssetRangeProofs()
         {
             // 1. There is "record encryption key" - seems some random 32 byte array
@@ -280,9 +305,9 @@ namespace Wist.Crypto.Experiment
             BorromeanRingSignature rs1 = ConfidentialAssetsHelper.CreateRingSignature(msg, pks1, 0, sk1);
             BorromeanRingSignature rs2 = ConfidentialAssetsHelper.CreateRingSignature(msg, pks1, 1, sk2);
             BorromeanRingSignature rs3 = ConfidentialAssetsHelper.CreateRingSignature(msg, pks1, 2, sk3);
-            bool res1 = ConfidentialAssetsHelper.VerifyRingSignature(rs1, msg, pks1, 0);
-            bool res2 = ConfidentialAssetsHelper.VerifyRingSignature(rs2, msg, pks1, 1);
-            bool res3 = ConfidentialAssetsHelper.VerifyRingSignature(rs3, msg, pks1, 2);
+            bool res1 = ConfidentialAssetsHelper.VerifyRingSignature(rs1, msg, pks1);
+            bool res2 = ConfidentialAssetsHelper.VerifyRingSignature(rs2, msg, pks1);
+            bool res3 = ConfidentialAssetsHelper.VerifyRingSignature(rs3, msg, pks1);
 
             int totalAssets = 9;
             int transferredAssetIndex = 4;
