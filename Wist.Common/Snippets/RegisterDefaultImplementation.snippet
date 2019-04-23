@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>RegisterDefaultImplementation</Title>
+      <Author>MuaddibCo</Author>
+      <Description>
+      </Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>regd</Shortcut>
+    </Header>
+    <Snippet>
+      <Imports>
+        <Import>
+          <Namespace>Wist.Core.Architecture</Namespace>
+        </Import>
+      </Imports>
+      <References>
+        <Reference>
+          <Assembly>Wist.Core.Architecture</Assembly>
+        </Reference>
+        <Reference>
+          <Assembly>Wist.Core.Architecture.Enums</Assembly>
+        </Reference>
+      </References>
+      <Declarations>
+        <Object Editable="true">
+          <ID>InterfaceName</ID>
+          <ToolTip>
+          </ToolTip>
+          <Default>IInterface</Default>
+          <Function>
+          </Function>
+          <Type>
+          </Type>
+        </Object>
+      </Declarations>
+      <Code Language="csharp" Delimiter="$" Kind="type decl"><![CDATA[    [RegisterDefaultImplementation(typeof(I$InterfaceName$), Lifetime = LifetimeManagement.Singleton)]
+    public class $InterfaceName$ : I$InterfaceName$
+    {
+    }
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

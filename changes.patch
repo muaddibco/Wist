@@ -1,0 +1,147 @@
+diff --git a/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/copyToClipField.component.ts b/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/copyToClipField.component.ts
+deleted file mode 100644
+index 2104aba..0000000
+--- a/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/copyToClipField.component.ts
++++ /dev/null
+@@ -1,20 +0,0 @@
+-import { Component } from '@angular/core';
+-
+-@Component({
+-  selector: 'copyToClip',
+-  template: `
+-    <input  type="text" ng-readonly="true" #inputText/>
+-    <button (click)="copyToClip(inputText)">copy</button>
+-    {{clickMessage}}`
+-})
+-export class CopyToClipFieldComponent {
+-
+-    clickMessage = '';
+-
+-  copyToClip(inputText) {
+-    this.clickMessage = 'text copied to clipboard!';
+-    inputText.select();
+-    document.execCommand('copy');
+-    inputText.setSelectionRange(0, 0);
+-  }
+-}
+diff --git a/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.html b/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.html
+deleted file mode 100644
+index 68e7826..0000000
+--- a/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.html
++++ /dev/null
+@@ -1,11 +0,0 @@
+-<!DOCTYPE html>
+-<html>
+-<head>
+-    <meta charset="utf-8" />
+-    <title></title>
+-</head>
+-<body>
+-  <copyToClipField.component></copyToClipField.component>
+-  <copyToClipField.component></copyToClipField.component>
+-</body>
+-</html>
+diff --git a/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.js b/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.js
+deleted file mode 100644
+index 25bc6ce..0000000
+--- a/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.js
++++ /dev/null
+@@ -1,3 +0,0 @@
+-"use strict";
+-Object.defineProperty(exports, "__esModule", { value: true });
+-//# sourceMappingURL=user.component.js.map
+\ No newline at end of file
+diff --git a/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.js.map b/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.js.map
+deleted file mode 100644
+index f751813..0000000
+--- a/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.js.map
++++ /dev/null
+@@ -1 +0,0 @@
+-{"version":3,"file":"user.component.js","sourceRoot":"","sources":["user.component.ts"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.ts b/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.ts
+deleted file mode 100644
+index 55ca7f3..0000000
+--- a/Portal/Wist.Server.Portal/ClientApp/src/app/account-pages/user.component.ts
++++ /dev/null
+@@ -1,19 +0,0 @@
+-import { Component, OnInit } from '@angular/core';
+-import { HttpClient } from '@angular/common/http';
+-import { Router, ActivatedRoute } from '@angular/router';
+-
+-@Component({
+-  templateUrl: './user.component.html'
+-})
+-
+-export class UserComponent implements OnInit {
+-  constructor(private _http: HttpClient, private _publicSpendKey: string, private _publicViewKey: string) {
+-  }
+-
+-  ngOnInit() { }
+-
+-  get publicSpendKey() { return this._publicSpendKey; }
+-
+-  get publicViewKey() { return this._publicViewKey; }
+-
+-}
+diff --git a/Portal/Wist.Server.Portal/ClientApp/src/app/app.module.ts b/Portal/Wist.Server.Portal/ClientApp/src/app/app.module.ts
+index cb85333..d3bd3ce 100644
+--- a/Portal/Wist.Server.Portal/ClientApp/src/app/app.module.ts
++++ b/Portal/Wist.Server.Portal/ClientApp/src/app/app.module.ts
+@@ -16,7 +16,7 @@ import { AuthenticationService } from './services/authentication.service';
+ import { IdentitiesService } from './services/identities.service';
+ import { IdentityProviderComponent } from './account-pages/identityProvider.component';
+ import { IdentityConsumerComponent } from './account-pages/identityConsumer.component';
+-import { UserComponent } from './account-pages/user.component';
++import { UserComponent } from './UserDetails/userDetails.component';
+ import { RegisterComponent } from './register/register.component';
+ 
+ @NgModule({
+diff --git a/Portal/Wist.Server.Portal/ClientApp/src/app/nav-menu/nav-menu.component.html b/Portal/Wist.Server.Portal/ClientApp/src/app/nav-menu/nav-menu.component.html
+index 6a6b5eb..d3fa670 100644
+--- a/Portal/Wist.Server.Portal/ClientApp/src/app/nav-menu/nav-menu.component.html
++++ b/Portal/Wist.Server.Portal/ClientApp/src/app/nav-menu/nav-menu.component.html
+@@ -17,6 +17,9 @@
+           <li class="nav-item" [routerLinkActive]='["link-active"]'>
+             <a class="nav-link text-dark" [routerLink]='["/register"]'>Register</a>
+           </li>
++          <li class="nav-item" [routerLinkActive]='["link-active"]'>
++            <a class="nav-link text-dark" [routerLink]='["/UserDetails"]'>Users</a>
++          </li>
+         </ul>
+       </div>
+     </div>
+diff --git a/Portal/Wist.Server.Portal/Wist.Server.Portal.csproj b/Portal/Wist.Server.Portal/Wist.Server.Portal.csproj
+index be67503..386f944 100644
+--- a/Portal/Wist.Server.Portal/Wist.Server.Portal.csproj
++++ b/Portal/Wist.Server.Portal/Wist.Server.Portal.csproj
+@@ -87,23 +87,27 @@
+     <None Remove="ClientApp\src\app\account-pages\user.component.ts" />
+     <None Remove="ClientApp\src\app\interceptor\errorInterceptor.ts" />
+     <None Remove="ClientApp\src\app\interceptor\httpInterceptor.ts" />
++    <None Remove="ClientApp\src\app\Models\user.model.ts" />
+     <None Remove="ClientApp\src\app\register\register.component.ts" />
+     <None Remove="ClientApp\src\app\services\authentication.service.ts" />
+     <None Remove="ClientApp\src\app\services\authorizationCheck.ts" />
+     <None Remove="ClientApp\src\app\services\identities.service.ts" />
++    <None Remove="ClientApp\src\app\services\user.Service.ts" />
+   </ItemGroup>
+ 
+   <ItemGroup>
+-    <TypeScriptCompile Include="ClientApp\src\app\account-pages\copyToClipField.component.ts" />
++    <TypeScriptCompile Include="ClientApp\src\app\UserDetails\copyToClipField.component.ts" />
+     <TypeScriptCompile Include="ClientApp\src\app\account-pages\identityConsumer.component.ts" />
+     <TypeScriptCompile Include="ClientApp\src\app\account-pages\identityProvider.component.ts" />
+-    <TypeScriptCompile Include="ClientApp\src\app\account-pages\user.component.ts" />
++    <TypeScriptCompile Include="ClientApp\src\app\UserDetails\userDetails.component.ts" />
+     <TypeScriptCompile Include="ClientApp\src\app\interceptor\errorInterceptor.ts" />
+     <TypeScriptCompile Include="ClientApp\src\app\interceptor\httpInterceptor.ts" />
++    <TypeScriptCompile Include="ClientApp\src\app\Models\user.model.ts" />
+     <TypeScriptCompile Include="ClientApp\src\app\register\register.component.ts" />
+     <TypeScriptCompile Include="ClientApp\src\app\services\authentication.service.ts" />
+     <TypeScriptCompile Include="ClientApp\src\app\services\authorizationCheck.ts" />
+     <TypeScriptCompile Include="ClientApp\src\app\services\identities.service.ts" />
++    <TypeScriptCompile Include="ClientApp\src\app\services\user.Service.ts" />
+   </ItemGroup>
+ 
+   <ItemGroup>

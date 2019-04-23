@@ -1,0 +1,30 @@
+﻿ICommunicationService
+	Listens to incoming connections
+	Accepts incoming connections
+	Starts receive 
+	Process receive
+		every bulk of bytes gets send to parser
+	Post message for sending to destinations
+
+Implementations of ICommunicationService
+	UdpCommunicationService
+	TcpSustainedCommunicationService
+	TcpSpontaneousCommunicationService
+
+ICommunicationChannel
+	Public Key of remote node or account
+	SocketAsyncEventArgs for receiving
+	SocketAsyncEventArgs for sending
+
+INodesResolutionService - responsible for resolving Public Key of nodes to IP:Port
+	Initialize
+	UpdateKnownNodes - should work every minute (?)
+	ResolveNode - receives public key and returns IP
+
+	Who needs to know other nodes?
+		1. Group of Synchronization - here it is easy, they need to register themselves at some known servers over Internet
+		2. Groups of forks checking - 
+
+How to send data:
+	1. Back to nodes who requested information - upon receiving request from some node current node obtains requested information and writes it to the queue of outcoming messages. Communication service gets message from there and checks whether communication channels with required node is established or not. If yes - it writes message to its outgoing socket, otherwise it initializes connection with remote node.
+	2. Packets to any other node - here we can define incoming queue in ICommunicationService class. On communication service class will be to detect IP and port of nodes. 

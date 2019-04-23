@@ -1,0 +1,310 @@
+﻿<Window x:Class="Wist.BlockchainExplorer.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:viewModels="clr-namespace:Wist.BlockchainExplorer.Desktop.ViewModels"
+        xmlns:models="clr-namespace:Wist.BlockchainExplorer.Desktop.Models"
+        xmlns:transactionalDataModel="clr-namespace:Wist.Blockchain.Core.DataModel.Transactional;assembly=Wist.Blockchain.Core"
+        xmlns:converters="clr-namespace:Wist.BlockchainExplorer.Desktop.Converters"
+        xmlns:local="clr-namespace:Wist.BlockchainExplorer.Desktop"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        d:DataContext="{d:DesignInstance Type=viewModels:MainViewModel, IsDesignTimeCreatable=False}">
+    <Window.Resources>
+
+        <converters:ByteArrayToStringConverter x:Key="byteArrayToStringConverter"/>
+
+        <CollectionViewSource x:Key="syncBlocks" Source="{Binding SyncBlockViewModel.SyncBlockInfos}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="SyncBlockHeight"/>
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+        <CollectionViewSource x:Key="combinedBlocks" Source="{Binding SyncBlockViewModel.CombinedBlockInfos}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="BlockHeight" />
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+        <CollectionViewSource x:Key="fullBlocks" Source="{Binding SyncBlockViewModel.RegistryFullBlockInfos}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="SyncBlockHeight" />
+                <scm:SortDescription PropertyName="Round" />
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+        <CollectionViewSource x:Key="transactionHeaders" Source="{Binding SyncBlockViewModel.TransactionHeaders}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="OrderInBlock" />
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+
+        <DataTemplate DataType="{x:Type models:AccountedTransactionHeaderInfo}">
+            <Border BorderThickness="1">
+                <Grid>
+                    <Grid.Resources>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Style.Setters>
+                                <Setter Property="Margin" Value="2"/>
+                            </Style.Setters>
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Sync:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding SyncBlockHeight}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="0" Text="Height:"/>
+                    <TextBlock Grid.Column="3" Grid.Row="0" Text="{Binding BlockHeight}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="PacketType:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding PacketType}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="1" Text="BlockType:"/>
+                    <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding BlockType}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Target:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding Target}"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type models:UtxoTransactionHeaderInfo}">
+            <Border BorderThickness="1">
+                <Grid>
+                    <Grid.Resources>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Style.Setters>
+                                <Setter Property="Margin" Value="2"/>
+                            </Style.Setters>
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Sync:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding SyncBlockHeight}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="0" Text="PacketType:"/>
+                    <TextBlock Grid.Column="3" Grid.Row="0" Text="{Binding PacketType}"/>
+                    <TextBlock Grid.Column="4" Grid.Row="0" Text="BlockType:"/>
+                    <TextBlock Grid.Column="5" Grid.Row="0" Text="{Binding BlockType}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="TransactionKey:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="5" Text="{Binding TransactionKey}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="KeyImage:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="5" Text="{Binding KeyImage}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="3" Text="DestinationKey:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="5" Text="{Binding Target}"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type transactionalDataModel:TransferFundsBlock}">
+            <Border BorderThickness="1">
+                <Grid>
+                    <Grid.Resources>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Style.Setters>
+                                <Setter Property="Margin" Value="2"/>
+                            </Style.Setters>
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Sync:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding SyncBlockHeight}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="0" Text="Height:"/>
+                    <TextBlock Grid.Column="3" Grid.Row="0" Text="{Binding BlockHeight}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="PacketType:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding PacketType}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="1" Text="BlockType:"/>
+                    <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding BlockType}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="UpToDate Funds:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding UptodateFunds}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="3" Text="Target:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="3" Text="{Binding TargetOriginalHash, Converter={StaticResource byteArrayToStringConverter}}"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type transactionalDataModel:IssueGroupedAssets}">
+            <Border BorderThickness="1">
+                <Grid>
+                    <Grid.Resources>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Style.Setters>
+                                <Setter Property="Margin" Value="2"/>
+                            </Style.Setters>
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Sync:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding SyncBlockHeight}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="0" Text="Height:"/>
+                    <TextBlock Grid.Column="3" Grid.Row="0" Text="{Binding BlockHeight}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="PacketType:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding PacketType}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="1" Text="BlockType:"/>
+                    <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding BlockType}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Tag ID:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding TagId}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="3" Text="Issuance Info:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="3" Text="{Binding IssuanceInfo}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="4" Text="AssetIds:"/>
+                    <ListView Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2" ItemsSource="{Binding IssuedAssetInfo}">
+                        
+                    </ListView>
+                    <ListView Grid.Column="2" Grid.Row="5" Grid.ColumnSpan="2" ItemsSource="{Binding IssuedAssetIds}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource byteArrayToStringConverter}}"/>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type transactionalDataModel:TransferAssetToUtxo}">
+            <Border BorderThickness="1">
+                <Grid>
+                    <Grid.Resources>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Style.Setters>
+                                <Setter Property="Margin" Value="2"/>
+                            </Style.Setters>
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Sync:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding SyncBlockHeight}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="0" Text="Height:"/>
+                    <TextBlock Grid.Column="3" Grid.Row="0" Text="{Binding BlockHeight}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="PacketType:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding PacketType}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="1" Text="BlockType:"/>
+                    <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding BlockType}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Tag ID:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding TagId}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="3" Text="Destination Key:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="3" Text="{Binding DestinationKey, Converter={StaticResource byteArrayToStringConverter}}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="4" Text="Transaction Public Key:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="3" Text="{Binding TransactionPublicKey, Converter={StaticResource byteArrayToStringConverter}}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="5" Text="Asset Id:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="5" Grid.ColumnSpan="3" Text="{Binding AssetId, Converter={StaticResource byteArrayToStringConverter}}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="6" Text="Asset Commitment:"/>
+                    <TextBlock Grid.Column="1" Grid.Row="6" Grid.ColumnSpan="3" Text="{Binding AssetCommitment, Converter={StaticResource byteArrayToStringConverter}}"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <ListView Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" ItemsSource="{Binding Source={StaticResource syncBlocks}}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding SyncBlockHeight}"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <ListView Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" ItemsSource="{Binding Source={StaticResource combinedBlocks}}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock>
+                        <Run Text="["/>
+                        <Run Text="{Binding SyncBlockHeight}"/>
+                        <Run Text=":"/>
+                        <Run Text="{Binding BlockHeight}"/>
+                        <Run Text="]"/>
+                        <Run Text=" = "/>
+                        <Run Text="{Binding CombinedRegistryBlocksCount}"/>
+                        <Run Text=" block(s)"/>
+                    </TextBlock>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <ListView Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" ItemsSource="{Binding Source={StaticResource fullBlocks}}" SelectedValue="{Binding SyncBlockViewModel.SelectedRegistryFullBlockInfo, Mode=TwoWay}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock>
+                        <Run Text="["/>
+                        <Run Text="{Binding SyncBlockHeight}"/>
+                        <Run Text=":"/>
+                        <Run Text="{Binding Round}"/>
+                        <Run Text="]"/>
+                        <Run Text=" = "/>
+                        <Run Text="{Binding TransactionsCount}"/>
+                        <Run Text=" transaction(s)"/>
+                    </TextBlock>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <ListView Grid.Column="3" Grid.Row="0" ItemsSource="{Binding Source={StaticResource transactionHeaders}}">
+            
+        </ListView>
+        <ListView Grid.Column="3" Grid.Row="1" ItemsSource="{Binding SyncBlockViewModel.Transactions}">
+
+        </ListView>
+    </Grid>
+</Window>

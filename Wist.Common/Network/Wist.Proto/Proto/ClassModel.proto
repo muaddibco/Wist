@@ -1,0 +1,115 @@
+﻿syntax = "proto3";
+package Wist.Proto.Model;
+
+service SyncManager {
+	rpc GetLastSyncBlock(Empty) returns (SyncBlockDescriptor) {}
+	rpc GetDeltaSyncBlocks(ByHeightRequest) returns (stream SyncBlockDescriptor) {}
+	rpc GetAllCombinedRegistryBlocksPerSync(ByHeightRequest) returns (stream CombinedRegistryBlockInfo) {}
+	rpc GetAllCombinedRegistryBlocksSinceSync(ByHeightRequest) returns (stream CombinedRegistryBlockInfo) {}
+	rpc GetCombinedRegistryBlocksInfoSinceHeight(ByHeightRequest) returns (stream CombinedRegistryBlockInfo) {}
+	rpc GetCombinedRegistryBlocksContentSinceHeight(ByHeightRequest) returns (stream TransactionInfo) {}
+	rpc GetTransactionRegistryBlockInfos(FullBlockRequest) returns (stream TransactionRegistryBlockInfo) {}
+	rpc GetFullRegistryBlock(HeightHashRequest) returns (TransactionInfo) {}
+	rpc IsKeyImageWitnessed(TransactionalBlockRequest) returns (BoolResult) {}
+}
+
+service TransactionalChainManager {
+	rpc GetLastTransactionalBlock(TransactionalBlockRequest) returns (TransactionalBlockEssense) {}
+	rpc GetTransactionInfos(FullBlockRequest) returns (stream TransactionInfo) {}
+	rpc GetTransactionInfo(TransactionRequest) returns (TransactionInfo) {}
+}
+
+message Empty {}
+
+message ByHeightRequest {
+	uint64 Height = 1;
+}
+
+message SyncBlockDescriptor {
+	uint64 Height = 1;
+	bytes Hash = 2;
+}
+
+message SyncBlockInfo {
+	SyncBlockDescriptor Descriptor = 1;
+	uint32 Round = 2;
+	uint64 ReportedTime = 3;
+	uint32 CombinedRegistryBlocksCount = 4;
+}
+
+message FullBlockDescriptor {
+	uint64 SyncBlockHeight = 1;
+	uint64 Round = 2;
+	uint32 TransactionsCount = 3;
+	bytes BlockHash = 4;
+}
+
+message CombinedRegistryBlockInfo {
+	uint64 SyncBlockHeight = 1;
+	uint64 Height = 2;
+	uint32 CombinedRegistryBlocksCount = 3;
+	repeated FullBlockDescriptor BlockDescriptors = 4;
+}
+
+message AccountedTransactionHeaderDescriptor {
+	uint64 SyncBlockHeight = 1;
+	uint32 ReferencedPacketType = 2;
+	uint32 ReferencedBlockType = 3;
+	bytes ReferencedTarget = 4;
+	uint64 ReferencedHeight = 5;
+}
+
+message UtxoTransactionHeaderDescriptor {
+	uint64 SyncBlockHeight = 1;
+	uint32 ReferencedPacketType = 2;
+	uint32 ReferencedBlockType = 3;
+	bytes ReferencedTarget = 4;
+	bytes ReferencedTransactionKey = 5;
+	bytes KeyImage = 6;
+}
+
+message TransactionRegistryBlockInfo {
+	oneof Header {
+		AccountedTransactionHeaderDescriptor AccountedHeader = 1;
+		UtxoTransactionHeaderDescriptor UtxoHeader = 2;
+	}
+}
+
+message TransactionInfo {
+	uint64 SyncBlockHeight = 1;
+	uint32 PacketType = 2;
+	uint32 BlockType = 3;
+	bytes Content = 4;
+	bool IsEmpty = 5;
+}
+
+message TransactionalBlockRequest {
+	bytes PublicKey = 1;
+}
+
+message FullBlockRequest {
+	uint64 SyncBlockHeight = 1;
+	uint64 Round = 2;
+}
+
+message TransactionRequest {
+	uint64 SyncBlockHeight = 1;
+	uint64 Round = 2;
+	bytes Hash = 3;
+	bool IsUtxo = 4;
+}
+
+message HeightHashRequest {
+	uint64  Height = 1;
+	bytes	Hash = 2;
+}
+
+message TransactionalBlockEssense {
+	uint64 Height = 1;
+	bytes Hash = 2;	
+	uint64 UpToDateFunds = 3;
+}
+
+message BoolResult {
+	bool Result = 1;
+}
